@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { createSupabaseClient } from '@/lib/supabase';
 import { Database } from '@/types/supabase';
+import Image from 'next/image';
 
 export default function BookDetailPage() {
   const rawBookId = useParams().book_id;
@@ -86,17 +87,52 @@ export default function BookDetailPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-4 text-gray-800 dark:text-white">
-      <h1 className="text-2xl font-bold">{data.book.title}</h1>
-      <p className="text-sm text-gray-500 mb-2">{data.book.author}</p>
+    <div className="w-full max-w-3xl mx-auto px-4 py-6 space-y-6">
+      {/* 책 정보 카드 */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+        <Image
+          src={data.book.cover_url ?? '/images/default-book-cover.png'}
+          alt="Book cover"
+          width={128}
+          height={192}
+          className="rounded shadow object-cover"
+        />
+        <div className="flex-1 space-y-2">
+          <h1 className="text-3xl font-bold">{data.book.title}</h1>
+          <p className="text-sm text-gray-500">{data.book.author}</p>
 
-      <p className="mt-2 text-sm">
-        Progress: {data.userBook?.progress ?? 0} / {data.book.total_pages} pages
-      </p>
+          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded h-2">
+            <div
+              className="bg-green-500 h-2 rounded"
+              style={{
+                width: `${
+                  data.book.total_pages && data.userBook?.progress
+                    ? Math.floor((data.userBook.progress / data.book.total_pages) * 100)
+                    : 0
+                }%`,
+              }}
+            />
+          </div>
+          <p className="text-xs text-gray-500">
+            {data.userBook?.progress ?? 0} / {data.book.total_pages} 페이지
+          </p>
+        </div>
+      </div>
 
-      <h2 className="mt-6 font-semibold">📓 Entries</h2>
+      {/* 기록 섹션 헤더 */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold">📓 독서 기록</h2>
+        <a
+          href={`/protected/books/${bookId}/entries/new`}
+          className="inline-block bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 text-sm"
+        >
+          ➕ 기록 추가하기
+        </a>
+      </div>
+
+      {/* 기록 목록 */}
       {data.entries && data.entries.length > 0 ? (
-        <ul className="mt-2 space-y-2">
+        <ul className="space-y-2">
           {data.entries.map((entry) => (
             <li key={entry.id} className="bg-gray-100 dark:bg-gray-800 p-3 rounded">
               <p className="text-sm">{entry.summary}</p>
@@ -107,7 +143,7 @@ export default function BookDetailPage() {
           ))}
         </ul>
       ) : (
-        <p className="text-sm text-gray-500">No entries yet.</p>
+        <p className="text-sm text-gray-500">아직 작성된 기록이 없습니다.</p>
       )}
     </div>
   );
