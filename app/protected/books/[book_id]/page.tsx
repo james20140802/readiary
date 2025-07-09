@@ -32,7 +32,7 @@ export default function BookDetailPage() {
         .select(
           `
             id, progress, started_at, last_read_page, is_finished,
-            books (
+            book:books (
               id,
               title,
               author,
@@ -40,7 +40,7 @@ export default function BookDetailPage() {
               isbn,
               total_pages
             ),
-            entries (
+            entries:entries (
               id,
               summary,
               from_page,
@@ -57,7 +57,7 @@ export default function BookDetailPage() {
 
       if (!error && data) {
         setData({
-          book: data.books,
+          book: data.book,
           userBook: {
             id: data.id,
             progress: data.progress,
@@ -123,7 +123,7 @@ export default function BookDetailPage() {
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">📓 독서 기록</h2>
         <a
-          href={`/protected/books/${bookId}/entries/new`}
+          href={`/protected/books/${bookId}/entry/new`}
           className="inline-block bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 text-sm"
         >
           ➕ 기록 추가하기
@@ -134,9 +134,12 @@ export default function BookDetailPage() {
       {data.entries && data.entries.length > 0 ? (
         <ul className="space-y-2">
           {data.entries.map((entry) => (
-            <li key={entry.id} className="bg-gray-100 dark:bg-gray-800 p-3 rounded">
-              <p className="text-sm">{entry.summary}</p>
-              <p className="text-xs text-gray-500 mt-1">
+            <li
+              key={entry.id}
+              className="bg-gray-100 dark:bg-gray-800 p-3 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+            >
+              <p className="text-base text-gray-800 dark:text-gray-100">{entry.summary}</p>
+              <p className="text-sm text-gray-500 mt-2">
                 {new Date(entry.date).toLocaleDateString()}
               </p>
             </li>
