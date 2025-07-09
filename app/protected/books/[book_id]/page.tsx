@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { createSupabaseClient } from '@/lib/supabase';
 import { Database } from '@/types/supabase';
 import Image from 'next/image';
+import Link from 'next/link';
 
 export default function BookDetailPage() {
   const rawBookId = useParams().book_id;
@@ -134,14 +135,16 @@ export default function BookDetailPage() {
       {data.entries && data.entries.length > 0 ? (
         <ul className="space-y-2">
           {data.entries.map((entry) => (
-            <li
-              key={entry.id}
-              className="bg-gray-100 dark:bg-gray-800 p-3 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition"
-            >
-              <p className="text-base text-gray-800 dark:text-gray-100">{entry.summary}</p>
-              <p className="text-sm text-gray-500 mt-2">
-                {new Date(entry.date).toLocaleDateString()}
-              </p>
+            <li key={entry.id}>
+              <Link
+                href={`/protected/entry/${entry.id}`}
+                className="block bg-gray-100 dark:bg-gray-800 p-5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 hover:shadow-md transition cursor-pointer"
+              >
+                <p className="text-base text-gray-800 dark:text-gray-100">{entry.summary}</p>
+                <p className="text-sm text-gray-500 mt-2">
+                  {new Date(entry.date).toLocaleDateString()}
+                </p>
+              </Link>
             </li>
           ))}
         </ul>
