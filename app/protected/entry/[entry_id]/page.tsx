@@ -93,7 +93,10 @@ export default function EntryDetailPage() {
     <Fragment>
       <div className="space-y-6">
         {/* 책 요약 정보 */}
-        <div className="flex items-center gap-4">
+        <div
+          className="flex items-center gap-4 cursor-pointer hover:opacity-80 transition"
+          onClick={() => router.push(`/protected/books/${book.id}`)}
+        >
           <Image
             src={book.cover_url ?? '/images/default-book-cover.png'}
             alt="Book cover"
