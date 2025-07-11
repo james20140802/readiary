@@ -6,6 +6,7 @@ import { TodaySummarySection } from './_components/TodaySummarySection';
 import { InProgressBooksSection } from './_components/InProgressBooksSection';
 import { NoBooksSection } from './_components/NoBooksSection';
 import { WeeklyStreakSection } from './_components/WeeklyStreakSection';
+import { StatsSection } from './_components/StatsSection';
 
 type DashboardStats = {
   bookCount: number;
@@ -74,28 +75,7 @@ export default function DashboardPage() {
         {inProgressCount > 0 ? <InProgressBooksSection /> : <NoBooksSection />}
       </div>
 
-      <div className="mt-12 space-y-4">
-        <h2 className="text-lg font-bold text-gray-700 dark:text-gray-200">📈 나의 독서 통계</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <StatCard label="등록한 책" value={stats.bookCount} icon="📚" />
-          <StatCard label="작성한 기록" value={stats.entryCount} icon="✍️" />
-          <StatCard label="읽은 페이지 수" value={stats.totalPagesRead} icon="📖" />
-        </div>
-      </div>
+      <StatsSection stats={stats} />
     </main>
-  );
-}
-
-function StatCard({ label, value, icon }: { label: string; value: number; icon: string }) {
-  return (
-    <div className="rounded-xl bg-gradient-to-br from-white to-gray-100 dark:from-gray-800 dark:to-gray-900 p-5 border border-gray-200 dark:border-gray-700 shadow-md">
-      <div className="flex items-center justify-between">
-        <div className="text-3xl">{icon}</div>
-        <div className="text-right">
-          <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
-          <p className="text-3xl font-bold text-gray-900 dark:text-white">{value}</p>
-        </div>
-      </div>
-    </div>
   );
 }
