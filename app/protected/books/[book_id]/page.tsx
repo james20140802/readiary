@@ -88,7 +88,7 @@ export default function BookDetailPage() {
   }
 
   return (
-    <div className="w-full max-w-3xl mx-auto px-4 py-6 space-y-6">
+    <div className="w-full max-w-3xl mx-auto space-y-6">
       {/* 책 정보 카드 */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
         <Image
@@ -137,7 +137,7 @@ export default function BookDetailPage() {
             <li key={entry.id}>
               <Link
                 href={`/protected/entry/${entry.id}`}
-                className="block bg-gray-100 dark:bg-gray-800 p-5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 hover:shadow-md transition cursor-pointer"
+                className="block bg-gray-100 dark:bg-gray-800 rounded hover:bg-gray-200 dark:hover:bg-gray-700 hover:shadow-md transition cursor-pointer"
               >
                 <p className="text-base text-gray-800 dark:text-gray-100">{entry.summary}</p>
                 <p className="text-sm text-gray-500 mt-2">

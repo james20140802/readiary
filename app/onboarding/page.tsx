@@ -67,8 +67,8 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
-      <div className="w-full max-w-sm space-y-4">
+    <div className="flex items-center justify-center h-full">
+      <div className="w-full max-w-sm mx-auto space-y-4">
         <h1 className="text-xl font-semibold text-center text-gray-900 dark:text-white">
           프로필 설정
         </h1>

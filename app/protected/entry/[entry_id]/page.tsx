@@ -91,7 +91,7 @@ export default function EntryDetailPage() {
 
   return (
     <Fragment>
-      <div className="w-full max-w-2xl mx-auto px-4 py-8 space-y-8">
+      <div className="space-y-6">
         {/* 책 요약 정보 */}
         <div className="flex items-center gap-4">
           <Image
@@ -108,7 +108,7 @@ export default function EntryDetailPage() {
         </div>
 
         {/* 독서 기록 박스 */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow space-y-4">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md space-y-4">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">✍️ 오늘의 독서 기록</h1>
           <p className="text-base text-gray-800 dark:text-gray-100 whitespace-pre-wrap">
             {entry.summary ?? ''}

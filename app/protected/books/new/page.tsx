@@ -1,4 +1,3 @@
-// app/protected/books/new/page.tsx
 'use client';
 
 import { useState } from 'react';
@@ -54,10 +53,12 @@ export default function NewBookPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
-      <div className="w-full max-w-sm space-y-4">
-        <h1 className="text-xl font-semibold text-center text-gray-900 dark:text-white">책 등록</h1>
+    <div className="w-full max-w-xl mx-auto p-4">
+      <h1 className="text-xl font-semibold text-center text-gray-900 dark:text-white mb-4">
+        책 등록
+      </h1>
 
+      <div className="space-y-4">
         <input
           className="w-full border p-2 rounded bg-white dark:bg-gray-800 dark:text-white"
           placeholder="책 제목"

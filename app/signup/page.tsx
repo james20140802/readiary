@@ -40,7 +40,7 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+    <div className="flex items-center justify-center h-full">
       <div className="w-full max-w-sm">
         {!signupComplete ? (
           <>

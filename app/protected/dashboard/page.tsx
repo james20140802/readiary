@@ -64,7 +64,7 @@ export default function DashboardPage() {
   }, [supabase]);
 
   return (
-    <main className="max-w-4xl mx-auto px-4 py-8">
+    <main className="w-full">
       <h1 className="text-2xl font-semibold text-gray-800 dark:text-white mb-4">
         👋 반가워요! 오늘의 독서를 시작해볼까요?
       </h1>
