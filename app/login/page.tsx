@@ -26,7 +26,7 @@ export default function LoginPage() {
     if (error) {
       setError(errorMap[error.message] || '로그인 중 오류가 발생했습니다.');
     } else {
-      router.push('/');
+      router.push('/protected/dashboard');
     }
   };
 
