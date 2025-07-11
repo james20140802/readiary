@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createSupabaseClient } from '@/lib/supabase';
+import { updateProgress } from '@/utils/sync';
 
 export default function NewEntryPage() {
   const { book_id } = useParams();
@@ -50,6 +51,12 @@ export default function NewEntryPage() {
     if (insertError) {
       setError('기록 저장 중 오류가 발생했습니다.');
     } else {
+      // 진행도 자동 업데이트
+      console.log('📡 calling RPC with:', {
+        p_book_id: book_id,
+        p_user_id: userId,
+      });
+      await updateProgress(book_id, userId);
       router.push(`/protected/books/${book_id}`);
     }
     setLoading(false);

@@ -106,17 +106,16 @@ export default function BookDetailPage() {
             <div
               className="bg-green-500 h-2 rounded"
               style={{
-                width: `${
-                  data.book.total_pages && data.userBook?.progress
-                    ? Math.floor((data.userBook.progress / data.book.total_pages) * 100)
-                    : 0
-                }%`,
+                width: `${data.userBook?.progress ?? 0}%`,
               }}
             />
           </div>
-          <p className="text-xs text-gray-500">
-            {data.userBook?.progress ?? 0} / {data.book.total_pages} 페이지
-          </p>
+          <div className="flex justify-between text-xs text-gray-500 mt-1">
+            <span>
+              {data.userBook?.last_read_page ?? 0} / {data.book.total_pages} 페이지
+            </span>
+            <span>{data.userBook?.progress ?? 0}%</span>
+          </div>
         </div>
       </div>
 
