@@ -5,6 +5,7 @@ import { createSupabaseClient } from '@/lib/supabase';
 import { TodaySummarySection } from './_components/TodaySummarySection';
 import { InProgressBooksSection } from './_components/InProgressBooksSection';
 import { NoBooksSection } from './_components/NoBooksSection';
+import { WeeklyStreakSection } from './_components/WeeklyStreakSection';
 
 type DashboardStats = {
   bookCount: number;
@@ -66,6 +67,7 @@ export default function DashboardPage() {
       <h1 className="text-2xl font-semibold text-gray-800 dark:text-white mb-4">
         👋 반가워요! 오늘의 독서를 시작해볼까요?
       </h1>
+      <WeeklyStreakSection />
 
       <div className="mt-10 space-y-8">
         <TodaySummarySection />
