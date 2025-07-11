@@ -110,7 +110,7 @@ export default function EditEntryPage() {
   if (error) return <p className="p-4 text-red-500">{error}</p>;
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
+    <main className="max-w-2xl mx-auto space-y-6">
       <h1 className="text-2xl font-bold">✍️ 독서 기록 수정</h1>
       <p className="text-lg text-gray-600 dark:text-gray-300">
         📚 {bookTitle}
@@ -156,6 +156,6 @@ export default function EditEntryPage() {
           </button>
         </div>
       </form>
-    </div>
+    </main>
   );
 }

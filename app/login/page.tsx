@@ -31,8 +31,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
-      <div className="w-full max-w-sm">
+    <div className="flex items-center justify-center h-full">
+      <div className="w-full max-w-sm mx-auto">
         <h1 className="text-xl font-semibold mb-6 text-center text-gray-900 dark:text-white">
           로그인
         </h1>

@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import { createSupabaseClient } from '@/lib/supabase';
 import { Database } from '@/types/supabase';
 import Image from 'next/image';
-import Link from 'next/link';
+import EntryCard from '@/components/EntryCard';
 
 export default function BookDetailPage() {
   const rawBookId = useParams().book_id;
@@ -88,16 +88,18 @@ export default function BookDetailPage() {
   }
 
   return (
-    <div className="w-full max-w-3xl mx-auto px-4 py-6 space-y-6">
+    <div className="w-full max-w-3xl mx-auto space-y-6">
       {/* 책 정보 카드 */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
-        <Image
-          src={data.book.cover_url ?? '/images/default-book-cover.png'}
-          alt="Book cover"
-          width={128}
-          height={192}
-          className="rounded shadow object-cover"
-        />
+      <div className="flex flex-col sm:flex-row sm:items-start sm:gap-6">
+        <div className="flex-shrink-0 self-center sm:self-start">
+          <Image
+            src={data.book.cover_url ?? '/images/default-book-cover.png'}
+            alt="Book cover"
+            width={128}
+            height={192}
+            className="rounded shadow object-cover w-full sm:w-auto"
+          />
+        </div>
         <div className="flex-1 space-y-2">
           <h1 className="text-3xl font-bold">{data.book.title}</h1>
           <p className="text-sm text-gray-500">{data.book.author}</p>
@@ -132,18 +134,10 @@ export default function BookDetailPage() {
 
       {/* 기록 목록 */}
       {data.entries && data.entries.length > 0 ? (
-        <ul className="space-y-2">
+        <ul className="space-y-4">
           {data.entries.map((entry) => (
             <li key={entry.id}>
-              <Link
-                href={`/protected/entry/${entry.id}`}
-                className="block bg-gray-100 dark:bg-gray-800 p-5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 hover:shadow-md transition cursor-pointer"
-              >
-                <p className="text-base text-gray-800 dark:text-gray-100">{entry.summary}</p>
-                <p className="text-sm text-gray-500 mt-2">
-                  {new Date(entry.date).toLocaleDateString()}
-                </p>
-              </Link>
+              <EntryCard id={entry.id} summary={entry.summary ?? ''} date={entry.date} />
             </li>
           ))}
         </ul>
