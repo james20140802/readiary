@@ -48,7 +48,7 @@ export default function OnboardingPage() {
       });
 
       if (!error) {
-        router.push('/protected');
+        router.push('/protected/dashboard');
         return;
       }
 
