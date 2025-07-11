@@ -50,6 +50,18 @@ export default function NewEntryPage() {
     if (insertError) {
       setError('기록 저장 중 오류가 발생했습니다.');
     } else {
+      // 진행도 자동 업데이트
+      console.log('📡 calling RPC with:', {
+        p_book_id: book_id,
+        p_user_id: userId,
+      });
+      const { error: updateError } = await supabase.rpc('update_user_book_progress', {
+        p_book_id: book_id,
+        p_user_id: userId,
+      });
+      if (updateError) {
+        console.error('진행도 업데이트 실패', updateError);
+      }
       router.push(`/protected/books/${book_id}`);
     }
     setLoading(false);
