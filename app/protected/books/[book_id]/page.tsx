@@ -134,17 +134,15 @@ export default function BookDetailPage() {
 
       {/* 기록 목록 */}
       {data.entries && data.entries.length > 0 ? (
-        <ul className="space-y-2">
+        <ul className="space-y-4">
           {data.entries.map((entry) => (
             <li key={entry.id}>
               <Link
                 href={`/protected/entry/${entry.id}`}
-                className="block bg-gray-100 dark:bg-gray-800 rounded hover:bg-gray-200 dark:hover:bg-gray-700 hover:shadow-md transition cursor-pointer"
+                className="block bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 hover:shadow-md transition cursor-pointer px-4 py-3 space-y-2"
               >
                 <p className="text-base text-gray-800 dark:text-gray-100">{entry.summary}</p>
-                <p className="text-sm text-gray-500 mt-2">
-                  {new Date(entry.date).toLocaleDateString()}
-                </p>
+                <p className="text-sm text-gray-500">{new Date(entry.date).toLocaleDateString()}</p>
               </Link>
             </li>
           ))}
