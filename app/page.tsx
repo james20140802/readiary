@@ -1,77 +1,93 @@
-import Image from 'next/image';
-import styles from './page.module.css';
+// app/page.tsx
 
-export default function Home() {
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
+import { createSupabaseClient } from '@/lib/supabase';
+
+export default async function Home() {
+  const supabase = createSupabaseClient();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (session) {
+    redirect('/protected/dashboard');
+  }
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>src/app/page.tsx</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
+    <main className="min-h-screen bg-background text-foreground">
+      <section className="min-h-screen flex flex-col justify-center items-center px-6 py-24 text-center">
+        <div className="max-w-xl">
+          <h1 className="text-5xl font-extrabold tracking-tight mb-6">
+            📚 Readiary에 오신 것을 환영합니다!
+          </h1>
+          <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
+            매일의 독서 기록을 손쉽게 남기고, 나만의 책장을 채워보세요. <br />
+            회원 가입 후 바로 시작할 수 있어요.
+          </p>
+          <div className="flex justify-center gap-4">
+            <Link href="/login">
+              <button className="px-6 py-3 rounded-md text-white bg-primary hover:bg-primary/90 text-base font-medium">
+                로그인
+              </button>
+            </Link>
+            <Link href="/signup">
+              <button className="px-6 py-3 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-base font-medium">
+                회원가입
+              </button>
+            </Link>
+          </div>
         </div>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image aria-hidden src="/file.svg" alt="File icon" width={16} height={16} />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image aria-hidden src="/window.svg" alt="Window icon" width={16} height={16} />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image aria-hidden src="/globe.svg" alt="Globe icon" width={16} height={16} />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+      </section>
+
+      <section className="min-h-screen py-24 px-6 text-center bg-muted/20">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-3xl font-bold mb-4">📖 매일 기록하세요</h2>
+          <p className="text-muted-foreground text-lg leading-relaxed">
+            오늘 읽은 페이지를 간단히 요약하고, <br /> 내가 읽은 흔적을 기록해보세요.
+          </p>
+        </div>
+      </section>
+
+      <section className="min-h-screen py-24 px-6 text-center">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-3xl font-bold mb-4">📚 나만의 책장을 채워보세요</h2>
+          <p className="text-muted-foreground text-lg leading-relaxed">
+            내가 읽은 책들을 커버 이미지와 함께 시각적으로 모아보세요.
+          </p>
+        </div>
+      </section>
+
+      <section className="min-h-screen py-24 px-6 text-center bg-muted/20">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-3xl font-bold mb-4">🎯 독서 목표와 통계를 확인하세요</h2>
+          <p className="text-muted-foreground text-lg leading-relaxed">
+            총 읽은 책 수, 작성한 기록, 읽은 페이지 수를 한눈에!
+            <br />
+            스스로의 성장을 데이터로 확인해보세요.
+          </p>
+        </div>
+      </section>
+
+      <section className="min-h-screen py-24 px-6 text-center">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-3xl font-bold mb-4">🏅 업적과 뱃지를 모아보세요</h2>
+          <p className="text-muted-foreground text-lg leading-relaxed">
+            꾸준히 기록하면 다양한 업적을 달성할 수 있어요. <br />
+            성취감을 느껴보세요!
+          </p>
+        </div>
+      </section>
+
+      <section className="min-h-screen py-24 px-6 text-center bg-muted/20">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-3xl font-bold mb-4">👥 친구들과 책을 공유하세요</h2>
+          <p className="text-muted-foreground text-lg leading-relaxed">
+            친구의 독서 현황을 확인하고, <br />
+            어떤 책을 읽고 있는지 함께 나눠보세요.
+          </p>
+        </div>
+      </section>
+    </main>
   );
 }
