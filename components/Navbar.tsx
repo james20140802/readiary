@@ -16,22 +16,44 @@ export default function Navbar() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-50 border-t bg-white/80 dark:bg-gray-900/80 backdrop-blur-md px-4 py-2">
-      <div className="max-w-screen-md mx-auto flex justify-around text-xs text-gray-600 dark:text-gray-300">
-        {navItems.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={clsx(
-              'flex flex-col items-center gap-1 py-1 px-2 transition',
-              pathname === item.href && 'text-black dark:text-white font-semibold'
-            )}
-          >
-            {item.icon}
-            {item.label}
-          </Link>
-        ))}
-      </div>
-    </nav>
+    <>
+      {/* Mobile Bottom Navbar */}
+      <nav className="fixed bottom-0 inset-x-0 z-50 border-t bg-white/80 dark:bg-gray-900/80 backdrop-blur-md px-4 py-2 block md:hidden">
+        <div className="max-w-screen-md mx-auto flex justify-around text-xs text-gray-600 dark:text-gray-300">
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={clsx(
+                'flex flex-col items-center gap-1 py-1 px-2 transition',
+                pathname === item.href && 'text-black dark:text-white font-semibold'
+              )}
+            >
+              {item.icon}
+              {item.label}
+            </Link>
+          ))}
+        </div>
+      </nav>
+
+      {/* Desktop Top Navbar */}
+      <nav className="hidden md:flex fixed top-0 inset-x-0 z-50 border-b bg-white/90 dark:bg-gray-900/90 backdrop-blur-md px-8 py-3">
+        <div className="max-w-screen-md mx-auto flex justify-between w-full text-sm text-gray-700 dark:text-gray-300">
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={clsx(
+                'flex items-center gap-2 px-3 py-1 rounded-md transition hover:bg-gray-100 dark:hover:bg-gray-800',
+                pathname === item.href && 'text-black dark:text-white font-semibold'
+              )}
+            >
+              {item.icon}
+              {item.label}
+            </Link>
+          ))}
+        </div>
+      </nav>
+    </>
   );
 }
