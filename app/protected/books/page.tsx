@@ -65,9 +65,7 @@ export default function MyBooksPage() {
           <ul className="space-y-4">
             {books.map((userBook) => {
               const book = userBook.books;
-              const percent = book.total_pages
-                ? Math.floor(((userBook.progress || 0) / book.total_pages) * 100)
-                : 0;
+              const percent = book.total_pages ? userBook.progress : 0;
 
               return (
                 <li
