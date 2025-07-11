@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createSupabaseClient } from '@/lib/supabase';
+import { updateProgress } from '@/utils/sync';
 
 export default function NewEntryPage() {
   const { book_id } = useParams();
@@ -55,13 +56,7 @@ export default function NewEntryPage() {
         p_book_id: book_id,
         p_user_id: userId,
       });
-      const { error: updateError } = await supabase.rpc('update_user_book_progress', {
-        p_book_id: book_id,
-        p_user_id: userId,
-      });
-      if (updateError) {
-        console.error('진행도 업데이트 실패', updateError);
-      }
+      await updateProgress(book_id, userId);
       router.push(`/protected/books/${book_id}`);
     }
     setLoading(false);

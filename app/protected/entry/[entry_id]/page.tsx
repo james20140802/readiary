@@ -6,6 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { createSupabaseClient } from '@/lib/supabase';
 import { Database } from '@/types/supabase';
 import Image from 'next/image';
+import { updateProgress } from '@/utils/sync';
 
 export default function EntryDetailPage() {
   const params = useParams();
@@ -171,11 +172,22 @@ export default function EntryDetailPage() {
                         return;
                       }
 
+                      const {
+                        data: { user },
+                        error: userError,
+                      } = await supabase.auth.getUser();
+                      if (!user || userError) {
+                        setDeleteError('사용자 정보를 불러올 수 없어요.');
+                        setIsDeleting(false);
+                        return;
+                      }
+
                       const { error } = await supabase.from('entries').delete().eq('id', entryId);
                       if (error) {
                         setDeleteError('삭제에 실패했어요. 다시 시도해주세요.');
                         setIsDeleting(false);
                       } else {
+                        await updateProgress(book.id, user.id);
                         router.push(`/protected/books/${book.id}`);
                       }
                     }}
