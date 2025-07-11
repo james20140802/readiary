@@ -90,14 +90,16 @@ export default function BookDetailPage() {
   return (
     <div className="w-full max-w-3xl mx-auto space-y-6">
       {/* 책 정보 카드 */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
-        <Image
-          src={data.book.cover_url ?? '/images/default-book-cover.png'}
-          alt="Book cover"
-          width={128}
-          height={192}
-          className="rounded shadow object-cover"
-        />
+      <div className="flex flex-col sm:flex-row sm:items-start sm:gap-6">
+        <div className="flex-shrink-0 self-center sm:self-start">
+          <Image
+            src={data.book.cover_url ?? '/images/default-book-cover.png'}
+            alt="Book cover"
+            width={128}
+            height={192}
+            className="rounded shadow object-cover w-full sm:w-auto"
+          />
+        </div>
         <div className="flex-1 space-y-2">
           <h1 className="text-3xl font-bold">{data.book.title}</h1>
           <p className="text-sm text-gray-500">{data.book.author}</p>
