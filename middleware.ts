@@ -39,6 +39,20 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // Fetch user profile from 'profiles' table
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('id', user?.id)
+    .maybeSingle();
+
+  // Redirect to onboarding if profile is missing
+  if (user && !profile && !request.nextUrl.pathname.startsWith('/onboarding')) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/onboarding';
+    return NextResponse.redirect(url);
+  }
+
   if (
     !user &&
     !request.nextUrl.pathname.startsWith('/login') &&
