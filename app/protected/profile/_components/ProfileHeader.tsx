@@ -2,6 +2,8 @@
 
 import type { User } from '@supabase/supabase-js';
 import { Profile } from '@/types/profile';
+import { useRouter } from 'next/navigation';
+import { createSupabaseClient } from '@/lib/supabase';
 
 interface ProfileHeaderProps {
   user: User;
@@ -9,6 +11,8 @@ interface ProfileHeaderProps {
 }
 
 export default function ProfileHeader({ user, profile }: ProfileHeaderProps) {
+  const router = useRouter();
+
   return (
     <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow space-y-6 border border-gray-300 dark:border-gray-700">
       <div className="flex flex-col items-center space-y-3">
@@ -30,14 +34,16 @@ export default function ProfileHeader({ user, profile }: ProfileHeaderProps) {
         아직 계정 관리 기능은 준비 중입니다.
       </div>
       <div className="flex justify-end">
-        <form action="/logout" method="get">
-          <button
-            type="submit"
-            className="mt-4 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded"
-          >
-            로그아웃
-          </button>
-        </form>
+        <button
+          onClick={async () => {
+            const supabase = createSupabaseClient();
+            await supabase.auth.signOut();
+            router.push('/login');
+          }}
+          className="mt-4 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded"
+        >
+          로그아웃
+        </button>
       </div>
     </div>
   );
