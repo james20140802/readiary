@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { createSupabaseClient } from '@/lib/supabase';
 import { Database } from '@/types/supabase';
 import Image from 'next/image';
@@ -11,6 +11,7 @@ export default function BookDetailPage() {
   const rawBookId = useParams().book_id;
   const bookId = Array.isArray(rawBookId) ? rawBookId[0] : rawBookId;
   const supabase = createSupabaseClient();
+  const router = useRouter();
 
   const [data, setData] = useState<{
     book: Database['public']['Tables']['books']['Row'] | null;
@@ -19,6 +20,30 @@ export default function BookDetailPage() {
   }>({ book: null, userBook: null, entries: null });
 
   const [loading, setLoading] = useState(true);
+
+  const handleMarkAsFinished = async () => {
+    if (!data.userBook) return;
+
+    const { error } = await supabase
+      .from('user_books')
+      .update({ is_finished: true })
+      .eq('id', data.userBook.id);
+
+    if (!error) {
+      setData((prev) =>
+        prev
+          ? {
+              ...prev,
+              userBook: {
+                ...prev.userBook!,
+                is_finished: true,
+              },
+            }
+          : prev
+      );
+      router.refresh(); // 페이지 새로고침
+    }
+  };
 
   useEffect(() => {
     const fetchDetail = async () => {
@@ -118,6 +143,14 @@ export default function BookDetailPage() {
             </span>
             <span>{data.userBook?.progress ?? 0}%</span>
           </div>
+          {data.userBook && !data.userBook.is_finished && (data.userBook.progress ?? 0) >= 90 && (
+            <button
+              onClick={handleMarkAsFinished}
+              className="bg-emerald-500 text-white px-4 py-2 rounded hover:bg-emerald-600 text-sm mt-2"
+            >
+              📘 책 읽기 완료!
+            </button>
+          )}
         </div>
       </div>
 
