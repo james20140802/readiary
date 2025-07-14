@@ -30,7 +30,7 @@ export default function ProfileHeader({ user, profile }: ProfileHeaderProps) {
         아직 계정 관리 기능은 준비 중입니다.
       </div>
       <div className="flex justify-end">
-        <form action="/logout" method="post">
+        <form action="/logout" method="get">
           <button
             type="submit"
             className="mt-4 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded"
