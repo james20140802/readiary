@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createSupabaseClient } from '@/lib/supabase';
 import { updateProgress } from '@/utils/sync';
+import { checkAndAwardBadges } from '@/utils/badges';
 
 export default function NewEntryPage() {
   const { book_id } = useParams();
@@ -57,6 +58,12 @@ export default function NewEntryPage() {
         p_user_id: userId,
       });
       await updateProgress(book_id, userId);
+      // 배지 조건 검사 및 수여
+      const newBadges = await checkAndAwardBadges(userId);
+      if (newBadges.length > 0) {
+        const { toast } = await import('sonner');
+        toast.success(`🎉 새 배지를 획득했어요!`);
+      }
       router.push(`/protected/books/${book_id}`);
     }
     setLoading(false);
