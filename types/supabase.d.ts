@@ -33,6 +33,33 @@ export type Database = {
   };
   public: {
     Tables: {
+      badges: {
+        Row: {
+          code: string;
+          created_at: string | null;
+          description: string | null;
+          icon_url: string | null;
+          id: string;
+          name: string;
+        };
+        Insert: {
+          code: string;
+          created_at?: string | null;
+          description?: string | null;
+          icon_url?: string | null;
+          id?: string;
+          name: string;
+        };
+        Update: {
+          code?: string;
+          created_at?: string | null;
+          description?: string | null;
+          icon_url?: string | null;
+          id?: string;
+          name?: string;
+        };
+        Relationships: [];
+      };
       books: {
         Row: {
           author: string | null;
@@ -127,6 +154,42 @@ export type Database = {
           tag?: string;
         };
         Relationships: [];
+      };
+      user_badges: {
+        Row: {
+          awarded_at: string | null;
+          badge_id: string;
+          id: string;
+          user_id: string;
+        };
+        Insert: {
+          awarded_at?: string | null;
+          badge_id: string;
+          id?: string;
+          user_id: string;
+        };
+        Update: {
+          awarded_at?: string | null;
+          badge_id?: string;
+          id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'fk_user_badges_badge_id';
+            columns: ['badge_id'];
+            isOneToOne: false;
+            referencedRelation: 'badges';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'user_badges_badge_id_fkey';
+            columns: ['badge_id'];
+            isOneToOne: false;
+            referencedRelation: 'badges';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       user_books: {
         Row: {
