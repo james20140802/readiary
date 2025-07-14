@@ -28,12 +28,17 @@ export async function checkAndAwardBadges(userId: string): Promise<Badge[]> {
 
     const earned = await evaluateCondition(badge.code, userId, supabase);
     if (earned) {
-      const { error: insertError } = await supabase
-        .from('user_badges')
-        .insert({ user_id: userId, badge_id: badge.id });
+      const { error: insertError } = await supabase.from('user_badges').insert({
+        user_id: userId,
+        badge_id: badge.id,
+        awarded_at: new Date().toISOString(),
+      });
 
       if (!insertError) {
         newlyEarnedBadges.push(badge);
+      } else {
+        console.error('Failed to insert user_badge:', insertError);
+        console.warn('Please ensure the user_badges table has an "earned_at" timestamp column.');
       }
     }
   }
