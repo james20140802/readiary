@@ -1,3 +1,4 @@
+import { checkFinishedBookBadge, checkFirstEntryBadge } from '@/lib/badges/condition';
 import { createSupabaseClient } from '@/lib/supabase';
 import { Database } from '@/types/supabase';
 
@@ -26,7 +27,8 @@ export async function checkAndAwardBadges(userId: string): Promise<Badge[]> {
     const alreadyOwned = ownedBadgeIds.includes(badge.id);
     if (alreadyOwned) continue;
 
-    const earned = await evaluateCondition(badge.code, userId, supabase);
+    const earned = await evaluateCondition(badge.code, userId);
+
     if (earned) {
       const { error: insertError } = await supabase.from('user_badges').insert({
         user_id: userId,
@@ -37,8 +39,7 @@ export async function checkAndAwardBadges(userId: string): Promise<Badge[]> {
       if (!insertError) {
         newlyEarnedBadges.push(badge);
       } else {
-        console.error('Failed to insert user_badge:', insertError);
-        console.warn('Please ensure the user_badges table has an "earned_at" timestamp column.');
+        console.warn('Please ensure the user_badges table has an "awarded_at" timestamp column.');
       }
     }
   }
@@ -46,29 +47,14 @@ export async function checkAndAwardBadges(userId: string): Promise<Badge[]> {
   return newlyEarnedBadges;
 }
 
-async function evaluateCondition(
-  conditionKey: string,
-  userId: string,
-  supabase: ReturnType<typeof createSupabaseClient>
-): Promise<boolean> {
+async function evaluateCondition(conditionKey: string, userId: string): Promise<boolean> {
   switch (conditionKey) {
     case 'first_entry': {
-      const { count } = await supabase
-        .from('entries')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', userId);
-
-      return (count ?? 0) >= 1;
+      return (await checkFirstEntryBadge(userId)).conditionMet;
     }
 
-    case 'finish_one_book': {
-      const { count } = await supabase
-        .from('user_books')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', userId)
-        .eq('is_finished', true);
-
-      return (count ?? 0) >= 1;
+    case 'first_finished_book': {
+      return (await checkFinishedBookBadge(userId)).conditionMet;
     }
 
     default:
