@@ -6,12 +6,15 @@ import { createSupabaseClient } from '@/lib/supabase';
 import { Database } from '@/types/supabase';
 import Image from 'next/image';
 import EntryCard from '@/components/EntryCard';
+import { useBadgeAwarder } from '@/hooks/useBadgeAwarder';
 
 export default function BookDetailPage() {
   const rawBookId = useParams().book_id;
   const bookId = Array.isArray(rawBookId) ? rawBookId[0] : rawBookId;
   const supabase = createSupabaseClient();
   const router = useRouter();
+
+  const awardBadges = useBadgeAwarder();
 
   const [data, setData] = useState<{
     book: Database['public']['Tables']['books']['Row'] | null;
@@ -23,6 +26,13 @@ export default function BookDetailPage() {
 
   const handleMarkAsFinished = async () => {
     if (!data.userBook) return;
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const userId = session?.user.id;
+
+    if (!userId) return;
 
     const { error } = await supabase
       .from('user_books')
@@ -41,6 +51,8 @@ export default function BookDetailPage() {
             }
           : prev
       );
+      // ✅ 배지 체크
+      await awardBadges(userId);
       router.refresh(); // 페이지 새로고침
     }
   };
