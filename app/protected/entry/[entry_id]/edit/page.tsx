@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createSupabaseClient } from '@/lib/supabase';
 import { updateProgress } from '@/utils/sync';
+import { useBadgeAwarder } from '@/hooks/useBadgeAwarder';
 
 export default function EditEntryPage() {
   const params = useParams();
@@ -20,6 +21,8 @@ export default function EditEntryPage() {
   const [bookTitle, setBookTitle] = useState('');
   const [bookAuthor, setBookAuthor] = useState<string | null>(null);
   const [user, setUser] = useState<{ id: string } | null>(null);
+
+  const checkAndAwardBadges = useBadgeAwarder();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -91,7 +94,6 @@ export default function EditEntryPage() {
     if (error) {
       setError('수정 중 오류가 발생했어요.');
     } else {
-      // Fetch book_id for this entry to sync progress
       const { data: entryData, error: fetchError } = await supabase
         .from('entries')
         .select('user_books(book_id)')
@@ -101,6 +103,8 @@ export default function EditEntryPage() {
       if (!fetchError && entryData?.user_books?.book_id && user?.id) {
         await updateProgress(entryData.user_books.book_id, user.id);
       }
+
+      await checkAndAwardBadges(user?.id ?? '');
 
       router.push(`/protected/entry/${entryId}`);
     }

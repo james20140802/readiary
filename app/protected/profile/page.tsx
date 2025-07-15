@@ -9,6 +9,7 @@ import { Profile } from '@/types/profile';
 import ProfileBookshelf from './_components/ProfileBookshelf';
 import ProfileHeader from './_components/ProfileHeader';
 import ProfileStats from './_components/ProfileStats';
+import ProfileBadges from './_components/ProfileBadges';
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -52,6 +53,7 @@ export default function ProfilePage() {
         <ProfileHeader user={user} profile={profile} />
         <ProfileBookshelf />
         <ProfileStats />
+        <ProfileBadges />
       </div>
     </div>
   );

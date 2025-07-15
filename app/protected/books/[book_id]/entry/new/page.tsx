@@ -4,11 +4,14 @@ import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createSupabaseClient } from '@/lib/supabase';
 import { updateProgress } from '@/utils/sync';
+import { useBadgeAwarder } from '@/hooks/useBadgeAwarder';
 
 export default function NewEntryPage() {
   const { book_id } = useParams();
   const router = useRouter();
   const supabase = createSupabaseClient();
+
+  const awardBadges = useBadgeAwarder();
 
   const [fromPage, setFromPage] = useState<number | ''>('');
   const [toPage, setToPage] = useState<number | ''>('');
@@ -57,6 +60,8 @@ export default function NewEntryPage() {
         p_user_id: userId,
       });
       await updateProgress(book_id, userId);
+      // 배지 조건 검사 및 수여
+      await awardBadges(userId);
       router.push(`/protected/books/${book_id}`);
     }
     setLoading(false);
