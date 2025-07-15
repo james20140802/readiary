@@ -1,6 +1,6 @@
-import { checkFinishedBookBadge, checkFirstEntryBadge } from '@/lib/badges/condition';
 import { createSupabaseClient } from '@/lib/supabase';
 import { Database } from '@/types/supabase';
+import { badgeConditions } from './badgeConditions';
 
 type Badge = Database['public']['Tables']['badges']['Row'];
 
@@ -27,9 +27,11 @@ export async function checkAndAwardBadges(userId: string): Promise<Badge[]> {
     const alreadyOwned = ownedBadgeIds.includes(badge.id);
     if (alreadyOwned) continue;
 
-    const earned = await evaluateCondition(badge.code, userId);
+    const condition = badgeConditions.find((c) => c.code === badge.code);
+    if (!condition) continue;
 
-    if (earned) {
+    const conditionMet = await condition.check(userId);
+    if (conditionMet) {
       const { error: insertError } = await supabase.from('user_badges').insert({
         user_id: userId,
         badge_id: badge.id,
@@ -39,25 +41,10 @@ export async function checkAndAwardBadges(userId: string): Promise<Badge[]> {
       if (!insertError) {
         newlyEarnedBadges.push(badge);
       } else {
-        console.warn('Please ensure the user_badges table has an "awarded_at" timestamp column.');
+        console.warn('Failed to award badge:', insertError.message);
       }
     }
   }
 
   return newlyEarnedBadges;
-}
-
-async function evaluateCondition(conditionKey: string, userId: string): Promise<boolean> {
-  switch (conditionKey) {
-    case 'first_entry': {
-      return (await checkFirstEntryBadge(userId)).conditionMet;
-    }
-
-    case 'first_finished_book': {
-      return (await checkFinishedBookBadge(userId)).conditionMet;
-    }
-
-    default:
-      return false;
-  }
 }
