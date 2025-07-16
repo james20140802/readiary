@@ -30,7 +30,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} overflow-x-hidden bg-white dark:bg-gray-900`}
       >
         <Header />
-        <main className="max-w-screen-md mx-auto w-full px-3 sm:px-4 md:px-6 py-6 sm:py-10 pt-[72px]">
+        <main className="max-w-screen-md mx-auto w-full px-3 sm:px-4 md:px-6 pt-14 sm:pt-10 pb-6 sm:pb-10">
           {children}
         </main>
         <Toaster richColors position="top-center" />
