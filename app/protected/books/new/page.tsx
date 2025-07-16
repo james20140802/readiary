@@ -49,7 +49,7 @@ export default function NewBookPage() {
       return;
     }
 
-    router.push('/protected');
+    router.push('/protected/books');
   };
 
   return (
