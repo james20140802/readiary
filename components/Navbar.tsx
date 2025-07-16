@@ -2,6 +2,7 @@
 import { MdHome, MdMenuBook, MdEditNote, MdPerson } from 'react-icons/md';
 
 import Link from 'next/link';
+import { BookMarked } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import clsx from 'clsx';
 
@@ -37,21 +38,30 @@ export default function Navbar() {
       </nav>
 
       {/* Desktop Top Navbar */}
-      <nav className="hidden md:flex fixed top-0 inset-x-0 z-50 border-b bg-white/90 dark:bg-gray-900/90 backdrop-blur-md px-8 py-3">
-        <div className="max-w-screen-md mx-auto flex justify-between w-full text-sm text-gray-700 dark:text-gray-300">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={clsx(
-                'flex items-center gap-2 px-3 py-1 rounded-md transition hover:bg-gray-100 dark:hover:bg-gray-800',
-                pathname === item.href && 'text-black dark:text-white font-semibold'
-              )}
-            >
-              {item.icon}
-              {item.label}
-            </Link>
-          ))}
+      <nav className="hidden md:flex fixed top-0 inset-x-0 z-50 border-b bg-white/90 dark:bg-gray-900/90 backdrop-blur-md px-8 py-5">
+        <div className="max-w-screen-md mx-auto flex items-center justify-between w-full text-sm text-gray-700 dark:text-gray-300">
+          <Link
+            href="/"
+            className="text-lg font-bold text-black dark:text-white flex items-center gap-2"
+          >
+            <BookMarked size={20} />
+            Readiary
+          </Link>
+          <div className="flex gap-2">
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={clsx(
+                  'flex items-center gap-2 px-3 py-1 rounded-md transition hover:bg-gray-100 dark:hover:bg-gray-800',
+                  pathname === item.href && 'text-black dark:text-white font-semibold'
+                )}
+              >
+                {item.icon}
+                {item.label}
+              </Link>
+            ))}
+          </div>
         </div>
       </nav>
     </>
