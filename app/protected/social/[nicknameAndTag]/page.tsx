@@ -12,12 +12,8 @@ export default async function FriendProfilePage({ params }: Props) {
   const [nickname, tag] = params.nicknameAndTag.split('-');
   if (!nickname || !tag) return notFound();
 
-  console.log(nickname, tag);
-
   const profileData = await fetchProfileData(nickname, tag);
   if (!profileData) return notFound();
-
-  console.log(profileData);
 
   const { profile, userBooks, userBadges } = profileData;
   if (!profile) throw new Error('Profile not found');
