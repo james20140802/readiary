@@ -4,12 +4,12 @@ import ProfileStats from '@/components/profile/ProfileStats';
 import ProfileBookshelf from '@/components/profile/ProfileBookshelf';
 import ProfileBadges from '@/components/profile/ProfileBadges';
 
-export default async function FriendProfilePage({
-  params,
-}: {
-  params: { nicknameAndTag: string };
-}) {
-  const [nickname, tag] = params.nicknameAndTag.split('-');
+interface FriendProfilePageProps {
+  params: Promise<{ nicknameAndTag: string }>;
+}
+
+export default async function FriendProfilePage({ params }: FriendProfilePageProps) {
+  const [nickname, tag] = (await params).nicknameAndTag.split('-');
   if (!nickname || !tag) return notFound();
 
   const profileData = await fetchProfileData(nickname, tag);
