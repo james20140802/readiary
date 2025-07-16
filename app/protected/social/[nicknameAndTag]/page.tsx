@@ -4,11 +4,11 @@ import ProfileStats from '@/components/profile/ProfileStats';
 import ProfileBookshelf from '@/components/profile/ProfileBookshelf';
 import ProfileBadges from '@/components/profile/ProfileBadges';
 
-interface Props {
+export default async function FriendProfilePage({
+  params,
+}: {
   params: { nicknameAndTag: string };
-}
-
-export default async function FriendProfilePage({ params }: Props) {
+}) {
   const [nickname, tag] = params.nicknameAndTag.split('-');
   if (!nickname || !tag) return notFound();
 
