@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { Toaster } from 'sonner';
 import Header from '@/components/Header';
+import Navbar from '@/components/Navbar';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -30,7 +31,8 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} overflow-x-hidden bg-white dark:bg-gray-900`}
       >
         <Header />
-        <main className="max-w-screen-md mx-auto w-full px-3 sm:px-4 md:px-6 pt-14 sm:pt-10 pb-6 sm:pb-10">
+        <Navbar />
+        <main className="flex-1 max-w-screen-md w-full mx-auto px-4 pt-[5rem] pb-[4.75rem] md:pt-[6rem] md:pb-[4rem]">
           {children}
         </main>
         <Toaster richColors position="top-center" />
