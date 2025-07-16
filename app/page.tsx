@@ -27,7 +27,7 @@ export default async function Home() {
           </p>
           <div className="flex justify-center gap-4">
             <Link href="/login">
-              <button className="px-6 py-3 rounded-md text-white bg-primary hover:bg-primary/90 text-base font-medium">
+              <button className="px-6 py-3 rounded-md bg-primary hover:bg-primary/90 text-base font-medium text-black dark:text-white">
                 로그인
               </button>
             </Link>
