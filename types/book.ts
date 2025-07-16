@@ -1,4 +1,4 @@
-import { Database } from './supabase';
+import { Database, Tables } from './supabase';
 
 export type BookFetch = Database['public']['Tables']['books']['Row'];
 
@@ -15,3 +15,7 @@ export type MyBook = {
 };
 
 export type Book = { title: string; author: string | null; total_pages: number | null };
+
+export type UserBookWithCover = Tables<'user_books'> & {
+  books: Tables<'books'>;
+};
