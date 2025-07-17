@@ -93,6 +93,7 @@ export type Database = {
           date: string;
           from_page: number | null;
           id: string;
+          is_private: boolean;
           summary: string | null;
           to_page: number | null;
           user_book_id: string;
@@ -102,6 +103,7 @@ export type Database = {
           date: string;
           from_page?: number | null;
           id?: string;
+          is_private?: boolean;
           summary?: string | null;
           to_page?: number | null;
           user_book_id: string;
@@ -111,6 +113,7 @@ export type Database = {
           date?: string;
           from_page?: number | null;
           id?: string;
+          is_private?: boolean;
           summary?: string | null;
           to_page?: number | null;
           user_book_id?: string;
@@ -285,7 +288,7 @@ export type Database = {
       };
     };
     Enums: {
-      [_ in never]: never;
+      status: 'accepted' | 'pending';
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -413,6 +416,8 @@ export const Constants = {
     Enums: {},
   },
   public: {
-    Enums: {},
+    Enums: {
+      status: ['accepted', 'pending'],
+    },
   },
 } as const;
