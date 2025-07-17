@@ -4,19 +4,19 @@ import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
   const supabase = await createSupabaseServerClient();
-  const { requestId } = await req.json();
+  const { friendId } = await req.json();
 
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  const myId = session?.user.id;
+  const myId = user?.id;
   if (!myId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const { error } = await supabase
     .from('friends')
     .update({ status: 'accepted', accepted_at: new Date().toISOString() })
-    .eq('id', requestId)
+    .eq('id', friendId)
     .eq('friend_id', myId);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
