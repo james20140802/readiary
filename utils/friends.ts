@@ -3,11 +3,10 @@ import { RawFriendRow, Friend } from '@/types/friends';
 export function transformFriendRow(row: RawFriendRow, userId: string): Friend {
   const isSender = row.user_id === userId;
 
-  const profile = isSender ? row.target?.[0] : row.profiles?.[0];
+  const profile = isSender ? row.friend_profile : row.user_profile;
+
   return {
-    id: row.id,
+    profile: profile,
     accepted: row.status === 'accepted',
-    nickname: profile?.nickname ?? '',
-    tag: profile?.tag ?? '',
   };
 }
