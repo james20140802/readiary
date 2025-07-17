@@ -112,7 +112,7 @@ export default function SocialPage() {
             const content = (
               <li
                 key={friend.profile.id}
-                className="flex items-center justify-between p-4 border rounded-lg shadow-sm bg-white dark:bg-gray-800 dark:border-gray-700"
+                className="flex items-center justify-start p-4 border rounded-lg shadow-sm bg-white dark:bg-gray-800 dark:border-gray-700"
               >
                 <div className="flex items-center gap-4">
                   {friend.profile.profile_image ? (
@@ -136,18 +136,44 @@ export default function SocialPage() {
                     </div>
                   </div>
                 </div>
-                {!friend.accepted && tab === 'pending' && friend.isRecipient && (
-                  <button
-                    onClick={() => acceptFriend(friend.profile.id)}
-                    className="text-xs px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
-                  >
-                    수락
-                  </button>
-                )}
-                {!friend.accepted && tab === 'pending' && !friend.isRecipient && (
-                  <span className="text-xs px-3 py-1 rounded bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100">
-                    수락 대기중
-                  </span>
+                {!friend.accepted && tab === 'pending' && (
+                  <div className="flex gap-2 ml-auto">
+                    {friend.isRecipient && (
+                      <button
+                        onClick={() => acceptFriend(friend.profile.id)}
+                        className="text-xs px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+                      >
+                        수락
+                      </button>
+                    )}
+                    {!friend.isRecipient && (
+                      <span className="text-xs px-3 py-1 rounded bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100">
+                        수락 대기중
+                      </span>
+                    )}
+                    <button
+                      onClick={async () => {
+                        const endpoint = friend.isRecipient
+                          ? '/api/friends/decline'
+                          : '/api/friends/cancel';
+                        const res = await fetch(endpoint, {
+                          method: 'DELETE',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ friendUserId: friend.profile.id }),
+                        });
+                        if (res.ok) {
+                          setFriends((prev) =>
+                            prev.filter((f) => f.profile.id !== friend.profile.id)
+                          );
+                        } else {
+                          alert('처리 실패');
+                        }
+                      }}
+                      className="text-xs px-3 py-1 rounded bg-red-200 dark:bg-red-700 text-red-800 dark:text-red-100"
+                    >
+                      {friend.isRecipient ? '거절' : '취소'}
+                    </button>
+                  </div>
                 )}
               </li>
             );
