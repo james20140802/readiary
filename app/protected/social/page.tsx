@@ -47,7 +47,7 @@ export default function SocialPage() {
       body: JSON.stringify({ friendId: id }),
     });
     if (res.ok) {
-      setFriends((prev) => prev.map((f) => (f.id === id ? { ...f, accepted: true } : f)));
+      setFriends((prev) => prev.map((f) => (f.profile.id === id ? { ...f, accepted: true } : f)));
     }
   };
 
@@ -105,23 +105,33 @@ export default function SocialPage() {
         <ul className="space-y-3">
           {filteredFriends.map((friend) => (
             <li
-              key={friend.id}
+              key={friend.profile.id}
               className="flex items-center justify-between p-4 border rounded-lg shadow-sm bg-white dark:bg-gray-800 dark:border-gray-700"
             >
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center text-sm font-bold text-white">
-                  {friend.nickname[0]}
-                </div>
+                {friend.profile.profile_image ? (
+                  <img
+                    src={friend.profile.profile_image}
+                    alt="프로필 이미지"
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center text-sm font-bold text-white">
+                    {friend.profile.nickname[0]}
+                  </div>
+                )}
                 <div className="text-sm">
                   <div className="font-medium text-gray-900 dark:text-white">
-                    {friend.nickname}#{friend.tag}
+                    {friend.profile.name}
                   </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">Readiary 친구</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    {friend.profile.nickname}#{friend.profile.tag}
+                  </div>
                 </div>
               </div>
               {!friend.accepted && tab === 'pending' && (
                 <button
-                  onClick={() => acceptFriend(friend.id)}
+                  onClick={() => acceptFriend(friend.profile.id)}
                   className="text-xs px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
                 >
                   수락
