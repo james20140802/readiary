@@ -7,10 +7,10 @@ export async function POST(req: Request) {
   const { nickname, tag } = await req.json();
 
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  const userId = session?.user.id;
+  const userId = user?.id;
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   // Look up the friend's profile by nickname and tag

@@ -7,10 +7,10 @@ export async function DELETE(req: Request) {
   const { friendId } = await req.json();
 
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  const myId = session?.user.id;
+  const myId = user?.id;
   if (!myId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const { error } = await supabase
