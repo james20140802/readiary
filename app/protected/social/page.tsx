@@ -4,6 +4,7 @@
 
 import { Friend } from '@/types/friends';
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 export default function SocialPage() {
   const [nicknameAndTag, setNicknameAndTag] = useState('');
@@ -103,42 +104,54 @@ export default function SocialPage() {
         </p>
       ) : (
         <ul className="space-y-3">
-          {filteredFriends.map((friend) => (
-            <li
-              key={friend.profile.id}
-              className="flex items-center justify-between p-4 border rounded-lg shadow-sm bg-white dark:bg-gray-800 dark:border-gray-700"
-            >
-              <div className="flex items-center gap-4">
-                {friend.profile.profile_image ? (
-                  <img
-                    src={friend.profile.profile_image}
-                    alt="프로필 이미지"
-                    className="w-10 h-10 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center text-sm font-bold text-white">
-                    {friend.profile.nickname[0]}
-                  </div>
-                )}
-                <div className="text-sm">
-                  <div className="font-medium text-gray-900 dark:text-white">
-                    {friend.profile.name}
-                  </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                    {friend.profile.nickname}#{friend.profile.tag}
+          {filteredFriends.map((friend) => {
+            const profileUrl = `/protected/social/${friend.profile.nickname}-${friend.profile.tag}`;
+            const content = (
+              <li
+                key={friend.profile.id}
+                className="flex items-center justify-between p-4 border rounded-lg shadow-sm bg-white dark:bg-gray-800 dark:border-gray-700"
+              >
+                <div className="flex items-center gap-4">
+                  {friend.profile.profile_image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={friend.profile.profile_image}
+                      alt="프로필 이미지"
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center text-sm font-bold text-white">
+                      {friend.profile.nickname[0]}
+                    </div>
+                  )}
+                  <div className="text-sm">
+                    <div className="font-medium text-gray-900 dark:text-white">
+                      {friend.profile.name}
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      {friend.profile.nickname}#{friend.profile.tag}
+                    </div>
                   </div>
                 </div>
-              </div>
-              {!friend.accepted && tab === 'pending' && (
-                <button
-                  onClick={() => acceptFriend(friend.profile.id)}
-                  className="text-xs px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
-                >
-                  수락
-                </button>
-              )}
-            </li>
-          ))}
+                {!friend.accepted && tab === 'pending' && (
+                  <button
+                    onClick={() => acceptFriend(friend.profile.id)}
+                    className="text-xs px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+                  >
+                    수락
+                  </button>
+                )}
+              </li>
+            );
+
+            return friend.accepted ? (
+              <Link key={friend.profile.id} href={profileUrl}>
+                {content}
+              </Link>
+            ) : (
+              content
+            );
+          })}
         </ul>
       )}
     </div>
