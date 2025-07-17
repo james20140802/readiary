@@ -8,5 +8,6 @@ export function transformFriendRow(row: RawFriendRow, userId: string): Friend {
   return {
     profile: profile,
     accepted: row.status === 'accepted',
+    isRecipient: !isSender,
   };
 }

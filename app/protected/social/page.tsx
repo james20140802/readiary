@@ -136,13 +136,18 @@ export default function SocialPage() {
                     </div>
                   </div>
                 </div>
-                {!friend.accepted && tab === 'pending' && (
+                {!friend.accepted && tab === 'pending' && friend.isRecipient && (
                   <button
                     onClick={() => acceptFriend(friend.profile.id)}
                     className="text-xs px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
                   >
                     수락
                   </button>
+                )}
+                {!friend.accepted && tab === 'pending' && !friend.isRecipient && (
+                  <span className="text-xs px-3 py-1 rounded bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100">
+                    수락 대기중
+                  </span>
                 )}
               </li>
             );

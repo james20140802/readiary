@@ -13,4 +13,5 @@ export type RawFriendRow = {
 export interface Friend {
   profile: Profile;
   accepted: boolean;
+  isRecipient: boolean;
 }
