@@ -6,10 +6,10 @@ import { NextResponse } from 'next/server';
 export async function GET() {
   const supabase = await createSupabaseServerClient();
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  const userId = session?.user.id;
+  const userId = user?.id;
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const { data, error } = await supabase
@@ -21,8 +21,8 @@ export async function GET() {
       friend_id,
       status,
       accepted_at,
-      profiles:user_id (nickname, tag),
-      target:friend_id (nickname, tag)
+      user_profile:profiles!user_id (*),
+      friend_profile:profiles!friend_id (*)
     `
     )
     .or(`user_id.eq.${userId},friend_id.eq.${userId}`);
@@ -30,5 +30,6 @@ export async function GET() {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   const friends = data.map((row) => transformFriendRow(row, userId));
+
   return NextResponse.json({ friends });
 }
