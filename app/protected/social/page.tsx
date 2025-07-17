@@ -66,13 +66,16 @@ export default function SocialPage() {
           onChange={(e) => setNicknameAndTag(e.target.value)}
           className="border px-4 py-2 rounded-lg w-full text-sm dark:bg-gray-900 dark:text-white"
         />
-        <button
-          onClick={sendFriendRequest}
-          disabled={loading}
-          className="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-600"
-        >
-          추가
-        </button>
+        <div>
+          <button
+            title="친구 추가"
+            onClick={sendFriendRequest}
+            disabled={loading}
+            className="bg-blue-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-blue-600"
+          >
+            ➕
+          </button>
+        </div>
       </div>
 
       <div className="flex mb-6 border-b border-gray-300 dark:border-gray-700">
