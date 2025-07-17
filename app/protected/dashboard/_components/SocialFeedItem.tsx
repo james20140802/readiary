@@ -1,24 +1,19 @@
 import { SocialFeedEntry } from '@/types/entry';
-import Image from 'next/image';
 import Link from 'next/link';
 
 export default function FeedItem({ entry, profile }: SocialFeedEntry) {
   return (
-    <div className="flex items-start gap-3 py-3 border-b">
-      <Image
-        src={profile.profile_image ?? '/default-profile.png'}
-        alt={`${profile.nickname}님의 프로필`}
-        width={40}
-        height={40}
-        className="rounded-full object-cover"
-      />
-      <div className="flex-1 text-sm leading-5">
-        <div>
+    <div className="flex gap-3 py-4 border-b items-center">
+      <div className="w-11 h-11 rounded-full bg-muted flex items-center justify-center text-sm font-semibold text-white">
+        {profile.nickname?.charAt(0).toUpperCase() ?? '?'}
+      </div>
+      <div className="flex-1 text-sm leading-5 bg-muted/30 px-3 py-2 rounded-md">
+        <div className="mb-1">
           <Link
             href={`/protected/social/${profile.nickname}-${profile.tag}`}
             className="font-medium hover:underline"
           >
-            {profile.nickname}
+            {profile.name}
           </Link>
           <span className="text-muted-foreground ml-1">님이</span>
         </div>
