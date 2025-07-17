@@ -85,7 +85,8 @@ export default function BookDetailPage() {
               to_page,
               date,
               created_at,
-              user_book_id
+              user_book_id,
+              is_private
             )
           `
         )

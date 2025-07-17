@@ -43,6 +43,7 @@ export default function EntryDetailPage() {
             date,
             created_at,
             user_book_id,
+            is_private,
             user_books (
               book_id,
               books (
@@ -68,6 +69,7 @@ export default function EntryDetailPage() {
           date: data.date,
           created_at: data.created_at,
           user_book_id: data.user_book_id,
+          is_private: data.is_private,
         });
         setBook({
           ...data.user_books.books,
