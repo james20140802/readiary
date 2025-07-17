@@ -1,5 +1,6 @@
 // /app/api/friends/list/route.ts
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { transformFriendRow } from '@/utils/friends';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
@@ -24,9 +25,10 @@ export async function GET() {
       target:friend_id (nickname, tag)
     `
     )
-    .or(`user_id.eq.${userId},friend_id.eq.${userId}`)
-    .eq('status', 'accepted');
+    .or(`user_id.eq.${userId},friend_id.eq.${userId}`);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ friends: data });
+
+  const friends = data.map((row) => transformFriendRow(row, userId));
+  return NextResponse.json({ friends });
 }
