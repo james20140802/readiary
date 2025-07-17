@@ -13,11 +13,20 @@ export async function POST(req: Request) {
   const myId = user?.id;
   if (!myId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('friends')
     .update({ status: 'accepted', accepted_at: new Date().toISOString() })
-    .eq('id', friendId)
-    .eq('friend_id', myId);
+    .eq('user_id', friendId)
+    .eq('friend_id', myId)
+    .eq('status', 'pending')
+    .select();
+
+  if (!error && data.length === 0) {
+    return NextResponse.json(
+      { error: 'No matching pending friend request found' },
+      { status: 400 }
+    );
+  }
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ success: true });
