@@ -1,5 +1,5 @@
 'use client';
-import { MdHome, MdMenuBook, MdEditNote, MdPerson } from 'react-icons/md';
+import { MdHome, MdMenuBook, MdPerson, MdPublic } from 'react-icons/md';
 
 import Link from 'next/link';
 import { BookMarked } from 'lucide-react';
@@ -12,7 +12,7 @@ import { createSupabaseClient } from '@/lib/supabase';
 const navItems = [
   { href: '/protected/dashboard', label: '홈', icon: <MdHome size={20} /> },
   { href: '/protected/books', label: '내 책', icon: <MdMenuBook size={20} /> },
-  { href: '/protected/books/new', label: '기록하기', icon: <MdEditNote size={20} /> },
+  { href: '/protected/social', label: '소셜', icon: <MdPublic size={20} /> },
   { href: '/protected/profile', label: '프로필', icon: <MdPerson size={20} /> },
 ];
 

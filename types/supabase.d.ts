@@ -125,6 +125,48 @@ export type Database = {
           },
         ];
       };
+      friends: {
+        Row: {
+          accepted_at: string | null;
+          friend_id: string;
+          id: string;
+          requested_at: string | null;
+          status: string;
+          user_id: string;
+        };
+        Insert: {
+          accepted_at?: string | null;
+          friend_id: string;
+          id?: string;
+          requested_at?: string | null;
+          status: string;
+          user_id: string;
+        };
+        Update: {
+          accepted_at?: string | null;
+          friend_id?: string;
+          id?: string;
+          requested_at?: string | null;
+          status?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'friends_friend_id_fkey';
+            columns: ['friend_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'friends_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       profiles: {
         Row: {
           bio: string | null;
