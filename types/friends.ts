@@ -1,16 +1,16 @@
+import { Profile } from './profile';
+
 export type RawFriendRow = {
   id: string;
   user_id: string;
   friend_id: string;
   status: string;
   accepted_at: string | null;
-  profiles?: { nickname: string; tag: string }[];
-  target?: { nickname: string; tag: string }[];
+  user_profile: Profile;
+  friend_profile: Profile;
 };
 
 export interface Friend {
-  id: string;
-  nickname: string;
-  tag: string;
+  profile: Profile;
   accepted: boolean;
 }
