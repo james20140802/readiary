@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
   const supabase = await createSupabaseServerClient();
-  const { friendId } = await req.json();
+  const { nickname, tag } = await req.json();
 
   const {
     data: { session },
@@ -12,6 +12,20 @@ export async function POST(req: Request) {
 
   const userId = session?.user.id;
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  // Look up the friend's profile by nickname and tag
+  const { data: friendProfile, error: lookupError } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('nickname', nickname)
+    .eq('tag', tag)
+    .single();
+
+  if (lookupError || !friendProfile) {
+    return NextResponse.json({ error: 'Friend not found' }, { status: 404 });
+  }
+
+  const friendId = friendProfile.id;
 
   if (userId === friendId) {
     return NextResponse.json({ error: 'Cannot add yourself as a friend' }, { status: 400 });
