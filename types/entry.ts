@@ -29,3 +29,8 @@ export type RawEntry = {
     books: Book;
   };
 };
+
+export type EntryDetailData = {
+  entry: Entry;
+  userId: string;
+};

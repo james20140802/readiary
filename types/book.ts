@@ -16,6 +16,7 @@ export type MyBook = {
 };
 
 export type Book = {
+  id: string;
   title: string;
   author: string | null;
   total_pages: number | null;
