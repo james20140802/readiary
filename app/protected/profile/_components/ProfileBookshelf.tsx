@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 import { Tables } from '@/types/supabase';
-import { createSupabaseClient } from '@/lib/supabase';
+import { createSupabaseClient } from '@/lib/supabase/client';
 
 type UserBookWithCover = Tables<'user_books'> & {
   books: Tables<'books'>;

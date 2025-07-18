@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { createSupabaseClient } from '@/lib/supabase';
+import { createSupabaseClient } from '@/lib/supabase/client';
 import { Database } from '@/types/supabase';
 import Image from 'next/image';
 import EntryCard from '@/components/EntryCard';

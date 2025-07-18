@@ -1,4 +1,4 @@
-import { createSupabaseClient } from '../supabase';
+import { createSupabaseClient } from '../supabase/client';
 
 export async function getUserStats(userId: string) {
   const supabase = createSupabaseClient();

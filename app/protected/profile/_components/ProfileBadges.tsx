@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
-import { createSupabaseClient } from '@/lib/supabase';
+import { createSupabaseClient } from '@/lib/supabase/client';
 import { Database } from '@/types/supabase';
 import { useIsMobile } from '@/hooks/useIsMobile';
 

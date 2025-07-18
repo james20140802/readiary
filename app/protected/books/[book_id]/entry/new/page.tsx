@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { createSupabaseClient } from '@/lib/supabase';
+import { createSupabaseClient } from '@/lib/supabase/client';
 import { updateProgress } from '@/utils/sync';
 import { useBadgeAwarder } from '@/hooks/useBadgeAwarder';
 

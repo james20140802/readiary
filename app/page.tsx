@@ -2,15 +2,15 @@
 
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { createSupabaseClient } from '@/lib/supabase';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 export default async function Home() {
-  const supabase = createSupabaseClient();
+  const supabase = await createSupabaseServerClient();
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  if (session) {
+  if (user) {
     redirect('/protected/dashboard');
   }
 

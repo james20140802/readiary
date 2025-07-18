@@ -1,5 +1,5 @@
 import { BadgeCheckResult } from '@/types/badges';
-import { createSupabaseClient } from '../supabase';
+import { createSupabaseClient } from '../supabase/client';
 
 const supabase = createSupabaseClient();
 

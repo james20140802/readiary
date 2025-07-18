@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createSupabaseClient } from '@/lib/supabase';
+import { createSupabaseClient } from '@/lib/supabase/client';
 import { fetchProfileData } from '@/lib/queries/fetchProfileData';
 import type { User } from '@supabase/supabase-js';
 import { Profile } from '@/types/profile';

@@ -3,7 +3,7 @@
 import { useEffect, useState, Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { useParams, useRouter } from 'next/navigation';
-import { createSupabaseClient } from '@/lib/supabase';
+import { createSupabaseClient } from '@/lib/supabase/client';
 import { Database } from '@/types/supabase';
 import Image from 'next/image';
 import { updateProgress } from '@/utils/sync';

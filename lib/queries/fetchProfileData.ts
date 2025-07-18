@@ -1,4 +1,4 @@
-import { createSupabaseClient } from '@/lib/supabase';
+import { createSupabaseClient } from '@/lib/supabase/client';
 import { ProfileFullData } from '@/types/profile';
 
 export function fetchProfileData(userId: string): Promise<ProfileFullData>;

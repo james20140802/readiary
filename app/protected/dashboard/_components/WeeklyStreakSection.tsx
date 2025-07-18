@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { createSupabaseClient } from '@/lib/supabase';
+import { createSupabaseClient } from '@/lib/supabase/client';
 import { format, isSameDay, parseISO, startOfWeek, addDays } from 'date-fns';
 import { ko } from 'date-fns/locale';
 

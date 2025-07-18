@@ -1,4 +1,4 @@
-import { createSupabaseClient } from '@/lib/supabase';
+import { createSupabaseClient } from '@/lib/supabase/client';
 
 export async function updateProgress(bookId: string, userId: string) {
   const supabase = createSupabaseClient();

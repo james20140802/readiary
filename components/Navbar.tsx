@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation';
 import clsx from 'clsx';
 import type { User } from '@supabase/auth-helpers-nextjs';
 import { useEffect, useState } from 'react';
-import { createSupabaseClient } from '@/lib/supabase';
+import { createSupabaseClient } from '@/lib/supabase/client';
 
 const navItems = [
   { href: '/protected/dashboard', label: '홈', icon: <MdHome size={20} /> },
