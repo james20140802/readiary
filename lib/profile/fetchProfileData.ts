@@ -1,5 +1,5 @@
-import { createSupabaseClient } from '@/lib/supabase/client';
 import { ProfileFullData } from '@/types/profile';
+import { createSupabaseServerClient } from '../supabase/server';
 
 export function fetchProfileData(userId: string): Promise<ProfileFullData>;
 export function fetchProfileData(nickname: string, tag: string): Promise<ProfileFullData>;
@@ -15,7 +15,7 @@ export function fetchProfileData(a: string, b?: string): Promise<ProfileFullData
 }
 
 export async function fetchByNicknameAndTag(nickname: string, tag: string) {
-  const supabase = createSupabaseClient();
+  const supabase = await createSupabaseServerClient();
 
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
@@ -48,7 +48,7 @@ export async function fetchByNicknameAndTag(nickname: string, tag: string) {
 }
 
 export async function fetchByUserId(userId: string) {
-  const supabase = createSupabaseClient();
+  const supabase = await createSupabaseServerClient();
 
   const [{ data: profile }, { data: userBooks }, { data: userBadges }] = await Promise.all([
     supabase.from('profiles').select('*').eq('id', userId).single(),

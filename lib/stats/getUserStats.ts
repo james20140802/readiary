@@ -1,7 +1,8 @@
-import { createSupabaseClient } from '../supabase/client';
+import { Stats } from '@/types/profile';
+import { createSupabaseServerClient } from '../supabase/server';
 
-export async function getUserStats(userId: string) {
-  const supabase = createSupabaseClient();
+export async function getUserStats(userId: string): Promise<Stats | null> {
+  const supabase = await createSupabaseServerClient();
 
   const { data: books, error: booksError } = await supabase
     .from('user_books')
