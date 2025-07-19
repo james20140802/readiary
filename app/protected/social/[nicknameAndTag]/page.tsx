@@ -1,11 +1,11 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
-import { fetchProfileData } from '@/lib/profile/fetchProfileData';
 import ProfileStats from '@/components/profile/ProfileStats';
 import ProfileBookshelf from '@/components/profile/ProfileBookshelf';
 import ProfileBadges from '@/components/profile/ProfileBadges';
 import { getUserStats } from '@/lib/stats/getUserStats';
 import ProfileHeader from '@/components/profile/ProfileHeader';
+import { fetchProfileData } from '@/lib/profile/fetchProfileData';
 
 interface FriendProfilePageProps {
   params: Promise<{ nicknameAndTag: string }>;
