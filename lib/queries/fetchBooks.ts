@@ -14,7 +14,7 @@ export async function fetchMyBooksData(): Promise<MyBook[] | null> {
   const { data, error } = await supabase
     .from('user_books')
     .select(
-      'id, progress, book_id, started_at, last_read_page, is_finished, books(title, author, total_pages)'
+      'id, progress, book_id, started_at, last_read_page, is_finished, books(id, title, author, total_pages)'
     )
     .eq('user_id', user.id);
 
