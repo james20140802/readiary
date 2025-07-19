@@ -37,12 +37,13 @@ export default function EditEntryForm({
     e.preventDefault();
     setError('');
 
-    const res = await fetch(`/api/entries/${entryId}/edit`, {
+    const res = await fetch(`/api/entries/edit`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
+        entry_id: entryId,
         summary,
         from_page: Number(fromPage),
         to_page: Number(toPage),

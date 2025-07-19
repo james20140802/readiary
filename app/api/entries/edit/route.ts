@@ -1,22 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
-export async function PATCH(req: NextRequest, { params }: { params: { entry_id: string } }) {
+export async function PATCH(req: NextRequest) {
   const supabase = await createSupabaseServerClient();
-  const { entry_id } = params;
-  const body = await req.json();
-
   const {
+    entry_id,
     summary,
     from_page,
     to_page,
     is_private,
   }: {
+    entry_id: string;
     summary: string;
     from_page: number;
     to_page: number;
     is_private: boolean;
-  } = body;
+  } = await req.json();
 
   const {
     data: { user },
