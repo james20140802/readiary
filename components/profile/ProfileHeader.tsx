@@ -65,7 +65,7 @@ export default function ProfileHeader({ user, profile }: ProfileHeaderProps) {
               const res = await fetch('/api/friends/remove', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ friendUserId: profile.id }),
+                body: JSON.stringify({ friendId: profile.id }),
               });
               if (res.ok) {
                 toast.success('친구를 삭제했어요.');
