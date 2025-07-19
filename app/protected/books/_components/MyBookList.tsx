@@ -1,39 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { MyBook } from '@/types/book';
 
-export default function MyBookList() {
-  const [books, setBooks] = useState<MyBook[] | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchBooks = async () => {
-      try {
-        const res = await fetch('/api/books/list');
-        if (!res.ok) throw new Error('책 목록을 불러오는 데 실패했습니다.');
-        const data = await res.json();
-        setBooks(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : '알 수 없는 오류');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBooks();
-  }, []);
-
-  if (loading) {
-    return <p className="text-gray-500">불러오는 중...</p>;
-  }
-
-  if (error) {
-    return <p className="text-red-500">{error}</p>;
-  }
-
+export default function MyBookList({ books }: { books: MyBook[] }) {
   if (!books || books.length === 0)
     return (
       <div className="text-center text-gray-700 dark:text-gray-300 space-y-2">

@@ -21,7 +21,7 @@ export default async function MyBooksPage() {
           </Link>
         </header>
 
-        <MyBookList />
+        <MyBookList books={books} />
       </div>
     </div>
   );
