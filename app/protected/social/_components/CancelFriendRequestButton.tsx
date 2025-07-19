@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useTransition } from 'react';
 import { toast } from 'sonner';
 
@@ -10,6 +11,7 @@ interface Props {
 
 export default function CancelFriendRequestButton({ friendUserId, onSuccess }: Props) {
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   const handleCancel = () => {
     startTransition(async () => {
@@ -21,6 +23,7 @@ export default function CancelFriendRequestButton({ friendUserId, onSuccess }: P
 
       if (res.ok) {
         toast.success('친구 요청을 취소했어요.');
+        router.refresh();
         onSuccess?.();
       } else {
         toast.error('요청 취소에 실패했어요.');

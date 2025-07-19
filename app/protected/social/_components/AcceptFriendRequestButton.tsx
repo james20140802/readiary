@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useTransition } from 'react';
 import { toast } from 'sonner';
 
@@ -10,6 +11,7 @@ interface Props {
 
 export default function AcceptFriendRequestButton({ friendUserId, onSuccess }: Props) {
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   const handleAccept = () => {
     startTransition(async () => {
@@ -21,6 +23,7 @@ export default function AcceptFriendRequestButton({ friendUserId, onSuccess }: P
 
       if (res.ok) {
         toast.success('친구 요청을 수락했어요.');
+        router.refresh();
         onSuccess?.();
       } else {
         toast.error('수락에 실패했어요.');

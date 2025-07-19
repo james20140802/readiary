@@ -4,6 +4,7 @@ import { Fragment, useState } from 'react';
 import { Dialog } from '@headlessui/react';
 import { Profile } from '@/types/profile';
 import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 export default function FriendRequestForm() {
   const [nicknameAndTag, setNicknameAndTag] = useState('');
@@ -13,6 +14,7 @@ export default function FriendRequestForm() {
     isFriend: boolean;
   }>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const router = useRouter();
 
   const handleSearch = async () => {
     if (!nicknameAndTag.includes('#')) {
@@ -58,6 +60,7 @@ export default function FriendRequestForm() {
       toast.success('친구 요청을 보냈습니다!');
       setNicknameAndTag('');
       setShowConfirmModal(false);
+      router.refresh();
     } else {
       const { error } = await res.json();
       toast.error(error ?? '친구 요청 실패');
