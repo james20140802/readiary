@@ -1,8 +1,16 @@
 import { fetchEntryDetail } from '@/lib/entries/fetchEntryDetail';
 import EntryDetailContent from './_components/EntryDetailContent';
+import { notFound } from 'next/navigation';
 
-export default async function EntryDetailPage({ params }: { params: { entry_id: string } }) {
-  const detail = await fetchEntryDetail(params.entry_id);
+export default async function EntryDetailPage({
+  params,
+}: {
+  params: Promise<{ entry_id: string }>;
+}) {
+  const entryId = (await params).entry_id;
+  if (!entryId) return notFound();
+
+  const detail = await fetchEntryDetail(entryId);
 
   if (!detail) {
     return <p className="p-4 text-red-500">기록을 찾을 수 없습니다.</p>;

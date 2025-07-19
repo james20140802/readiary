@@ -2,8 +2,10 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { updateProgress } from '@/utils/sync';
 import { NextResponse } from 'next/server';
 
-export async function DELETE(req: Request, { params }: { params: { entry_id: string } }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ entry_id: string }> }) {
   const supabase = await createSupabaseServerClient();
+  const entry_id = (await params).entry_id;
+
   const {
     data: { user },
     error: userError,
@@ -19,11 +21,15 @@ export async function DELETE(req: Request, { params }: { params: { entry_id: str
     return NextResponse.json({ error: 'book_id가 필요합니다.' }, { status: 400 });
   }
 
+  if (!entry_id) {
+    return NextResponse.json({ error: 'entry_id 필요합니다.' }, { status: 400 });
+  }
+
   // 1. Fetch the entry
   const { data: entry, error: entryError } = await supabase
     .from('entries')
     .select('user_book_id')
-    .eq('id', params.entry_id)
+    .eq('id', entry_id)
     .single();
 
   if (entryError || !entry) {
@@ -42,7 +48,7 @@ export async function DELETE(req: Request, { params }: { params: { entry_id: str
   }
 
   // 3. Perform deletion
-  const { error } = await supabase.from('entries').delete().eq('id', params.entry_id);
+  const { error } = await supabase.from('entries').delete().eq('id', entry_id);
 
   if (error) {
     return NextResponse.json({ error: '삭제 실패' }, { status: 500 });
