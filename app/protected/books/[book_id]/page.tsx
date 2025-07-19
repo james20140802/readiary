@@ -4,9 +4,9 @@ import { fetchBookDetail } from '@/lib/books/fetchBookDetail';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 interface Props {
-  params: {
+  params: Promise<{
     book_id: string;
-  };
+  }>;
 }
 
 export default async function BookDetailPage({ params }: Props) {
@@ -16,7 +16,9 @@ export default async function BookDetailPage({ params }: Props) {
   } = await supabase.auth.getUser();
   if (!user) return redirect('/');
 
-  const data = await fetchBookDetail(params.book_id);
+  const book_id = (await params).book_id;
+
+  const data = await fetchBookDetail(book_id);
 
   if (!data) return redirect('/');
 

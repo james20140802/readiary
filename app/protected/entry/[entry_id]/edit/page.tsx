@@ -3,11 +3,12 @@ import { notFound } from 'next/navigation';
 import EditEntryForm from './_components/EditEntryForm';
 
 interface Props {
-  params: { entry_id: string };
+  params: Promise<{ entry_id: string }>;
 }
 
 export default async function EditEntryPage({ params }: Props) {
-  const detail = await fetchEntryDetail(params.entry_id);
+  const entry_id = (await params).entry_id;
+  const detail = await fetchEntryDetail(entry_id);
   if (!detail) return notFound();
 
   const { entry } = detail;
