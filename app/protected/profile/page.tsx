@@ -1,10 +1,11 @@
 import { fetchProfileData } from '@/lib/profile/fetchProfileData';
-import ProfileHeader from './_components/ProfileHeader';
+
 import ProfileBookshelf from '@/components/profile/ProfileBookshelf';
 import ProfileStats from '@/components/profile/ProfileStats';
 import ProfileBadges from '@/components/profile/ProfileBadges';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { getUserStats } from '@/lib/stats/getUserStats';
+import ProfileHeader from '@/components/profile/ProfileHeader';
 
 export default async function ProfilePage() {
   const supabase = await createSupabaseServerClient();
