@@ -1,16 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
-export async function PATCH(req: NextRequest) {
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ entry_id: string }> }
+) {
   const supabase = await createSupabaseServerClient();
+  const entry_id = (await params).entry_id;
+
+  if (!entry_id) {
+    return NextResponse.json({ error: 'entry_id 필요합니다.' }, { status: 400 });
+  }
+
   const {
-    entry_id,
     summary,
     from_page,
     to_page,
     is_private,
   }: {
-    entry_id: string;
     summary: string;
     from_page: number;
     to_page: number;
