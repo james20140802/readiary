@@ -1,8 +1,11 @@
+'use client';
+
+import { toast } from 'sonner';
 import Image from 'next/image';
 import type { User } from '@supabase/supabase-js';
 import { Profile } from '@/types/profile';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
+import { createSupabaseClient } from '@/lib/supabase/client';
 
 interface ProfileHeaderProps {
   user: User;
@@ -39,14 +42,16 @@ export default function ProfileHeader({ user, profile }: ProfileHeaderProps) {
           </p>
         </div>
       </div>
-      <div className="text-center text-sm text-gray-500 dark:text-gray-400">
-        아직 계정 관리 기능은 준비 중입니다.
-      </div>
+      {isOwnProfile && (
+        <div className="text-center text-sm text-gray-500 dark:text-gray-400">
+          아직 계정 관리 기능은 준비 중입니다.
+        </div>
+      )}
       <div className="flex justify-end">
         {isOwnProfile ? (
           <button
             onClick={async () => {
-              const supabase = await createSupabaseServerClient();
+              const supabase = await createSupabaseClient();
               await supabase.auth.signOut();
               redirect('/login');
             }}
@@ -56,9 +61,18 @@ export default function ProfileHeader({ user, profile }: ProfileHeaderProps) {
           </button>
         ) : (
           <button
-            onClick={() => {
-              // 친구 삭제 로직은 여기에 추가 예정
-              alert('친구 삭제 기능은 아직 구현되지 않았습니다.');
+            onClick={async () => {
+              const res = await fetch('/api/friends/remove', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ friendUserId: profile.id }),
+              });
+              if (res.ok) {
+                toast.success('친구를 삭제했어요.');
+                redirect('/protected/social');
+              } else {
+                toast.error('친구 삭제에 실패했습니다.');
+              }
             }}
             className="mt-4 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded"
           >
