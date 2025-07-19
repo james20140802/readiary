@@ -63,7 +63,7 @@ export default function ProfileHeader({ user, profile }: ProfileHeaderProps) {
           <button
             onClick={async () => {
               const res = await fetch('/api/friends/remove', {
-                method: 'POST',
+                method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ friendId: profile.id }),
               });
