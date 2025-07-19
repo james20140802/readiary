@@ -91,8 +91,8 @@ export default function FriendRequestForm() {
       </div>
 
       <Dialog open={showConfirmModal} onClose={() => setShowConfirmModal(false)} as={Fragment}>
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-          <Dialog.Panel className="bg-white dark:bg-gray-800 p-6 rounded-lg space-y-4 max-w-sm w-full">
+        <div className="fixed inset-0 bg-black/30 z-50 flex justify-center items-start pt-16">
+          <Dialog.Panel className="bg-white dark:bg-gray-800 p-6 rounded-lg space-y-4 w-full max-w-sm mx-auto">
             <Dialog.Title className="text-lg font-semibold text-gray-900 dark:text-white">
               친구 요청 보내기
             </Dialog.Title>
