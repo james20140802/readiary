@@ -1,7 +1,7 @@
-import { createSupabaseClient } from '@/lib/supabase';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 export async function updateProgress(bookId: string, userId: string) {
-  const supabase = createSupabaseClient();
+  const supabase = await createSupabaseServerClient();
   const { error } = await supabase.rpc('update_user_book_progress', {
     p_book_id: bookId,
     p_user_id: userId,

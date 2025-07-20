@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { getUserStats } from '@/lib/stats/getUserStats';
-import { createSupabaseClient } from '@/lib/supabase';
+import { createSupabaseClient } from '@/lib/supabase/client';
 
 export default function ProfileStats() {
   const supabase = createSupabaseClient();

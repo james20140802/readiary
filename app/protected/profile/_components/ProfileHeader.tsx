@@ -3,7 +3,7 @@
 import type { User } from '@supabase/supabase-js';
 import { Profile } from '@/types/profile';
 import { useRouter } from 'next/navigation';
-import { createSupabaseClient } from '@/lib/supabase';
+import { createSupabaseClient } from '@/lib/supabase/client';
 
 interface ProfileHeaderProps {
   user: User;

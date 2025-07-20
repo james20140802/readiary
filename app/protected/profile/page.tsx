@@ -1,51 +1,28 @@
-'use client';
+import { fetchProfileData } from '@/lib/profile/fetchProfileData';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { createSupabaseClient } from '@/lib/supabase';
-import { fetchProfileData } from '@/lib/queries/fetchProfileData';
-import type { User } from '@supabase/supabase-js';
-import { Profile } from '@/types/profile';
-
-import ProfileHeader from './_components/ProfileHeader';
 import ProfileBookshelf from '@/components/profile/ProfileBookshelf';
 import ProfileStats from '@/components/profile/ProfileStats';
 import ProfileBadges from '@/components/profile/ProfileBadges';
-import { UserBadge } from '@/types/badges';
-import { UserBookWithCover } from '@/types/book';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { getUserStats } from '@/lib/stats/getUserStats';
+import ProfileHeader from '@/components/profile/ProfileHeader';
 
-export default function ProfilePage() {
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [user, setUser] = useState<User | null>(null);
-  const [userBooks, setUserBooks] = useState<UserBookWithCover[] | null>(null);
-  const [userBadges, setUserBadges] = useState<UserBadge[] | null>(null);
-  const router = useRouter();
+export default async function ProfilePage() {
+  const supabase = await createSupabaseServerClient();
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      const supabase = createSupabaseClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
 
-      if (!user) {
-        router.replace('/login');
-        return;
-      }
+  if (!user || userError) {
+    return <p className="text-center mt-10 text-red-500">로그인이 필요합니다.</p>;
+  }
 
-      setUser(user);
+  const { profile, userBooks, userBadges } = await fetchProfileData(user.id);
+  const stats = await getUserStats(user.id);
 
-      const { profile, userBooks, userBadges } = await fetchProfileData(user.id);
-
-      setProfile(profile);
-      setUserBooks(userBooks);
-      setUserBadges(userBadges);
-    };
-
-    fetchUser();
-  }, [router]);
-
-  if (!user || !profile || !userBooks || !userBadges) {
+  if (!profile || !userBooks || !userBadges) {
     return <p className="text-center mt-10 text-gray-400">로딩 중...</p>;
   }
 
@@ -55,7 +32,11 @@ export default function ProfilePage() {
       <div className="space-y-6">
         <ProfileHeader user={user} profile={profile} />
         <ProfileBookshelf userBooks={userBooks} />
-        <ProfileStats userId={user.id} />
+        {stats ? (
+          <ProfileStats stats={stats} />
+        ) : (
+          <p className="text-sm text-gray-500">통계 정보를 불러올 수 없습니다.</p>
+        )}
         <ProfileBadges userBadges={userBadges} />
       </div>
     </div>

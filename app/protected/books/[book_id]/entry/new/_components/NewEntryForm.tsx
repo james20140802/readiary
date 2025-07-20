@@ -1,0 +1,138 @@
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Book } from '@/types/book';
+
+interface Props {
+  userBookId: string;
+  userId: string;
+  book: Book;
+  bookId: string;
+}
+
+export default function NewEntryForm({ userBookId, userId, book, bookId }: Props) {
+  const router = useRouter();
+  const [summary, setSummary] = useState('');
+  const [fromPage, setFromPage] = useState('');
+  const [toPage, setToPage] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
+  const [isPrivate, setIsPrivate] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!summary || !fromPage || !toPage) {
+      setError('모든 필드를 입력해주세요.');
+      return;
+    }
+
+    const from = Number(fromPage);
+    const to = Number(toPage);
+
+    if (isNaN(from) || isNaN(to) || from > to) {
+      setError('시작 페이지는 종료 페이지보다 작거나 같아야 합니다.');
+      return;
+    }
+
+    const res = await fetch('/api/entries/new', {
+      method: 'POST',
+      body: JSON.stringify({
+        summary,
+        from_page: from,
+        to_page: to,
+        date: new Date().toISOString().split('T')[0],
+        user_book_id: userBookId,
+        is_private: isPrivate,
+        book_id: bookId,
+        user_id: userId,
+      }),
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (!res.ok) {
+      setError('기록 저장 중 오류가 발생했습니다.');
+    } else {
+      setSuccess(true);
+      router.push(`/protected/books/${userBookId}`);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto">
+      <h1 className="text-2xl font-bold mb-2">📓 오늘의 독서 기록</h1>
+      <div className="flex items-center justify-between">
+        <p className="text-gray-700 dark:text-gray-300">
+          <strong className="text-lg">{book.title}</strong> - {book.author}
+        </p>
+        <div className="flex items-center gap-2">
+          <label htmlFor="isPrivate" className="text-sm text-gray-700 dark:text-gray-300">
+            🔒 비공개로 저장
+          </label>
+          <input
+            id="isPrivate"
+            type="checkbox"
+            checked={isPrivate}
+            onChange={(e) => setIsPrivate(e.target.checked)}
+            className="w-4 h-4"
+          />
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-4 sm:flex-row">
+        <div className="flex-1">
+          <label className="block text-sm mb-1">시작 페이지</label>
+          <input
+            type="number"
+            placeholder="ex. 10"
+            value={fromPage}
+            onChange={(e) => setFromPage(e.target.value)}
+            className="w-full p-2 rounded border dark:bg-gray-800 dark:text-white"
+          />
+        </div>
+        <div className="flex-1">
+          <label className="block text-sm mb-1">종료 페이지</label>
+          <input
+            type="number"
+            placeholder="ex. 25"
+            value={toPage}
+            onChange={(e) => setToPage(e.target.value)}
+            className="w-full p-2 rounded border dark:bg-gray-800 dark:text-white"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm mb-1">읽은 날짜</label>
+        <input
+          type="date"
+          value={new Date().toISOString().split('T')[0]}
+          readOnly
+          disabled
+          className="w-full p-2 rounded border dark:bg-gray-800 dark:text-white opacity-60 cursor-not-allowed"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm mb-1">줄거리 요약</label>
+        <textarea
+          value={summary}
+          onChange={(e) => setSummary(e.target.value)}
+          placeholder="오늘 읽은 내용을 간단히 정리해보세요..."
+          className="w-full p-3 rounded border dark:bg-gray-800 dark:text-white"
+          rows={5}
+        />
+      </div>
+
+      {error && <p className="text-red-500 text-sm">{error}</p>}
+      {success && <p className="text-green-500 text-sm">기록이 성공적으로 저장되었습니다.</p>}
+
+      <button
+        type="submit"
+        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm"
+      >
+        📥 기록 저장하기
+      </button>
+    </form>
+  );
+}

@@ -1,4 +1,4 @@
-import { createSupabaseClient } from '@/lib/supabase';
+import { createSupabaseClient } from '@/lib/supabase/client';
 import { Database } from '@/types/supabase';
 import { badgeConditions } from './badgeConditions';
 

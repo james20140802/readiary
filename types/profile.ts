@@ -16,3 +16,10 @@ export type ProfileFullData = {
   userBooks: UserBookWithCover[];
   userBadges: UserBadge[];
 };
+
+export type Stats = {
+  totalBooks: number;
+  totalEntries: number;
+  totalPages: number;
+  finishedBooks: number;
+};
