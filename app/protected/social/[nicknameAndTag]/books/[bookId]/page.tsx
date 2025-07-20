@@ -15,7 +15,7 @@ export default async function FriendBookDetailPage({ params }: FriendBookDetailP
   const [nickname, tag] = nicknameAndTag.split('-');
 
   const isFriend = await isFriendWith({ nickname, tag });
-  console.log(isFriend);
+
   if (!isFriend) {
     return notFound();
   }
