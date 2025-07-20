@@ -5,6 +5,7 @@ import { MyBook } from '@/types/book';
 import { Entry } from '@/types/entry';
 import { Profile } from '@/types/profile';
 import Image from 'next/image';
+import Link from 'next/link';
 
 interface Props {
   friendProfile: Profile;
@@ -16,6 +17,32 @@ export default function BookDetailContent({ friendProfile, userBook, entries }: 
   const nicknameAndTag = `${friendProfile.nickname}-${friendProfile.tag}`;
   return (
     <div className="space-y-6">
+      <Link
+        href={`/protected/social/${nicknameAndTag}`}
+        className="flex items-center gap-4 mb-4 hover:opacity-80 transition"
+      >
+        {friendProfile.profile_image ? (
+          <Image
+            src={friendProfile.profile_image}
+            alt="프로필 이미지"
+            width={48}
+            height={48}
+            className="rounded-full object-cover"
+          />
+        ) : (
+          <div className="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center text-sm font-bold text-white">
+            {friendProfile.nickname[0]}
+          </div>
+        )}
+        <div>
+          <div className="text-sm font-medium text-gray-900 dark:text-white">
+            {friendProfile.name}
+          </div>
+          <div className="text-xs text-gray-500 dark:text-gray-400">
+            {friendProfile.nickname}#{friendProfile.tag}
+          </div>
+        </div>
+      </Link>
       {/* Book info and progress */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:gap-6">
         <div className="flex-shrink-0 self-center sm:self-start">
