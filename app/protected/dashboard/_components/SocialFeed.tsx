@@ -1,9 +1,11 @@
-import { fetchSocialFeedEntries } from '@/lib/queries/fetchSocialFeedEntries';
 import SocialFeedItem from './SocialFeedItem';
+import { SocialFeedEntry } from '@/types/entry';
 
-export default async function SocialFeed() {
-  const feed = await fetchSocialFeedEntries();
+interface Props {
+  feed: SocialFeedEntry[];
+}
 
+export default async function SocialFeed({ feed }: Props) {
   if (feed.length === 0) {
     return <div className="text-sm text-muted-foreground">친구들의 활동이 아직 없어요.</div>;
   }
