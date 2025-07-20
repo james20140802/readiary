@@ -46,7 +46,10 @@ export default async function FriendProfilePage({ params }: FriendProfilePagePro
         <h1 className="text-center text-xl font-semibold mb-6">👤 내 프로필</h1>
         <div className="space-y-6">
           <ProfileHeader user={user} profile={profile} />
-          <ProfileBookshelf userBooks={userBooks} />
+          <ProfileBookshelf
+            userBooks={userBooks}
+            baseLink={`/protected/books/${(await params).nicknameAndTag}/books`}
+          />
           {stats ? (
             <ProfileStats stats={stats} />
           ) : (
