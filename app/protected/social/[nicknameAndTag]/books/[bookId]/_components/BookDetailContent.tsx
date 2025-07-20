@@ -65,7 +65,7 @@ export default function BookDetailContent({ friendProfile, userBook, entries }: 
                 id={entry.id}
                 summary={entry.summary ?? ''}
                 date={entry.date}
-                href={`/protected/social/${nicknameAndTag}/entries/${entry.id}`}
+                href={`/protected/social/${nicknameAndTag}/entry/${entry.id}`}
               />
             </li>
           ))}
