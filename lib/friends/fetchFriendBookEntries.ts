@@ -1,6 +1,6 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { isFriendWith } from './isFriendWith';
-import { Book } from '@/types/book';
+import { MyBook } from '@/types/book';
 import { Entry } from '@/types/entry';
 import { Profile } from '@/types/profile';
 
@@ -14,10 +14,13 @@ export async function fetchFriendBookEntries({
   bookId: string;
 }): Promise<{
   profile: Profile;
-  book: Book;
+  book: MyBook;
   entries: Entry[];
 } | null> {
   const supabase = await createSupabaseServerClient();
+
+  const isFriend = await isFriendWith({ nickname, tag });
+  if (!isFriend) return null;
 
   // Step 1: Find friend's user_id from nickname and tag
   const { data: profile, error: profileError } = await supabase
@@ -36,13 +39,20 @@ export async function fetchFriendBookEntries({
   } = await supabase.auth.getUser();
   if (!user || userError) return null;
 
-  const isFriend = await isFriendWith(user.id, profile.id);
-  if (!isFriend) return null;
-
   // Step 2: Find user_book.id for this user and book
   const { data: userBook, error: userBookError } = await supabase
     .from('user_books')
-    .select('id, book:books (id, title, author, cover_url, total_pages)')
+    .select(
+      `
+        id,
+        book_id,
+        progress,
+        started_at,
+        is_finished,
+        last_read_page,
+        books (*)
+      `
+    )
     .eq('user_id', profile.id)
     .eq('book_id', bookId)
     .single();
@@ -88,7 +98,7 @@ export async function fetchFriendBookEntries({
 
   return {
     profile,
-    book: userBook.book,
+    book: userBook,
     entries,
   };
 }
