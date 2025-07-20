@@ -48,7 +48,7 @@ export default async function FriendProfilePage({ params }: FriendProfilePagePro
           <ProfileHeader user={user} profile={profile} />
           <ProfileBookshelf
             userBooks={userBooks}
-            baseLink={`/protected/books/${(await params).nicknameAndTag}/books`}
+            baseLink={`/protected/${(await params).nicknameAndTag}/books`}
           />
           {stats ? (
             <ProfileStats stats={stats} />
