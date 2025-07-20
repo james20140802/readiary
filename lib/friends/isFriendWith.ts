@@ -28,7 +28,7 @@ export async function isFriendWith({ nickname, tag }: { nickname: string; tag: s
     .from('friends')
     .select('id')
     .or(
-      `and(sender_id.eq.${currentUserId},recipient_id.eq.${targetUserId},accepted.eq.true),and(sender_id.eq.${targetUserId},recipient_id.eq.${currentUserId},accepted.eq.true)`
+      `and(user_id.eq.${currentUserId},friend_id.eq.${targetUserId},status.eq.accepted),and(user_id.eq.${targetUserId},friend_id.eq.${currentUserId},status.eq.accepted)`
     )
     .maybeSingle();
 
