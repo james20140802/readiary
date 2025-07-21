@@ -32,3 +32,15 @@ export type BookDetailData = {
   userBook: MyBook;
   entries: Entry[] | null;
 };
+
+export type BookSearchResult = {
+  title: string;
+  authors: string[];
+  publisher: string;
+  thumbnail: string;
+  isbn: string;
+  contents: string;
+  datetime: string;
+  totalPages?: number;
+  url: string;
+};
