@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { createSupabaseClient } from '@/lib/supabase/client';
 import { useBadgeAwarder } from '@/hooks/useBadgeAwarder';
+import Button from '@/components/ui/Button';
 
 interface MarkAsFinishedButtonProps {
   userBookId: string;
@@ -38,17 +39,18 @@ export default function MarkAsFinishedButton({
 
   return (
     <div className="relative group inline-block">
-      <button
+      <Button
         onClick={handleMarkAsFinished}
         disabled={progress < 90}
-        className={`${
-          progress < 90 ? 'bg-gray-400 cursor-not-allowed' : 'bg-emerald-500 hover:bg-emerald-600'
-        } text-white px-4 py-2 rounded text-sm mt-2`}
+        size="sm"
+        color="primary"
+        variant={progress < 90 ? 'subtle' : 'primary'}
+        className={`mt-2 ${progress < 90 ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
         📘 책 읽기 완료!
-      </button>
+      </Button>
       {progress < 90 && (
-        <span className="absolute left-1/2 -translate-x-1/2 mt-1 text-xs text-gray-700 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity z-10 whitespace-nowrap">
+        <span className="absolute left-1/2 -translate-x-1/2 mt-1 text-xs text-white bg-black border border-gray-300 dark:border-gray-600 rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity z-10 whitespace-nowrap">
           90% 이상 읽어야 완료할 수 있어요!
         </span>
       )}
