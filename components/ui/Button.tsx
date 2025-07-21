@@ -8,11 +8,13 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger';
   fullWidth?: boolean;
   asChild?: boolean;
+  size?: 'sm' | 'md' | 'lg';
 }
 
 export default function Button({
   variant = 'primary',
   fullWidth = false,
+  size = 'md',
   type = 'button',
   className,
   asChild,
@@ -29,12 +31,18 @@ export default function Button({
 
   const widthClass = fullWidth ? 'w-full' : '';
 
+  const sizeClasses = {
+    sm: 'px-2 py-1 text-xs',
+    md: 'px-4 py-2 text-sm',
+    lg: 'px-6 py-3 text-base',
+  };
+
   const Comp = asChild ? Slot : 'button';
 
   return (
     <Comp
       type={asChild ? undefined : type}
-      className={clsx(base, variantClasses[variant], widthClass, className)}
+      className={clsx(base, sizeClasses[size], variantClasses[variant], widthClass, className)}
       {...props}
     />
   );
