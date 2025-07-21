@@ -26,5 +26,9 @@ export default async function EntryDetailPage({
 
   const { entry, profile } = detail;
 
+  if (entry.entry.is_private) {
+    return <p className="p-4 text-gray-500">비공개된 기록입니다.</p>;
+  }
+
   return <FriendEntryDetailContent entry={entry.entry} book={entry.entry.book} profile={profile} />;
 }
