@@ -4,6 +4,11 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Book } from '@/types/book';
+import { Textarea } from '@/components/ui/Textarea';
+import { Input } from '@/components/ui/Input';
+import FormGroup from '@/components/ui/FormGroup';
+import Button from '@/components/ui/Button';
+import FormLabel from '@/components/ui/FormLabel';
 
 interface Props {
   entryId: string;
@@ -60,8 +65,9 @@ export default function EditEntryForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto">
-      <h1 className="text-xl font-semibold">🌤️ 독서 기록 수정</h1>
-      <div className="flex items-center justify-between">
+      <h1 className="text-page-title text-label dark:text-white">🌤️ 독서 기록 수정</h1>
+
+      <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-4">
           <Image
             src={book.cover_url ?? '/images/default-book-cover.png'}
@@ -71,14 +77,13 @@ export default function EditEntryForm({
             className="rounded shadow object-cover"
           />
           <div>
-            <h2 className="text-xl font-semibold">{book.title ?? '제목 없음'}</h2>
-            <p className="text-sm text-gray-500">{book.author ?? '저자 미상'}</p>
+            <h2 className="text-lg font-semibold text-label dark:text-white">
+              {book.title ?? '제목 없음'}
+            </h2>
+            <p className="text-sm text-secondary">{book.author ?? '저자 미상'}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <label htmlFor="isPrivate" className="text-sm text-gray-700 dark:text-gray-300">
-            🔒 비공개로 저장
-          </label>
+        <label className="flex items-center gap-2 text-sm text-label dark:text-white">
           <input
             id="isPrivate"
             type="checkbox"
@@ -86,63 +91,58 @@ export default function EditEntryForm({
             onChange={(e) => setIsPrivate(e.target.checked)}
             className="w-4 h-4"
           />
-        </div>
+          🔒 비공개로 저장
+        </label>
       </div>
 
       <div className="flex flex-col gap-4 sm:flex-row">
-        <div className="flex-1">
-          <label className="block text-sm mb-1">시작 페이지</label>
-          <input
+        <FormGroup className="flex-1">
+          <FormLabel>시작 페이지</FormLabel>
+          <Input
             type="number"
             placeholder="ex. 10"
             value={fromPage}
             onChange={(e) => setFromPage(e.target.value)}
-            className="w-full p-2 rounded border dark:bg-gray-800 dark:text-white"
           />
-        </div>
-        <div className="flex-1">
-          <label className="block text-sm mb-1">종료 페이지</label>
-          <input
+        </FormGroup>
+        <FormGroup className="flex-1">
+          <FormLabel>종료 페이지</FormLabel>
+          <Input
             type="number"
             placeholder="ex. 25"
             value={toPage}
             onChange={(e) => setToPage(e.target.value)}
-            className="w-full p-2 rounded border dark:bg-gray-800 dark:text-white"
           />
-        </div>
+        </FormGroup>
       </div>
 
-      <div>
-        <label className="block text-sm mb-1">읽은 날짜</label>
-        <input
+      <FormGroup>
+        <FormLabel>읽은 날짜</FormLabel>
+        <Input
           type="date"
           value={date}
           max={new Date().toISOString().split('T')[0]}
-          className="w-full p-2 rounded border dark:bg-gray-800 dark:text-white"
           onChange={(e) => setDate(e.target.value)}
-          placeholder="읽은 날짜"
         />
-      </div>
+      </FormGroup>
 
-      <div>
-        <label className="block text-sm mb-1">줄거리 요약</label>
-        <textarea
+      <FormGroup>
+        <FormLabel>줄거리 요약</FormLabel>
+        <Textarea
           value={summary}
           onChange={(e) => setSummary(e.target.value)}
           placeholder="오늘 읽은 내용을 간단히 정리해보세요..."
-          className="w-full p-3 rounded border dark:bg-gray-800 dark:text-white"
           rows={5}
+          className="resize-none"
+          fullWidth
         />
-      </div>
+      </FormGroup>
 
       {error && <p className="text-sm text-red-500">{error}</p>}
 
-      <button
-        type="submit"
-        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 text-sm"
-      >
-        ✅ 기록 수정하기
-      </button>
+      <div className="flex justify-end">
+        <Button type="submit">✅ 기록 수정하기</Button>
+      </div>
     </form>
   );
 }
