@@ -1,11 +1,13 @@
 'use client';
 
 import { ButtonHTMLAttributes } from 'react';
+import { Slot } from '@radix-ui/react-slot';
 import clsx from 'clsx';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger';
   fullWidth?: boolean;
+  asChild?: boolean;
 }
 
 export default function Button({
@@ -13,6 +15,7 @@ export default function Button({
   fullWidth = false,
   type = 'button',
   className,
+  asChild,
   ...props
 }: ButtonProps) {
   const base =
@@ -26,9 +29,11 @@ export default function Button({
 
   const widthClass = fullWidth ? 'w-full' : '';
 
+  const Comp = asChild ? Slot : 'button';
+
   return (
-    <button
-      type={type}
+    <Comp
+      type={asChild ? undefined : type}
       className={clsx(base, variantClasses[variant], widthClass, className)}
       {...props}
     />
