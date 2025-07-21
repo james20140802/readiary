@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Book } from '@/types/book';
 import Input from '@/components/ui/Input';
+import { toast } from 'sonner';
 
 import Button from '@/components/ui/Button';
 import FormLabel from '@/components/ui/FormLabel';
@@ -23,7 +24,7 @@ export default function NewEntryForm({ userBookId, userId, book, bookId }: Props
   const [fromPage, setFromPage] = useState('');
   const [toPage, setToPage] = useState('');
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
+  // const [success, setSuccess] = useState(false);
   const [isPrivate, setIsPrivate] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -59,7 +60,8 @@ export default function NewEntryForm({ userBookId, userId, book, bookId }: Props
     if (!res.ok) {
       setError('기록 저장 중 오류가 발생했습니다.');
     } else {
-      setSuccess(true);
+      // setSuccess(true);
+      toast.success('기록이 성공적으로 저장되었습니다.');
       router.push(`/protected/books/${userBookId}`);
     }
   };
@@ -124,7 +126,7 @@ export default function NewEntryForm({ userBookId, userId, book, bookId }: Props
       </FormGroup>
 
       {error && <p className="text-red-500 text-sm">{error}</p>}
-      {success && <p className="text-green-500 text-sm">기록이 성공적으로 저장되었습니다.</p>}
+      {/* {success && <p className="text-green-500 text-sm">기록이 성공적으로 저장되었습니다.</p>} */}
 
       <div className="flex justify-end">
         <Button type="submit">📥 기록 저장하기</Button>
