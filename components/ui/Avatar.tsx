@@ -8,13 +8,27 @@ interface AvatarProps {
   alt?: string;
   fallbackText?: string;
   className?: string;
+  size?: 'sm' | 'md' | 'lg';
 }
 
-export function Avatar({ src, alt = '프로필 이미지', fallbackText = '?', className }: AvatarProps) {
+const sizeClasses = {
+  sm: 'w-6 h-6 text-xs',
+  md: 'w-10 h-10 text-sm',
+  lg: 'w-16 h-16 text-base',
+};
+
+export function Avatar({
+  src,
+  alt = '프로필 이미지',
+  fallbackText = '?',
+  className,
+  size = 'md',
+}: AvatarProps) {
   return (
     <div
       className={clsx(
-        'w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center overflow-hidden text-sm font-bold text-white',
+        'rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center overflow-hidden font-bold text-white',
+        sizeClasses[size],
         className
       )}
     >
