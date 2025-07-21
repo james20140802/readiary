@@ -2,6 +2,10 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Input from '@/components/ui/Input';
+import Button from '@/components/ui/Button';
+import FormGroup from '@/components/ui/FormGroup';
+import FormLabel from '@/components/ui/FormLabel';
 
 export default function NewBookForm() {
   const router = useRouter();
@@ -48,39 +52,47 @@ export default function NewBookForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <input
-        type="text"
-        placeholder="책 제목"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        className="w-full border p-2 rounded bg-white dark:bg-gray-800 dark:text-white"
-        required
-      />
-      <input
-        type="text"
-        placeholder="저자"
-        value={author}
-        onChange={(e) => setAuthor(e.target.value)}
-        className="w-full border p-2 rounded bg-white dark:bg-gray-800 dark:text-white"
-        required
-      />
-      <input
-        type="number"
-        placeholder="총 페이지 수"
-        value={totalPages}
-        onChange={(e) => setTotalPages(e.target.value)}
-        className="w-full border p-2 rounded bg-white dark:bg-gray-800 dark:text-white"
-        required
-      />
+    <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto">
+      <FormGroup>
+        <FormLabel>책 제목</FormLabel>
+        <Input
+          type="text"
+          placeholder="책 제목"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          required
+        />
+      </FormGroup>
+
+      <FormGroup>
+        <FormLabel>저자</FormLabel>
+        <Input
+          type="text"
+          placeholder="저자"
+          value={author}
+          onChange={(e) => setAuthor(e.target.value)}
+          required
+        />
+      </FormGroup>
+
+      <FormGroup>
+        <FormLabel>총 페이지 수</FormLabel>
+        <Input
+          type="number"
+          placeholder="총 페이지 수"
+          value={totalPages}
+          onChange={(e) => setTotalPages(e.target.value)}
+          required
+        />
+      </FormGroup>
+
       {error && <p className="text-red-500 text-sm">{error}</p>}
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full bg-black text-white p-2 rounded hover:bg-gray-800 disabled:opacity-50"
-      >
-        {loading ? '등록 중...' : '책 등록하기'}
-      </button>
+
+      <div className="flex justify-end">
+        <Button type="submit" disabled={loading}>
+          {loading ? '등록 중...' : '책 등록하기'}
+        </Button>
+      </div>
     </form>
   );
 }
