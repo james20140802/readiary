@@ -14,6 +14,7 @@ interface TabsProps {
   onChange?: (value: string) => void;
   className?: string;
   renderTabPanel?: (value: string) => ReactNode;
+  fullWidth?: boolean;
 }
 
 export default function Tabs({
@@ -22,6 +23,7 @@ export default function Tabs({
   onChange,
   className,
   renderTabPanel,
+  fullWidth,
 }: TabsProps) {
   const [selected, setSelected] = useState(defaultValue || tabs[0]?.value);
 
@@ -31,14 +33,15 @@ export default function Tabs({
   };
 
   return (
-    <div className={clsx('w-full', className)}>
+    <div className={clsx(fullWidth && 'w-full', className)}>
       <div className="flex space-x-2 border-b border-gray-200 dark:border-gray-700">
         {tabs.map((tab) => (
           <button
             key={tab.value}
             onClick={() => handleTabClick(tab.value)}
             className={clsx(
-              'px-4 py-2 text-sm font-medium transition-colors',
+              fullWidth && 'flex-1',
+              'px-4 py-2 text-sm md:text-lg font-medium transition-colors',
               selected === tab.value
                 ? 'border-b-2 border-tint text-tint'
                 : 'text-secondary hover:text-label'
