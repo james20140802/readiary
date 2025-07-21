@@ -18,6 +18,7 @@ module.exports = {
         'page-title': ['1.5rem', '2rem'], // text-2xl leading-tight
         'section-title': ['1.25rem', '1.75rem'], // text-xl leading-snug
         'body-text': ['1rem', '1.5rem'], // text-base leading-relaxed
+        'button-text': ['0.875rem', '1.25rem'],
       },
       fontFamily: {
         sans: ['Inter', 'ui-sans-serif', 'system-ui'],
