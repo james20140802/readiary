@@ -1,18 +1,22 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { MyBook } from '@/types/book';
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
 
 export default function MyBookList({ books }: { books: MyBook[] }) {
   if (!books || books.length === 0)
     return (
-      <div className="text-center text-gray-700 dark:text-gray-300 space-y-2">
+      <div className="text-center text-secondary space-y-2">
         <p>아직 등록한 책이 없습니다.</p>
-        <Link href="/protected/books/new" className="text-blue-600 dark:text-blue-400 underline">
+        <Link href="/protected/books/new" className="text-tint underline">
           책 등록하러 가기
         </Link>
       </div>
     );
+
   return (
     <ul className="space-y-4">
       {books.map((userBook) => {
@@ -20,35 +24,38 @@ export default function MyBookList({ books }: { books: MyBook[] }) {
         const percent = book?.total_pages ? userBook.progress : 0;
 
         return (
-          <li
-            key={userBook.id}
-            className="rounded-xl border p-4 bg-white dark:bg-gray-800 shadow-sm"
-          >
-            <div className="flex justify-between items-start">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {book?.title}
-                </h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{book?.author}</p>
-                <p className="text-sm mt-2 text-gray-700 dark:text-gray-300">
-                  📖 {percent}% 진행 중
-                </p>
+          <li key={userBook.id}>
+            <Card>
+              <div className="flex gap-4">
+                <Image
+                  src={book.cover_url ?? '/images/default-book-cover.png'}
+                  alt="책 표지"
+                  width={80}
+                  height={112}
+                  className="rounded-md object-cover w-[80px] h-[112px]"
+                />
+
+                <div className="flex-1 flex items-center justify-between">
+                  <div className="flex flex-col justify-center">
+                    <h2 className="text-base font-semibold text-label dark:text-white">
+                      {book?.title}
+                    </h2>
+                    <p className="text-sm text-secondary">{book?.author}</p>
+                    <p className="text-sm mt-2 text-label dark:text-gray-300">
+                      📖 {percent}% 진행 중
+                    </p>
+                  </div>
+                  <div className="flex flex-col sm:flex-row justify-center sm:items-center gap-2 sm:gap-2">
+                    <Button size="sm" variant="secondary" asChild>
+                      <Link href={`/protected/books/${userBook.book_id}`}>상세 보기</Link>
+                    </Button>
+                    <Button size="sm" asChild>
+                      <Link href={`/protected/books/${userBook.book_id}/entry/new`}>기록하기</Link>
+                    </Button>
+                  </div>
+                </div>
               </div>
-              <div className="mt-4 flex gap-2">
-                <Link
-                  href={`/protected/books/${userBook.book_id}`}
-                  className="text-sm px-3 py-1 h-8 min-w-[80px] bg-gray-200 dark:bg-gray-700 rounded flex items-center justify-center"
-                >
-                  상세 보기
-                </Link>
-                <Link
-                  href={`/protected/books/${userBook.book_id}/entry/new`}
-                  className="text-sm px-3 py-1 h-8 min-w-[80px] bg-blue-500 text-white rounded flex items-center justify-center"
-                >
-                  기록하기
-                </Link>
-              </div>
-            </div>
+            </Card>
           </li>
         );
       })}
