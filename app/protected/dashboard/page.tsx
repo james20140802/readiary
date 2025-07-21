@@ -3,6 +3,7 @@ import { InProgressBooksSection } from './_components/InProgressBooksSection';
 import { NoBooksSection } from './_components/NoBooksSection';
 import { WeeklyStreakSection } from './_components/WeeklyStreakSection';
 import SocialFeed from './_components/SocialFeed';
+import GreetingHeader from './_components/GreetingHeader';
 import { fetchDashboardData } from '@/lib/dashboard/fetchDashboardData';
 import { notFound } from 'next/navigation';
 import { fetchSocialFeedEntries } from '@/lib/queries/fetchSocialFeedEntries';
@@ -18,26 +19,13 @@ export default async function DashboardPage() {
 
   return (
     <main className="w-full">
-      <h1 className="text-2xl font-semibold text-gray-800 dark:text-white mb-4">
-        👋 반가워요! 오늘의 독서를 시작해볼까요?
-      </h1>
+      <GreetingHeader />
       <WeeklyStreakSection streak={streak} weekActivity={weekActivity} />
 
-      <div className="mt-10 space-y-8">
-        <TodaySummarySection entry={entry} />
-        {books && books.length > 0 ? (
-          <InProgressBooksSection myBooks={books} />
-        ) : (
-          <NoBooksSection />
-        )}
-      </div>
+      <TodaySummarySection entry={entry} />
+      {books && books.length > 0 ? <InProgressBooksSection myBooks={books} /> : <NoBooksSection />}
 
-      <div className="mt-12">
-        <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-3">
-          📢 친구들의 최근 활동
-        </h2>
-        <SocialFeed feed={socialFeedEntries} />
-      </div>
+      <SocialFeed feed={socialFeedEntries} />
     </main>
   );
 }
