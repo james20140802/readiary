@@ -21,7 +21,7 @@ export default function Button({
   ...props
 }: ButtonProps) {
   const base =
-    'px-4 py-2 rounded-md text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-offset-2';
+    'px-4 py-2 rounded-md text-button-text font-medium transition focus:outline-none focus:ring-2 focus:ring-offset-2 flex items-center justify-center';
 
   const variantClasses = {
     primary: 'bg-tint text-white hover:bg-blue-600 focus:ring-tint',
@@ -32,9 +32,9 @@ export default function Button({
   const widthClass = fullWidth ? 'w-full' : '';
 
   const sizeClasses = {
-    sm: 'px-2 py-1 text-xs',
-    md: 'px-4 py-2 text-sm',
-    lg: 'px-6 py-3 text-base',
+    sm: 'px-2 py-1',
+    md: 'px-4 py-2',
+    lg: 'px-6 py-3',
   };
 
   const Comp = asChild ? Slot : 'button';
