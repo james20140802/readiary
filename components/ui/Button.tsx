@@ -5,7 +5,7 @@ import { Slot } from '@radix-ui/react-slot';
 import clsx from 'clsx';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'danger' | 'subtle';
+  variant?: 'primary' | 'secondary' | 'danger' | 'success' | 'subtle';
   fullWidth?: boolean;
   asChild?: boolean;
   size?: 'sm' | 'md' | 'lg';
@@ -27,6 +27,7 @@ export default function Button({
     primary: 'bg-tint text-white hover:bg-blue-600 focus:ring-tint',
     secondary: 'bg-secondary text-white hover:bg-gray-600 focus:ring-secondary',
     danger: 'bg-red-500 text-white hover:bg-red-600 focus:ring-red-500',
+    success: 'bg-green-500 text-white hover:bg-green-600 focus:ring-green-500',
     subtle:
       'bg-gray-100 text-secondary hover:bg-gray-200 focus:ring-secondary dark:bg-transparent dark:hover:bg-gray-100',
   };
