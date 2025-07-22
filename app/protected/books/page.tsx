@@ -10,8 +10,8 @@ export default async function MyBooksPage() {
   if (!books) return redirect('/');
 
   return (
-    <div className="h-full flex justify-center">
-      <div className="w-full max-w-2xl">
+    <div className="flex justify-center">
+      <div className="w-full">
         <header className="flex justify-between items-center mb-6">
           <h1 className="text-page-title text-label dark:text-white" aria-label="내 책장">
             📚 내 책장
