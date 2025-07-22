@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import React from 'react';
-import Image from 'next/image';
+
+import Card from '@/components/ui/Card';
+import { Avatar } from '@/components/ui/Avatar';
 
 interface FriendListItemProps {
   profile: {
@@ -15,62 +17,36 @@ interface FriendListItemProps {
 }
 
 export default function FriendListItem({ profile, action, href }: FriendListItemProps) {
+  const profileInfo = (
+    <div className="flex items-center gap-4">
+      <Avatar
+        src={profile.profile_image ?? undefined}
+        alt={profile.nickname}
+        fallbackText={profile.nickname[0]}
+        size="md"
+      />
+      <div className="text-sm">
+        <div className="font-medium text-gray-900 dark:text-white">{profile.name}</div>
+        <div className="text-xs text-gray-500 dark:text-gray-400">
+          {profile.nickname}#{profile.tag}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <li
-      key={profile.id}
-      className="flex items-center justify-between p-4 border rounded-lg shadow-sm bg-white dark:bg-gray-800 dark:border-gray-700"
-    >
+    <Card className="flex items-center justify-between p-4">
       {href ? (
         <Link href={href} className="flex items-center justify-between w-full">
-          <div className="flex items-center gap-4">
-            {profile.profile_image ? (
-              <Image
-                src={profile.profile_image}
-                alt="프로필 이미지"
-                width={40}
-                height={40}
-                className="rounded-full object-cover"
-              />
-            ) : (
-              <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center text-sm font-bold text-white">
-                {profile.nickname[0]}
-              </div>
-            )}
-            <div className="text-sm">
-              <div className="font-medium text-gray-900 dark:text-white">{profile.name}</div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">
-                {profile.nickname}#{profile.tag}
-              </div>
-            </div>
-          </div>
+          {profileInfo}
           {action && <div className="ml-auto">{action}</div>}
         </Link>
       ) : (
         <>
-          <div className="flex items-center gap-4">
-            {profile.profile_image ? (
-              <Image
-                src={profile.profile_image}
-                alt="프로필 이미지"
-                width={40}
-                height={40}
-                className="rounded-full object-cover"
-              />
-            ) : (
-              <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center text-sm font-bold text-white">
-                {profile.nickname[0]}
-              </div>
-            )}
-            <div className="text-sm">
-              <div className="font-medium text-gray-900 dark:text-white">{profile.name}</div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">
-                {profile.nickname}#{profile.tag}
-              </div>
-            </div>
-          </div>
+          {profileInfo}
           {action && <div className="ml-auto">{action}</div>}
         </>
       )}
-    </li>
+    </Card>
   );
 }
