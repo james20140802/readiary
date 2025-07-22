@@ -71,7 +71,7 @@ export default function FriendRequestForm() {
 
   return (
     <>
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex items-center gap-3 space-y-4">
         <input
           placeholder="닉네임#태그"
           value={nicknameAndTag}
