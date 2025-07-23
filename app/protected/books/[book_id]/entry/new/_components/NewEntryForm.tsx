@@ -103,6 +103,7 @@ export default function NewEntryForm({ userBookId, userId, book, bookId }: Props
             type="number"
             placeholder="ex. 25"
             value={toPage}
+            max={book.total_pages ?? undefined}
             onChange={(e) => setToPage(e.target.value)}
           />
         </FormGroup>
