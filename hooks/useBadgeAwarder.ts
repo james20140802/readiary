@@ -11,10 +11,11 @@ export function useBadgeAwarder() {
   const awardBadges = useCallback(async (userId: string) => {
     const newBadges = await checkAndAwardBadges(userId);
 
-    if (newBadges.length > 0) {
-      const badgeNames = newBadges.map((b) => b.name).join(', ');
-      toast.success(`🎉 ${newBadges.length}개의 배지를 획득했어요: ${badgeNames}`);
-    }
+    newBadges.forEach((badge) => {
+      toast.success(`${badge.name} 배지 획득!`, {
+        description: badge.description,
+      });
+    });
 
     return newBadges;
   }, []);
