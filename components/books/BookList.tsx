@@ -52,18 +52,19 @@ export default function BookList({ books, isFriend = false }: Props) {
                       📖 {percent}% 진행 중
                     </p>
                   </div>
-                  {!isFriend && (
-                    <div className="flex flex-col sm:flex-row justify-center sm:items-center gap-2 sm:gap-2">
-                      <Button size="sm" variant="secondary" asChild>
-                        <Link href={`/protected/books/${userBook.book_id}`}>상세 보기</Link>
-                      </Button>
+
+                  <div className="flex flex-col sm:flex-row justify-center sm:items-center gap-2 sm:gap-2">
+                    <Button size="sm" variant="secondary" asChild>
+                      <Link href={`/protected/books/${userBook.book_id}`}>상세 보기</Link>
+                    </Button>
+                    {!isFriend && (
                       <Button size="sm" asChild>
                         <Link href={`/protected/books/${userBook.book_id}/entry/new`}>
                           기록하기
                         </Link>
                       </Button>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               </div>
             </Card>
