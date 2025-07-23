@@ -24,7 +24,9 @@
     "react-dom": "^19.0.0",
     "react-icons": "^5.5.0",
     "react-responsive": "^10.0.1",
-    "sonner": "^2.0.6"
+    "sonner": "^2.0.6",
+    "ts-prune": "^0.10.3",
+    "unimported": "^1.31.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
