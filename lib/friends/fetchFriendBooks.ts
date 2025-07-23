@@ -1,6 +1,7 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { MyBook } from '@/types/book';
 import { Profile } from '@/types/profile';
+import { isFriendWith } from './isFriendWith';
 
 export async function fetchFriendBooks(
   nickname: string,
@@ -26,15 +27,9 @@ export async function fetchFriendBooks(
   if (profileError || !profile) return null;
 
   // 친구인지 확인
-  const { data: friend, error: friendError } = await supabase
-    .from('friends')
-    .select('id')
-    .or(`user_id.eq.${user.id},friend_id.eq.${user.id}`)
-    .eq('accepted', true)
-    .or(`user_id.eq.${profile.id},friend_id.eq.${profile.id}`)
-    .maybeSingle();
+  const isFriend = isFriendWith({ nickname, tag });
 
-  if (friendError || !friend) return null;
+  if (!isFriend) return null;
 
   // 친구의 책 목록 가져오기
   const { data: userBooks, error: booksError } = await supabase
