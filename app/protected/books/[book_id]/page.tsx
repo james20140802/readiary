@@ -28,7 +28,7 @@ export default async function BookDetailPage({ params }: Props) {
   if (!book) return notFound();
 
   return (
-    <div className="w-full max-w-3xl mx-auto space-y-6">
+    <div className="w-full">
       <BookDetailContent userBook={userBook} entries={entries} userId={user.id} />
     </div>
   );
