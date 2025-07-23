@@ -1,7 +1,8 @@
 import { redirect, notFound } from 'next/navigation';
-import BookDetailContent from './_components/BookDetailContent';
+
 import { fetchBookDetail } from '@/lib/books/fetchBookDetail';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import BookDetailContent from '@/components/books/BookDetailContent';
 
 interface Props {
   params: Promise<{

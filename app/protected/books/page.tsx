@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import { fetchMyBooksData } from '@/lib/queries/fetchBooks';
 import { redirect } from 'next/navigation';
-import MyBookList from './_components/MyBookList';
 import Button from '@/components/ui/Button';
+import BookList from '@/components/books/BookList';
 
 export default async function MyBooksPage() {
   const books = await fetchMyBooksData();
@@ -25,7 +25,7 @@ export default async function MyBooksPage() {
         {books.length === 0 ? (
           <p className="text-secondary text-center mt-10">등록한 책이 없어요. 📭</p>
         ) : (
-          <MyBookList books={books} />
+          <BookList books={books} />
         )}
       </div>
     </div>
