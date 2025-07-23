@@ -7,14 +7,21 @@ import Modal from '@/components/ui/Modal';
 import { Entry } from '@/types/entry';
 import { Book } from '@/types/book';
 import Button from '@/components/ui/Button';
+import { Profile } from '@/types/profile';
 
 interface Props {
   entry: Entry;
   book: Book;
   isFriend?: boolean;
+  friendProfile?: Profile;
 }
 
-export default function EntryDetailContent({ entry, book, isFriend = false }: Props) {
+export default function EntryDetailContent({
+  entry,
+  book,
+  isFriend = false,
+  friendProfile,
+}: Props) {
   const router = useRouter();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -42,12 +49,17 @@ export default function EntryDetailContent({ entry, book, isFriend = false }: Pr
     }
   };
 
+  const bookUrl =
+    isFriend && friendProfile
+      ? `/protected/social/${friendProfile.nickname + '-' + friendProfile.tag}/books/${book.id}`
+      : `/protected/books/${book.id}`;
+
   return (
     <Fragment>
       <section className="space-y-6">
         <div
           className="flex items-center gap-4 cursor-pointer hover:opacity-80 transition"
-          onClick={() => router.push(`/protected/books/${book.id}`)}
+          onClick={() => router.push(bookUrl)}
         >
           <Image
             src={book.cover_url ?? '/images/default-book-cover.png'}
