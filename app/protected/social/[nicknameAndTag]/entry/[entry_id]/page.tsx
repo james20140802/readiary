@@ -36,7 +36,12 @@ export default async function EntryDetailPage({
     <>
       <FriendProfileHeader profile={profile} />
       <div className="mt-6">
-        <EntryDetailContent entry={entry.entry} book={entry.entry.book} isFriend />
+        <EntryDetailContent
+          entry={entry.entry}
+          book={entry.entry.book}
+          friendProfile={profile}
+          isFriend
+        />
       </div>
     </>
   );
