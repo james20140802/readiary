@@ -7,15 +7,23 @@ import { MyBook } from '@/types/book';
 import { Entry } from '@/types/entry';
 import Image from 'next/image';
 import MarkAsFinishedButton from './MarkAsFinishedButton';
+import { Profile } from '@/types/profile';
 
 interface Props {
   userBook: MyBook;
   entries: Entry[] | null;
   userId?: string;
   isFriend?: boolean;
+  friendProfile?: Profile;
 }
 
-export default function BookDetailContent({ userBook, entries, userId, isFriend = false }: Props) {
+export default function BookDetailContent({
+  userBook,
+  entries,
+  userId,
+  isFriend = false,
+  friendProfile,
+}: Props) {
   const [isFinished, setIsFinished] = useState(userBook.is_finished);
   const { books, progress, last_read_page, book_id, id } = userBook;
   const { title, author, total_pages, cover_url } = books;
@@ -79,7 +87,16 @@ export default function BookDetailContent({ userBook, entries, userId, isFriend 
           <ul className="space-y-4">
             {entries.map((entry) => (
               <li key={entry.id}>
-                <EntryCard id={entry.id} summary={entry.summary ?? ''} date={entry.date} />
+                <EntryCard
+                  id={entry.id}
+                  summary={entry.summary ?? ''}
+                  date={entry.date}
+                  href={
+                    isFriend && friendProfile
+                      ? `/protected/social/${friendProfile.nickname + '-' + friendProfile.tag}/entry/${entry.id}`
+                      : undefined
+                  }
+                />
               </li>
             ))}
           </ul>
