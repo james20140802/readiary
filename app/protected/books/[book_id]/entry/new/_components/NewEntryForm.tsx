@@ -62,7 +62,7 @@ export default function NewEntryForm({ userBookId, userId, book, bookId }: Props
     } else {
       // setSuccess(true);
       toast.success('기록이 성공적으로 저장되었습니다.');
-      router.push(`/protected/books/${userBookId}`);
+      router.push(`/protected/books/${bookId}`);
     }
   };
 
