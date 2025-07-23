@@ -33,7 +33,7 @@ export default async function FriendBookDetailPage({ params }: FriendBookDetailP
     <>
       <FriendProfileHeader profile={profile} />
       <div className="mt-6">
-        <BookDetailContent userBook={book} entries={entries} isFriend />
+        <BookDetailContent userBook={book} entries={entries} friendProfile={profile} isFriend />
       </div>
     </>
   );
