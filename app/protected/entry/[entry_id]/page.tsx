@@ -1,6 +1,5 @@
 import EntryDetailContent from '@/components/entry/EntryDetailContent';
 import { fetchEntryDetail } from '@/lib/entries/fetchEntryDetail';
-
 import { notFound } from 'next/navigation';
 
 export default async function EntryDetailPage({

@@ -64,7 +64,7 @@ export default function EditEntryForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <h1 className="text-page-title text-label dark:text-white">🌤️ 독서 기록 수정</h1>
 
       <div className="flex items-center justify-between gap-4 flex-wrap">
