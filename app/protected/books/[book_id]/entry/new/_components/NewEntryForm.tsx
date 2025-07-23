@@ -67,7 +67,7 @@ export default function NewEntryForm({ userBookId, userId, book, bookId }: Props
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="space-y-6">
       <h1 className="text-page-title">📓 오늘의 독서 기록</h1>
       <div className="flex items-center justify-between">
         <p className="text-label dark:text-white">

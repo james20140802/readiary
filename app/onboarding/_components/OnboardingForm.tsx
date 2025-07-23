@@ -61,7 +61,7 @@ export default function OnboardingForm() {
 
   return (
     <div className="flex items-center justify-center">
-      <div className="w-full">
+      <div className="w-full space-y-4">
         <h1 className="text-xl font-semibold text-center text-gray-900 dark:text-white">
           프로필 설정
         </h1>
