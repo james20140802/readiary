@@ -44,43 +44,45 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="flex items-center justify-center h-full px-4">
-      <div className="w-full max-w-sm">
+    <div className="flex items-center justify-center">
+      <div className="w-full">
         {!signupComplete ? (
-          <section>
+          <section className="space-y-6">
             <h1 className="text-xl font-semibold mb-6 text-center">가입</h1>
             {error && (
               <div className="mb-4 p-2 rounded text-sm text-red-700 bg-red-100 dark:bg-red-900 dark:text-red-200">
                 {error}
               </div>
             )}
-            <FormGroup>
-              <FormLabel>이메일</FormLabel>
-              <Input
-                type="email"
-                placeholder="이메일"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </FormGroup>
-            <FormGroup>
-              <FormLabel>비밀번호</FormLabel>
-              <Input
-                type="password"
-                placeholder="비밀번호"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </FormGroup>
-            <FormGroup>
-              <FormLabel>비밀번호 확인</FormLabel>
-              <Input
-                type="password"
-                placeholder="비밀번호 확인"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-              />
-            </FormGroup>
+            <div className="space-y-6">
+              <FormGroup className="gap-1.5">
+                <FormLabel>이메일</FormLabel>
+                <Input
+                  type="email"
+                  placeholder="이메일"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </FormGroup>
+              <FormGroup className="gap-1.5">
+                <FormLabel>비밀번호</FormLabel>
+                <Input
+                  type="password"
+                  placeholder="비밀번호"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </FormGroup>
+              <FormGroup className="gap-1.5">
+                <FormLabel>비밀번호 확인</FormLabel>
+                <Input
+                  type="password"
+                  placeholder="비밀번호 확인"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+              </FormGroup>
+            </div>
             <div className="pt-2">
               <Button onClick={handleSignup} fullWidth>
                 가입하기
