@@ -1,12 +1,17 @@
 import { SocialFeedEntry } from '@/types/entry';
 import Link from 'next/link';
 
+import { Avatar } from '@/components/ui/Avatar';
+import Card from '@/components/ui/Card';
+
 export default function FeedItem({ entry, profile }: SocialFeedEntry) {
   return (
-    <div className="flex gap-3 py-4 border-b items-center">
-      <div className="w-11 h-11 rounded-full bg-muted flex items-center justify-center text-sm font-semibold text-white">
-        {profile.nickname?.charAt(0).toUpperCase() ?? '?'}
-      </div>
+    <Card aria-label="소셜 피드 항목" className="flex gap-3 py-4 items-center">
+      <Avatar
+        alt={`${profile.nickname}의 프로필 이미지`}
+        fallbackText={profile.nickname.charAt(0).toUpperCase()}
+        src={profile.profile_image || undefined}
+      />
       <div className="flex-1 text-sm leading-5 bg-muted/30 px-3 py-2 rounded-md">
         <div className="mb-1">
           <Link
@@ -23,6 +28,6 @@ export default function FeedItem({ entry, profile }: SocialFeedEntry) {
         </div>
         <div className="text-xs text-muted-foreground mt-1">{entry.date}</div>
       </div>
-    </div>
+    </Card>
   );
 }

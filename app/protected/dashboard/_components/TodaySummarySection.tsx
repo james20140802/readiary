@@ -1,5 +1,6 @@
 'use client';
 
+import Card from '@/components/ui/Card';
 import { Entry } from '@/types/entry';
 
 interface Props {
@@ -8,7 +9,7 @@ interface Props {
 
 export function TodaySummarySection({ entry }: Props) {
   return (
-    <section className="mb-6 rounded-xl bg-blue-50 dark:bg-gray-900 p-5 border border-blue-200 dark:border-gray-700 shadow">
+    <Card className="mb-6">
       {entry ? (
         <div>
           <p className="text-sm text-gray-600 dark:text-gray-400">📖 오늘 읽은 책</p>
@@ -27,6 +28,6 @@ export function TodaySummarySection({ entry }: Props) {
           </p>
         </div>
       )}
-    </section>
+    </Card>
   );
 }

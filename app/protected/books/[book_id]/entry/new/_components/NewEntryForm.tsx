@@ -3,6 +3,13 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Book } from '@/types/book';
+import Input from '@/components/ui/Input';
+import { toast } from 'sonner';
+
+import Button from '@/components/ui/Button';
+import FormLabel from '@/components/ui/FormLabel';
+import FormGroup from '@/components/ui/FormGroup';
+import { Textarea } from '@/components/ui/Textarea';
 
 interface Props {
   userBookId: string;
@@ -17,7 +24,7 @@ export default function NewEntryForm({ userBookId, userId, book, bookId }: Props
   const [fromPage, setFromPage] = useState('');
   const [toPage, setToPage] = useState('');
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
+  // const [success, setSuccess] = useState(false);
   const [isPrivate, setIsPrivate] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -53,20 +60,21 @@ export default function NewEntryForm({ userBookId, userId, book, bookId }: Props
     if (!res.ok) {
       setError('기록 저장 중 오류가 발생했습니다.');
     } else {
-      setSuccess(true);
-      router.push(`/protected/books/${userBookId}`);
+      // setSuccess(true);
+      toast.success('기록이 성공적으로 저장되었습니다.');
+      router.push(`/protected/books/${bookId}`);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-2">📓 오늘의 독서 기록</h1>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <h1 className="text-page-title">📓 오늘의 독서 기록</h1>
       <div className="flex items-center justify-between">
-        <p className="text-gray-700 dark:text-gray-300">
+        <p className="text-label dark:text-white">
           <strong className="text-lg">{book.title}</strong> - {book.author}
         </p>
         <div className="flex items-center gap-2">
-          <label htmlFor="isPrivate" className="text-sm text-gray-700 dark:text-gray-300">
+          <label htmlFor="isPrivate" className="text-sm text-secondary">
             🔒 비공개로 저장
           </label>
           <input
@@ -80,59 +88,50 @@ export default function NewEntryForm({ userBookId, userId, book, bookId }: Props
       </div>
 
       <div className="flex flex-col gap-4 sm:flex-row">
-        <div className="flex-1">
-          <label className="block text-sm mb-1">시작 페이지</label>
-          <input
+        <FormGroup className="flex-1">
+          <FormLabel>시작 페이지</FormLabel>
+          <Input
             type="number"
             placeholder="ex. 10"
             value={fromPage}
             onChange={(e) => setFromPage(e.target.value)}
-            className="w-full p-2 rounded border dark:bg-gray-800 dark:text-white"
           />
-        </div>
-        <div className="flex-1">
-          <label className="block text-sm mb-1">종료 페이지</label>
-          <input
+        </FormGroup>
+        <FormGroup className="flex-1">
+          <FormLabel>종료 페이지</FormLabel>
+          <Input
             type="number"
             placeholder="ex. 25"
             value={toPage}
+            max={book.total_pages ?? undefined}
             onChange={(e) => setToPage(e.target.value)}
-            className="w-full p-2 rounded border dark:bg-gray-800 dark:text-white"
           />
-        </div>
+        </FormGroup>
       </div>
 
-      <div>
-        <label className="block text-sm mb-1">읽은 날짜</label>
-        <input
-          type="date"
-          value={new Date().toISOString().split('T')[0]}
-          readOnly
-          disabled
-          className="w-full p-2 rounded border dark:bg-gray-800 dark:text-white opacity-60 cursor-not-allowed"
-        />
-      </div>
+      <FormGroup>
+        <FormLabel>읽은 날짜</FormLabel>
+        <Input type="date" value={new Date().toISOString().split('T')[0]} readOnly disabled />
+      </FormGroup>
 
-      <div>
-        <label className="block text-sm mb-1">줄거리 요약</label>
-        <textarea
+      <FormGroup>
+        <FormLabel>줄거리 요약</FormLabel>
+        <Textarea
           value={summary}
           onChange={(e) => setSummary(e.target.value)}
           placeholder="오늘 읽은 내용을 간단히 정리해보세요..."
-          className="w-full p-3 rounded border dark:bg-gray-800 dark:text-white"
           rows={5}
+          fullWidth
+          className="resize-none"
         />
-      </div>
+      </FormGroup>
 
       {error && <p className="text-red-500 text-sm">{error}</p>}
-      {success && <p className="text-green-500 text-sm">기록이 성공적으로 저장되었습니다.</p>}
+      {/* {success && <p className="text-green-500 text-sm">기록이 성공적으로 저장되었습니다.</p>} */}
 
-      <button
-        type="submit"
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm"
-      >
-        📥 기록 저장하기
-      </button>
+      <div className="flex justify-end">
+        <Button type="submit">📥 기록 저장하기</Button>
+      </div>
     </form>
   );
 }

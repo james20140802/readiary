@@ -2,6 +2,10 @@
 
 import { useState } from 'react';
 import { createSupabaseClient } from '@/lib/supabase/client';
+import Input from '@/components/ui/Input';
+import Button from '@/components/ui/Button';
+import FormGroup from '@/components/ui/FormGroup';
+import FormLabel from '@/components/ui/FormLabel';
 
 export default function SignupPage() {
   const [email, setEmail] = useState('');
@@ -40,59 +44,61 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="flex items-center justify-center h-full">
-      <div className="w-full max-w-sm">
+    <div className="flex items-center justify-center">
+      <div className="w-full">
         {!signupComplete ? (
-          <>
-            <h1 className="text-xl font-semibold mb-6 text-center text-gray-900 dark:text-white">
-              가입
-            </h1>
-
+          <section className="space-y-6">
+            <h1 className="text-xl font-semibold mb-6 text-center">가입</h1>
             {error && (
               <div className="mb-4 p-2 rounded text-sm text-red-700 bg-red-100 dark:bg-red-900 dark:text-red-200">
                 {error}
               </div>
             )}
-
-            <input
-              type="email"
-              placeholder="이메일"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full mb-3 p-2 border rounded bg-white dark:bg-gray-800 dark:text-white"
-            />
-            <input
-              type="password"
-              placeholder="비밀번호"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full mb-3 p-2 border rounded bg-white dark:bg-gray-800 dark:text-white"
-            />
-            <input
-              type="password"
-              placeholder="비밀번호 확인"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full mb-3 p-2 border rounded bg-white dark:bg-gray-800 dark:text-white"
-            />
-            <button
-              onClick={handleSignup}
-              className="w-full bg-black text-white p-2 rounded hover:bg-gray-800"
-            >
-              가입하기
-            </button>
-
-            <p className="text-sm text-center mt-4">
-              <a href="/login" className="text-gray-500 underline dark:text-gray-400">
+            <div className="space-y-6">
+              <FormGroup className="gap-1.5">
+                <FormLabel>이메일</FormLabel>
+                <Input
+                  type="email"
+                  placeholder="이메일"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </FormGroup>
+              <FormGroup className="gap-1.5">
+                <FormLabel>비밀번호</FormLabel>
+                <Input
+                  type="password"
+                  placeholder="비밀번호"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </FormGroup>
+              <FormGroup className="gap-1.5">
+                <FormLabel>비밀번호 확인</FormLabel>
+                <Input
+                  type="password"
+                  placeholder="비밀번호 확인"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+              </FormGroup>
+            </div>
+            <div className="pt-2">
+              <Button onClick={handleSignup} fullWidth>
+                가입하기
+              </Button>
+            </div>
+            <p className="text-sm text-center mt-4 text-secondary">
+              <a href="/login" className="underline">
                 로그인으로 이동
               </a>
             </p>
-          </>
+          </section>
         ) : (
-          <div className="text-center text-gray-800 dark:text-white space-y-4">
+          <section className="text-center space-y-4">
             <h2 className="text-lg font-semibold">회원가입이 완료되었습니다.</h2>
             <p>이메일을 확인해 인증을 완료해주세요.</p>
-          </div>
+          </section>
         )}
       </div>
     </div>

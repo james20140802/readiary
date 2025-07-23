@@ -1,7 +1,8 @@
 import { fetchFriendBookEntries } from '@/lib/friends/fetchFriendBookEntries';
 import { notFound } from 'next/navigation';
-import BookDetailContent from './_components/BookDetailContent';
 import { isFriendWith } from '@/lib/friends/isFriendWith';
+import FriendProfileHeader from '@/components/social/FriendProfileHeader';
+import BookDetailContent from '@/components/books/BookDetailContent';
 
 interface FriendBookDetailPageProps {
   params: Promise<{
@@ -26,7 +27,14 @@ export default async function FriendBookDetailPage({ params }: FriendBookDetailP
     return notFound();
   }
 
+  const { profile, book, entries } = data;
+
   return (
-    <BookDetailContent userBook={data.book} entries={data.entries} friendProfile={data.profile} />
+    <>
+      <FriendProfileHeader profile={profile} />
+      <div className="mt-6">
+        <BookDetailContent userBook={book} entries={entries} friendProfile={profile} isFriend />
+      </div>
+    </>
   );
 }

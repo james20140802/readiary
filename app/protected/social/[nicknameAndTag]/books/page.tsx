@@ -1,6 +1,8 @@
 import { fetchFriendBooks } from '@/lib/friends/fetchFriendBooks';
-import FriendBookList from './_components/FriendBookList';
+
 import { notFound } from 'next/navigation';
+import BookList from '@/components/books/BookList';
+import FriendProfileHeader from '@/components/social/FriendProfileHeader';
 
 interface Props {
   params: Promise<{ nicknameAndTag: string }>;
@@ -18,9 +20,12 @@ export default async function FriendBooksPage({ params }: Props) {
   }
 
   return (
-    <main className="max-w-2xl mx-auto px-4 py-8">
-      <h1 className="text-xl font-bold mb-4">{profile.name}님의 책장</h1>
-      <FriendBookList books={books} profile={profile} />
-    </main>
+    <>
+      <h1 className="text-page-title mb-6">{profile.name}님의 책장</h1>
+      <FriendProfileHeader profile={profile} />
+      <div className="mt-6">
+        <BookList books={books} isFriend />
+      </div>
+    </>
   );
 }

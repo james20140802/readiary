@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Card from './ui/Card';
 
 interface EntryCardProps {
   id: string;
@@ -11,12 +12,11 @@ interface EntryCardProps {
 
 export default function EntryCard({ id, summary, date, href }: EntryCardProps) {
   return (
-    <Link
-      href={href ?? `/protected/entry/${id}`}
-      className="block bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 hover:shadow-md transition cursor-pointer px-4 py-3 space-y-2"
-    >
-      <p className="text-base text-gray-800 dark:text-gray-100">{summary}</p>
-      <p className="text-sm text-gray-500">{new Date(date).toLocaleDateString()}</p>
+    <Link href={href ?? `/protected/entry/${id}`} className="block">
+      <Card className="space-y-2 transition-colors">
+        <p className="text-body-text text-label dark:text-white">{summary}</p>
+        <p className="text-sm text-secondary">{new Date(date).toLocaleDateString()}</p>
+      </Card>
     </Link>
   );
 }

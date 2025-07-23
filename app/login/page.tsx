@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { createSupabaseClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
+import { Input } from '@/components/ui/Input';
+import Button from '@/components/ui/Button';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -31,9 +33,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex items-center justify-center h-full">
-      <div className="w-full max-w-sm mx-auto">
-        <h1 className="text-xl font-semibold mb-6 text-center text-gray-900 dark:text-white">
+    <div className="flex items-center justify-center">
+      <div className="w-full">
+        <h1 className="text-section-title font-semibold mb-6 text-center text-gray-900 dark:text-white">
           로그인
         </h1>
 
@@ -43,26 +45,22 @@ export default function LoginPage() {
           </div>
         )}
 
-        <input
+        <Input
           type="email"
           placeholder="이메일"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full mb-3 p-2 border rounded bg-white dark:bg-gray-800 dark:text-white"
         />
-        <input
+        <Input
           type="password"
           placeholder="비밀번호"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full mb-3 p-2 border rounded bg-white dark:bg-gray-800 dark:text-white"
+          className="mt-3"
         />
-        <button
-          onClick={handleLogin}
-          className="w-full bg-black text-white p-2 rounded hover:bg-gray-800"
-        >
+        <Button onClick={handleLogin} className="w-full mt-4">
           로그인하기
-        </button>
+        </Button>
 
         <p className="text-sm text-center mt-4">
           <a href="/signup" className="text-gray-500 underline dark:text-gray-400">

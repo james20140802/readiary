@@ -2,6 +2,9 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { Input } from '@/components/ui/Input';
+import { Textarea } from '@/components/ui/Textarea';
+import Button from '@/components/ui/Button';
 
 const generateRandomTag = () => Math.floor(1000 + Math.random() * 9000).toString();
 
@@ -57,39 +60,35 @@ export default function OnboardingForm() {
   };
 
   return (
-    <div className="flex items-center justify-center h-full">
-      <div className="w-full max-w-sm mx-auto space-y-4">
+    <div className="flex items-center justify-center">
+      <div className="w-full space-y-4">
         <h1 className="text-xl font-semibold text-center text-gray-900 dark:text-white">
           프로필 설정
         </h1>
 
-        <input
-          className="w-full border p-2 rounded bg-white dark:bg-gray-800 dark:text-white"
+        <Input
           placeholder="이름"
           value={name}
           onChange={(e) => setName(e.target.value)}
-        />
-        <input
           className="w-full border p-2 rounded bg-white dark:bg-gray-800 dark:text-white"
+        />
+        <Input
           placeholder="닉네임"
           value={nickname}
           onChange={(e) => setNickname(e.target.value)}
-        />
-        <textarea
           className="w-full border p-2 rounded bg-white dark:bg-gray-800 dark:text-white"
+        />
+        <Textarea
           placeholder="자기소개 (선택)"
           value={bio}
           onChange={(e) => setBio(e.target.value)}
+          className="w-full border p-2 rounded bg-white dark:bg-gray-800 dark:text-white"
         />
         {error && <p className="text-red-500 text-sm">{error}</p>}
 
-        <button
-          className="w-full bg-black text-white p-2 rounded hover:bg-gray-800"
-          onClick={handleSubmit}
-          disabled={loading}
-        >
+        <Button className="w-full" onClick={handleSubmit} disabled={loading} variant="primary">
           {loading ? '등록 중...' : '프로필 등록하기'}
-        </button>
+        </Button>
       </div>
     </div>
   );

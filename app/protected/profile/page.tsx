@@ -27,18 +27,16 @@ export default async function ProfilePage() {
   }
 
   return (
-    <div className="max-w-3xl w-full mx-auto px-4 py-6">
-      <h1 className="text-center text-xl font-semibold mb-6">👤 내 프로필</h1>
-      <div className="space-y-6">
-        <ProfileHeader user={user} profile={profile} />
-        <ProfileBookshelf userBooks={userBooks} />
-        {stats ? (
-          <ProfileStats stats={stats} />
-        ) : (
-          <p className="text-sm text-gray-500">통계 정보를 불러올 수 없습니다.</p>
-        )}
-        <ProfileBadges userBadges={userBadges} />
-      </div>
+    <div>
+      <h1 className="text-page-title text-label dark:text-white mb-6">👤 내 프로필</h1>
+      <ProfileHeader user={user} profile={profile} />
+      <ProfileBookshelf userBooks={userBooks} />
+      {stats ? (
+        <ProfileStats stats={stats} />
+      ) : (
+        <p className="text-sm text-gray-500">통계 정보를 불러올 수 없습니다.</p>
+      )}
+      <ProfileBadges userBadges={userBadges} />
     </div>
   );
 }

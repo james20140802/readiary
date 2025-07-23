@@ -1,10 +1,13 @@
 'use client';
 
-import { Fragment, useState } from 'react';
-import { Dialog } from '@headlessui/react';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Profile } from '@/types/profile';
 import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
+import Modal from '@/components/ui/Modal';
+import FormGroup from '@/components/ui/FormGroup';
 
 export default function FriendRequestForm() {
   const [nicknameAndTag, setNicknameAndTag] = useState('');
@@ -71,53 +74,39 @@ export default function FriendRequestForm() {
 
   return (
     <>
-      <div className="flex items-center gap-3 mb-6">
-        <input
-          placeholder="닉네임#태그"
-          value={nicknameAndTag}
-          onChange={(e) => setNicknameAndTag(e.target.value)}
-          className="border px-4 py-2 rounded-lg w-full text-sm dark:bg-gray-900 dark:text-white"
-        />
-        <div>
-          <button
-            title="친구 추가"
-            onClick={handleSearch}
-            disabled={loading}
-            className="bg-blue-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-blue-600"
-          >
+      <FormGroup>
+        <div className="flex items-center gap-3">
+          <Input
+            placeholder="닉네임#태그"
+            value={nicknameAndTag}
+            onChange={(e) => setNicknameAndTag(e.target.value)}
+            className="w-full"
+          />
+          <Button onClick={handleSearch} disabled={loading} aria-label="친구 추가">
             ➕
-          </button>
+          </Button>
         </div>
-      </div>
+      </FormGroup>
 
-      <Dialog open={showConfirmModal} onClose={() => setShowConfirmModal(false)} as={Fragment}>
-        <div className="fixed inset-0 bg-black/30 z-50 flex justify-center items-start pt-16">
-          <Dialog.Panel className="bg-white dark:bg-gray-800 p-6 rounded-lg space-y-4 w-full max-w-sm mx-auto">
-            <Dialog.Title className="text-lg font-semibold text-gray-900 dark:text-white">
-              친구 요청 보내기
-            </Dialog.Title>
-            <Dialog.Description className="text-sm text-gray-700 dark:text-gray-300">
-              {foundUser?.profile.name ?? ''} ({foundUser?.profile.nickname}#
-              {foundUser?.profile.tag}) 님에게 친구 요청을 보낼까요?
-            </Dialog.Description>
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setShowConfirmModal(false)}
-                className="text-sm px-3 py-1 border rounded text-gray-700 dark:text-gray-200"
-              >
-                취소
-              </button>
-              <button
-                onClick={confirmSendRequest}
-                className="text-sm px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-                disabled={loading}
-              >
-                요청 보내기
-              </button>
-            </div>
-          </Dialog.Panel>
+      <Modal isOpen={showConfirmModal} onClose={() => setShowConfirmModal(false)}>
+        <div className="space-y-4">
+          <h2 className="text-section-title font-semibold text-label dark:text-white">
+            친구 요청 보내기
+          </h2>
+          <p className="text-body-text text-secondary">
+            {foundUser?.profile.name ?? ''} ({foundUser?.profile.nickname}#{foundUser?.profile.tag})
+            님에게 친구 요청을 보낼까요?
+          </p>
+          <div className="flex justify-end gap-2">
+            <Button variant="secondary" onClick={() => setShowConfirmModal(false)}>
+              취소
+            </Button>
+            <Button onClick={confirmSendRequest} disabled={loading}>
+              요청 보내기
+            </Button>
+          </div>
         </div>
-      </Dialog>
+      </Modal>
     </>
   );
 }

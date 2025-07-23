@@ -1,7 +1,9 @@
 import { fetchFriendEntryDetail } from '@/lib/friends/fetchFriendEntryDetail';
-import FriendEntryDetailContent from './_components/FriendEntryDetailContent';
+
 import { notFound } from 'next/navigation';
 import { isFriendWith } from '@/lib/friends/isFriendWith';
+import FriendProfileHeader from '@/components/social/FriendProfileHeader';
+import EntryDetailContent from '@/components/entry/EntryDetailContent';
 
 export default async function EntryDetailPage({
   params,
@@ -30,5 +32,17 @@ export default async function EntryDetailPage({
     return <p className="p-4 text-gray-500">비공개된 기록입니다.</p>;
   }
 
-  return <FriendEntryDetailContent entry={entry.entry} book={entry.entry.book} profile={profile} />;
+  return (
+    <>
+      <FriendProfileHeader profile={profile} />
+      <div className="mt-6">
+        <EntryDetailContent
+          entry={entry.entry}
+          book={entry.entry.book}
+          friendProfile={profile}
+          isFriend
+        />
+      </div>
+    </>
+  );
 }
