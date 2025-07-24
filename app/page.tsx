@@ -15,7 +15,7 @@ export default async function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
+    <main className="min-h-screen text-foreground">
       <section className="min-h-screen flex flex-col justify-center items-center px-6 py-24 text-center">
         <div className="max-w-xl">
           <h1 className="text-5xl font-extrabold tracking-tight mb-6">
@@ -32,7 +32,7 @@ export default async function Home() {
               </button>
             </Link>
             <Link href="/signup">
-              <button className="px-6 py-3 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-base font-medium">
+              <button className="px-6 py-3 rounded-md border border-input hover:bg-accent hover:text-accent-foreground text-base font-medium">
                 회원가입
               </button>
             </Link>
