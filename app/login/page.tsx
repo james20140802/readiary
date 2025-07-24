@@ -1,17 +1,26 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createSupabaseClient } from '@/lib/supabase/client';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Input } from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
+import { toast } from 'sonner';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createSupabaseClient();
+
+  useEffect(() => {
+    const from = searchParams.get('from');
+    if (from === 'auth-callback') {
+      toast.info('이메일 인증이 완료되었습니다. 로그인해주세요.');
+    }
+  }, [searchParams]);
 
   const errorMap: Record<string, string> = {
     'Invalid login credentials': '이메일 또는 비밀번호가 일치하지 않습니다.',
