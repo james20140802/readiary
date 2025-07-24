@@ -36,7 +36,7 @@ export default function ProfileHeader({ user, profile }: ProfileHeaderProps) {
           )}
           <div className="text-center">
             <p className="text-section-title font-semibold">{profile.name ?? '이름 없음'}</p>
-            <p className="text-body-text text-secondary">{user.email}</p>
+            {isOwnProfile && <p className="text-body-text text-secondary">{user.email}</p>}
             <p className="text-body-text text-secondary mt-1">
               태그:{' '}
               <span className="font-mono">
