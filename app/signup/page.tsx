@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { createSupabaseClient } from '@/lib/supabase/client';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
@@ -11,7 +12,6 @@ export default function SignupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
   const [signupComplete, setSignupComplete] = useState(false);
   const supabase = createSupabaseClient();
 
@@ -22,9 +22,8 @@ export default function SignupPage() {
   };
 
   const handleSignup = async () => {
-    setError('');
     if (password !== confirmPassword) {
-      setError('비밀번호가 일치하지 않습니다.');
+      toast.error('비밀번호가 일치하지 않습니다.');
       return;
     }
 
@@ -37,7 +36,7 @@ export default function SignupPage() {
     });
 
     if (error) {
-      setError(errorMap[error.message] || '회원가입 중 오류가 발생했습니다.');
+      toast.error(errorMap[error.message] || '회원가입 중 오류가 발생했습니다.');
     } else {
       setSignupComplete(true);
     }
@@ -49,11 +48,6 @@ export default function SignupPage() {
         {!signupComplete ? (
           <section className="space-y-6">
             <h1 className="text-xl font-semibold mb-6 text-center">가입</h1>
-            {error && (
-              <div className="mb-4 p-2 rounded text-sm text-red-700 bg-red-100 dark:bg-red-900 dark:text-red-200">
-                {error}
-              </div>
-            )}
             <div className="space-y-6">
               <FormGroup className="gap-1.5">
                 <FormLabel>이메일</FormLabel>
@@ -72,6 +66,9 @@ export default function SignupPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  비밀번호는 최소 6자 이상이어야 합니다.
+                </p>
               </FormGroup>
               <FormGroup className="gap-1.5">
                 <FormLabel>비밀번호 확인</FormLabel>
