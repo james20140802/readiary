@@ -7,6 +7,7 @@ import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import FormGroup from '@/components/ui/FormGroup';
 import FormLabel from '@/components/ui/FormLabel';
+import { motion } from 'framer-motion';
 
 export default function SignupPage() {
   const [email, setEmail] = useState('');
@@ -46,7 +47,12 @@ export default function SignupPage() {
     <div className="flex items-center justify-center">
       <div className="w-full">
         {!signupComplete ? (
-          <section className="space-y-6">
+          <motion.section
+            className="space-y-6"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
+          >
             <h1 className="text-xl font-semibold mb-6 text-center">가입</h1>
             <div className="space-y-6">
               <FormGroup className="gap-1.5">
@@ -90,12 +96,17 @@ export default function SignupPage() {
                 로그인으로 이동
               </a>
             </p>
-          </section>
+          </motion.section>
         ) : (
-          <section className="text-center space-y-4">
+          <motion.section
+            className="text-center space-y-4"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
+          >
             <h2 className="text-lg font-semibold">회원가입이 완료되었습니다.</h2>
             <p>이메일을 확인해 인증을 완료해주세요.</p>
-          </section>
+          </motion.section>
         )}
       </div>
     </div>
