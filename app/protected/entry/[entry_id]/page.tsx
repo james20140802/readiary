@@ -13,7 +13,7 @@ export default async function EntryDetailPage({
   const detail = await fetchEntryDetail(entryId);
 
   if (!detail) {
-    return <p className="p-4 text-red-500">기록을 찾을 수 없습니다.</p>;
+    return notFound();
   }
 
   return <EntryDetailContent entry={detail.entry} book={detail.entry.book} />;
