@@ -7,6 +7,7 @@ import AcceptFriendRequestButton from './AcceptFriendRequestButton';
 import CancelFriendRequestButton from './CancelFriendRequestButton';
 import DeclineFriendRequestButton from './DeclineFriendRequestButton';
 import FriendListItem from './FriendListItem';
+import AnimatedListSection from '@/components/ui/AnimatedListSecion';
 
 interface Props {
   acceptedFriends: Friend[];
@@ -35,7 +36,7 @@ export default function SocialTab({ acceptedFriends, pendingFriends, sentFriends
           {acceptedFriends.length === 0 ? (
             <p className="text-secondary text-center text-body-text">아직 친구가 없습니다.</p>
           ) : (
-            <ul className="space-y-3">
+            <AnimatedListSection>
               {acceptedFriends.map((friend) => (
                 <li key={friend.profile.id}>
                   <FriendListItem
@@ -45,7 +46,7 @@ export default function SocialTab({ acceptedFriends, pendingFriends, sentFriends
                   />
                 </li>
               ))}
-            </ul>
+            </AnimatedListSection>
           )}
         </section>
       )}
@@ -55,7 +56,7 @@ export default function SocialTab({ acceptedFriends, pendingFriends, sentFriends
           {pendingFriends.length === 0 ? (
             <p className="text-secondary text-center text-body-text">신청 중인 친구가 없습니다.</p>
           ) : (
-            <ul className="space-y-3">
+            <AnimatedListSection>
               {pendingFriends.map((friend) => (
                 <li key={friend.profile.id}>
                   <FriendListItem
@@ -70,7 +71,7 @@ export default function SocialTab({ acceptedFriends, pendingFriends, sentFriends
                   />
                 </li>
               ))}
-            </ul>
+            </AnimatedListSection>
           )}
         </section>
       )}
@@ -80,7 +81,7 @@ export default function SocialTab({ acceptedFriends, pendingFriends, sentFriends
           {sentFriends.length === 0 ? (
             <p className="text-secondary text-center text-body-text">보낸 친구 요청이 없습니다.</p>
           ) : (
-            <ul className="space-y-3">
+            <AnimatedListSection>
               {sentFriends.map((friend) => (
                 <li key={friend.profile.id}>
                   <FriendListItem
@@ -90,7 +91,7 @@ export default function SocialTab({ acceptedFriends, pendingFriends, sentFriends
                   />
                 </li>
               ))}
-            </ul>
+            </AnimatedListSection>
           )}
         </section>
       )}

@@ -8,7 +8,7 @@ import Button from '@/components/ui/Button';
 import FormGroup from '@/components/ui/FormGroup';
 import FormLabel from '@/components/ui/FormLabel';
 import Modal from '@/components/ui/Modal';
-import { motion } from 'framer-motion';
+import AnimatedSection from '@/components/ui/AnimatedSection';
 
 export default function SignupPage() {
   const [email, setEmail] = useState('');
@@ -62,12 +62,7 @@ export default function SignupPage() {
     <div className="flex items-center justify-center">
       <div className="w-full">
         {!signupComplete ? (
-          <motion.section
-            className="space-y-6"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, ease: 'easeOut' }}
-          >
+          <AnimatedSection>
             <h1 className="text-xl font-semibold mb-6 text-center">가입</h1>
             <div className="space-y-6">
               <FormGroup className="gap-1.5">
@@ -150,17 +145,12 @@ export default function SignupPage() {
                 로그인으로 이동
               </a>
             </p>
-          </motion.section>
+          </AnimatedSection>
         ) : (
-          <motion.section
-            className="text-center space-y-4"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, ease: 'easeOut' }}
-          >
+          <AnimatedSection>
             <h2 className="text-lg font-semibold">회원가입이 완료되었습니다.</h2>
             <p>이메일을 확인해 인증을 완료해주세요.</p>
-          </motion.section>
+          </AnimatedSection>
         )}
       </div>
       <Modal isOpen={showTermsModal} onClose={() => setShowTermsModal(false)}>

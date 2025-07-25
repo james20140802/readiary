@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/Textarea';
 import Button from '@/components/ui/Button';
 import FormLabel from '@/components/ui/FormLabel';
 import { toast } from 'sonner';
+import AnimatedSection from '@/components/ui/AnimatedSection';
 
 const generateRandomTag = () => Math.floor(1000 + Math.random() * 9000).toString();
 
@@ -68,38 +69,39 @@ export default function OnboardingForm() {
         <h1 className="text-xl font-semibold text-center text-gray-900 dark:text-white">
           프로필 설정
         </h1>
+        <AnimatedSection>
+          <FormLabel htmlFor="name">이름</FormLabel>
+          <Input
+            id="name"
+            placeholder="이름"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full border p-2 rounded bg-white dark:bg-gray-800 dark:text-white"
+          />
+          <FormLabel htmlFor="nickname">닉네임</FormLabel>
+          <Input
+            id="nickname"
+            placeholder="닉네임"
+            value={nickname}
+            onChange={(e) => setNickname(e.target.value)}
+            className="w-full border p-2 rounded bg-white dark:bg-gray-800 dark:text-white"
+          />
+          <p className="mt-1 text-sm text-muted-foreground">
+            닉네임은 영어 알파벳과 숫자, 언더스코어(_)만 사용할 수 있습니다.
+          </p>
+          <FormLabel htmlFor="bio">자기소개</FormLabel>
+          <Textarea
+            id="bio"
+            placeholder="자기소개 (선택)"
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
+            className="w-full border p-2 rounded bg-white dark:bg-gray-800 dark:text-white resize-none"
+          />
 
-        <FormLabel htmlFor="name">이름</FormLabel>
-        <Input
-          id="name"
-          placeholder="이름"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full border p-2 rounded bg-white dark:bg-gray-800 dark:text-white"
-        />
-        <FormLabel htmlFor="nickname">닉네임</FormLabel>
-        <Input
-          id="nickname"
-          placeholder="닉네임"
-          value={nickname}
-          onChange={(e) => setNickname(e.target.value)}
-          className="w-full border p-2 rounded bg-white dark:bg-gray-800 dark:text-white"
-        />
-        <p className="mt-1 text-sm text-muted-foreground">
-          닉네임은 영어 알파벳과 숫자, 언더스코어(_)만 사용할 수 있습니다.
-        </p>
-        <FormLabel htmlFor="bio">자기소개</FormLabel>
-        <Textarea
-          id="bio"
-          placeholder="자기소개 (선택)"
-          value={bio}
-          onChange={(e) => setBio(e.target.value)}
-          className="w-full border p-2 rounded bg-white dark:bg-gray-800 dark:text-white resize-none"
-        />
-
-        <Button className="w-full" onClick={handleSubmit} disabled={loading} variant="primary">
-          {loading ? '등록 중...' : '프로필 등록하기'}
-        </Button>
+          <Button className="w-full" onClick={handleSubmit} disabled={loading} variant="primary">
+            {loading ? '등록 중...' : '프로필 등록하기'}
+          </Button>
+        </AnimatedSection>
       </div>
     </div>
   );

@@ -7,6 +7,7 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { getUserStats } from '@/lib/stats/getUserStats';
 import ProfileHeader from '@/components/profile/ProfileHeader';
 import { notFound } from 'next/navigation';
+import AnimatedSection from '@/components/ui/AnimatedSection';
 
 export default async function ProfilePage() {
   const supabase = await createSupabaseServerClient();
@@ -32,14 +33,16 @@ export default async function ProfilePage() {
   return (
     <div>
       <h1 className="text-page-title text-label dark:text-white mb-6">👤 내 프로필</h1>
-      <ProfileHeader user={user} profile={profile} />
-      <ProfileBookshelf userBooks={userBooks} />
-      {stats ? (
-        <ProfileStats stats={stats} />
-      ) : (
-        <p className="text-sm text-gray-500">통계 정보를 불러올 수 없습니다.</p>
-      )}
-      <ProfileBadges userBadges={userBadges} />
+      <AnimatedSection>
+        <ProfileHeader user={user} profile={profile} />
+        <ProfileBookshelf userBooks={userBooks} />
+        {stats ? (
+          <ProfileStats stats={stats} />
+        ) : (
+          <p className="text-sm text-gray-500">통계 정보를 불러올 수 없습니다.</p>
+        )}
+        <ProfileBadges userBadges={userBadges} />
+      </AnimatedSection>
     </div>
   );
 }

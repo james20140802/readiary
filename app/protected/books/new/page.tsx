@@ -9,7 +9,7 @@ export default function NewBookPage() {
   const [tab, setTab] = useState<'manual' | 'search'>('search');
 
   return (
-    <div>
+    <div className="w-full">
       <h1 className="text-page-title text-label dark:text-white mb-6">📗 책 등록</h1>
 
       <Tabs
