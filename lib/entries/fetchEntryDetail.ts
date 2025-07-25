@@ -25,6 +25,7 @@ export async function fetchEntryDetail(entryId: string): Promise<EntryDetailData
             is_private,
             user_books (
               book_id,
+              user_id,
               books (
                 id,
                 title,
@@ -39,7 +40,7 @@ export async function fetchEntryDetail(entryId: string): Promise<EntryDetailData
     .eq('id', entryId)
     .single();
 
-  if (error || !data) return null;
+  if (error || !data || user.id !== data.user_books.user_id) return null;
 
   return {
     entry: {
