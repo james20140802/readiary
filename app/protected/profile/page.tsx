@@ -19,8 +19,10 @@ export default async function ProfilePage() {
     return <p className="text-center mt-10 text-red-500">로그인이 필요합니다.</p>;
   }
 
-  const { profile, userBooks, userBadges } = await fetchProfileData(user.id);
-  const stats = await getUserStats(user.id);
+  const [{ profile, userBooks, userBadges }, stats] = await Promise.all([
+    fetchProfileData(user.id),
+    getUserStats(user.id),
+  ]);
 
   if (!profile || !userBooks || !userBadges) {
     return <p className="text-center mt-10 text-gray-400">로딩 중...</p>;
