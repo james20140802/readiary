@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { MyBook } from '@/types/book';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
-
+import AnimatedListSection from '../ui/AnimatedListSecion';
 interface Props {
   books: MyBook[];
   isFriend?: boolean;
@@ -25,7 +25,7 @@ export default function BookList({ books, isFriend = false }: Props) {
     );
 
   return (
-    <ul className="space-y-4">
+    <AnimatedListSection>
       {books.map((userBook) => {
         const book = userBook.books;
         const percent = book?.total_pages ? userBook.progress : 0;
@@ -71,6 +71,6 @@ export default function BookList({ books, isFriend = false }: Props) {
           </li>
         );
       })}
-    </ul>
+    </AnimatedListSection>
   );
 }

@@ -3,11 +3,13 @@
 import { useState } from 'react';
 
 import EntryCard from '@/components/EntryCard';
+
 import { MyBook } from '@/types/book';
 import { Entry } from '@/types/entry';
 import Image from 'next/image';
 import MarkAsFinishedButton from './MarkAsFinishedButton';
 import { Profile } from '@/types/profile';
+import AnimatedListSection from '../ui/AnimatedListSecion';
 
 interface Props {
   userBook: MyBook;
@@ -84,7 +86,7 @@ export default function BookDetailContent({
         </div>
 
         {entries && entries.length > 0 ? (
-          <ul className="space-y-4">
+          <AnimatedListSection>
             {entries.map((entry) => (
               <li key={entry.id}>
                 <EntryCard
@@ -99,7 +101,7 @@ export default function BookDetailContent({
                 />
               </li>
             ))}
-          </ul>
+          </AnimatedListSection>
         ) : (
           <p className="text-sm text-secondary">아직 작성된 기록이 없습니다.</p>
         )}
