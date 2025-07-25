@@ -9,34 +9,36 @@ export default function AuthCallbackPage() {
   const supabase = createSupabaseClient();
 
   useEffect(() => {
-    const handleAuth = async () => {
+    const checkSession = async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
 
-      if (!session) return;
+      if (session) {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', session.user.id)
+          .single();
 
-      const userId = session.user.id;
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('id', userId)
-        .single();
-
-      if (!data || error) {
-        router.push('/onboarding');
+        if (!data || error) {
+          router.push('/onboarding');
+        } else {
+          router.push('/protected');
+        }
       } else {
-        router.push('/protected');
+        router.push('/login?from=auth-callback');
       }
     };
 
-    handleAuth();
+    checkSession();
   }, [router, supabase]);
 
   return (
     <div className="min-h-screen flex items-center justify-center text-gray-900 dark:text-white">
-      <p className="text-center text-sm">로그인 처리 중입니다...</p>
+      <p className="text-center text-sm">
+        이메일 인증이 완료되었습니다. 로그인 페이지로 이동합니다...
+      </p>
     </div>
   );
 }

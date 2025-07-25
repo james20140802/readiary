@@ -3,6 +3,7 @@ import { fetchMyBooksData } from '@/lib/queries/fetchBooks';
 import { redirect } from 'next/navigation';
 import Button from '@/components/ui/Button';
 import BookList from '@/components/books/BookList';
+import AnimatedSection from '@/components/ui/AnimatedSection';
 
 export default async function MyBooksPage() {
   const books = await fetchMyBooksData();
@@ -23,7 +24,9 @@ export default async function MyBooksPage() {
 
         {/* If MyBookList ever fetches data internally, wrap it in <Suspense> for smoother UX */}
         {books.length === 0 ? (
-          <p className="text-secondary text-center mt-10">등록한 책이 없어요. 📭</p>
+          <AnimatedSection>
+            <p className="text-secondary text-center mt-10">등록한 책이 없어요. 📭</p>
+          </AnimatedSection>
         ) : (
           <BookList books={books} />
         )}

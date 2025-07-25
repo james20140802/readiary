@@ -5,6 +5,9 @@ import { useState } from 'react';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import Button from '@/components/ui/Button';
+import FormLabel from '@/components/ui/FormLabel';
+import { toast } from 'sonner';
+import AnimatedSection from '@/components/ui/AnimatedSection';
 
 const generateRandomTag = () => Math.floor(1000 + Math.random() * 9000).toString();
 
@@ -13,16 +16,15 @@ export default function OnboardingForm() {
   const [nickname, setNickname] = useState('');
   const [bio, setBio] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
   const router = useRouter();
 
   const handleSubmit = async () => {
     setLoading(true);
-    setError('');
 
     if (!/^[a-zA-Z0-9_]+$/.test(nickname)) {
-      setError('닉네임은 영어 알파벳과 숫자, 언더스코어(_)만 사용할 수 있습니다.');
+      const errorMessage = '닉네임은 영어 알파벳과 숫자, 언더스코어(_)만 사용할 수 있습니다.';
+      toast.error(errorMessage);
       setLoading(false);
       return;
     }
@@ -49,13 +51,15 @@ export default function OnboardingForm() {
         tag = generateRandomTag();
         tries++;
       } else {
-        setError(result.error || '프로필 등록 중 오류가 발생했습니다.');
+        const errorMessage = result.error || '프로필 등록 중 오류가 발생했습니다.';
+        toast.error(errorMessage);
         setLoading(false);
         return;
       }
     }
 
-    setError('중복 태그가 너무 많습니다. 닉네임을 바꿔보세요.');
+    const errorMessage = '중복 태그가 너무 많습니다. 닉네임을 바꿔보세요.';
+    toast.error(errorMessage);
     setLoading(false);
   };
 
@@ -65,30 +69,39 @@ export default function OnboardingForm() {
         <h1 className="text-xl font-semibold text-center text-gray-900 dark:text-white">
           프로필 설정
         </h1>
+        <AnimatedSection>
+          <FormLabel htmlFor="name">이름</FormLabel>
+          <Input
+            id="name"
+            placeholder="이름"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full border p-2 rounded bg-white dark:bg-gray-800 dark:text-white"
+          />
+          <FormLabel htmlFor="nickname">닉네임</FormLabel>
+          <Input
+            id="nickname"
+            placeholder="닉네임"
+            value={nickname}
+            onChange={(e) => setNickname(e.target.value)}
+            className="w-full border p-2 rounded bg-white dark:bg-gray-800 dark:text-white"
+          />
+          <p className="mt-1 text-sm text-muted-foreground">
+            닉네임은 영어 알파벳과 숫자, 언더스코어(_)만 사용할 수 있습니다.
+          </p>
+          <FormLabel htmlFor="bio">자기소개</FormLabel>
+          <Textarea
+            id="bio"
+            placeholder="자기소개 (선택)"
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
+            className="w-full border p-2 rounded bg-white dark:bg-gray-800 dark:text-white resize-none"
+          />
 
-        <Input
-          placeholder="이름"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full border p-2 rounded bg-white dark:bg-gray-800 dark:text-white"
-        />
-        <Input
-          placeholder="닉네임"
-          value={nickname}
-          onChange={(e) => setNickname(e.target.value)}
-          className="w-full border p-2 rounded bg-white dark:bg-gray-800 dark:text-white"
-        />
-        <Textarea
-          placeholder="자기소개 (선택)"
-          value={bio}
-          onChange={(e) => setBio(e.target.value)}
-          className="w-full border p-2 rounded bg-white dark:bg-gray-800 dark:text-white"
-        />
-        {error && <p className="text-red-500 text-sm">{error}</p>}
-
-        <Button className="w-full" onClick={handleSubmit} disabled={loading} variant="primary">
-          {loading ? '등록 중...' : '프로필 등록하기'}
-        </Button>
+          <Button className="w-full" onClick={handleSubmit} disabled={loading} variant="primary">
+            {loading ? '등록 중...' : '프로필 등록하기'}
+          </Button>
+        </AnimatedSection>
       </div>
     </div>
   );

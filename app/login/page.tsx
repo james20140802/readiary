@@ -1,17 +1,27 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createSupabaseClient } from '@/lib/supabase/client';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Input } from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
+import { toast } from 'sonner';
+import AnimatedSection from '@/components/ui/AnimatedSection';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createSupabaseClient();
+
+  useEffect(() => {
+    const from = searchParams.get('from');
+    if (from === 'auth-callback') {
+      toast.info('이메일 인증이 완료되었습니다. 로그인해주세요.');
+    }
+  }, [searchParams]);
 
   const errorMap: Record<string, string> = {
     'Invalid login credentials': '이메일 또는 비밀번호가 일치하지 않습니다.',
@@ -38,35 +48,36 @@ export default function LoginPage() {
         <h1 className="text-section-title font-semibold mb-6 text-center text-gray-900 dark:text-white">
           로그인
         </h1>
+        <AnimatedSection>
+          {error && (
+            <div className="mb-4 p-2 rounded text-sm text-red-700 bg-red-100 dark:bg-red-900 dark:text-red-200">
+              {error}
+            </div>
+          )}
 
-        {error && (
-          <div className="mb-4 p-2 rounded text-sm text-red-700 bg-red-100 dark:bg-red-900 dark:text-red-200">
-            {error}
-          </div>
-        )}
+          <Input
+            type="email"
+            placeholder="이메일"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <Input
+            type="password"
+            placeholder="비밀번호"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="mt-3"
+          />
+          <Button onClick={handleLogin} className="w-full mt-4">
+            로그인하기
+          </Button>
 
-        <Input
-          type="email"
-          placeholder="이메일"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <Input
-          type="password"
-          placeholder="비밀번호"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="mt-3"
-        />
-        <Button onClick={handleLogin} className="w-full mt-4">
-          로그인하기
-        </Button>
-
-        <p className="text-sm text-center mt-4">
-          <a href="/signup" className="text-gray-500 underline dark:text-gray-400">
-            아직 회원이 아니신가요?
-          </a>
-        </p>
+          <p className="text-sm text-center mt-4">
+            <a href="/signup" className="text-gray-500 underline dark:text-gray-400">
+              아직 회원이 아니신가요?
+            </a>
+          </p>
+        </AnimatedSection>
       </div>
     </div>
   );

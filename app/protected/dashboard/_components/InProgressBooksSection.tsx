@@ -26,7 +26,7 @@ export function InProgressBooksSection({ myBooks }: Props) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {books.map((book, idx) => (
           <Link key={idx} href={`/protected/books/${book.book_id}`}>
-            <Card className="hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+            <Card hoverable>
               <h3 className="text-base font-semibold text-label dark:text-white">{book.title}</h3>
               {book.author && (
                 <p className="text-sm text-secondary dark:text-gray-400">{book.author}</p>

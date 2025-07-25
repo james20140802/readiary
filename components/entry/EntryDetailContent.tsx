@@ -8,6 +8,7 @@ import { Entry } from '@/types/entry';
 import { Book } from '@/types/book';
 import Button from '@/components/ui/Button';
 import { Profile } from '@/types/profile';
+import AnimatedSection from '@/components/ui/AnimatedSection';
 
 interface Props {
   entry: Entry;
@@ -76,29 +77,31 @@ export default function EntryDetailContent({
           </div>
         </div>
 
-        <div className="bg-background dark:bg-darkbg rounded-xl p-6 shadow-md space-y-4">
-          <h1 className="text-page-title font-bold text-label dark:text-white">
-            ✍️ 오늘의 독서 기록
-          </h1>
-          <p className="text-body-text text-label dark:text-gray-100 whitespace-pre-wrap">
-            {entry.summary ?? ''}
-          </p>
-          <hr className="border-t border-gray-200 dark:border-gray-700" />
-          <p className="text-sm text-secondary">
-            📅 {entry.date ? new Date(entry.date).toLocaleDateString() : '날짜 정보 없음'} | 📖{' '}
-            {entry.from_page ?? ''}~{entry.to_page ?? ''}쪽
-          </p>
-          {!isFriend && (
-            <div className="flex justify-end gap-2 pt-2">
-              <Button size="sm" onClick={() => router.push(`/protected/entry/${entry.id}/edit`)}>
-                수정하기
-              </Button>
-              <Button size="sm" variant="danger" onClick={() => setIsDeleteDialogOpen(true)}>
-                삭제하기
-              </Button>
-            </div>
-          )}
-        </div>
+        <AnimatedSection>
+          <div className="bg-background dark:bg-darkbg rounded-xl p-6 shadow-md space-y-4">
+            <h1 className="text-page-title font-bold text-label dark:text-white">
+              ✍️ 오늘의 독서 기록
+            </h1>
+            <p className="text-body-text text-label dark:text-gray-100 whitespace-pre-wrap">
+              {entry.summary ?? ''}
+            </p>
+            <hr className="border-t border-gray-200 dark:border-gray-700" />
+            <p className="text-sm text-secondary">
+              📅 {entry.date ? new Date(entry.date).toLocaleDateString() : '날짜 정보 없음'} | 📖{' '}
+              {entry.from_page ?? ''}~{entry.to_page ?? ''}쪽
+            </p>
+            {!isFriend && (
+              <div className="flex justify-end gap-2 pt-2">
+                <Button size="sm" onClick={() => router.push(`/protected/entry/${entry.id}/edit`)}>
+                  수정하기
+                </Button>
+                <Button size="sm" variant="danger" onClick={() => setIsDeleteDialogOpen(true)}>
+                  삭제하기
+                </Button>
+              </div>
+            )}
+          </div>
+        </AnimatedSection>
       </section>
 
       <Modal isOpen={isDeleteDialogOpen} onClose={() => setIsDeleteDialogOpen(false)}>

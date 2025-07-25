@@ -10,6 +10,7 @@ import Button from '@/components/ui/Button';
 import FormLabel from '@/components/ui/FormLabel';
 import FormGroup from '@/components/ui/FormGroup';
 import { Textarea } from '@/components/ui/Textarea';
+import AnimatedSection from '@/components/ui/AnimatedSection';
 
 interface Props {
   userBookId: string;
@@ -69,69 +70,71 @@ export default function NewEntryForm({ userBookId, userId, book, bookId }: Props
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <h1 className="text-page-title">📓 오늘의 독서 기록</h1>
-      <div className="flex items-center justify-between">
-        <p className="text-label dark:text-white">
-          <strong className="text-lg">{book.title}</strong> - {book.author}
-        </p>
-        <div className="flex items-center gap-2">
-          <label htmlFor="isPrivate" className="text-sm text-secondary">
-            🔒 비공개로 저장
-          </label>
-          <input
-            id="isPrivate"
-            type="checkbox"
-            checked={isPrivate}
-            onChange={(e) => setIsPrivate(e.target.checked)}
-            className="w-4 h-4"
-          />
+      <AnimatedSection>
+        <div className="flex items-center justify-between">
+          <p className="text-label dark:text-white">
+            <strong className="text-lg">{book.title}</strong> - {book.author}
+          </p>
+          <div className="flex items-center gap-2">
+            <label htmlFor="isPrivate" className="text-sm text-secondary">
+              🔒 비공개로 저장
+            </label>
+            <input
+              id="isPrivate"
+              type="checkbox"
+              checked={isPrivate}
+              onChange={(e) => setIsPrivate(e.target.checked)}
+              className="w-4 h-4"
+            />
+          </div>
         </div>
-      </div>
 
-      <div className="flex flex-col gap-4 sm:flex-row">
-        <FormGroup className="flex-1">
-          <FormLabel>시작 페이지</FormLabel>
-          <Input
-            type="number"
-            placeholder="ex. 10"
-            value={fromPage}
-            onChange={(e) => setFromPage(e.target.value)}
+        <div className="flex flex-col gap-4 sm:flex-row">
+          <FormGroup className="flex-1">
+            <FormLabel>시작 페이지</FormLabel>
+            <Input
+              type="number"
+              placeholder="ex. 10"
+              value={fromPage}
+              onChange={(e) => setFromPage(e.target.value)}
+            />
+          </FormGroup>
+          <FormGroup className="flex-1">
+            <FormLabel>종료 페이지</FormLabel>
+            <Input
+              type="number"
+              placeholder="ex. 25"
+              value={toPage}
+              max={book.total_pages ?? undefined}
+              onChange={(e) => setToPage(e.target.value)}
+            />
+          </FormGroup>
+        </div>
+
+        <FormGroup>
+          <FormLabel>읽은 날짜</FormLabel>
+          <Input type="date" value={new Date().toISOString().split('T')[0]} readOnly disabled />
+        </FormGroup>
+
+        <FormGroup>
+          <FormLabel>줄거리 요약</FormLabel>
+          <Textarea
+            value={summary}
+            onChange={(e) => setSummary(e.target.value)}
+            placeholder="오늘 읽은 내용을 간단히 정리해보세요..."
+            rows={5}
+            fullWidth
+            className="resize-none"
           />
         </FormGroup>
-        <FormGroup className="flex-1">
-          <FormLabel>종료 페이지</FormLabel>
-          <Input
-            type="number"
-            placeholder="ex. 25"
-            value={toPage}
-            max={book.total_pages ?? undefined}
-            onChange={(e) => setToPage(e.target.value)}
-          />
-        </FormGroup>
-      </div>
 
-      <FormGroup>
-        <FormLabel>읽은 날짜</FormLabel>
-        <Input type="date" value={new Date().toISOString().split('T')[0]} readOnly disabled />
-      </FormGroup>
+        {error && <p className="text-red-500 text-sm">{error}</p>}
+        {/* {success && <p className="text-green-500 text-sm">기록이 성공적으로 저장되었습니다.</p>} */}
 
-      <FormGroup>
-        <FormLabel>줄거리 요약</FormLabel>
-        <Textarea
-          value={summary}
-          onChange={(e) => setSummary(e.target.value)}
-          placeholder="오늘 읽은 내용을 간단히 정리해보세요..."
-          rows={5}
-          fullWidth
-          className="resize-none"
-        />
-      </FormGroup>
-
-      {error && <p className="text-red-500 text-sm">{error}</p>}
-      {/* {success && <p className="text-green-500 text-sm">기록이 성공적으로 저장되었습니다.</p>} */}
-
-      <div className="flex justify-end">
-        <Button type="submit">📥 기록 저장하기</Button>
-      </div>
+        <div className="flex justify-end">
+          <Button type="submit">📥 기록 저장하기</Button>
+        </div>
+      </AnimatedSection>
     </form>
   );
 }

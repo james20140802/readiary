@@ -6,6 +6,7 @@ import ProfileBadges from '@/components/profile/ProfileBadges';
 import { getUserStats } from '@/lib/stats/getUserStats';
 import ProfileHeader from '@/components/profile/ProfileHeader';
 import { fetchProfileData } from '@/lib/profile/fetchProfileData';
+import AnimatedSection from '@/components/ui/AnimatedSection';
 
 interface FriendProfilePageProps {
   params: Promise<{ nicknameAndTag: string }>;
@@ -42,18 +43,19 @@ export default async function FriendProfilePage({ params }: FriendProfilePagePro
   return (
     <div>
       <h1 className="text-page-title text-label dark:text-white mb-6">👤 친구 프로필</h1>
-
-      <ProfileHeader user={user} profile={profile} />
-      <ProfileBookshelf
-        userBooks={userBooks}
-        baseLink={`/protected/social/${(await params).nicknameAndTag}/books`}
-      />
-      {stats ? (
-        <ProfileStats stats={stats} />
-      ) : (
-        <p className="text-sm text-secondary">통계 정보를 불러올 수 없습니다.</p>
-      )}
-      <ProfileBadges userBadges={userBadges} />
+      <AnimatedSection>
+        <ProfileHeader user={user} profile={profile} />
+        <ProfileBookshelf
+          userBooks={userBooks}
+          baseLink={`/protected/social/${(await params).nicknameAndTag}/books`}
+        />
+        {stats ? (
+          <ProfileStats stats={stats} />
+        ) : (
+          <p className="text-sm text-secondary">통계 정보를 불러올 수 없습니다.</p>
+        )}
+        <ProfileBadges userBadges={userBadges} />
+      </AnimatedSection>
     </div>
   );
 }
