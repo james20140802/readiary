@@ -6,6 +6,7 @@ import ProfileBadges from '@/components/profile/ProfileBadges';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { getUserStats } from '@/lib/stats/getUserStats';
 import ProfileHeader from '@/components/profile/ProfileHeader';
+import { notFound } from 'next/navigation';
 
 export default async function ProfilePage() {
   const supabase = await createSupabaseServerClient();
@@ -25,7 +26,7 @@ export default async function ProfilePage() {
   ]);
 
   if (!profile || !userBooks || !userBadges) {
-    return <p className="text-center mt-10 text-gray-400">로딩 중...</p>;
+    return notFound();
   }
 
   return (
