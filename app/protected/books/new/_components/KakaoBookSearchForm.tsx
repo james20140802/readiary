@@ -85,7 +85,7 @@ export default function KakaoBookSearchForm() {
 
       if (registerRes.ok && result?.success) {
         toast.success('책이 등록되었습니다');
-        router.push(`/protected/books/${result.bookId}`);
+        router.push(`/protected/books/`);
       } else {
         toast.error(result?.message ?? '등록에 실패했습니다');
       }
