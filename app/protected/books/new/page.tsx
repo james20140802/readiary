@@ -4,6 +4,7 @@ import { useState } from 'react';
 import NewBookForm from './_components/NewBookForm';
 import KakaoBookSearchForm from './_components/KakaoBookSearchForm';
 import Tabs from '@/components/ui/Tabs';
+import AnimatedSection from '@/components/ui/AnimatedSection';
 
 export default function NewBookPage() {
   const [tab, setTab] = useState<'manual' | 'search'>('search');
@@ -22,7 +23,11 @@ export default function NewBookPage() {
         fullWidth
       />
 
-      <div className="mt-6">{tab === 'search' ? <KakaoBookSearchForm /> : <NewBookForm />}</div>
+      <div className="mt-6">
+        <AnimatedSection key={tab}>
+          {tab === 'search' ? <KakaoBookSearchForm /> : <NewBookForm />}
+        </AnimatedSection>
+      </div>
     </div>
   );
 }
