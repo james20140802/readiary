@@ -14,7 +14,7 @@ export function WeeklyStreakSection({ streak, weekActivity }: Props) {
   const startDate = startOfWeek(today, { weekStartsOn: 0 });
 
   return (
-    <Card className="mb-6 px-5 py-6">
+    <Card className="mb-6 px-5 py-6" hoverable={false}>
       <h2 className="text-section-title font-bold text-label dark:text-white mb-4">
         📅 이번 주의 리듬
       </h2>

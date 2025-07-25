@@ -9,7 +9,7 @@ interface Props {
 
 export function TodaySummarySection({ entry }: Props) {
   return (
-    <Card className="mb-6">
+    <Card className="mb-6" hoverable={false}>
       {entry ? (
         <div>
           <p className="text-sm text-gray-600 dark:text-gray-400">📖 오늘 읽은 책</p>
