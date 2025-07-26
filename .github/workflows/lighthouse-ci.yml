@@ -1,0 +1,31 @@
+name: Lighthouse CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  lighthouse:
+    name: Run Lighthouse CI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Lighthouse on Vercel Preview
+        run: |
+          BRANCH_NAME=${{ github.head_ref || github.ref_name }}
+          BRANCH_SAFE=${BRANCH_NAME//\//-}
+          DEPLOY_URL="https://readiary-git-${BRANCH_SAFE}-james20140802s-projects.vercel.app"
+          echo "Testing URL: $DEPLOY_URL"
+          npx lhci autorun --collect.url="$DEPLOY_URL"
