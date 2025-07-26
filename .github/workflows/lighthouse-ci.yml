@@ -1,24 +1,73 @@
-name: CI
+name: Run lighthouse CI When Push
 on: [push]
 jobs:
   lhci:
-    name: Lighthouse
+    name: Lighthouse CI
     runs-on: ubuntu-latest
+    env:
+      working-directory: ./client
+
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js
+        uses: actions/setup-node@v1
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
-      - name: Use Node.js 16.x
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.x
-      - name: npm install, build
-        run: |
-          npm install
-          npm run build
-      - name: run Lighthouse CI
-        run: |
-          npm install -g @lhci/cli@0.15.x
-          lhci autorun
+          node-version: '16'
+      - name: Install packages
+        run: yarn install && yarn global add @lhci/cli@0.8.x
+        working-directory: ${{ env.working-directory }}
+      - name: Build
+        run: yarn build
+        working-directory: ${{ env.working-directory }}
+      - name: Run Lighthouse CI
+        run: lhci autorun
         env:
           LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+        working-directory: ${{ env.working-directory }}
+
+      - name: Format lighthouse score
+        id: format_lighthouse_score
+        uses: actions/github-script@v3
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+
+            const fs = require('fs');
+            const results = JSON.parse(fs.readFileSync("${{ env.working-directory }}/lhci_reports/manifest.json"));
+            let comments = "";
+
+            results.forEach((result,index) => {
+            const { summary } = result;
+
+            const formatResult = (res) => Math.round(res * 100);
+
+            Object.keys(summary).forEach(
+                (key) => (summary[key] = formatResult(summary[key]))
+            );
+
+            const score = (res) => (res >= 90 ? "🟢" : res >= 70 ? "🟠" : "🔴");
+
+            const comment = [
+                `⚡️ Lighthouse report ${index}`,
+                `| Category | Score |`,
+                `| --- | --- |`,
+                `| ${score(summary.performance)} Performance | ${summary.performance} |`,
+                `| ${score(summary.accessibility)} Accessibility | ${summary.accessibility} |`,
+                `| ${score(summary['best-practices'])} Best practices | ${summary['best-practices']} |`,
+                `| ${score(summary.seo)} SEO | ${summary.seo} |`,
+                `| ${score(summary.pwa)} PWA | ${summary.pwa} |`,
+                `\n`,
+            ].join("\n");
+
+            comments += comment + "\n";
+            });
+
+            core.setOutput('comments', comments)
+
+      - name: comment PR
+        uses: unsplash/comment-on-pr@v1.3.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          msg: ${{ steps.format_lighthouse_score.outputs.comments}}
