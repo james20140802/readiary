@@ -58,25 +58,22 @@ jobs:
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
-
             const fs = require('fs');
-            # 본인의 환경에 맞게 설정해주세요
-            const results = JSON.parse(fs.readFileSync("/lhci_reports/manifest.json"));
-            # comment를 담을 변수 입니다.
+            // 본인의 환경에 맞게 설정해주세요
+            const results = JSON.parse(fs.readFileSync("lhci_reports/manifest.json"));
+            // comment를 담을 변수 입니다.
             let comments = "";
 
             results.forEach((result) => {
               const { summary, jsonPath } = result;
+              const details = JSON.parse(fs.readFileSync(jsonPath));
               const { audits } = details;
 
-              const details = JSON.parse(fs.readFileSync(jsonPath));
               const formatResult = (res) => Math.round(res * 100);
-
               Object.keys(summary).forEach(
                 (key) => (summary[key] = formatResult(summary[key]))
               );
 
-              # 점수가 색상으로 구분되는 방식 (https://web.dev/performance-scoring/#color-coding)
               const score = (res) => (res >= 90 ? "🟢" : res >= 50 ? "🟠" : "🔴");
 
               const comment = [
@@ -84,23 +81,24 @@ jobs:
                 `| Category | Score |`,
                 `| --- | --- |`,
                 `| ${score(summary.performance)} Performance | ${summary.performance} |`,
-                { ... }
+                `| ${score(summary.accessibility)} Accessibility | ${summary.accessibility} |`,
+                `| ${score(summary["best-practices"])} Best Practices | ${summary["best-practices"]} |`,
+                `| ${score(summary.seo)} SEO | ${summary.seo} |`,
+                `| ${score(summary.pwa)} PWA | ${summary.pwa} |`,
               ].join("\n");
 
               const detail = [
-                `| Category | Score |`,
+                `| Metric | Value |`,
                 `| --- | --- |`,
-                `| ${score(
-                  audits["first-contentful-paint"].score * 100
-                )} First Contentful Paint | ${
-                  audits["first-contentful-paint"].displayValue
-                } |`,
-                { ... }
+                `| ${score(audits["first-contentful-paint"].score * 100)} First Contentful Paint | ${audits["first-contentful-paint"].displayValue} |`,
+                `| ${score(audits["interactive"].score * 100)} Time to Interactive | ${audits["interactive"].displayValue} |`,
+                `| ${score(audits["speed-index"].score * 100)} Speed Index | ${audits["speed-index"].displayValue} |`,
               ].join("\n");
-              comments += comment + "\n" + detail + "\n";
+
+              comments += comment + "\n\n" + detail + "\n\n";
             });
-            # comments 변수의 값을 다음 job으로 넘겨줍니다.
-            core.setOutput('comments', comments)
+
+            core.setOutput('comments', comments);
 
       - name: comment PR
         uses: unsplash/comment-on-pr@v1.3.0
