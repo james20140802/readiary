@@ -1,0 +1,108 @@
+name: Lighthouse CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  lighthouse:
+    name: Run Lighthouse CI
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      KAKAO_REST_API_KEY: ${{ secrets.KAKAO_REST_API_KEY }}
+      NEXT_PUBLIC_EMAIL_REDIRECT_TO: ${{ secrets.NEXT_PUBLIC_EMAIL_REDIRECT_TO }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install npm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build the site
+        run: pnpm build
+
+      - name: Run Lighthouse CI
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+        run: |
+          npm install -g @lhci/cli
+          lhci autorun || echo "Fail to Run Lighthouse CI!"
+
+      - name: Format lighthouse score
+        id: format_lighthouse_score
+        uses: actions/github-script@v3
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            const fs = require('fs');
+            // 본인의 환경에 맞게 설정해주세요
+            const results = JSON.parse(fs.readFileSync("lhci_reports/manifest.json"));
+            // comment를 담을 변수 입니다.
+            let comments = "";
+
+            results.forEach((result) => {
+              const { summary, jsonPath } = result;
+              const details = JSON.parse(fs.readFileSync(jsonPath));
+              const { audits } = details;
+
+              const formatResult = (res) => Math.round(res * 100);
+              Object.keys(summary).forEach(
+                (key) => (summary[key] = formatResult(summary[key]))
+              );
+
+              const score = (res) => (res >= 90 ? "🟢" : res >= 50 ? "🟠" : "🔴");
+
+              const comment = [
+                `⚡️ Lighthouse report!`,
+                `| Category | Score |`,
+                `| --- | --- |`,
+                `| ${score(summary.performance)} Performance | ${summary.performance} |`,
+                `| ${score(summary.accessibility)} Accessibility | ${summary.accessibility} |`,
+                `| ${score(summary["best-practices"])} Best Practices | ${summary["best-practices"]} |`,
+                `| ${score(summary.seo)} SEO | ${summary.seo} |`,
+                `| ${score(summary.pwa)} PWA | ${summary.pwa} |`,
+              ].join("\n");
+
+              const detail = [
+                `| Metric | Value |`,
+                `| --- | --- |`,
+                `| ${score(audits["first-contentful-paint"].score * 100)} First Contentful Paint | ${audits["first-contentful-paint"].displayValue} |`,
+                `| ${score(audits["interactive"].score * 100)} Time to Interactive | ${audits["interactive"].displayValue} |`,
+                `| ${score(audits["speed-index"].score * 100)} Speed Index | ${audits["speed-index"].displayValue} |`,
+              ].join("\n");
+
+              comments += comment + "\n\n" + detail + "\n\n";
+            });
+
+            core.setOutput('comments', comments);
+
+      - name: comment PR
+        uses: unsplash/comment-on-pr@v1.3.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          msg: ${{ steps.format_lighthouse_score.outputs.comments}}

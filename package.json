@@ -16,7 +16,9 @@
     "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.52.0",
+    "@types/minimatch": "^5.1.2",
     "cheerio": "^1.1.1",
+    "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.23.9",
     "lucide-react": "^0.525.0",
@@ -33,7 +35,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@types/next-pwa": "^5.6.9",
+    "@lhci/cli": "^0.15.1",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

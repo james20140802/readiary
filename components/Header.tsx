@@ -5,10 +5,17 @@ import { useEffect, useState } from 'react';
 import { createSupabaseClient } from '@/lib/supabase/client';
 import { BookMarked } from 'lucide-react';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { useRouter } from 'next/navigation';
 
 export default function Header() {
   const isMobile = useIsMobile();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const router = useRouter();
+
+  useEffect(() => {
+    router.prefetch('/protected/dashboard');
+  }, []);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -28,6 +35,7 @@ export default function Header() {
       <Link
         href={isLoggedIn ? '/protected/dashboard' : '/'}
         className="flex items-center space-x-2"
+        prefetch
       >
         <BookMarked size={24} />
         <span className="font-semibold text-lg">Readiary</span>

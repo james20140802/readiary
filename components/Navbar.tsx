@@ -3,7 +3,7 @@ import { MdHome, MdMenuBook, MdPerson, MdPublic } from 'react-icons/md';
 
 import Link from 'next/link';
 import { BookMarked } from 'lucide-react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import clsx from 'clsx';
 import type { User } from '@supabase/auth-helpers-nextjs';
 import { useEffect, useState } from 'react';
@@ -20,6 +20,15 @@ export default function Navbar() {
   const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
   const supabase = createSupabaseClient();
+
+  const router = useRouter();
+
+  useEffect(() => {
+    router.prefetch('/protected/dashboard');
+    router.prefetch('/protected/books');
+    router.prefetch('/protected/social');
+    router.prefetch('/protected/profile');
+  }, []);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -52,6 +61,7 @@ export default function Navbar() {
                   'flex flex-col items-center gap-1 py-1 px-2 transition',
                   pathname === item.href && 'text-black dark:text-white font-semibold'
                 )}
+                prefetch
               >
                 {item.icon}
                 {item.label}
