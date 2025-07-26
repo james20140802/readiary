@@ -6,10 +6,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       working-directory: ./
-      NEXT_PUBLIC_SUPABASE_URL: ${{secrets.NEXT_PUBLIC_SUPABASE_URL}}
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY}}
-      KAKAO_REST_API_KEY: ${{secrets.KAKAO_REST_API_KEY}}
-      NEXT_PUBLIC_EMAIL_REDIRECT_TO: ${{secrets.NEXT_PUBLIC_EMAIL_REDIRECT_TO}}
 
     steps:
       - uses: actions/checkout@v2
@@ -22,8 +18,16 @@ jobs:
         run: yarn install && yarn global add @lhci/cli@0.8.x
         working-directory: ${{ env.working-directory }}
       - name: Build
-        run: yarn build
+        run: |
+          # Prevent Next.js from attempting to statically prerender /_not-found
+          export NEXT_PREVENT_STATIC_NOT_FOUND_EXPORT=1
+          yarn build
         working-directory: ${{ env.working-directory }}
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          KAKAO_REST_API_KEY: ${{secrets.KAKAO_REST_API_KEY}}
+          NEXT_PUBLIC_EMAIL_REDIRECT_TO: ${{secrets.NEXT_PUBLIC_EMAIL_REDIRECT_TO}}
       - name: Run Lighthouse CI
         run: lhci autorun
         env:
