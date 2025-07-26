@@ -5,7 +5,7 @@ jobs:
     name: Lighthouse CI
     runs-on: ubuntu-latest
     env:
-      working-directory: ./client
+      working-directory: ./
 
     steps:
       - uses: actions/checkout@v2
