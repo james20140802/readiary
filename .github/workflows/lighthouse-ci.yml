@@ -6,6 +6,10 @@ jobs:
     runs-on: ubuntu-latest
     env:
       working-directory: ./
+      NEXT_PUBLIC_SUPABASE_URL: ${{secrets.NEXT_PUBLIC_SUPABASE_URL}}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY}}
+      KAKAO_REST_API_KEY: ${{secrets.KAKAO_REST_API_KEY}}
+      NEXT_PUBLIC_EMAIL_REDIRECT_TO: ${{secrets.NEXT_PUBLIC_EMAIL_REDIRECT_TO}}
 
     steps:
       - uses: actions/checkout@v2
