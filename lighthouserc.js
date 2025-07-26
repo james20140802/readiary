@@ -1,9 +1,13 @@
 module.exports = {
   ci: {
     collect: {
-      url: [], // 배포된 주소
+      startServerCommand: 'npm run start',
+      startServerReadyPattern: 'ready on',
+      url: ['http://localhost:3000'],
       numberOfRuns: 3,
-      startServerCommand: null, // 서버는 배포된 상태로 접근
+      settings: {
+        preset: 'desktop',
+      },
     },
     assert: {
       assertions: {
