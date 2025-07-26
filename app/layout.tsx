@@ -18,6 +18,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: 'Readiary | 당신의 독서 일기',
   description: '하루하루의 독서를 기록하고, 친구들과 공유하세요.',
+  manifest: '/manifest.json',
 };
 
 export default function RootLayout({
