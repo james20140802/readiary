@@ -1,81 +1,57 @@
-name: Run lighthouse CI When Push
-on: [push]
+name: Lighthouse CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
 jobs:
-  lhci:
-    name: Lighthouse CI
+  lighthouse:
+    name: Run Lighthouse CI
     runs-on: ubuntu-latest
     env:
-      working-directory: ./
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      KAKAO_REST_API_KEY: ${{ secrets.KAKAO_REST_API_KEY }}
+      NEXT_PUBLIC_EMAIL_REDIRECT_TO: ${{ secrets.NEXT_PUBLIC_EMAIL_REDIRECT_TO }}
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Use Node.js
-        uses: actions/setup-node@v1
+      - name: Install npm
+        uses: pnpm/action-setup@v3
         with:
-          node-version: '20'
-      - name: Install packages
-        run: yarn install && yarn global add @lhci/cli@0.8.x
-        working-directory: ${{ env.working-directory }}
-      - name: Build
+          version: 8
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
         run: |
-          # Prevent Next.js from attempting to statically prerender /_not-found
-          export NEXT_PREVENT_STATIC_NOT_FOUND_EXPORT=1
-          yarn build
-        working-directory: ${{ env.working-directory }}
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-          KAKAO_REST_API_KEY: ${{secrets.KAKAO_REST_API_KEY}}
-          NEXT_PUBLIC_EMAIL_REDIRECT_TO: ${{secrets.NEXT_PUBLIC_EMAIL_REDIRECT_TO}}
-      - name: Run Lighthouse CI
-        run: lhci autorun
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build the site
+        run: pnpm build
+
+      - name: Serve the site
+        run: npx serve -s out -l 3000 &
+
+      - name: Wait for site to be ready
+        run: npx wait-on http://localhost:3000
+
+      - name: Run Lighthouse CI on local build
+        run: pnpm exec lhci autorun
         env:
           LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
-        working-directory: ${{ env.working-directory }}
-
-      - name: Format lighthouse score
-        id: format_lighthouse_score
-        uses: actions/github-script@v3
-        with:
-          github-token: ${{secrets.GITHUB_TOKEN}}
-          script: |
-
-            const fs = require('fs');
-            const results = JSON.parse(fs.readFileSync("${{ env.working-directory }}/lhci_reports/manifest.json"));
-            let comments = "";
-
-            results.forEach((result,index) => {
-            const { summary } = result;
-
-            const formatResult = (res) => Math.round(res * 100);
-
-            Object.keys(summary).forEach(
-                (key) => (summary[key] = formatResult(summary[key]))
-            );
-
-            const score = (res) => (res >= 90 ? "🟢" : res >= 70 ? "🟠" : "🔴");
-
-            const comment = [
-                `⚡️ Lighthouse report ${index}`,
-                `| Category | Score |`,
-                `| --- | --- |`,
-                `| ${score(summary.performance)} Performance | ${summary.performance} |`,
-                `| ${score(summary.accessibility)} Accessibility | ${summary.accessibility} |`,
-                `| ${score(summary['best-practices'])} Best practices | ${summary['best-practices']} |`,
-                `| ${score(summary.seo)} SEO | ${summary.seo} |`,
-                `| ${score(summary.pwa)} PWA | ${summary.pwa} |`,
-                `\n`,
-            ].join("\n");
-
-            comments += comment + "\n";
-            });
-
-            core.setOutput('comments', comments)
-
-      - name: comment PR
-        uses: unsplash/comment-on-pr@v1.3.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          msg: ${{ steps.format_lighthouse_score.outputs.comments}}

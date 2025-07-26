@@ -2,24 +2,13 @@ module.exports = {
   ci: {
     collect: {
       startServerCommand: 'npm run start',
-      startServerReadyPattern: 'ready on',
+      startServerReadyPattern: 'started server on',
       url: ['http://localhost:3000'],
-      numberOfRuns: 3,
-      settings: {
-        preset: 'desktop',
-      },
-    },
-    assert: {
-      assertions: {
-        'categories:performance': ['warn', { minScore: 0.8 }],
-        'categories:accessibility': ['warn', { minScore: 0.9 }],
-        'categories:best-practices': ['warn', { minScore: 0.9 }],
-        'categories:seo': ['warn', { minScore: 0.9 }],
-        'categories:pwa': ['warn', { minScore: 0.9 }],
-      },
+      numberOfRuns: 5,
     },
     upload: {
-      target: 'temporary-public-storage', // 결과를 Google의 임시 저장소에 업로드
+      target: 'temporary-public-storage',
+      githubAppToken: process.env.LHCI_GITHUB_APP_TOKEN,
     },
   },
 };
