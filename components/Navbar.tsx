@@ -77,6 +77,7 @@ export default function Navbar() {
           <Link
             href="/"
             className="text-lg font-bold text-black dark:text-white flex items-center gap-2"
+            prefetch
           >
             <BookMarked size={20} />
             Readiary
@@ -91,6 +92,7 @@ export default function Navbar() {
                     'flex items-center gap-2 px-3 py-1 rounded-md transition hover:bg-gray-100 dark:hover:bg-gray-800',
                     pathname === item.href && 'text-black dark:text-white font-semibold'
                   )}
+                  prefetch
                 >
                   {item.icon}
                   {item.label}
