@@ -8,11 +8,20 @@ import GreetingHeader from './_components/GreetingHeader';
 import { fetchDashboardData } from '@/lib/dashboard/fetchDashboardData';
 import { notFound } from 'next/navigation';
 import { fetchSocialFeedEntries } from '@/lib/queries/fetchSocialFeedEntries';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 export default async function DashboardPage() {
-  const [data, socialFeedEntries] = await Promise.all([
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return null;
+
+  const [data, socialFeedEntries, { data: profile }] = await Promise.all([
     fetchDashboardData(),
     fetchSocialFeedEntries(),
+    supabase.from('profiles').select('name').eq('id', user?.id).single(),
   ]);
   if (!data) return notFound();
 
@@ -20,7 +29,7 @@ export default async function DashboardPage() {
 
   return (
     <main className="w-full">
-      <GreetingHeader />
+      <GreetingHeader name={profile?.name ?? null} />
 
       <AnimatedSection>
         <WeeklyStreakSection streak={streak} weekActivity={weekActivity} />

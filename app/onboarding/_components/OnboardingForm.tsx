@@ -33,34 +33,40 @@ export default function OnboardingForm() {
     let tries = 0;
     const maxTries = 5;
 
-    while (tries < maxTries) {
-      const res = await fetch('/api/onboarding', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, nickname, tag, bio }),
-      });
+    try {
+      while (tries < maxTries) {
+        const res = await fetch('/api/onboarding', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, nickname, tag, bio }),
+        });
 
-      if (res.ok) {
-        router.push('/protected/dashboard');
-        return;
+        if (res.status === 200) {
+          router.push('/protected/dashboard');
+          return;
+        }
+
+        const result = await res.json();
+
+        if (res.status === 500 && result.error?.includes('duplicate key')) {
+          tag = generateRandomTag();
+          tries++;
+        } else {
+          const errorMessage = result.error || '프로필 등록 중 오류가 발생했습니다.';
+          toast.error(errorMessage);
+          setLoading(false);
+          return;
+        }
       }
 
-      const result = await res.json();
-
-      if (res.status === 500 && result.error?.includes('duplicate key')) {
-        tag = generateRandomTag();
-        tries++;
-      } else {
-        const errorMessage = result.error || '프로필 등록 중 오류가 발생했습니다.';
-        toast.error(errorMessage);
-        setLoading(false);
-        return;
-      }
+      const errorMessage = '중복 태그가 너무 많습니다. 닉네임을 바꿔보세요.';
+      toast.error(errorMessage);
+    } catch (error) {
+      toast.error('예기치 않은 오류가 발생했습니다. 나중에 다시 시도해주세요.');
+      console.error(error);
+    } finally {
+      setLoading(false);
     }
-
-    const errorMessage = '중복 태그가 너무 많습니다. 닉네임을 바꿔보세요.';
-    toast.error(errorMessage);
-    setLoading(false);
   };
 
   return (
