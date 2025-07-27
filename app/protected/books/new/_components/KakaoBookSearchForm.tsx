@@ -134,11 +134,12 @@ export default function KakaoBookSearchForm() {
             className="flex items-center gap-4 cursor-pointer"
             hoverable
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src={book.thumbnail || '/images/default-book-cover.png'}
               alt={book.title}
-              className="w-14 h-20 object-cover rounded"
+              width={56}
+              height={80}
+              className="object-cover rounded"
             />
             <div className="text-sm">
               <div className="font-medium text-gray-900 dark:text-white">{book.title}</div>
