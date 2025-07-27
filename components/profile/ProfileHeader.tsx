@@ -43,10 +43,17 @@ export default function ProfileHeader({ user, profile }: ProfileHeaderProps) {
                 {profile.nickname}#{profile.tag ?? '0000'}
               </span>
             </p>
+            {profile.bio && (
+              <p className="text-body-text text-secondary mt-1 whitespace-pre-line">
+                {profile.bio}
+              </p>
+            )}
           </div>
         </div>
         {isOwnProfile && (
-          <div className="text-center text-secondary">아직 계정 관리 기능은 준비 중입니다.</div>
+          <div className="text-center text-secondary mt-1">
+            아직 계정 관리 기능은 준비 중입니다.
+          </div>
         )}
         <div className="flex justify-end">
           {isOwnProfile ? (
