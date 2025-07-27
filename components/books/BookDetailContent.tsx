@@ -40,10 +40,10 @@ export default function BookDetailContent({
             alt="Book cover"
             width={128}
             height={192}
-            className="rounded shadow object-cover w-full sm:w-auto"
+            className="rounded shadow object-cover w-32 sm:w-24"
           />
         </div>
-        <div className="flex-1 space-y-3">
+        <div className="flex-1 space-y-3 mt-4 sm:mt-0">
           <h1 className="text-3xl font-bold text-label dark:text-white">{title}</h1>
           <p className="text-sm text-secondary">{author}</p>
           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded h-2">
