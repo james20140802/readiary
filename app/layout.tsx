@@ -30,13 +30,14 @@ export default function RootLayout({
     <html lang="ko">
       <head>
         <link rel="manifest" href="/manifest.json" />
-        <link rel="icon" href="/icons/icon-night-book-detailed-192x192.png" />
+        <link rel="icon" href="/icons/icon-192x192-v2.png" />
         <meta name="theme-color" content="#0f172a" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <link rel="apple-touch-icon" href="/icons/icon-night-book-detailed-512x512.png" />
+        <link rel="apple-touch-icon" href="/icons/icon-512x512-v2.png" />
+        <link rel="icon" href="favicon.ico" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} overflow-x-hidden bg-white dark:bg-gray-900`}
