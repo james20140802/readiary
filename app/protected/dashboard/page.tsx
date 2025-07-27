@@ -8,8 +8,6 @@ import GreetingHeader from './_components/GreetingHeader';
 import { fetchDashboardData } from '@/lib/dashboard/fetchDashboardData';
 import { notFound } from 'next/navigation';
 import { fetchSocialFeedEntries } from '@/lib/queries/fetchSocialFeedEntries';
-import { Suspense } from 'react';
-import Loading from './Loading';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 export default async function DashboardPage() {
@@ -31,9 +29,7 @@ export default async function DashboardPage() {
 
   return (
     <main className="w-full">
-      <Suspense fallback={<Loading />}>
-        <GreetingHeader name={profile?.name ?? null} />
-      </Suspense>
+      <GreetingHeader name={profile?.name ?? null} />
 
       <AnimatedSection>
         <WeeklyStreakSection streak={streak} weekActivity={weekActivity} />
