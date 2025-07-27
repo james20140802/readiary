@@ -41,7 +41,7 @@ export default function OnboardingForm() {
           body: JSON.stringify({ name, nickname, tag, bio }),
         });
 
-        if (res.status === 200) {
+        if (res.ok) {
           router.push('/protected/dashboard');
           return;
         }
@@ -51,6 +51,11 @@ export default function OnboardingForm() {
         if (res.status === 500 && result.error?.includes('duplicate key')) {
           tag = generateRandomTag();
           tries++;
+        } else if (res.status === 409) {
+          const errorMessage = result.error || '이미 프로필이 존재합니다.';
+          toast.error(errorMessage);
+          router.push('/protected/dashboard');
+          return;
         } else {
           const errorMessage = result.error || '프로필 등록 중 오류가 발생했습니다.';
           toast.error(errorMessage);
