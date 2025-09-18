@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Book } from '@/types/book';
 import Input from '@/components/ui/Input';
+import { useBadgeAwarder } from '@/hooks/useBadgeAwarder';
 import { toast } from 'sonner';
 
 import Button from '@/components/ui/Button';
