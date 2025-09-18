@@ -28,6 +28,7 @@ export default function NewEntryForm({ userBookId, userId, book, bookId }: Props
   const [error, setError] = useState('');
   // const [success, setSuccess] = useState(false);
   const [isPrivate, setIsPrivate] = useState(false);
+  const awardBadges = useBadgeAwarder();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
