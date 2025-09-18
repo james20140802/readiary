@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Book } from '@/types/book';
 import Input from '@/components/ui/Input';
+import { useBadgeAwarder } from '@/hooks/useBadgeAwarder';
 import { toast } from 'sonner';
 
 import Button from '@/components/ui/Button';
@@ -27,6 +28,7 @@ export default function NewEntryForm({ userBookId, userId, book, bookId }: Props
   const [error, setError] = useState('');
   // const [success, setSuccess] = useState(false);
   const [isPrivate, setIsPrivate] = useState(false);
+  const awardBadges = useBadgeAwarder();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,6 +65,7 @@ export default function NewEntryForm({ userBookId, userId, book, bookId }: Props
     } else {
       // setSuccess(true);
       toast.success('기록이 성공적으로 저장되었습니다.');
+      await awardBadges(userId);
       router.push(`/protected/books/${bookId}`);
     }
   };
