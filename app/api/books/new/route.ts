@@ -19,38 +19,9 @@ export async function POST(req: Request) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), { status: 400 });
     }
 
-    if (isbn) {
-      const { data: existingBook, error: fetchError } = await supabase
-        .from('books')
-        .select('id')
-        .eq('isbn', isbn)
-        .maybeSingle();
-
-      if (fetchError) {
-        return new Response(JSON.stringify({ error: 'Failed to check existing book' }), {
-          status: 500,
-        });
-      }
-
-      if (existingBook) {
-        const { error: userBookError } = await supabase.from('user_books').insert({
-          user_id: user.id,
-          book_id: (existingBook as any).id,
-        });
-
-        if (userBookError) {
-          return new Response(JSON.stringify({ error: 'Failed to link book to user' }), {
-            status: 500,
-          });
-        }
-
-        return new Response(JSON.stringify({ success: true }), { status: 200 });
-      }
-    }
-
     const { data: book, error: bookError } = await supabase
       .from('books')
-      .insert({ title, author, total_pages, isbn, cover_url })
+      .upsert({ title, author, total_pages, isbn, cover_url }, { onConflict: 'isbn' })
       .select('*')
       .single();
 
