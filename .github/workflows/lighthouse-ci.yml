@@ -41,7 +41,7 @@ jobs:
         run: pnpm install
 
       - name: Build the site
-        run: pnpm build -- --webpack
+        run: pnpm build
 
       - name: Run Lighthouse CI
         env:
