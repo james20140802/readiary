@@ -19,12 +19,12 @@ export async function POST(req: Request) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), { status: 400 });
     }
 
-    let existingBookQuery = supabase.from('books').select('id');
-
     if (isbn) {
-      existingBookQuery = existingBookQuery.eq('isbn', isbn);
-
-      const { data: existingBook, error: fetchError } = await existingBookQuery.maybeSingle();
+      const { data: existingBook, error: fetchError } = await supabase
+        .from('books')
+        .select('id')
+        .eq('isbn', isbn)
+        .maybeSingle();
 
       if (fetchError) {
         return new Response(JSON.stringify({ error: 'Failed to check existing book' }), {
@@ -32,7 +32,7 @@ export async function POST(req: Request) {
         });
       }
 
-      if (existingBook && 'id' in existingBook) {
+      if (existingBook) {
         const bookId = existingBook.id;
 
         const { error: userBookError } = await supabase.from('user_books').insert({
