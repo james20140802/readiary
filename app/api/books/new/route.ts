@@ -32,7 +32,7 @@ export async function POST(req: Request) {
         });
       }
 
-      if (existingBook) {
+      if (existingBook && 'id' in existingBook) {
         const bookId = existingBook.id;
 
         const { error: userBookError } = await supabase.from('user_books').insert({
