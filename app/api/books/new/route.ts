@@ -1,5 +1,8 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { Database } from '@/types/supabase';
 
+type BookInsert = Database['public']['Tables']['books']['Insert'];
+type UserBookInsert = Database['public']['Tables']['user_books']['Insert'];
 export async function POST(req: Request) {
   try {
     const supabase = await createSupabaseServerClient();
@@ -19,40 +22,9 @@ export async function POST(req: Request) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), { status: 400 });
     }
 
-    let existingBookQuery = supabase.from('books').select('id');
-
-    if (isbn) {
-      existingBookQuery = existingBookQuery.eq('isbn', isbn);
-
-      const { data: existingBook, error: fetchError } = await existingBookQuery.maybeSingle();
-
-      if (fetchError) {
-        return new Response(JSON.stringify({ error: 'Failed to check existing book' }), {
-          status: 500,
-        });
-      }
-
-      if (existingBook) {
-        const bookId = existingBook.id;
-
-        const { error: userBookError } = await supabase.from('user_books').insert({
-          user_id: user.id,
-          book_id: bookId,
-        });
-
-        if (userBookError) {
-          return new Response(JSON.stringify({ error: 'Failed to link book to user' }), {
-            status: 500,
-          });
-        }
-
-        return new Response(JSON.stringify({ success: true }), { status: 200 });
-      }
-    }
-
     const { data: book, error: bookError } = await supabase
       .from('books')
-      .insert({ title, author, total_pages, isbn, cover_url })
+      .upsert({ title, author, total_pages, isbn, cover_url } as BookInsert, { onConflict: 'isbn' })
       .select('*')
       .single();
 
@@ -65,7 +37,7 @@ export async function POST(req: Request) {
     const { error: userBookError } = await supabase.from('user_books').insert({
       user_id: user.id,
       book_id: bookId,
-    });
+    } as UserBookInsert);
 
     if (userBookError) {
       return new Response(JSON.stringify({ error: 'Failed to link book to user' }), {

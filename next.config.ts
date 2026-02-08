@@ -3,7 +3,22 @@ import withPWA from 'next-pwa';
 
 const nextConfig: NextConfig = {
   images: {
-    domains: ['search1.kakaocdn.net', 't1.daumcdn.net'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'search1.kakaocdn.net',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 't1.daumcdn.net',
+        pathname: '/**',
+      },
+    ],
+  },
+
+  webpack: (config) => {
+    return config;
   },
 };
 
