@@ -3,6 +3,7 @@
 import Card from '@/components/ui/Card';
 import { format, startOfWeek, addDays } from 'date-fns';
 import { ko } from 'date-fns/locale';
+import { useState, useEffect } from 'react';
 
 interface Props {
   streak: number;
@@ -10,7 +11,19 @@ interface Props {
 }
 
 export function WeeklyStreakSection({ streak, weekActivity }: Props) {
-  const today = new Date();
+  const [mounted, setMounted] = useState(false);
+  const [today, setToday] = useState(new Date());
+
+  useEffect(() => {
+    setMounted(true);
+    setToday(new Date()); // 브라우저에 접속한 바로 그 시점의 시간을 세팅
+  }, []);
+
+  // 서버에서 렌더링할 때는 아무것도 보여주지 않거나 스켈레톤을 보여줍니다.
+  if (!mounted) {
+    return <div className="min-h-[200px]" />; // 레이아웃 시프트 방지용 빈 박스
+  }
+
   const startDate = startOfWeek(today, { weekStartsOn: 0 });
 
   return (
