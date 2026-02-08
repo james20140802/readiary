@@ -6,7 +6,7 @@ export type BadgeCheckResult = {
 export type BadgeConditionDefinition = {
   code: string; // badgeId와 동일
   description: string;
-  check: (userId: string) => Promise<boolean>;
+  check: (data: BadgeCheckData) => boolean;
 };
 
 export type Badge = {
@@ -20,3 +20,10 @@ export type UserBadge = {
   awarded_at: string | null;
   badge: Badge;
 };
+
+export interface BadgeCheckData {
+  totalEntries: number;
+  finishedBookCount: number;
+  totalPagesRead: number;
+  entryDates: string[];
+}
