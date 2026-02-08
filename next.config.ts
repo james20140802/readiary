@@ -3,12 +3,11 @@ import withPWA from 'next-pwa';
 
 const nextConfig: NextConfig = {
   images: {
-    // 기존 domains 대신 remotePatterns 사용 (보안 강화)
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'search1.kakaocdn.net',
-        pathname: '/**', // 해당 도메인의 모든 경로 허용
+        pathname: '/**',
       },
       {
         protocol: 'https',
@@ -16,6 +15,10 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
     ],
+  },
+
+  webpack: (config) => {
+    return config;
   },
 };
 
