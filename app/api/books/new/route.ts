@@ -33,11 +33,9 @@ export async function POST(req: Request) {
       }
 
       if (existingBook) {
-        const bookId = existingBook.id;
-
         const { error: userBookError } = await supabase.from('user_books').insert({
           user_id: user.id,
-          book_id: bookId,
+          book_id: existingBook.id,
         });
 
         if (userBookError) {
