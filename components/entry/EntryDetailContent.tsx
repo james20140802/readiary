@@ -20,6 +20,7 @@ interface Props {
   friendProfile?: Profile;
   initialLiked: boolean;
   initialLikeCount: number;
+  initialCommentCount: number;
   currentUserId?: string;
 }
 
@@ -30,6 +31,7 @@ export default function EntryDetailContent({
   friendProfile,
   initialLiked,
   initialLikeCount,
+  initialCommentCount,
   currentUserId,
 }: Props) {
   const router = useRouter();
@@ -38,7 +40,7 @@ export default function EntryDetailContent({
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
   const commentRef = useRef<HTMLDivElement>(null);
-  const [commentCount, setCommentCount] = useState(0);
+  const [commentCount, setCommentCount] = useState(initialCommentCount);
 
   // 1. 메뉴 영역을 참조하기 위한 Ref 생성
   const menuRef = useRef<HTMLDivElement>(null);

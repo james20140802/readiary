@@ -30,6 +30,7 @@ export default async function EntryDetailPage({
       book={detail.entry.book}
       initialLiked={detail.initialLiked}
       initialLikeCount={detail.initialLikeCount}
+      initialCommentCount={detail.initialCommentCount}
       currentUserId={user.id}
     />
   );

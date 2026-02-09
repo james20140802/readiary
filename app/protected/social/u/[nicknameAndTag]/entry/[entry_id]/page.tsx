@@ -51,6 +51,7 @@ export default async function EntryDetailPage({
           isFriend
           initialLiked={entry.initialLiked}
           initialLikeCount={entry.initialLikeCount}
+          initialCommentCount={entry.initialCommentCount}
           currentUserId={user.id}
         />
       </div>
