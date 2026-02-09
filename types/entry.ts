@@ -22,6 +22,7 @@ export type DetailSocialFeedEntry = {
   entry: Entry;
   initialLikeCount: number;
   initialLiked: boolean;
+  initialCommentCount: number;
 };
 
 export type RawEntry = {
@@ -52,6 +53,9 @@ export type RawDetailEntry = {
   };
   likes: {
     user_id: string;
+  }[];
+  comments: {
+    id: string;
   }[];
 };
 
