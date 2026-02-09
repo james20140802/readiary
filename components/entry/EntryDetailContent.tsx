@@ -11,6 +11,7 @@ import AnimatedSection from '@/components/ui/AnimatedSection';
 import SocialActionBar from '../social/SocialActionBar';
 import { MoreHorizontal, Edit2, Trash2 } from 'lucide-react'; // 아이콘 추가
 import Button from '../ui/Button';
+import CommentSection from '../comments/CommentSection';
 
 interface Props {
   entry: Entry;
@@ -19,6 +20,7 @@ interface Props {
   friendProfile?: Profile;
   initialLiked: boolean;
   initialLikeCount: number;
+  currentUserId?: string;
 }
 
 export default function EntryDetailContent({
@@ -28,12 +30,15 @@ export default function EntryDetailContent({
   friendProfile,
   initialLiked,
   initialLikeCount,
+  currentUserId,
 }: Props) {
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false); // 메뉴 토글 상태
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
+  const commentRef = useRef<HTMLDivElement>(null);
+  const [commentCount, setCommentCount] = useState(0);
 
   // 1. 메뉴 영역을 참조하기 위한 Ref 생성
   const menuRef = useRef<HTMLDivElement>(null);
@@ -55,6 +60,10 @@ export default function EntryDetailContent({
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isMenuOpen]); // 상태가 바뀔 때마다 리스너 최신화
+
+  const scrollToComments = () => {
+    commentRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -163,7 +172,8 @@ export default function EntryDetailContent({
                     entryId={entry.id}
                     initialLikeCount={initialLikeCount}
                     initialLiked={initialLiked}
-                    initialCommentCount={0}
+                    initialCommentCount={commentCount}
+                    onCommentClick={scrollToComments}
                     border={false}
                   />
                 </div>
@@ -171,6 +181,14 @@ export default function EntryDetailContent({
             </div>
           </div>
         </AnimatedSection>
+        {/* 3. 댓글 섹션 배치 (블로그 스타일) */}
+        <div ref={commentRef} className="pt-4 border-t border-zinc-100 dark:border-zinc-800">
+          <CommentSection
+            entryId={entry.id}
+            currentUserId={currentUserId}
+            onCountChange={setCommentCount}
+          />
+        </div>
       </section>
 
       {/* 삭제 확인 모달 */}

@@ -8,6 +8,7 @@ interface SocialActionBarProps {
   initialLikeCount: number;
   initialLiked: boolean;
   initialCommentCount?: number;
+  onCommentClick?: () => void;
   showCommentCount?: boolean;
   border?: boolean;
 }
@@ -17,6 +18,7 @@ export default function SocialActionBar({
   initialLikeCount,
   initialLiked,
   initialCommentCount = 0,
+  onCommentClick = () => {},
   showCommentCount = true,
   border = true,
 }: SocialActionBarProps) {
@@ -90,7 +92,7 @@ export default function SocialActionBar({
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            // TODO: 댓글창 열기 로직
+            onCommentClick();
           }}
         >
           <MessageCircle size={18} strokeWidth={2} />
