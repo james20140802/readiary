@@ -9,7 +9,7 @@ import { Book } from '@/types/book';
 import Button from '@/components/ui/Button';
 import { Profile } from '@/types/profile';
 import AnimatedSection from '@/components/ui/AnimatedSection';
-import { Heart, MessageCircle } from 'lucide-react';
+import SocialActionBar from '../social/SocialActionBar';
 
 interface Props {
   entry: Entry;
@@ -33,39 +33,6 @@ export default function EntryDetailContent({
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
 
-  // 좋아요 상태 관리
-  const [isLiked, setIsLiked] = useState(initialLiked);
-  const [likeCount, setLikeCount] = useState(initialLikeCount);
-  const [isLikeLoading, setIsLikeLoading] = useState(false);
-
-  // 좋아요 토글 로직
-  const handleLikeToggle = async () => {
-    if (isLikeLoading) return;
-
-    const prevLiked = isLiked;
-    const prevCount = likeCount;
-
-    setIsLiked(!prevLiked);
-    setLikeCount(prevLiked ? prevCount - 1 : prevCount + 1);
-    setIsLikeLoading(true);
-
-    try {
-      const response = await fetch('/api/likes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ entryId: entry.id }),
-      });
-
-      if (!response.ok) throw new Error('Failed to like');
-    } catch (error) {
-      console.error('Error liking entry:', error);
-      setIsLiked(prevLiked);
-      setLikeCount(prevCount);
-    } finally {
-      setIsLikeLoading(false);
-    }
-  };
-
   const handleDelete = async () => {
     setIsDeleting(true);
     setDeleteError('');
@@ -79,14 +46,6 @@ export default function EntryDetailContent({
       setDeleteError((error as Error).message);
       setIsDeleting(false);
     }
-  };
-
-  // 숫자 포맷팅 함수 (10,000 이상일 때 '만' 단위 표시)
-  const formatLikeCount = (count: number) => {
-    if (count >= 10000) {
-      return (count / 10000).toFixed(1).replace(/\.0$/, '') + '만';
-    }
-    return count.toLocaleString();
   };
 
   const bookUrl =
@@ -138,30 +97,14 @@ export default function EntryDetailContent({
                     📖 {entry.from_page}~{entry.to_page}쪽
                   </p>
 
-                  {/* 구분선 (데스크탑에서만 노출) */}
-                  <div className="hidden sm:block h-3 w-[1px] bg-zinc-200 dark:bg-zinc-700" />
-
-                  {/* 소셜 버튼들 */}
-                  <div className="flex items-center gap-4">
-                    <button
-                      onClick={handleLikeToggle}
-                      className="flex items-center gap-1.5 transition-colors group"
-                    >
-                      <Heart
-                        size={18}
-                        className={`transition-transform active:scale-125 ${isLiked ? 'fill-rose-500 text-rose-500' : 'text-zinc-400'}`}
-                      />
-                      <span
-                        className={`text-[0.8125rem] font-bold tabular-nums ${isLiked ? 'text-rose-500' : 'text-zinc-400'}`}
-                      >
-                        {formatLikeCount(likeCount)}
-                      </span>
-                    </button>
-                    <button className="flex items-center gap-1.5 text-zinc-400 hover:text-tint transition-colors">
-                      <MessageCircle size={18} />
-                      <span className="text-[0.8125rem] font-bold">0</span>
-                    </button>
-                  </div>
+                  {/* 2. 소셜 액션 바: 클릭 이벤트 전파 방지 처리 */}
+                  <SocialActionBar
+                    entryId={entry.id}
+                    initialLikeCount={initialLikeCount}
+                    initialLiked={initialLiked}
+                    initialCommentCount={0}
+                    border={false}
+                  />
                 </div>
 
                 {/* 3. 내 글 관리 영역: 모바일에서 아주 가볍게 처리 */}

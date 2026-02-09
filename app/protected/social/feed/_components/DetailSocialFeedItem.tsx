@@ -5,9 +5,10 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { Heart, MessageCircle, MoreHorizontal } from 'lucide-react'; // 아이콘 통일
+import { MoreHorizontal } from 'lucide-react'; // 아이콘 통일
 import { DetailSocialFeedEntry } from '@/types/entry';
 import Card from '@/components/ui/Card';
+import SocialActionBar from '@/components/social/SocialActionBar';
 
 interface Props {
   item: DetailSocialFeedEntry;
@@ -18,52 +19,8 @@ export default function DetailSocialFeedItem({ item }: Props) {
   const { book } = entry;
 
   // 1. 상태 관리
-  const [isLiked, setIsLiked] = useState(initialLiked);
-  const [likeCount, setLikeCount] = useState(initialLikeCount);
-  const [isLoading, setIsLoading] = useState(false);
 
-  // 2. 좋아요 토글 핸들러 (낙관적 업데이트 적용)
-  const handleLikeToggle = async () => {
-    if (isLoading) return; // 연속 클릭 방지
-
-    // [Step 1] 이전 상태 저장 (롤백용)
-    const prevLiked = isLiked;
-    const prevCount = likeCount;
-
-    // [Step 2] UI 즉시 업데이트 (낙관적)
-    setIsLiked(!prevLiked);
-    setLikeCount(prevLiked ? prevCount - 1 : prevCount + 1);
-    setIsLoading(true);
-
-    try {
-      const response = await fetch('/api/likes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ entryId: entry.id }),
-      });
-
-      if (!response.ok) throw new Error('Network response was not ok');
-
-      // 성공 시 서버에서 최종 상태를 확인하고 싶다면 아래 주석 해제
-      const result = await response.json();
-      setIsLiked(result.liked);
-    } catch (error) {
-      // [Step 3] 에러 발생 시 롤백
-      console.error('Like failed:', error);
-      setIsLiked(prevLiked);
-      setLikeCount(prevCount);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // 숫자 포맷팅 함수 (10,000 이상일 때 '만' 단위 표시)
-  const formatLikeCount = (count: number) => {
-    if (count >= 10000) {
-      return (count / 10000).toFixed(1).replace(/\.0$/, '') + '만';
-    }
-    return count.toLocaleString();
-  };
+  const [isExpanded, setIsExpanded] = useState(false);
 
   // 읽은 페이지 계산
   const readRange =
@@ -131,40 +88,45 @@ export default function DetailSocialFeedItem({ item }: Props) {
           </div>
         </div>
       </div>
-
-      {/* 3. 콘텐츠: 독서 기록 카드 */}
+      {/* 3. 콘텐츠: 독서 기록 (줄임 및 더보기 기능 추가) */}
       {entry.summary && entry.summary.trim() !== '' && (
         <div className="px-5 pb-4">
-          <p className="text-[15px] leading-relaxed text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap">
+          <p
+            className={`text-[15px] leading-relaxed text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap ${
+              !isExpanded ? 'line-clamp-4' : ''
+            }`}
+          >
             {entry.summary}
           </p>
+
+          {/* 5줄 이상의 텍스트일 때만 '더 보기' 버튼 노출 (임계점은 유동적) */}
+          {entry.summary.length > 120 && !isExpanded && (
+            <button
+              onClick={() => setIsExpanded(true)}
+              className="mt-1 text-[13px] font-bold text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors"
+            >
+              ...더 보기
+            </button>
+          )}
+
+          {isExpanded && (
+            <button
+              onClick={() => setIsExpanded(false)}
+              className="mt-2 text-[12px] font-medium text-zinc-400 hover:underline"
+            >
+              접기
+            </button>
+          )}
         </div>
       )}
 
       {/* 4. 하단 액션 바 */}
-      <div className="flex items-center px-5 py-3 border-t border-zinc-50 dark:border-zinc-800">
-        {/* 좋아요 버튼 영역: 고정 너비를 주어 댓글 버튼 밀림 방지 */}
-        <div className="flex items-center gap-4">
-          <button
-            onClick={handleLikeToggle}
-            className="flex items-center gap-1.5 transition-colors group"
-          >
-            <Heart
-              size={18}
-              className={`transition-transform active:scale-125 ${isLiked ? 'fill-rose-500 text-rose-500' : 'text-zinc-400'}`}
-            />
-            <span
-              className={`text-[0.8125rem] font-bold tabular-nums ${isLiked ? 'text-rose-500' : 'text-zinc-400'}`}
-            >
-              {formatLikeCount(likeCount)}
-            </span>
-          </button>
-          <button className="flex items-center gap-1.5 text-zinc-400 hover:text-tint transition-colors">
-            <MessageCircle size={18} />
-            <span className="text-[0.8125rem] font-bold">0</span>
-          </button>
-        </div>
-      </div>
+      <SocialActionBar
+        entryId={entry.id}
+        initialLikeCount={initialLikeCount}
+        initialLiked={initialLiked}
+        initialCommentCount={0}
+      />
     </Card>
   );
 }
