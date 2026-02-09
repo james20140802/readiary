@@ -34,6 +34,9 @@ export async function fetchEntryDetail(entryId: string): Promise<EntryDetailData
                 total_pages,
                 isbn
               )
+            ),
+            likes (
+             user_id
             )
           `
     )
@@ -41,6 +44,9 @@ export async function fetchEntryDetail(entryId: string): Promise<EntryDetailData
     .single();
 
   if (error || !data || user.id !== data.user_books.user_id) return null;
+
+  const isLiked = data.likes?.some((like) => like.user_id === user.id) ?? false;
+  const likeCount = data.likes?.length ?? 0;
 
   return {
     entry: {
@@ -53,5 +59,7 @@ export async function fetchEntryDetail(entryId: string): Promise<EntryDetailData
       book: data.user_books.books,
     },
     userId: user.id,
+    initialLiked: isLiked,
+    initialLikeCount: likeCount,
   };
 }

@@ -53,6 +53,9 @@ export async function fetchFriendEntryDetail(
                 total_pages,
                 isbn
               )
+            ),
+            likes (
+              user_id
             )
           `
     )
@@ -60,6 +63,9 @@ export async function fetchFriendEntryDetail(
     .single();
 
   if (error || !data) return null;
+
+  const isLiked = data.likes?.some((like) => like.user_id === user.id) ?? false;
+  const likeCount = data.likes?.length ?? 0;
 
   return {
     entry: {
@@ -73,6 +79,8 @@ export async function fetchFriendEntryDetail(
         book: data.user_books.books,
       },
       userId: profile.id,
+      initialLiked: isLiked,
+      initialLikeCount: likeCount,
     },
     profile,
   };
