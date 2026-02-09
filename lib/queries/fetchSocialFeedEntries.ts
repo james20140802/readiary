@@ -154,7 +154,8 @@ export async function fetchDetailSocialFeedEntries(page: number = 0, limit: numb
         ),
         likes (
           user_id
-        )
+        ),
+        comments (id)
       `
       )
       .in('user_book_id', userBookIds)
