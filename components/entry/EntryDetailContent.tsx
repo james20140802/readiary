@@ -172,7 +172,7 @@ export default function EntryDetailContent({
                     entryId={entry.id}
                     initialLikeCount={initialLikeCount}
                     initialLiked={initialLiked}
-                    initialCommentCount={commentCount}
+                    commentCount={commentCount}
                     onCommentClick={scrollToComments}
                     border={false}
                   />

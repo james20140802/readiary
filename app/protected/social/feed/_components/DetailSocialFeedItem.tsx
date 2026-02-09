@@ -133,7 +133,7 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
         entryId={entry.id}
         initialLikeCount={initialLikeCount}
         initialLiked={initialLiked}
-        initialCommentCount={commentCount}
+        commentCount={commentCount}
         onCommentClick={() => setIsCommentOpen(true)}
       />
 

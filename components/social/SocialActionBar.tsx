@@ -7,7 +7,7 @@ interface SocialActionBarProps {
   entryId: string;
   initialLikeCount: number;
   initialLiked: boolean;
-  initialCommentCount?: number;
+  commentCount?: number;
   onCommentClick?: () => void;
   showCommentCount?: boolean;
   border?: boolean;
@@ -17,7 +17,7 @@ export default function SocialActionBar({
   entryId,
   initialLikeCount,
   initialLiked,
-  initialCommentCount = 0,
+  commentCount: initialCommentCount = 0,
   onCommentClick = () => {},
   showCommentCount = true,
   border = true,

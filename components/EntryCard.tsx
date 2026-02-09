@@ -74,7 +74,7 @@ export default function EntryCard({
         entryId={id}
         initialLikeCount={initialLikeCount}
         initialLiked={initialLiked}
-        initialCommentCount={commentCount}
+        commentCount={commentCount}
         onCommentClick={() => setIsCommentOpen(true)}
       />
       {/* 바텀시트 배치 */}
