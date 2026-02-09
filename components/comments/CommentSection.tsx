@@ -18,6 +18,7 @@ export default function CommentSection({
 }: CommentSectionProps) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [replyingTo, setReplyingTo] = useState<Comment | null>(null);
 
   // 1. GET: 댓글 목록 불러오기
   useEffect(() => {
@@ -43,7 +44,7 @@ export default function CommentSection({
       const res = await fetch('/api/comments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ entryId, content }),
+        body: JSON.stringify({ entryId, content, parentId: replyingTo?.id }),
       });
 
       if (!res.ok) throw new Error('작성 실패');
@@ -51,6 +52,7 @@ export default function CommentSection({
 
       const updatedComments = [...comments, newComment];
       setComments(updatedComments);
+      setReplyingTo(null);
       onCountChange?.(updatedComments.length);
     } catch (error) {
       console.error('댓글 추가 에러:', error);
@@ -63,13 +65,11 @@ export default function CommentSection({
     if (!confirm('댓글을 삭제하시겠습니까?')) return;
 
     try {
-      const res = await fetch(`/api/comments?id=${id}`, {
-        method: 'DELETE',
-      });
-
+      const res = await fetch(`/api/comments?id=${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('삭제 실패');
 
-      const updatedComments = comments.filter((c) => c.id !== id);
+      const updatedComments = comments.filter((c) => c.id !== id && c.parent_id !== id);
+
       setComments(updatedComments);
       onCountChange?.(updatedComments.length);
     } catch (error) {
@@ -77,7 +77,6 @@ export default function CommentSection({
       alert('삭제에 실패했습니다.');
     }
   };
-
   return (
     <div className="mt-10 space-y-6">
       <div className="flex items-center justify-between px-1">
@@ -91,14 +90,34 @@ export default function CommentSection({
           <div className="py-10 text-center text-zinc-400 text-sm">기록을 불러오는 중...</div>
         ) : comments.length > 0 ? (
           <div className="divide-y divide-zinc-50 dark:divide-zinc-800/50">
-            {comments.map((comment) => (
-              <CommentItem
-                key={comment.id}
-                comment={comment}
-                currentUserId={currentUserId}
-                onDelete={handleDeleteComment}
-              />
-            ))}
+            {comments
+              .filter((c) => !c.parent_id)
+              .map((rootComment) => (
+                <div key={rootComment.id} className="flex flex-col">
+                  {/* 부모 댓글 */}
+                  <CommentItem
+                    comment={rootComment}
+                    currentUserId={currentUserId}
+                    onDelete={handleDeleteComment}
+                    onReplyClick={() => setReplyingTo(rootComment)} // 답글 달기 버튼 클릭 시
+                  />
+
+                  {/* 2. 해당 부모를 parent_id로 가지는 대댓글들 필터링 */}
+                  <div className="ml-10 border-l-2 border-zinc-50 dark:border-zinc-800/50">
+                    {comments
+                      .filter((reply) => reply.parent_id === rootComment.id)
+                      .map((reply) => (
+                        <CommentItem
+                          key={reply.id}
+                          comment={reply}
+                          currentUserId={currentUserId}
+                          onDelete={handleDeleteComment}
+                          isReply // 대댓글임을 표시하는 prop (디자인 조정용)
+                        />
+                      ))}
+                  </div>
+                </div>
+              ))}
           </div>
         ) : (
           <div className="py-12 text-center text-zinc-400 text-[14px]">
@@ -108,7 +127,11 @@ export default function CommentSection({
       </div>
 
       <div className="pt-4">
-        <CommentInput onCommentSubmit={handleAddComment} />
+        <CommentInput
+          onCommentSubmit={handleAddComment}
+          replyingTo={replyingTo} // 👈 정보 전달
+          onCancelReply={() => setReplyingTo(null)}
+        />
       </div>
     </div>
   );
