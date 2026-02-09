@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Modal from '@/components/ui/Modal';
@@ -34,6 +34,27 @@ export default function EntryDetailContent({
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
+
+  // 1. 메뉴 영역을 참조하기 위한 Ref 생성
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // 2. 바깥 클릭 감지 로직
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      // 메뉴가 열려있고, 클릭한 대상이 메뉴 영역(menuRef) 외부라면 닫기
+      if (isMenuOpen && menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    // 마우스 다운 이벤트 등록
+    document.addEventListener('mousedown', handleClickOutside);
+
+    // 컴포넌트 언마운트 시 이벤트 제거 (메모리 누수 방지)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isMenuOpen]); // 상태가 바뀔 때마다 리스너 최신화
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -89,7 +110,7 @@ export default function EntryDetailContent({
 
                 {/* 관리 메뉴 (본인 글일 때만 노출) */}
                 {!isFriend && (
-                  <div className="relative">
+                  <div className="relative" ref={menuRef}>
                     <button
                       onClick={() => setIsMenuOpen(!isMenuOpen)}
                       className="p-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400 transition-colors"
