@@ -153,7 +153,7 @@ export default function DetailSocialFeedItem({ item }: Props) {
 
             {/* 숫자가 바뀔 때 옆으로 밀리지 않도록 고정 폭 확보 */}
             <span className="text-xs font-bold min-w-[12px] text-left">
-              {likeCount > 0 ? likeCount : '응원'}
+              {likeCount > 0 ? likeCount : '좋아요'}
             </span>
           </button>
         </div>
