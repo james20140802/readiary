@@ -64,4 +64,5 @@ export type EntryDetailData = {
   userId: string;
   initialLiked: boolean;
   initialLikeCount: number;
+  initialCommentCount: number;
 };
