@@ -44,7 +44,7 @@ export default function RootLayout({
       >
         <Header />
         <Navbar />
-        <main className="flex-1 max-w-screen-md w-full mx-auto px-4 pt-[5rem] pb-[4.75rem] md:pt-[6rem] md:pb-[4rem]">
+        <main className="flex-1 max-w-screen-md w-full mx-auto px-4 pt-[4rem] pb-[4.75rem] md:pt-[6rem] md:pb-[4rem]">
           {children}
         </main>
         <Toaster
