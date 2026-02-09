@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { SocialFeedEntry } from '@/types/entry';
+import Card from '@/components/ui/Card';
 
 export default function DetailSocailFeedItem({ item }: { item: SocialFeedEntry }) {
   const { profile, entry } = item;
@@ -15,7 +16,7 @@ export default function DetailSocailFeedItem({ item }: { item: SocialFeedEntry }
       : `${entry.to_page || entry.from_page}p까지`;
 
   return (
-    <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-3xl p-6 mb-5 shadow-[0_4px_20px_rgba(0,0,0,0,03)] dark:shadow-none">
+    <Card aria-label="상세 소셜 피드 항목" className="py-6">
       {/* 1. 헤더: 유저 정보 */}
       <div className="flex items-center justify-between mb-5">
         <Link
@@ -39,9 +40,8 @@ export default function DetailSocailFeedItem({ item }: { item: SocialFeedEntry }
           <div>
             <div className="flex items-center gap-1">
               <span className="font-bold text-sm text-zinc-900 dark:text-zinc-100 group-hover:underline">
-                {profile.nickname}
+                {profile.name}
               </span>
-              <span className="text-[10px] text-zinc-400 font-medium">#{profile.tag}</span>
             </div>
             <p className="text-[11px] text-zinc-500">
               {formatDistanceToNow(new Date(entry.date), { addSuffix: true, locale: ko })}
@@ -87,7 +87,7 @@ export default function DetailSocailFeedItem({ item }: { item: SocialFeedEntry }
       </div>
 
       {/* 3. 유저 코멘트 (summary) */}
-      {entry.summary && (
+      {entry.summary && entry.summary.trim() !== '' && (
         <div className="mt-5 px-1">
           <p className="text-[14px] leading-relaxed text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap">
             {entry.summary}
@@ -120,6 +120,6 @@ export default function DetailSocailFeedItem({ item }: { item: SocialFeedEntry }
           <span className="text-xs font-medium">댓글</span>
         </button>
       </div>
-    </div>
+    </Card>
   );
 }
