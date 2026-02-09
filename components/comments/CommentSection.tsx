@@ -9,12 +9,14 @@ interface CommentSectionProps {
   entryId: string;
   currentUserId?: string;
   onCountChange?: (count: number) => void;
+  hideInput?: boolean;
 }
 
 export default function CommentSection({
   entryId,
   currentUserId,
   onCountChange = () => {},
+  hideInput = false,
 }: CommentSectionProps) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -127,11 +129,13 @@ export default function CommentSection({
       </div>
 
       <div className="pt-4">
-        <CommentInput
-          onCommentSubmit={handleAddComment}
-          replyingTo={replyingTo} // 👈 정보 전달
-          onCancelReply={() => setReplyingTo(null)}
-        />
+        {!hideInput && (
+          <CommentInput
+            onCommentSubmit={handleAddComment}
+            replyingTo={replyingTo} // 👈 정보 전달
+            onCancelReply={() => setReplyingTo(null)}
+          />
+        )}
       </div>
     </div>
   );
