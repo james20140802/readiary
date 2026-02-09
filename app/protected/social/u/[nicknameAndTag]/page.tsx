@@ -49,7 +49,7 @@ export default async function FriendProfilePage({ params }: FriendProfilePagePro
         <ProfileHeader user={user} profile={profile} />
         <ProfileBookshelf
           userBooks={userBooks}
-          baseLink={`/protected/social/@${(await params).nicknameAndTag}/books`}
+          baseLink={`/protected/social/u/${(await params).nicknameAndTag}/books`}
         />
         {stats ? (
           <ProfileStats stats={stats} />
