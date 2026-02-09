@@ -26,7 +26,7 @@ export async function GET(request: Request) {
 
 // POST: 댓글 작성
 export async function POST(request: Request) {
-  const { entryId, content } = await request.json();
+  const { entryId, content, parentId } = await request.json();
   const supabase = await createSupabaseServerClient();
 
   // 현재 로그인 유저 확인
@@ -42,6 +42,7 @@ export async function POST(request: Request) {
         entry_id: entryId,
         user_id: user.id,
         content,
+        parent_id: parentId || null,
       },
     ])
     .select(
