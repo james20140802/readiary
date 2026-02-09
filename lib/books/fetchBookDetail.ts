@@ -30,7 +30,8 @@ export async function fetchBookDetail(bookId: string): Promise<BookDetailData | 
           from_page,
           to_page,
           date,
-          is_private
+          is_private,
+          created_at
         )
       `
     )
