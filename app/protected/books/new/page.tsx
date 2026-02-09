@@ -5,13 +5,17 @@ import NewBookForm from './_components/NewBookForm';
 import KakaoBookSearchForm from './_components/KakaoBookSearchForm';
 import Tabs from '@/components/ui/Tabs';
 import AnimatedSection from '@/components/ui/AnimatedSection';
+import BackButton from '@/components/ui/BackButton';
 
 export default function NewBookPage() {
   const [tab, setTab] = useState<'manual' | 'search'>('search');
 
   return (
     <div className="w-full">
-      <h1 className="text-page-title text-label dark:text-white mb-6">📗 책 등록</h1>
+      <header className="flex items-center mb-6">
+        <BackButton />
+        <h1 className="text-page-title text-label dark:text-white">📗 책 등록</h1>
+      </header>
 
       <Tabs
         tabs={[

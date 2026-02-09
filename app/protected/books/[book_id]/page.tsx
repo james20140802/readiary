@@ -4,6 +4,7 @@ import { fetchBookDetail } from '@/lib/books/fetchBookDetail';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import BookDetailContent from '@/components/books/BookDetailContent';
 import { toast } from 'sonner';
+import BackButton from '@/components/ui/BackButton';
 
 interface Props {
   params: Promise<{
@@ -34,6 +35,9 @@ export default async function BookDetailPage({ params }: Props) {
 
   return (
     <div className="w-full">
+      <header className="flex items-center mb-6">
+        <BackButton />
+      </header>
       <BookDetailContent userBook={userBook} entries={entries} userId={user.id} />
     </div>
   );
