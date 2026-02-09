@@ -15,7 +15,7 @@ export default function FeedItem({ entry, profile }: SocialFeedEntry) {
       <div className="flex-1 text-sm leading-5 bg-muted/30 px-3 py-2 rounded-md">
         <div className="mb-1">
           <Link
-            href={`/protected/social/${profile.nickname}-${profile.tag}`}
+            href={`/protected/social/u/${profile.nickname}-${profile.tag}`}
             className="font-medium hover:underline"
           >
             {profile.name}

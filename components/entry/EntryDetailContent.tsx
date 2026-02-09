@@ -52,7 +52,7 @@ export default function EntryDetailContent({
 
   const bookUrl =
     isFriend && friendProfile
-      ? `/protected/social/${friendProfile.nickname + '-' + friendProfile.tag}/books/${book.id}`
+      ? `/protected/social/u/${friendProfile.nickname + '-' + friendProfile.tag}/books/${book.id}`
       : `/protected/books/${book.id}`;
 
   return (

@@ -41,7 +41,7 @@ export default function SocialTab({ acceptedFriends, pendingFriends, sentFriends
                 <li key={friend.profile.id}>
                   <FriendListItem
                     profile={friend.profile}
-                    href={`/protected/social/${friend.profile.nickname}-${friend.profile.tag}`}
+                    href={`/protected/social/@${friend.profile.nickname}-${friend.profile.tag}`}
                     action={null}
                   />
                 </li>

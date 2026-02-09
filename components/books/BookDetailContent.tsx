@@ -95,7 +95,7 @@ export default function BookDetailContent({
                   date={entry.date}
                   href={
                     isFriend && friendProfile
-                      ? `/protected/social/${friendProfile.nickname + '-' + friendProfile.tag}/entry/${entry.id}`
+                      ? `/protected/social/u/${friendProfile.nickname + '-' + friendProfile.tag}/entry/${entry.id}`
                       : undefined
                   }
                 />
