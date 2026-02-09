@@ -87,6 +87,48 @@ export type Database = {
         };
         Relationships: [];
       };
+      comments: {
+        Row: {
+          content: string;
+          created_at: string;
+          entry_id: string;
+          id: string;
+          parent_id: string | null;
+          user_id: string;
+        };
+        Insert: {
+          content: string;
+          created_at?: string;
+          entry_id: string;
+          id?: string;
+          parent_id?: string | null;
+          user_id: string;
+        };
+        Update: {
+          content?: string;
+          created_at?: string;
+          entry_id?: string;
+          id?: string;
+          parent_id?: string | null;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'comments_entry_id_fkey';
+            columns: ['entry_id'];
+            isOneToOne: false;
+            referencedRelation: 'entries';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'comments_parent_id_fkey';
+            columns: ['parent_id'];
+            isOneToOne: false;
+            referencedRelation: 'comments';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       entries: {
         Row: {
           created_at: string | null;
