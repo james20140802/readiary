@@ -7,6 +7,7 @@ import { getUserStats } from '@/lib/stats/getUserStats';
 import ProfileHeader from '@/components/profile/ProfileHeader';
 import { fetchProfileData } from '@/lib/profile/fetchProfileData';
 import AnimatedSection from '@/components/ui/AnimatedSection';
+import BackButton from '@/components/ui/BackButton';
 
 interface FriendProfilePageProps {
   params: Promise<{ nicknameAndTag: string }>;
@@ -44,7 +45,10 @@ export default async function FriendProfilePage({ params }: FriendProfilePagePro
 
   return (
     <div>
-      <h1 className="text-page-title text-label dark:text-white mb-6">👤 친구 프로필</h1>
+      <header className="flex items-center mb-6">
+        <BackButton />
+        <h1 className="text-page-title text-label dark:text-white">👤 친구 프로필</h1>
+      </header>
       <AnimatedSection>
         <ProfileHeader user={user} profile={profile} />
         <ProfileBookshelf

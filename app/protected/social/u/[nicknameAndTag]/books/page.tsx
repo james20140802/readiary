@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import BookList from '@/components/books/BookList';
 import FriendProfileHeader from '@/components/social/FriendProfileHeader';
 import { isFriendWith } from '@/lib/friends/isFriendWith';
+import BackButton from '@/components/ui/BackButton';
 
 interface Props {
   params: Promise<{ nicknameAndTag: string }>;
@@ -26,7 +27,10 @@ export default async function FriendBooksPage({ params }: Props) {
 
   return (
     <>
-      <h1 className="text-page-title mb-6">{profile.name}님의 책장</h1>
+      <header className="flex items-center mb-6">
+        <BackButton />
+        <h1 className="text-page-title mb-6">{profile.name}님의 책장</h1>
+      </header>
       <FriendProfileHeader profile={profile} />
       <div className="mt-6">
         <BookList books={books} isFriend />

@@ -12,6 +12,7 @@ import FormLabel from '@/components/ui/FormLabel';
 import FormGroup from '@/components/ui/FormGroup';
 import { Textarea } from '@/components/ui/Textarea';
 import AnimatedSection from '@/components/ui/AnimatedSection';
+import BackButton from '@/components/ui/BackButton';
 
 interface Props {
   userBookId: string;
@@ -72,7 +73,10 @@ export default function NewEntryForm({ userBookId, userId, book, bookId }: Props
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <h1 className="text-page-title">📓 오늘의 독서 기록</h1>
+      <header className="flex items-center mb-6">
+        <BackButton />
+        <h1 className="text-page-title">📓 오늘의 독서 기록</h1>
+      </header>
       <AnimatedSection>
         <div className="flex items-center justify-between">
           <p className="text-label dark:text-white">
