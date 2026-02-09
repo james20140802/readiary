@@ -1,8 +1,11 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { transformSocialFeedEntries } from '@/utils/entries';
 
-export async function fetchSocialFeedEntries() {
+export async function fetchSocialFeedEntries(page: number = 0, limit: number = 10) {
   const supabase = await createSupabaseServerClient();
+
+  const from = page * limit;
+  const to = from + limit - 1;
 
   // 현재 유저 정보
   const {
@@ -73,7 +76,7 @@ export async function fetchSocialFeedEntries() {
       .in('user_book_id', userBookIds)
       .eq('is_private', false)
       .order('created_at', { ascending: false })
-      .limit(10),
+      .range(from, to),
 
     supabase.from('profiles').select('*').in('id', friendIds),
   ]);
