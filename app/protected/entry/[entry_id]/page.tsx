@@ -16,5 +16,12 @@ export default async function EntryDetailPage({
     return notFound();
   }
 
-  return <EntryDetailContent entry={detail.entry} book={detail.entry.book} />;
+  return (
+    <EntryDetailContent
+      entry={detail.entry}
+      book={detail.entry.book}
+      initialLiked={detail.initialLiked}
+      initialLikeCount={detail.initialLikeCount}
+    />
+  );
 }

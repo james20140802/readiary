@@ -41,6 +41,8 @@ export default async function EntryDetailPage({
           book={entry.entry.book}
           friendProfile={profile}
           isFriend
+          initialLiked={entry.initialLiked}
+          initialLikeCount={entry.initialLikeCount}
         />
       </div>
     </>
