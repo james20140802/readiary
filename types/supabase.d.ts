@@ -127,6 +127,13 @@ export type Database = {
             referencedRelation: 'comments';
             referencedColumns: ['id'];
           },
+          {
+            foreignKeyName: 'comments_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
         ];
       };
       entries: {
