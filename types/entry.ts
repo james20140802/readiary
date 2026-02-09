@@ -57,4 +57,6 @@ export type RawDetailEntry = {
 export type EntryDetailData = {
   entry: Entry;
   userId: string;
+  initialLiked: boolean;
+  initialLikeCount: number;
 };
