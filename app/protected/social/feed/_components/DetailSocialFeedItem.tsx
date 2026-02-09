@@ -57,6 +57,14 @@ export default function DetailSocialFeedItem({ item }: Props) {
     }
   };
 
+  // 숫자 포맷팅 함수 (10,000 이상일 때 '만' 단위 표시)
+  const formatLikeCount = (count: number) => {
+    if (count >= 10000) {
+      return (count / 10000).toFixed(1).replace(/\.0$/, '') + '만';
+    }
+    return count.toLocaleString();
+  };
+
   // 읽은 페이지 계산
   const readRange =
     entry.from_page && entry.to_page
@@ -136,33 +144,26 @@ export default function DetailSocialFeedItem({ item }: Props) {
       {/* 4. 하단 액션 바 */}
       <div className="flex items-center px-5 py-3 border-t border-zinc-50 dark:border-zinc-800">
         {/* 좋아요 버튼 영역: 고정 너비를 주어 댓글 버튼 밀림 방지 */}
-        <div className="flex items-center w-[70px]">
+        <div className="flex items-center gap-4">
           <button
             onClick={handleLikeToggle}
-            disabled={isLoading}
-            className={`flex items-center gap-1.5 transition-all active:scale-90 ${
-              isLiked ? 'text-rose-500' : 'text-zinc-500 hover:text-rose-500'
-            } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className="flex items-center gap-1.5 transition-colors group"
           >
             <Heart
-              size={20}
-              fill={isLiked ? 'currentColor' : 'none'}
-              strokeWidth={isLiked ? 0 : 2}
-              className="shrink-0" // 아이콘 크기 고정
+              size={18}
+              className={`transition-transform active:scale-125 ${isLiked ? 'fill-rose-500 text-rose-500' : 'text-zinc-400'}`}
             />
-
-            {/* 숫자가 바뀔 때 옆으로 밀리지 않도록 고정 폭 확보 */}
-            <span className="text-xs font-bold min-w-[12px] text-left">
-              {likeCount > 0 ? likeCount : '좋아요'}
+            <span
+              className={`text-[0.8125rem] font-bold tabular-nums ${isLiked ? 'text-rose-500' : 'text-zinc-400'}`}
+            >
+              {formatLikeCount(likeCount)}
             </span>
           </button>
+          <button className="flex items-center gap-1.5 text-zinc-400 hover:text-tint transition-colors">
+            <MessageCircle size={18} />
+            <span className="text-[0.8125rem] font-bold">0</span>
+          </button>
         </div>
-
-        {/* 댓글 버튼 영역 */}
-        <button className="flex items-center gap-1.5 text-zinc-500 hover:text-tint transition-colors ml-2">
-          <MessageCircle size={20} className="shrink-0" />
-          <span className="text-xs font-bold">댓글</span>
-        </button>
       </div>
     </Card>
   );
