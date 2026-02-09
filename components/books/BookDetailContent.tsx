@@ -5,7 +5,7 @@ import { useState } from 'react';
 import EntryCard from '@/components/EntryCard';
 
 import { MyBook } from '@/types/book';
-import { Entry } from '@/types/entry';
+import { EntryDetailData } from '@/types/entry';
 import Image from 'next/image';
 import MarkAsFinishedButton from './MarkAsFinishedButton';
 import { Profile } from '@/types/profile';
@@ -13,7 +13,7 @@ import AnimatedListSection from '../ui/AnimatedListSecion';
 
 interface Props {
   userBook: MyBook;
-  entries: Entry[] | null;
+  entries: EntryDetailData[] | null;
   userId?: string;
   isFriend?: boolean;
   friendProfile?: Profile;
@@ -87,17 +87,21 @@ export default function BookDetailContent({
 
         {entries && entries.length > 0 ? (
           <AnimatedListSection>
-            {entries.map((entry) => (
-              <li key={entry.id}>
+            {entries.map((data) => (
+              <li key={data.entry.id}>
                 <EntryCard
-                  id={entry.id}
-                  summary={entry.summary ?? ''}
-                  date={entry.date}
+                  id={data.entry.id}
+                  summary={data.entry.summary ?? ''}
+                  date={data.entry.date}
+                  userId={userId}
                   href={
                     isFriend && friendProfile
-                      ? `/protected/social/${friendProfile.nickname + '-' + friendProfile.tag}/entry/${entry.id}`
+                      ? `/protected/social/u/${friendProfile.nickname + '-' + friendProfile.tag}/entry/${data.entry.id}`
                       : undefined
                   }
+                  initialCommentCount={data.initialCommentCount}
+                  initialLikeCount={data.initialLikeCount}
+                  initialLiked={data.initialLiked}
                 />
               </li>
             ))}

@@ -19,7 +19,9 @@ export default async function FriendProfilePage({ params }: FriendProfilePagePro
   } = await supabase.auth.getUser();
   if (!user) return notFound();
 
-  const [nickname, tag] = (await params).nicknameAndTag.split('-');
+  const decoded = decodeURIComponent((await params).nicknameAndTag);
+  const processed = decoded.startsWith('@') ? decoded.slice(1) : decoded;
+  const [nickname, tag] = processed.split('-');
   if (!nickname || !tag) return notFound();
 
   const { profile, userBooks, userBadges } = await fetchProfileData(nickname, tag);
@@ -47,7 +49,7 @@ export default async function FriendProfilePage({ params }: FriendProfilePagePro
         <ProfileHeader user={user} profile={profile} />
         <ProfileBookshelf
           userBooks={userBooks}
-          baseLink={`/protected/social/${(await params).nicknameAndTag}/books`}
+          baseLink={`/protected/social/u/${(await params).nicknameAndTag}/books`}
         />
         {stats ? (
           <ProfileStats stats={stats} />

@@ -9,6 +9,7 @@ import { fetchDashboardData } from '@/lib/dashboard/fetchDashboardData';
 import { notFound } from 'next/navigation';
 import { fetchSocialFeedEntries } from '@/lib/queries/fetchSocialFeedEntries';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { DASHBOARD_SOCIAL_FEED_PAGINATION_LIMIT } from '@/constants/social';
 
 export default async function DashboardPage() {
   const supabase = await createSupabaseServerClient();
@@ -20,7 +21,7 @@ export default async function DashboardPage() {
 
   const [data, socialFeedEntries, { data: profile }] = await Promise.all([
     fetchDashboardData(),
-    fetchSocialFeedEntries(),
+    fetchSocialFeedEntries(0, DASHBOARD_SOCIAL_FEED_PAGINATION_LIMIT),
     supabase.from('profiles').select('name').eq('id', user?.id).single(),
   ]);
   if (!data) return notFound();

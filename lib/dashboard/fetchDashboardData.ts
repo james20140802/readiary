@@ -48,7 +48,7 @@ export async function fetchDashboardData(): Promise<{
       supabase
         .from('entries')
         .select(
-          `id, date, summary, from_page, to_page, is_private, user_books (
+          `id, date, summary, from_page, to_page, is_private, created_at, user_books (
                 book_id,
                 book:books (
                   id,
@@ -109,6 +109,7 @@ export async function fetchDashboardData(): Promise<{
             is_private: entries[0].is_private,
             date: entries[0].date,
             book: entries[0].user_books.book,
+            created_at: entries[0].created_at || entries[0].date,
           }
         : null,
     streak,

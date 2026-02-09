@@ -16,10 +16,10 @@ export type Database = {
     Functions: {
       graphql: {
         Args: {
+          extensions?: Json;
           operationName?: string;
           query?: string;
           variables?: Json;
-          extensions?: Json;
         };
         Returns: Json;
       };
@@ -86,6 +86,55 @@ export type Database = {
           total_pages?: number | null;
         };
         Relationships: [];
+      };
+      comments: {
+        Row: {
+          content: string;
+          created_at: string;
+          entry_id: string;
+          id: string;
+          parent_id: string | null;
+          user_id: string;
+        };
+        Insert: {
+          content: string;
+          created_at?: string;
+          entry_id: string;
+          id?: string;
+          parent_id?: string | null;
+          user_id: string;
+        };
+        Update: {
+          content?: string;
+          created_at?: string;
+          entry_id?: string;
+          id?: string;
+          parent_id?: string | null;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'comments_entry_id_fkey';
+            columns: ['entry_id'];
+            isOneToOne: false;
+            referencedRelation: 'entries';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'comments_parent_id_fkey';
+            columns: ['parent_id'];
+            isOneToOne: false;
+            referencedRelation: 'comments';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'comments_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       entries: {
         Row: {
@@ -163,6 +212,42 @@ export type Database = {
           },
           {
             foreignKeyName: 'friends_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      likes: {
+        Row: {
+          created_at: string | null;
+          entry_id: string;
+          id: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string | null;
+          entry_id: string;
+          id?: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string | null;
+          entry_id?: string;
+          id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'fk_likes_entry_id';
+            columns: ['entry_id'];
+            isOneToOne: false;
+            referencedRelation: 'entries';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'fk_likes_user_id';
             columns: ['user_id'];
             isOneToOne: false;
             referencedRelation: 'profiles';

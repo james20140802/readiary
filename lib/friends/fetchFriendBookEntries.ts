@@ -1,7 +1,7 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { isFriendWith } from './isFriendWith';
 import { MyBook } from '@/types/book';
-import { Entry } from '@/types/entry';
+import { EntryDetailData } from '@/types/entry';
 import { Profile } from '@/types/profile';
 
 export async function fetchFriendBookEntries({
@@ -15,7 +15,7 @@ export async function fetchFriendBookEntries({
 }): Promise<{
   profile: Profile;
   book: MyBook;
-  entries: Entry[];
+  entries: EntryDetailData[];
 } | null> {
   const supabase = await createSupabaseServerClient();
 
@@ -75,7 +75,11 @@ export async function fetchFriendBookEntries({
                 total_pages,
                 isbn
               )
-            )
+            ),
+            likes (
+              user_id
+            ),
+            comments:comments(count)
           `
     )
     .eq('user_book_id', userBook.id)
@@ -84,21 +88,30 @@ export async function fetchFriendBookEntries({
 
   if (entriesError) return null;
 
-  const entries = entriesResult.map(
-    (e): Entry => ({
-      id: e.id,
-      date: e.date,
-      summary: e.summary,
-      from_page: e.from_page,
-      to_page: e.to_page,
-      is_private: e.is_private,
-      book: e.user_books.books,
-    })
-  );
+  const entries = entriesResult.map((e): EntryDetailData => {
+    const isLiked = e.likes?.some((like) => like.user_id === user.id) ?? false;
+    const likeCount = e.likes?.length ?? 0;
+    return {
+      entry: {
+        id: e.id,
+        date: e.date,
+        summary: e.summary,
+        from_page: e.from_page,
+        to_page: e.to_page,
+        is_private: e.is_private,
+        book: e.user_books.books,
+        created_at: e.created_at ?? e.date,
+      },
+      userId: user.id,
+      initialLiked: isLiked,
+      initialLikeCount: likeCount,
+      initialCommentCount: e.comments[0]?.count ?? 0,
+    };
+  });
 
   return {
     profile,
     book: userBook,
-    entries,
+    entries: entries,
   };
 }
