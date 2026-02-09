@@ -42,19 +42,24 @@ export default function BookList({ books, isFriend = false }: Props) {
                   className="rounded-md object-cover w-[80px] h-[112px]"
                 />
 
-                <div className="flex-1 flex items-center justify-between">
-                  <div className="flex flex-col justify-center">
-                    <h2 className="text-base font-semibold text-label dark:text-white">
+                <div className="flex-1 flex items-center justify-between min-w-0">
+                  <div className="flex flex-col justify-center min-w-0">
+                    <h2 className="text-base font-semibold text-label dark:text-white line-clamp-2">
                       {book?.title}
                     </h2>
-                    <p className="text-sm text-secondary">{book?.author}</p>
+                    <p className="text-sm text-secondary truncate">{book?.author}</p>
                     <p className="text-sm mt-2 text-label dark:text-gray-300">
                       📖 {percent}% 진행 중
                     </p>
                   </div>
 
                   <div className="flex flex-col sm:flex-row justify-center sm:items-center gap-2 sm:gap-2">
-                    <Button size="sm" variant="secondary" asChild>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="whitespace-nowrap px-4"
+                      asChild
+                    >
                       <Link href={`/protected/books/${userBook.book_id}`}>상세 보기</Link>
                     </Button>
                     {!isFriend && (
