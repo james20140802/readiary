@@ -1,3 +1,5 @@
+'use server';
+
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { transformSocialFeedEntries } from '@/utils/entries';
 
