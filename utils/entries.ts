@@ -42,6 +42,7 @@ export function transformDetailSocialFeedEntries(
 
       const isLiked = entry.likes?.some((like) => like.user_id === user_id) ?? false;
       const likeCount = entry.likes?.length ?? 0;
+      const commentCount = entry.comments?.length ?? 0;
 
       return {
         entry: {
@@ -57,6 +58,7 @@ export function transformDetailSocialFeedEntries(
         profile: userProfile,
         initialLiked: isLiked,
         initialLikeCount: likeCount,
+        initialCommentCount: commentCount,
       };
     })
     .filter((e): e is DetailSocialFeedEntry => e !== null);
