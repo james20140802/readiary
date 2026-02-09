@@ -56,7 +56,8 @@ export async function fetchFriendEntryDetail(
             ),
             likes (
               user_id
-            )
+            ),
+            comments:comments(count)
           `
     )
     .eq('id', entryId)
@@ -77,10 +78,12 @@ export async function fetchFriendEntryDetail(
         date: data.date,
         is_private: data.is_private,
         book: data.user_books.books,
+        created_at: data.created_at ?? data.date,
       },
       userId: profile.id,
       initialLiked: isLiked,
       initialLikeCount: likeCount,
+      initialCommentCount: data.comments[0]?.count ?? 0,
     },
     profile,
   };

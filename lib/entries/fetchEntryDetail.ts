@@ -37,7 +37,8 @@ export async function fetchEntryDetail(entryId: string): Promise<EntryDetailData
             ),
             likes (
              user_id
-            )
+            ),
+            comments:comments (count)
           `
     )
     .eq('id', entryId)
@@ -62,5 +63,6 @@ export async function fetchEntryDetail(entryId: string): Promise<EntryDetailData
     userId: user.id,
     initialLiked: isLiked,
     initialLikeCount: likeCount,
+    initialCommentCount: data.comments[0]?.count ?? 0,
   };
 }
