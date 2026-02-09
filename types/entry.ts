@@ -9,6 +9,7 @@ export type Entry = {
   to_page: number | null;
   is_private: boolean;
   book: Book;
+  created_at: string;
 };
 
 export type SocialFeedEntry = {

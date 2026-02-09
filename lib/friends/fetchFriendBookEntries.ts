@@ -93,6 +93,7 @@ export async function fetchFriendBookEntries({
       to_page: e.to_page,
       is_private: e.is_private,
       book: e.user_books.books,
+      created_at: e.created_at ?? e.date,
     })
   );
 

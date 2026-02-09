@@ -57,6 +57,7 @@ export async function fetchEntryDetail(entryId: string): Promise<EntryDetailData
       date: data.date,
       is_private: data.is_private,
       book: data.user_books.books,
+      created_at: data.created_at ?? data.date,
     },
     userId: user.id,
     initialLiked: isLiked,

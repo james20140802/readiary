@@ -3,12 +3,13 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistance } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { MoreHorizontal } from 'lucide-react'; // 아이콘 통일
 import { DetailSocialFeedEntry } from '@/types/entry';
 import Card from '@/components/ui/Card';
 import SocialActionBar from '@/components/social/SocialActionBar';
+import { toZonedTime } from 'date-fns-tz';
 
 interface Props {
   item: DetailSocialFeedEntry;
@@ -17,6 +18,10 @@ interface Props {
 export default function DetailSocialFeedItem({ item }: Props) {
   const { profile, entry, initialLikeCount, initialLiked } = item;
   const { book } = entry;
+
+  const timeZone = 'Asia/Seoul'; // 또는 Intl.DateTimeFormat().resolvedOptions().timeZone
+  const now = toZonedTime(new Date(), timeZone); // 현재 시간을 특정 시간대로 고정
+  const targetDate = toZonedTime(new Date(entry.created_at), timeZone);
 
   // 1. 상태 관리
 
@@ -57,7 +62,7 @@ export default function DetailSocialFeedItem({ item }: Props) {
               </span>
             </div>
             <p className="text-[11px] text-zinc-500">
-              {formatDistanceToNow(new Date(entry.date), { addSuffix: true, locale: ko })}
+              {formatDistance(targetDate, now, { addSuffix: true, locale: ko })}
             </p>
           </div>
         </Link>

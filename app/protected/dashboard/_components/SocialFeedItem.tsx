@@ -3,8 +3,15 @@ import Link from 'next/link';
 
 import { Avatar } from '@/components/ui/Avatar';
 import Card from '@/components/ui/Card';
+import { formatDistance } from 'date-fns';
+import { ko } from 'date-fns/locale';
+import { toZonedTime } from 'date-fns-tz';
 
 export default function FeedItem({ entry, profile }: SocialFeedEntry) {
+  const timeZone = 'Asia/Seoul'; // 또는 Intl.DateTimeFormat().resolvedOptions().timeZone
+  const now = toZonedTime(new Date(), timeZone); // 현재 시간을 특정 시간대로 고정
+  const targetDate = toZonedTime(new Date(entry.created_at), timeZone);
+
   return (
     <Card aria-label="소셜 피드 항목" className="flex gap-3 py-4 items-center">
       <Avatar
@@ -26,7 +33,9 @@ export default function FeedItem({ entry, profile }: SocialFeedEntry) {
           📘 <span className="font-semibold">{entry.book.title}</span>{' '}
           {entry.to_page ? `${entry.to_page}쪽까지` : '기록'} 읽었어요
         </div>
-        <div className="text-xs text-muted-foreground mt-1">{entry.date}</div>
+        <div className="text-xs text-muted-foreground mt-1">
+          {formatDistance(targetDate, now, { addSuffix: true, locale: ko })}
+        </div>
       </div>
     </Card>
   );

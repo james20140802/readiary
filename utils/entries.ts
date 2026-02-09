@@ -19,6 +19,7 @@ export function transformSocialFeedEntries(
           summary: entry.summary,
           is_private: false,
           book: entry.user_books.books,
+          created_at: entry.created_at ?? entry.date,
         },
         profile: userProfile,
       };
@@ -51,6 +52,7 @@ export function transformDetailSocialFeedEntries(
           summary: entry.summary,
           is_private: false,
           book: entry.user_books.books,
+          created_at: entry.created_at ?? entry.date,
         },
         profile: userProfile,
         initialLiked: isLiked,
