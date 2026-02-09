@@ -4,12 +4,20 @@ import { notFound } from 'next/navigation';
 import { isFriendWith } from '@/lib/friends/isFriendWith';
 import FriendProfileHeader from '@/components/social/FriendProfileHeader';
 import EntryDetailContent from '@/components/entry/EntryDetailContent';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 export default async function EntryDetailPage({
   params,
 }: {
   params: Promise<{ nicknameAndTag: string; entry_id: string }>;
 }) {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return null;
+
   const entryId = (await params).entry_id;
   const [nickname, tag] = (await params).nicknameAndTag.split('-');
   if (!entryId || !nickname || !tag) return notFound();
@@ -43,6 +51,7 @@ export default async function EntryDetailPage({
           isFriend
           initialLiked={entry.initialLiked}
           initialLikeCount={entry.initialLikeCount}
+          currentUserId={user.id}
         />
       </div>
     </>
