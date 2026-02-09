@@ -10,13 +10,15 @@ import { DetailSocialFeedEntry } from '@/types/entry';
 import Card from '@/components/ui/Card';
 import SocialActionBar from '@/components/social/SocialActionBar';
 import { toZonedTime } from 'date-fns-tz';
+import CommentBottomSheet from '@/components/comments/CommentBottomSheet';
 
 interface Props {
   item: DetailSocialFeedEntry;
+  userId: string;
 }
 
-export default function DetailSocialFeedItem({ item }: Props) {
-  const { profile, entry, initialLikeCount, initialLiked } = item;
+export default function DetailSocialFeedItem({ item, userId }: Props) {
+  const { profile, entry, initialLikeCount, initialLiked, initialCommentCount } = item;
   const { book } = entry;
 
   const timeZone = 'Asia/Seoul'; // 또는 Intl.DateTimeFormat().resolvedOptions().timeZone
@@ -24,8 +26,9 @@ export default function DetailSocialFeedItem({ item }: Props) {
   const targetDate = toZonedTime(new Date(entry.created_at), timeZone);
 
   // 1. 상태 관리
-
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isCommentOpen, setIsCommentOpen] = useState(false);
+  const [commentCount, setCommentCount] = useState(initialCommentCount);
 
   // 읽은 페이지 계산
   const readRange =
@@ -130,7 +133,17 @@ export default function DetailSocialFeedItem({ item }: Props) {
         entryId={entry.id}
         initialLikeCount={initialLikeCount}
         initialLiked={initialLiked}
-        initialCommentCount={0}
+        initialCommentCount={commentCount}
+        onCommentClick={() => setIsCommentOpen(true)}
+      />
+
+      {/* 바텀시트 배치 */}
+      <CommentBottomSheet
+        entryId={entry.id}
+        currentUserId={userId}
+        isOpen={isCommentOpen}
+        onClose={() => setIsCommentOpen(false)}
+        onCountChange={setCommentCount} // 댓글 작성/삭제 시 피드의 숫자도 동기화
       />
     </Card>
   );

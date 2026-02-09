@@ -10,8 +10,10 @@ import AnimatedSection from '@/components/ui/AnimatedSection';
 
 export default function DetailSocailFeedList({
   initialFeed,
+  userId,
 }: {
   initialFeed: DetailSocialFeedEntry[];
+  userId: string;
 }) {
   const [feed, setFeed] = useState(initialFeed);
   const [page, setPage] = useState(1); // 다음 불러올 페이지 번호
@@ -43,7 +45,7 @@ export default function DetailSocailFeedList({
     <div className="flex flex-col gap-3">
       {feed.map((item) => (
         <AnimatedSection key={item.entry.id}>
-          <DetailSocailFeedItem item={item} />
+          <DetailSocailFeedItem item={item} userId={userId} />
         </AnimatedSection>
       ))}
 
