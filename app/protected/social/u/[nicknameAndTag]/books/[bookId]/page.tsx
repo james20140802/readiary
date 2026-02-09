@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { isFriendWith } from '@/lib/friends/isFriendWith';
 import FriendProfileHeader from '@/components/social/FriendProfileHeader';
 import BookDetailContent from '@/components/books/BookDetailContent';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 interface FriendBookDetailPageProps {
   params: Promise<{
@@ -12,6 +13,13 @@ interface FriendBookDetailPageProps {
 }
 
 export default async function FriendBookDetailPage({ params }: FriendBookDetailPageProps) {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return null;
+
   const { nicknameAndTag, bookId } = await params;
   const [nickname, tag] = nicknameAndTag.split('-');
 
@@ -33,7 +41,13 @@ export default async function FriendBookDetailPage({ params }: FriendBookDetailP
     <>
       <FriendProfileHeader profile={profile} />
       <div className="mt-6">
-        <BookDetailContent userBook={book} entries={entries} friendProfile={profile} isFriend />
+        <BookDetailContent
+          userBook={book}
+          userId={user.id}
+          entries={entries}
+          friendProfile={profile}
+          isFriend
+        />
       </div>
     </>
   );

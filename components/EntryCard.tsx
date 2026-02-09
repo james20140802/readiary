@@ -4,11 +4,13 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Card from './ui/Card';
 import SocialActionBar from './social/SocialActionBar';
+import CommentBottomSheet from './comments/CommentBottomSheet';
 
 interface EntryCardProps {
   id: string;
   summary: string;
   date: string;
+  userId?: string;
   href?: string;
   initialLikeCount?: number;
   initialCommentCount?: number;
@@ -19,12 +21,15 @@ export default function EntryCard({
   id,
   summary,
   date,
+  userId,
   href,
   initialLikeCount = 0,
   initialCommentCount = 0,
   initialLiked = false,
 }: EntryCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isCommentOpen, setIsCommentOpen] = useState(false);
+  const [commentCount, setCommentCount] = useState(initialCommentCount);
 
   return (
     <Card className="!p-0 overflow-hidden transition-all hover:border-zinc-300 dark:hover:border-zinc-600">
@@ -69,7 +74,16 @@ export default function EntryCard({
         entryId={id}
         initialLikeCount={initialLikeCount}
         initialLiked={initialLiked}
-        initialCommentCount={initialCommentCount}
+        initialCommentCount={commentCount}
+        onCommentClick={() => setIsCommentOpen(true)}
+      />
+      {/* 바텀시트 배치 */}
+      <CommentBottomSheet
+        entryId={id}
+        currentUserId={userId}
+        isOpen={isCommentOpen}
+        onClose={() => setIsCommentOpen(false)}
+        onCountChange={setCommentCount} // 댓글 작성/삭제 시 피드의 숫자도 동기화
       />
     </Card>
   );
