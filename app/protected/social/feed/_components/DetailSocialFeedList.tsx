@@ -2,13 +2,17 @@
 
 import { useState, useEffect } from 'react';
 import { useInView } from 'react-intersection-observer';
-import { SocialFeedEntry } from '@/types/entry';
-import { fetchSocialFeedEntries } from '@/lib/queries/fetchSocialFeedEntries';
+import { DetailSocialFeedEntry } from '@/types/entry';
+import { fetchDetailSocialFeedEntries } from '@/lib/queries/fetchSocialFeedEntries';
 import { FEED_PAGINATION_LIMIT } from '@/constants/social';
 import DetailSocailFeedItem from './DetailSocialFeedItem';
 import AnimatedSection from '@/components/ui/AnimatedSection';
 
-export default function DetailSocailFeedList({ initialFeed }: { initialFeed: SocialFeedEntry[] }) {
+export default function DetailSocailFeedList({
+  initialFeed,
+}: {
+  initialFeed: DetailSocialFeedEntry[];
+}) {
   const [feed, setFeed] = useState(initialFeed);
   const [page, setPage] = useState(1); // 다음 불러올 페이지 번호
   const [hasMore, setHasMore] = useState(true);
@@ -24,7 +28,7 @@ export default function DetailSocailFeedList({ initialFeed }: { initialFeed: Soc
 
   const loadMoreData = async () => {
     setLoading(true);
-    const nextData = await fetchSocialFeedEntries(page, FEED_PAGINATION_LIMIT);
+    const nextData = await fetchDetailSocialFeedEntries(page, FEED_PAGINATION_LIMIT);
 
     if (nextData.length === 0) {
       setHasMore(false);

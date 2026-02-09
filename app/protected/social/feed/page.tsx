@@ -1,11 +1,11 @@
 import { redirect } from 'next/navigation';
-import { fetchSocialFeedEntries } from '@/lib/queries/fetchSocialFeedEntries';
+import { fetchDetailSocialFeedEntries } from '@/lib/queries/fetchSocialFeedEntries';
 import { FEED_PAGINATION_LIMIT } from '@/constants/social';
 import DetailSocailFeedList from './_components/DetailSocialFeedList';
 import BackButton from '@/components/ui/BackButton';
 
 export default async function SocialFeedPage() {
-  const feed = await fetchSocialFeedEntries(0, FEED_PAGINATION_LIMIT);
+  const feed = await fetchDetailSocialFeedEntries(0, FEED_PAGINATION_LIMIT);
 
   if (!feed) return redirect('/protected/social');
 
