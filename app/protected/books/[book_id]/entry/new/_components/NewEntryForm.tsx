@@ -75,7 +75,7 @@ export default function NewEntryForm({ userBookId, userId, book, bookId }: Props
     <form onSubmit={handleSubmit} className="space-y-6">
       <header className="flex items-center mb-6">
         <BackButton />
-        <h1 className="text-page-title">📓 오늘의 독서 기록</h1>
+        <h1 className="text-page-title ml-4">📓 오늘의 독서 기록</h1>
       </header>
       <AnimatedSection>
         <div className="flex items-center justify-between">

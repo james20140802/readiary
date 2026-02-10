@@ -14,7 +14,7 @@ export default function NewBookPage() {
     <div className="w-full">
       <header className="flex items-center mb-6">
         <BackButton />
-        <h1 className="text-page-title text-label dark:text-white">📗 책 등록</h1>
+        <h1 className="text-page-title text-label dark:text-white ml-4">📗 책 등록</h1>
       </header>
 
       <Tabs

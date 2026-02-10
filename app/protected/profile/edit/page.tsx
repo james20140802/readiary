@@ -51,7 +51,9 @@ export default function EditProfilePage() {
     <main>
       <header className="flex items-center mb-6">
         <BackButton />
-        <h1 className="text-3xl font-black text-zinc-900 dark:text-zinc-100 ml-4">프로필 수정</h1>
+        <h1 className="text-page-title font-black text-zinc-900 dark:text-zinc-100 ml-4">
+          프로필 수정
+        </h1>
       </header>
 
       <div className="space-y-12">

@@ -46,7 +46,7 @@ export default async function FriendProfilePage({ params }: FriendProfilePagePro
     <div>
       <header className="flex items-center mb-6">
         <BackButton />
-        <h1 className="text-page-title text-label dark:text-white">👤 친구 프로필</h1>
+        <h1 className="text-page-title text-label dark:text-white ml-4">👤 친구 프로필</h1>
       </header>
       <AnimatedSection>
         <ProfileHeader user={user} profile={profile} />
