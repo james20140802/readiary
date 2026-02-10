@@ -26,7 +26,7 @@ export default function SocialFeed({ feed }: Props) {
       setVisibleCount((prev) => prev + 5);
     } else {
       // 데이터를 다 보여줬으면 전체 피드 페이지로 이동
-      router.push('/protected/social/feed');
+      router.push('/protected/social');
     }
   };
 
