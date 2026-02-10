@@ -38,7 +38,10 @@ export default function LoginPage() {
     if (error) {
       setError(errorMap[error.message] || '로그인 중 오류가 발생했습니다.');
     } else {
+      toast.success('로그인 성공!');
+
       router.push('/protected/dashboard');
+      router.refresh();
     }
   };
 
