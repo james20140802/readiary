@@ -61,11 +61,6 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
       ? `${entry.from_page}p → ${entry.to_page}p`
       : `${entry.to_page || entry.from_page}p까지`;
 
-  const navigateTo = (path: string) => {
-    router.push(path);
-    setIsMenuOpen(false);
-  };
-
   return (
     <Card
       aria-label="상세 소셜 피드 항목"
