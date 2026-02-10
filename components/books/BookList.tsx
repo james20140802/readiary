@@ -9,9 +9,10 @@ import AnimatedListSection from '../ui/AnimatedListSecion';
 interface Props {
   books: MyBook[];
   isFriend?: boolean;
+  nicknameAndTag?: string;
 }
 
-export default function BookList({ books, isFriend = false }: Props) {
+export default function BookList({ books, isFriend = false, nicknameAndTag = '' }: Props) {
   if (!books || books.length === 0)
     return (
       <div className="text-center text-secondary space-y-2">
@@ -60,7 +61,15 @@ export default function BookList({ books, isFriend = false }: Props) {
                       className="whitespace-nowrap px-4"
                       asChild
                     >
-                      <Link href={`/protected/books/${userBook.book_id}`}>상세 보기</Link>
+                      <Link
+                        href={
+                          isFriend && nicknameAndTag !== ''
+                            ? `/protected/social/u/${nicknameAndTag}/books/${userBook.book_id}`
+                            : `/protected/books/${userBook.book_id}`
+                        }
+                      >
+                        상세 보기
+                      </Link>
                     </Button>
                     {!isFriend && (
                       <Button size="sm" asChild>
