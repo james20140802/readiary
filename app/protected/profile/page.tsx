@@ -35,7 +35,7 @@ export default async function ProfilePage() {
       <h1 className="text-page-title text-label dark:text-white mb-6">👤 내 프로필</h1>
       <AnimatedSection>
         <ProfileHeader user={user} profile={profile} />
-        <ProfileBookshelf userBooks={userBooks} />
+        <ProfileBookshelf userBooks={userBooks} isOwnProfile />
         {stats ? (
           <ProfileStats stats={stats} />
         ) : (
