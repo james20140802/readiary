@@ -3,7 +3,8 @@ import { Profile } from '@/types/profile';
 
 export function transformSocialFeedEntries(
   rawEntries: RawEntry[],
-  profiles: Profile[]
+  profiles: Profile[],
+  userId: string
 ): SocialFeedEntry[] {
   // entry에 프로필 정보 병합
   const enrichedEntries = rawEntries
@@ -22,6 +23,7 @@ export function transformSocialFeedEntries(
           created_at: entry.created_at ?? entry.date,
         },
         profile: userProfile,
+        initialLiked: entry.likes?.some((like) => like.user_id === userId) ?? false,
       };
     })
     .filter((e): e is SocialFeedEntry => e !== null);

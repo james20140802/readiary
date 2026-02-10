@@ -26,7 +26,7 @@ export default function SocialFeed({ feed }: Props) {
       setVisibleCount((prev) => prev + 5);
     } else {
       // 데이터를 다 보여줬으면 전체 피드 페이지로 이동
-      router.push('/protected/social/feed');
+      router.push('/protected/social');
     }
   };
 
@@ -36,7 +36,7 @@ export default function SocialFeed({ feed }: Props) {
         <h2 className="text-section-title text-label dark:text-white">👥 소셜 피드</h2>
         {/* 우측 상단에도 작게 이동 링크를 두어 편의성을 높입니다 */}
         <button
-          onClick={() => router.push('/protected/social/feed')}
+          onClick={() => router.push('/protected/social')}
           className="text-xs text-secondary hover:text-tint transition-colors"
         >
           전체보기 →

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import Card from './ui/Card';
 import SocialActionBar from './social/SocialActionBar';
 import CommentBottomSheet from './comments/CommentBottomSheet';
@@ -27,15 +27,24 @@ export default function EntryCard({
   initialCommentCount = 0,
   initialLiked = false,
 }: EntryCardProps) {
+  const router = useRouter();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isCommentOpen, setIsCommentOpen] = useState(false);
   const [commentCount, setCommentCount] = useState(initialCommentCount);
 
+  const targetHref = href ?? `/protected/entry/${id}`;
+
+  // 카드 전체 클릭 핸들러 (버튼 클릭 시에는 동작 안 함)
+  const handleCardClick = () => {
+    router.push(targetHref);
+  };
+
   return (
-    <Card className="!p-0 overflow-hidden transition-all hover:border-zinc-300 dark:hover:border-zinc-600">
-      <Link href={href ?? `/protected/entry/${id}`} className="block p-5 pb-3">
+    <Card className="!p-0 overflow-hidden transition-all hover:border-zinc-300 dark:hover:border-zinc-600 group">
+      {/* 1. 콘텐츠 영역: 더보기 클릭 시 이벤트 전파 차단 */}
+      <div className="p-5 pb-3 cursor-default">
         {summary && summary.trim() !== '' && (
-          <div>
+          <div className="relative">
             <p
               className={`text-[15px] leading-relaxed text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap ${
                 !isExpanded ? 'line-clamp-4' : ''
@@ -44,46 +53,54 @@ export default function EntryCard({
               {summary}
             </p>
 
-            {/* 5줄 이상의 텍스트일 때만 '더 보기' 버튼 노출 (임계점은 유동적) */}
-            {summary.length > 120 && !isExpanded && (
+            {summary.length > 120 && (
               <button
-                onClick={() => setIsExpanded(true)}
+                onClick={(e) => {
+                  e.stopPropagation(); // Link 이동 방지
+                  setIsExpanded(!isExpanded);
+                }}
                 className="mt-1 text-[13px] font-bold text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors"
               >
-                ...더 보기
-              </button>
-            )}
-
-            {isExpanded && (
-              <button
-                onClick={() => setIsExpanded(false)}
-                className="mt-2 text-[12px] font-medium text-zinc-400 hover:underline"
-              >
-                접기
+                {isExpanded ? '접기' : '...더 보기'}
               </button>
             )}
           </div>
         )}
-        <p className="mt-3 text-[11px] text-zinc-400 tabular-nums">
-          {new Date(date).toLocaleDateString()}
-        </p>
-      </Link>
 
-      {/* 3. 하단 액션 바: 클릭 이벤트 전파 방지 처리 */}
-      <SocialActionBar
-        entryId={id}
-        initialLikeCount={initialLikeCount}
-        initialLiked={initialLiked}
-        commentCount={commentCount}
-        onCommentClick={() => setIsCommentOpen(true)}
-      />
-      {/* 바텀시트 배치 */}
+        {/* 2. 날짜 및 상세 이동 유도 영역 */}
+        <div
+          onClick={handleCardClick}
+          className="mt-4 flex justify-between items-center cursor-pointer group/link"
+        >
+          <p className="text-[11px] text-zinc-400 tabular-nums">
+            {new Date(date).toLocaleDateString()}
+          </p>
+          <span className="text-[11px] font-bold text-zinc-300 group-hover/link:text-tint transition-colors">
+            상세 보기 →
+          </span>
+        </div>
+      </div>
+
+      {/* 3. 하단 액션 바 */}
+      <div className="border-t border-zinc-50 dark:border-zinc-800/50">
+        <SocialActionBar
+          entryId={id}
+          initialLikeCount={initialLikeCount}
+          initialLiked={initialLiked}
+          commentCount={commentCount}
+          onCommentClick={() => {
+            setIsCommentOpen(true);
+          }}
+        />
+      </div>
+
+      {/* 바텀시트 */}
       <CommentBottomSheet
         entryId={id}
         currentUserId={userId}
         isOpen={isCommentOpen}
         onClose={() => setIsCommentOpen(false)}
-        onCountChange={setCommentCount} // 댓글 작성/삭제 시 피드의 숫자도 동기화
+        onCountChange={setCommentCount}
       />
     </Card>
   );

@@ -15,6 +15,7 @@ export type Entry = {
 export type SocialFeedEntry = {
   profile: Profile;
   entry: Entry;
+  initialLiked: boolean;
 };
 
 export type DetailSocialFeedEntry = {
@@ -37,6 +38,9 @@ export type RawEntry = {
     book_id: string;
     books: Book;
   };
+  likes: {
+    user_id: string;
+  }[];
 };
 
 export type RawDetailEntry = {

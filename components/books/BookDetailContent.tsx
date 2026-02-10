@@ -53,7 +53,7 @@ export default function BookDetailContent({
           {/* 도서 텍스트 정보 및 액션 컬럼 */}
           <div className="w-full flex flex-col mt-8 sm:mt-0 justify-between">
             <div>
-              <h1 className="text-3xl sm:text-4xl font-bold text-white leading-tight tracking-tight">
+              <h1 className="text-3xl sm:text-4xl font-bold text-label dark:text-white leading-tight tracking-tight">
                 {title}
               </h1>
               <p className="text-zinc-400 mt-2 text-lg">{author}</p>
@@ -82,42 +82,43 @@ export default function BookDetailContent({
 
       {/* ✨ 개선된 완독 버튼 위치: 프로그레스 바 바로 아래 */}
       <div className="pt-2">
-        {!isFinished ? (
-          <div className="flex flex-row items-center gap-4 p-4 bg-zinc-800/20 rounded-2xl border border-zinc-800/50 group/action hover:bg-zinc-800/40 transition-colors">
-            <div className="p-2 bg-zinc-900 rounded-xl text-zinc-500 group-hover/action:text-green-500 transition-colors">
-              <BookOpen size={20} />
+        {!isFriend &&
+          (!isFinished ? (
+            <div className="flex flex-row items-center gap-4 p-4 bg-zinc-800/20 rounded-2xl border border-zinc-800/50 group/action hover:bg-zinc-800/40 transition-colors">
+              <div className="p-2 bg-zinc-900 rounded-xl text-zinc-500 group-hover/action:text-green-500 transition-colors">
+                <BookOpen size={20} />
+              </div>
+              <div className="flex-1 text-left">
+                <p className="text-xs text-zinc-400 font-medium leading-relaxed">
+                  {progress && progress >= 90
+                    ? '이제 마침표를 찍을 시간입니다.'
+                    : progress && progress > 60
+                      ? '완독이 눈앞에 보입니다.'
+                      : progress && progress > 40
+                        ? '어느덧 절반 정도 읽으셨어요.'
+                        : progress && progress > 10
+                          ? '조금씩 몰입하고 계시네요.'
+                          : '새로운 탐험의 시작입니다.'}
+                </p>
+              </div>
+              <MarkAsFinishedButton
+                onFinish={() => setIsFinished(true)}
+                userBookId={id}
+                progress={progress ?? 0}
+                userId={userId ?? ''}
+              />
             </div>
-            <div className="flex-1 text-left">
-              <p className="text-xs text-zinc-400 font-medium leading-relaxed">
-                {progress && progress >= 90
-                  ? '이제 마침표를 찍을 시간입니다.'
-                  : progress && progress > 60
-                    ? '완독이 눈앞에 보입니다.'
-                    : progress && progress > 40
-                      ? '어느덧 절반 정도 읽으셨어요.'
-                      : progress && progress > 10
-                        ? '조금씩 몰입하고 계시네요.'
-                        : '새로운 탐험의 시작입니다.'}
-              </p>
+          ) : (
+            <div className="flex items-center gap-3 p-4 bg-green-500/5 rounded-2xl border border-green-500/20 text-green-500 animate-in fade-in slide-in-from-top-2 duration-500">
+              <CheckCircle2 size={24} />
+              <div>
+                <p className="text-sm font-bold">완독한 도서입니다</p>
+                <p className="text-[11px] text-green-500/70 font-medium">
+                  축하합니다! 서재에 소중한 기록이 남았습니다.
+                </p>
+              </div>
             </div>
-            <MarkAsFinishedButton
-              onFinish={() => setIsFinished(true)}
-              userBookId={id}
-              progress={progress ?? 0}
-              userId={userId ?? ''}
-            />
-          </div>
-        ) : (
-          <div className="flex items-center gap-3 p-4 bg-green-500/5 rounded-2xl border border-green-500/20 text-green-500 animate-in fade-in slide-in-from-top-2 duration-500">
-            <CheckCircle2 size={24} />
-            <div>
-              <p className="text-sm font-bold">완독한 도서입니다</p>
-              <p className="text-[11px] text-green-500/70 font-medium">
-                축하합니다! 서재에 소중한 기록이 남았습니다.
-              </p>
-            </div>
-          </div>
-        )}
+          ))}
       </div>
 
       {/* Entry Section */}
