@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { formatDistance } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { MoreHorizontal } from 'lucide-react'; // 아이콘 통일
+import { MoreHorizontal, User, BookOpen, Maximize2 } from 'lucide-react';
 import { DetailSocialFeedEntry } from '@/types/entry';
 import Card from '@/components/ui/Card';
 import SocialActionBar from '@/components/social/SocialActionBar';
@@ -18,32 +19,62 @@ interface Props {
 }
 
 export default function DetailSocialFeedItem({ item, userId }: Props) {
+  const router = useRouter();
   const { profile, entry, initialLikeCount, initialLiked, initialCommentCount } = item;
   const { book } = entry;
 
-  const timeZone = 'Asia/Seoul'; // 또는 Intl.DateTimeFormat().resolvedOptions().timeZone
-  const now = toZonedTime(new Date(), timeZone); // 현재 시간을 특정 시간대로 고정
+  // 시간대 설정
+  const timeZone = 'Asia/Seoul';
+  const now = toZonedTime(new Date(), timeZone);
   const targetDate = toZonedTime(new Date(entry.created_at), timeZone);
 
-  // 1. 상태 관리
+  // 상태 관리
   const [isExpanded, setIsExpanded] = useState(false);
   const [isCommentOpen, setIsCommentOpen] = useState(false);
   const [commentCount, setCommentCount] = useState(initialCommentCount);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // 읽은 페이지 계산
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // 드롭다운 바깥 클릭 시 닫기
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+    if (isMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isMenuOpen]);
+
+  // 경로 설정
+  const userProfilePath = `/protected/social/u/${profile.nickname}-${profile.tag}`;
+  const bookDetailPath = `/protected/social/u/${profile.nickname}-${profile.tag}/books/${book.id}`;
+  const entryDetailPath = `/protected/social/u/${profile.nickname}-${profile.tag}/entry/${entry.id}`;
+
   const readRange =
     entry.from_page && entry.to_page
       ? `${entry.from_page}p → ${entry.to_page}p`
       : `${entry.to_page || entry.from_page}p까지`;
 
+  const navigateTo = (path: string) => {
+    router.push(path);
+    setIsMenuOpen(false);
+  };
+
   return (
-    <Card aria-label="상세 소셜 피드 항목" className="py-6 !p-0 overflow-hidden" hoverable={false}>
-      {/* 1. 헤더: 유저 정보 */}
+    <Card
+      aria-label="상세 소셜 피드 항목"
+      className="py-6 !p-0 overflow-hidden relative"
+      hoverable={false}
+    >
+      {/* 1. 헤더: 유저 정보 및 드롭다운 메뉴 */}
       <div className="flex items-center justify-between p-5 pb-3">
-        <Link
-          href={`/protected/social/u/${profile.nickname}-${profile.tag}`}
-          className="flex items-center gap-3 group"
-        >
+        <Link href={userProfilePath} className="flex items-center gap-3 group">
           <div className="relative w-11 h-11 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
             {profile.profile_image ? (
               <Image
@@ -69,12 +100,62 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
             </p>
           </div>
         </Link>
-        <button className="text-zinc-400 hover:text-zinc-600 p-2 hover:bg-zinc-50 rounded-full transition-colors">
-          <MoreHorizontal size={20} />
-        </button>
+
+        {/* 드롭다운 메뉴 영역 */}
+        <div className="relative" ref={menuRef}>
+          <button
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="text-zinc-400 hover:text-zinc-600 p-2 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-full transition-colors"
+          >
+            <MoreHorizontal size={20} />
+          </button>
+
+          {isMenuOpen && (
+            <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl shadow-xl z-50 py-1.5 animate-in fade-in zoom-in-95 duration-100 origin-top-right">
+              <button
+                onClick={() => navigateTo(userProfilePath)}
+                className="flex items-center gap-3 w-full px-4 py-2.5 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors text-left group"
+              >
+                <User
+                  size={18}
+                  className="text-zinc-500 group-hover:text-zinc-900 dark:group-hover:text-zinc-100"
+                />
+                <span className="text-[14px] font-medium text-zinc-700 dark:text-zinc-300 group-hover:text-zinc-900 dark:group-hover:text-zinc-100">
+                  {profile.name}님의 프로필
+                </span>
+              </button>
+
+              <button
+                onClick={() => navigateTo(bookDetailPath)}
+                className="flex items-center gap-3 w-full px-4 py-2.5 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors text-left group"
+              >
+                <BookOpen
+                  size={18}
+                  className="text-zinc-500 group-hover:text-zinc-900 dark:group-hover:text-zinc-100"
+                />
+                <span className="text-[14px] font-medium text-zinc-700 dark:text-zinc-300 group-hover:text-zinc-900 dark:group-hover:text-zinc-100">
+                  책 상세 정보 보기
+                </span>
+              </button>
+
+              <button
+                onClick={() => navigateTo(entryDetailPath)}
+                className="flex items-center gap-3 w-full px-4 py-2.5 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors text-left group"
+              >
+                <Maximize2
+                  size={18}
+                  className="text-zinc-500 group-hover:text-zinc-900 dark:group-hover:text-zinc-100"
+                />
+                <span className="text-[14px] font-medium text-zinc-700 dark:text-zinc-300 group-hover:text-zinc-900 dark:group-hover:text-zinc-100">
+                  이 기록 자세히 보기
+                </span>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* 2. 유저 코멘트 (SNS 본문 스타일로 상단 배치) */}
+      {/* 2. 도서 정보 섹션 */}
       <div className="mx-5 mb-5 flex gap-5 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl p-4 border border-zinc-100/50 dark:border-zinc-700/30">
         <div className="relative w-20 h-28 shrink-0 shadow-lg rotate-[-2deg] transition-transform hover:rotate-0">
           <Image
@@ -96,7 +177,8 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
           </div>
         </div>
       </div>
-      {/* 3. 콘텐츠: 독서 기록 (줄임 및 더보기 기능 추가) */}
+
+      {/* 3. 독서 기록 요약 (더보기/접기 포함) */}
       {entry.summary && entry.summary.trim() !== '' && (
         <div className="px-5 pb-4">
           <p
@@ -107,7 +189,6 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
             {entry.summary}
           </p>
 
-          {/* 5줄 이상의 텍스트일 때만 '더 보기' 버튼 노출 (임계점은 유동적) */}
           {entry.summary.length > 120 && !isExpanded && (
             <button
               onClick={() => setIsExpanded(true)}
@@ -128,7 +209,7 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
         </div>
       )}
 
-      {/* 4. 하단 액션 바 */}
+      {/* 4. 하단 소셜 액션 바 */}
       <SocialActionBar
         entryId={entry.id}
         initialLikeCount={initialLikeCount}
@@ -137,13 +218,13 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
         onCommentClick={() => setIsCommentOpen(true)}
       />
 
-      {/* 바텀시트 배치 */}
+      {/* 댓글 바텀시트 */}
       <CommentBottomSheet
         entryId={entry.id}
         currentUserId={userId}
         isOpen={isCommentOpen}
         onClose={() => setIsCommentOpen(false)}
-        onCountChange={setCommentCount} // 댓글 작성/삭제 시 피드의 숫자도 동기화
+        onCountChange={setCommentCount}
       />
     </Card>
   );
