@@ -14,6 +14,12 @@ const nextConfig: NextConfig = {
         hostname: 't1.daumcdn.net',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: process.env.NEXT_PUBLIC_SUPABASE_URL!.replace('https://', ''),
+        // 환경 변수를 활용하여 실제 경로 허용
+        pathname: `${process.env.NEXT_PUBLIC_PROFILE_IMAGE_URL}**`,
+      },
     ],
   },
 
