@@ -111,44 +111,24 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
           </button>
 
           {isMenuOpen && (
-            <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl shadow-xl z-50 py-1.5 animate-in fade-in zoom-in-95 duration-100 origin-top-right">
+            <div className="absolute right-0 mt-1 w-40 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-xl z-50 py-1.5 animate-in fade-in zoom-in-95 duration-100 origin-top-right">
               <button
-                onClick={() => navigateTo(userProfilePath)}
-                className="flex items-center gap-3 w-full px-4 py-2.5 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors text-left group"
+                onClick={() => router.push(userProfilePath)}
+                className="flex items-center gap-2 w-full px-3.5 py-2 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-left text-[13px] font-medium transition-colors"
               >
-                <User
-                  size={18}
-                  className="text-zinc-500 group-hover:text-zinc-900 dark:group-hover:text-zinc-100"
-                />
-                <span className="text-[14px] font-medium text-zinc-700 dark:text-zinc-300 group-hover:text-zinc-900 dark:group-hover:text-zinc-100">
-                  {profile.name}님의 프로필
-                </span>
+                <User size={14} className="text-zinc-400" /> 프로필 방문
               </button>
-
               <button
-                onClick={() => navigateTo(bookDetailPath)}
-                className="flex items-center gap-3 w-full px-4 py-2.5 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors text-left group"
+                onClick={() => router.push(bookDetailPath)}
+                className="flex items-center gap-2 w-full px-3.5 py-2 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-left text-[13px] font-medium transition-colors"
               >
-                <BookOpen
-                  size={18}
-                  className="text-zinc-500 group-hover:text-zinc-900 dark:group-hover:text-zinc-100"
-                />
-                <span className="text-[14px] font-medium text-zinc-700 dark:text-zinc-300 group-hover:text-zinc-900 dark:group-hover:text-zinc-100">
-                  책 상세 정보 보기
-                </span>
+                <BookOpen size={14} className="text-zinc-400" /> 도서 정보
               </button>
-
               <button
-                onClick={() => navigateTo(entryDetailPath)}
-                className="flex items-center gap-3 w-full px-4 py-2.5 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors text-left group"
+                onClick={() => router.push(entryDetailPath)}
+                className="flex items-center gap-2 w-full px-3.5 py-2 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-left text-[13px] font-semibold border-t border-zinc-50 dark:border-zinc-800 text-tint transition-colors"
               >
-                <Maximize2
-                  size={18}
-                  className="text-zinc-500 group-hover:text-zinc-900 dark:group-hover:text-zinc-100"
-                />
-                <span className="text-[14px] font-medium text-zinc-700 dark:text-zinc-300 group-hover:text-zinc-900 dark:group-hover:text-zinc-100">
-                  이 기록 자세히 보기
-                </span>
+                <Maximize2 size={14} /> 상세 보기
               </button>
             </div>
           )}
