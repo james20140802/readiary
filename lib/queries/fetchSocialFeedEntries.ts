@@ -72,6 +72,9 @@ export async function fetchSocialFeedEntries(page: number = 0, limit: number = 1
             total_pages,
             cover_url
           )
+        ),
+        likes (
+          user_id
         )
       `
       )
@@ -85,7 +88,7 @@ export async function fetchSocialFeedEntries(page: number = 0, limit: number = 1
 
   if (!entries || !profiles) return [];
 
-  const enrichedEntries = transformSocialFeedEntries(entries, profiles);
+  const enrichedEntries = transformSocialFeedEntries(entries, profiles, user.id);
 
   return enrichedEntries;
 }
