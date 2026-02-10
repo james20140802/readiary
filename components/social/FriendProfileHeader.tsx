@@ -20,7 +20,7 @@ export default function FriendProfileHeader({ profile, showBackButton = true }: 
         <Avatar
           src={getImageUrl(profile.profile_image || null) || undefined}
           alt="프로필 이미지"
-          fallbackText={profile.nickname[0]}
+          fallbackText={profile.nickname[0].toUpperCase()}
           size="md"
         />
         <div className={`${showBackButton && 'flex items-center gap-3'}`}>

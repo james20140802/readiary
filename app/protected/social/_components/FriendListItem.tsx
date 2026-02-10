@@ -23,7 +23,7 @@ export default function FriendListItem({ profile, action, href }: FriendListItem
       <Avatar
         src={getImageUrl(profile.profile_image || null) ?? undefined}
         alt={profile.nickname}
-        fallbackText={profile.nickname[0]}
+        fallbackText={profile.nickname[0].toUpperCase()}
         size="md"
       />
       <div className="text-sm">
