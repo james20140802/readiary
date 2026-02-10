@@ -69,7 +69,7 @@ export default function EditEntryForm({
     <form onSubmit={handleSubmit} className="space-y-6">
       <header className="flex items-center mb-6">
         <BackButton />
-        <h1 className="text-page-title text-label dark:text-white">🌤️ 독서 기록 수정</h1>
+        <h1 className="text-page-title text-label dark:text-white ml-4">🌤️ 독서 기록 수정</h1>
       </header>
       <AnimatedSection>
         <div className="flex items-center justify-between gap-4 flex-wrap">

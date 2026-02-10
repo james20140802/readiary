@@ -2,7 +2,6 @@ import { fetchProfileData } from '@/lib/profile/fetchProfileData';
 
 import ProfileBookshelf from '@/components/profile/ProfileBookshelf';
 import ProfileStats from '@/components/profile/ProfileStats';
-import ProfileBadges from '@/components/profile/ProfileBadges';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { getUserStats } from '@/lib/stats/getUserStats';
 import ProfileHeader from '@/components/profile/ProfileHeader';
@@ -35,13 +34,12 @@ export default async function ProfilePage() {
       <h1 className="text-page-title text-label dark:text-white mb-6">👤 내 프로필</h1>
       <AnimatedSection>
         <ProfileHeader user={user} profile={profile} />
-        <ProfileBookshelf userBooks={userBooks} />
+        <ProfileBookshelf userBooks={userBooks} isOwnProfile />
         {stats ? (
-          <ProfileStats stats={stats} />
+          <ProfileStats stats={stats} badges={userBadges} />
         ) : (
           <p className="text-sm text-gray-500">통계 정보를 불러올 수 없습니다.</p>
         )}
-        <ProfileBadges userBadges={userBadges} />
       </AnimatedSection>
     </div>
   );

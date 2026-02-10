@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 import { Trash2 } from 'lucide-react';
 import { Comment } from '@/types/comments';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
+import { getImageUrl } from '@/utils/profile';
+import { Avatar } from '../ui/Avatar';
 
 interface CommentItemProps {
   comment: Comment;
@@ -38,18 +39,12 @@ export default function CommentItem({
       <div
         className={`relative w-9 h-9 overflow-hidden rounded-full shrink-0 bg-zinc-100 dark:bg-zinc-800 ${isReply ? 'w-7 h-7' : 'w-9 h-9'}`}
       >
-        {comment.profile.profile_image ? (
-          <Image
-            src={comment.profile.profile_image}
-            alt={comment.profile.nickname}
-            fill
-            className="object-cover"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-[10px] text-zinc-400">
-            {comment.profile.name[0]}
-          </div>
-        )}
+        <Avatar
+          alt={`${comment.profile.nickname}의 프로필 이미지`}
+          fallbackText={comment.profile.nickname.charAt(0).toUpperCase()}
+          src={getImageUrl(comment.profile.profile_image) || undefined}
+          size="md"
+        />
       </div>
 
       {/* 2. 댓글 본문 영역 */}

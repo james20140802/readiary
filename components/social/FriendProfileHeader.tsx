@@ -2,6 +2,7 @@ import { Profile } from '@/types/profile';
 import { Avatar } from '../ui/Avatar';
 import Link from 'next/link';
 import BackButton from '../ui/BackButton';
+import { getImageUrl } from '@/utils/profile';
 
 interface Props {
   profile: Profile;
@@ -17,9 +18,9 @@ export default function FriendProfileHeader({ profile, showBackButton = true }: 
         className={`flex items-center gap-4 ${!showBackButton && 'mb-4'} hover:opacity-80 transition ${showBackButton && 'mx-4'}`}
       >
         <Avatar
-          src={profile.profile_image || undefined}
+          src={getImageUrl(profile.profile_image || null) || undefined}
           alt="프로필 이미지"
-          fallbackText={profile.nickname[0]}
+          fallbackText={profile.nickname[0].toUpperCase()}
           size="md"
         />
         <div className={`${showBackButton && 'flex items-center gap-3'}`}>

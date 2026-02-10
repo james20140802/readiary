@@ -59,7 +59,7 @@ export default function SocialTab({
       {mainTab === 'feed' && (
         <div className="animate-in fade-in duration-300">
           {initialFeed.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-darkbg rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm">
+            <div className="flex flex-col items-center justify-center py-20 rounded-3xl border">
               <span className="text-4xl mb-4">📭</span>
               <p className="text-secondary text-body-text">친구들의 활동이 아직 없어요.</p>
             </div>
@@ -73,7 +73,7 @@ export default function SocialTab({
       {mainTab === 'manage' && (
         <div className="space-y-6 animate-in fade-in duration-300">
           {/* 친구 검색 및 신청 폼 */}
-          <div className="bg-zinc-50 dark:bg-zinc-900/50 p-4 rounded-2xl border border-zinc-100 dark:border-zinc-800">
+          <div className="p-4 rounded-2xl border border-zinc-100 dark:border-zinc-800">
             <p className="text-sm font-bold mb-3 ml-1 text-label dark:text-zinc-300">
               새로운 친구 찾기
             </p>
