@@ -2,7 +2,6 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import ProfileStats from '@/components/profile/ProfileStats';
 import ProfileBookshelf from '@/components/profile/ProfileBookshelf';
-import ProfileBadges from '@/components/profile/ProfileBadges';
 import { getUserStats } from '@/lib/stats/getUserStats';
 import ProfileHeader from '@/components/profile/ProfileHeader';
 import { fetchProfileData } from '@/lib/profile/fetchProfileData';
@@ -58,11 +57,10 @@ export default async function FriendProfilePage({ params }: FriendProfilePagePro
           profile={profile}
         />
         {stats ? (
-          <ProfileStats stats={stats} />
+          <ProfileStats stats={stats} badges={userBadges} />
         ) : (
           <p className="text-sm text-secondary">통계 정보를 불러올 수 없습니다.</p>
         )}
-        <ProfileBadges userBadges={userBadges} />
       </AnimatedSection>
     </div>
   );
