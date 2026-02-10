@@ -12,6 +12,8 @@ import Card from '@/components/ui/Card';
 import SocialActionBar from '@/components/social/SocialActionBar';
 import { toZonedTime } from 'date-fns-tz';
 import CommentBottomSheet from '@/components/comments/CommentBottomSheet';
+import { getImageUrl } from '@/utils/profile';
+import { Avatar } from '@/components/ui/Avatar';
 
 interface Props {
   item: DetailSocialFeedEntry;
@@ -70,20 +72,13 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
       {/* 1. 헤더: 유저 정보 및 드롭다운 메뉴 */}
       <div className="flex items-center justify-between p-5 pb-3">
         <Link href={userProfilePath} className="flex items-center gap-3 group">
-          <div className="relative w-11 h-11 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
-            {profile.profile_image ? (
-              <Image
-                src={profile.profile_image}
-                alt={profile.nickname}
-                fill
-                className="object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-zinc-400 font-bold">
-                {profile.nickname[0]}
-              </div>
-            )}
-          </div>
+          <Avatar
+            alt={`${profile.nickname}의 프로필 이미지`}
+            fallbackText={profile.nickname.charAt(0).toUpperCase()}
+            src={getImageUrl(profile.profile_image) || undefined}
+            size="md"
+          />
+
           <div>
             <div className="flex items-center gap-1">
               <span className="font-bold text-sm text-zinc-900 dark:text-zinc-100 group-hover:underline">

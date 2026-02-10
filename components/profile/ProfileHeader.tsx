@@ -7,11 +7,13 @@ import { User } from '@supabase/supabase-js';
 import { createSupabaseClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { getImageUrl } from '@/utils/profile';
 
 export default function ProfileHeader({ user, profile }: { user: User; profile: Profile }) {
   const router = useRouter();
   const isOwnProfile = user.id === profile.id;
   const [copied, setCopied] = useState(false);
+  const profileUrl = getImageUrl(profile.profile_image);
 
   const handleCopyTag = async () => {
     const fullTag = `${profile.nickname}#${profile.tag || '0000'}`;
@@ -30,14 +32,8 @@ export default function ProfileHeader({ user, profile }: { user: User; profile: 
       <div className="relative group shrink-0">
         <div className="relative w-32 h-32 rounded-[2.5rem] overflow-hidden bg-white dark:bg-zinc-900 border-[2.5px] border-zinc-400 dark:border-zinc-500 shadow-xl shadow-zinc-200/50 dark:shadow-none transition-all group-hover:scale-[1.02] duration-500 p-1">
           <div className="relative w-full h-full rounded-[2.2rem] overflow-hidden bg-zinc-50 dark:bg-zinc-800">
-            {profile.profile_image ? (
-              <Image
-                src={profile.profile_image}
-                alt="profile"
-                fill
-                className="object-cover"
-                priority
-              />
+            {profileUrl ? (
+              <Image src={profileUrl} alt="profile" fill className="object-cover" priority />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-5xl font-black text-zinc-300 dark:text-zinc-600 select-none">
                 {profile.nickname?.at(0)?.toUpperCase() ?? 'U'}

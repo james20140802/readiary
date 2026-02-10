@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { clsx } from 'clsx';
 
 interface AvatarProps {
-  src?: string;
+  src?: string | null;
   alt?: string;
   fallbackText?: string;
   className?: string;
@@ -27,7 +27,7 @@ export function Avatar({
   return (
     <div
       className={clsx(
-        'rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center overflow-hidden font-bold text-white',
+        'rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center overflow-hidden font-bold text-white relative border border-zinc-50 dark:border-zinc-800',
         sizeClasses[size],
         className
       )}

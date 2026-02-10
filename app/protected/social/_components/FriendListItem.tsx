@@ -3,6 +3,7 @@ import React from 'react';
 
 import Card from '@/components/ui/Card';
 import { Avatar } from '@/components/ui/Avatar';
+import { getImageUrl } from '@/utils/profile';
 
 interface FriendListItemProps {
   profile: {
@@ -20,7 +21,7 @@ export default function FriendListItem({ profile, action, href }: FriendListItem
   const profileInfo = (
     <div className="flex items-center gap-4">
       <Avatar
-        src={profile.profile_image ?? undefined}
+        src={getImageUrl(profile.profile_image || null) ?? undefined}
         alt={profile.nickname}
         fallbackText={profile.nickname[0]}
         size="md"

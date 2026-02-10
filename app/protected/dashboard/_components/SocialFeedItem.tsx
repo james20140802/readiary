@@ -11,6 +11,7 @@ import { ko } from 'date-fns/locale';
 import { toZonedTime } from 'date-fns-tz';
 import { MoreHorizontal, Heart, User, BookOpen, Maximize2 } from 'lucide-react';
 import { createSupabaseClient } from '@/lib/supabase/client';
+import { getImageUrl } from '@/utils/profile';
 
 export default function FeedItem({ entry, profile, initialLiked }: SocialFeedEntry) {
   const router = useRouter();
@@ -91,8 +92,8 @@ export default function FeedItem({ entry, profile, initialLiked }: SocialFeedEnt
         <Avatar
           alt={`${profile.nickname}의 프로필 이미지`}
           fallbackText={profile.nickname.charAt(0).toUpperCase()}
-          src={profile.profile_image || undefined}
-          className="w-10 h-10 border border-zinc-50 dark:border-zinc-800"
+          src={getImageUrl(profile.profile_image) || undefined}
+          size="lg"
         />
       </Link>
 
