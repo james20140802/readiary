@@ -27,8 +27,8 @@ export default function NewEntryForm({ userBookId, userId, book, bookId }: Props
   const [fromPage, setFromPage] = useState('');
   const [toPage, setToPage] = useState('');
   const [error, setError] = useState('');
-  // const [success, setSuccess] = useState(false);
   const [isPrivate, setIsPrivate] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); // 2. 제출 상태 추가
   const awardBadges = useBadgeAwarder();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -46,28 +46,36 @@ export default function NewEntryForm({ userBookId, userId, book, bookId }: Props
       return;
     }
 
-    const res = await fetch('/api/entries/new', {
-      method: 'POST',
-      body: JSON.stringify({
-        summary,
-        from_page: from,
-        to_page: to,
-        date: new Date().toISOString().split('T')[0],
-        user_book_id: userBookId,
-        is_private: isPrivate,
-        book_id: bookId,
-        user_id: userId,
-      }),
-      headers: { 'Content-Type': 'application/json' },
-    });
+    setIsSubmitting(true); // 2. 비활성화 시작
 
-    if (!res.ok) {
-      setError('기록 저장 중 오류가 발생했습니다.');
-    } else {
-      // setSuccess(true);
-      toast.success('기록이 성공적으로 저장되었습니다.');
-      await awardBadges(userId);
-      router.push(`/protected/books/${bookId}`);
+    try {
+      const res = await fetch('/api/entries/new', {
+        method: 'POST',
+        body: JSON.stringify({
+          summary,
+          from_page: from,
+          to_page: to,
+          date: new Date().toISOString().split('T')[0],
+          user_book_id: userBookId,
+          is_private: isPrivate,
+          book_id: bookId,
+          user_id: userId,
+        }),
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!res.ok) {
+        setError('기록 저장 중 오류가 발생했습니다.');
+      } else {
+        toast.success('기록이 성공적으로 저장되었습니다.');
+        await awardBadges(userId);
+        router.push(`/protected/books/${bookId}`);
+      }
+    } catch (err) {
+      console.error(err);
+      setError('서버와 통신 중 오류가 발생했습니다.');
+    } finally {
+      setIsSubmitting(false); // 2. 비활성화 해제
     }
   };
 
@@ -77,13 +85,18 @@ export default function NewEntryForm({ userBookId, userId, book, bookId }: Props
         <BackButton />
         <h1 className="text-page-title ml-4">📓 오늘의 독서 기록</h1>
       </header>
+
       <AnimatedSection>
-        <div className="flex items-center justify-between">
-          <p className="text-label dark:text-white">
-            <strong className="text-lg">{book.title}</strong> - {book.author}
-          </p>
-          <div className="flex items-center gap-2">
-            <label htmlFor="isPrivate" className="text-sm text-secondary">
+        {/* 1. 책 제목과 지은이 줄바꿈 처리 */}
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+          <div className="flex flex-col">
+            <strong className="text-xl text-label dark:text-white leading-tight">
+              {book.title}
+            </strong>
+            <span className="text-secondary text-sm font-medium mt-1">{book.author}</span>
+          </div>
+          <div className="flex items-center gap-2 self-end sm:self-auto">
+            <label htmlFor="isPrivate" className="text-sm text-secondary cursor-pointer">
               🔒 비공개로 저장
             </label>
             <input
@@ -91,22 +104,24 @@ export default function NewEntryForm({ userBookId, userId, book, bookId }: Props
               type="checkbox"
               checked={isPrivate}
               onChange={(e) => setIsPrivate(e.target.checked)}
-              className="w-4 h-4"
+              className="w-4 h-4 cursor-pointer"
             />
           </div>
         </div>
 
+        {/* 페이지 입력 (기존 가로 정렬 방식 복구) */}
         <div className="flex flex-col gap-4 sm:flex-row">
-          <FormGroup className="flex-1">
+          <FormGroup className="flex-1 min-w-0">
             <FormLabel>시작 페이지</FormLabel>
             <Input
               type="number"
               placeholder="ex. 10"
               value={fromPage}
               onChange={(e) => setFromPage(e.target.value)}
+              className="w-full"
             />
           </FormGroup>
-          <FormGroup className="flex-1">
+          <FormGroup className="flex-1 min-w-0">
             <FormLabel>종료 페이지</FormLabel>
             <Input
               type="number"
@@ -114,13 +129,21 @@ export default function NewEntryForm({ userBookId, userId, book, bookId }: Props
               value={toPage}
               max={book.total_pages ?? undefined}
               onChange={(e) => setToPage(e.target.value)}
+              className="w-full"
             />
           </FormGroup>
         </div>
 
-        <FormGroup>
+        {/* 날짜 입력 (기존 독자 줄 방식 복구) */}
+        <FormGroup className="w-full min-w-0">
           <FormLabel>읽은 날짜</FormLabel>
-          <Input type="date" value={new Date().toISOString().split('T')[0]} readOnly disabled />
+          <Input
+            type="date"
+            value={new Date().toISOString().split('T')[0]}
+            readOnly
+            disabled
+            className="w-full appearance-none bg-zinc-50 dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800"
+          />
         </FormGroup>
 
         <FormGroup>
@@ -135,11 +158,13 @@ export default function NewEntryForm({ userBookId, userId, book, bookId }: Props
           />
         </FormGroup>
 
-        {error && <p className="text-red-500 text-sm">{error}</p>}
-        {/* {success && <p className="text-green-500 text-sm">기록이 성공적으로 저장되었습니다.</p>} */}
+        {error && <p className="text-red-500 text-sm font-medium">{error}</p>}
 
-        <div className="flex justify-end">
-          <Button type="submit">📥 기록 저장하기</Button>
+        {/* 2. 제출 시 버튼 비활성화 */}
+        <div className="flex justify-end pt-2">
+          <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
+            {isSubmitting ? '저장 중...' : '📥 기록 저장하기'}
+          </Button>
         </div>
       </AnimatedSection>
     </form>
