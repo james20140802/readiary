@@ -22,9 +22,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             'w-full',
             'rounded-md px-4 py-2 text-sm border transition-colors',
             'bg-background dark:bg-darkbg text-label dark:text-white',
-            'border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-tint focus:border-tint',
+            'border-border dark:border-dark-border focus:outline-none focus:ring-2 focus:ring-tint focus:border-tint',
             error && 'border-red-500 focus:ring-red-500 focus:border-red-500',
-            props.disabled && 'bg-gray-100 dark:bg-gray-700 cursor-not-allowed opacity-60',
+            props.disabled && 'bg-surface-raised dark:bg-dark-raised cursor-not-allowed opacity-60',
             className
           )}
           {...props}

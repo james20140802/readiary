@@ -16,7 +16,7 @@ export default async function Home() {
 
   return (
     <main className="relative text-foreground">
-      <section className="sticky top-0 h-screen flex flex-col justify-center items-center px-6 text-center bg-background dark:bg-gray-900">
+      <section className="sticky top-0 h-screen flex flex-col justify-center items-center px-6 text-center bg-background dark:bg-dark-page">
         <h2 className="text-4xl font-bold mb-4">📚 Readiary에 오신 것을 환영합니다!</h2>
         <p className="text-muted-foreground text-lg leading-relaxed max-w-xl">
           매일의 독서 기록을 손쉽게 남기고, 나만의 책장을 채워보세요. <br />
@@ -36,21 +36,21 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="sticky top-0 h-screen flex flex-col justify-center items-center px-6 text-center bg-background dark:bg-gray-900">
+      <section className="sticky top-0 h-screen flex flex-col justify-center items-center px-6 text-center bg-background dark:bg-dark-page">
         <h2 className="text-4xl font-bold mb-4">📖 매일 기록하세요</h2>
         <p className="text-muted-foreground text-lg leading-relaxed max-w-xl">
           오늘 읽은 페이지를 간단히 요약하고, <br /> 내가 읽은 흔적을 기록해보세요.
         </p>
       </section>
 
-      <section className="sticky top-0 h-screen flex flex-col justify-center items-center px-6 text-center bg-background dark:bg-gray-900">
+      <section className="sticky top-0 h-screen flex flex-col justify-center items-center px-6 text-center bg-background dark:bg-dark-page">
         <h2 className="text-4xl font-bold mb-4">📚 나만의 책장을 채워보세요</h2>
         <p className="text-muted-foreground text-lg leading-relaxed max-w-xl">
           내가 읽은 책들을 커버 이미지와 함께 시각적으로 모아보세요.
         </p>
       </section>
 
-      <section className="sticky top-0 h-screen flex flex-col justify-center items-center px-6 text-center bg-background dark:bg-gray-900">
+      <section className="sticky top-0 h-screen flex flex-col justify-center items-center px-6 text-center bg-background dark:bg-dark-page">
         <h2 className="text-4xl font-bold mb-4">🎯 독서 목표와 통계를 확인하세요</h2>
         <p className="text-muted-foreground text-lg leading-relaxed max-w-xl">
           총 읽은 책 수, 작성한 기록, 읽은 페이지 수를 한눈에! <br />
@@ -58,7 +58,7 @@ export default async function Home() {
         </p>
       </section>
 
-      <section className="sticky top-0 h-screen flex flex-col justify-center items-center px-6 text-center bg-background dark:bg-gray-900">
+      <section className="sticky top-0 h-screen flex flex-col justify-center items-center px-6 text-center bg-background dark:bg-dark-page">
         <h2 className="text-4xl font-bold mb-4">🏅 업적과 뱃지를 모아보세요</h2>
         <p className="text-muted-foreground text-lg leading-relaxed max-w-xl">
           꾸준히 기록하면 다양한 업적을 달성할 수 있어요. <br />
@@ -66,7 +66,7 @@ export default async function Home() {
         </p>
       </section>
 
-      <section className="sticky top-0 h-screen flex flex-col justify-center items-center px-6 text-center bg-background dark:bg-gray-900">
+      <section className="sticky top-0 h-screen flex flex-col justify-center items-center px-6 text-center bg-background dark:bg-dark-page">
         <h2 className="text-4xl font-bold mb-4">👥 친구들과 책을 공유하세요</h2>
         <p className="text-muted-foreground text-lg leading-relaxed max-w-xl">
           친구의 독서 현황을 확인하고, <br />

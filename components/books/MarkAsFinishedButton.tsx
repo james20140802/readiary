@@ -50,7 +50,7 @@ export default function MarkAsFinishedButton({
         📘 책 읽기 완료!
       </Button>
       {progress < 90 && (
-        <span className="absolute left-1/2 -translate-x-1/2 mt-1 text-xs text-white bg-black border border-gray-300 dark:border-gray-600 rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity z-10 whitespace-nowrap">
+        <span className="absolute left-1/2 -translate-x-1/2 mt-1 text-xs text-white bg-black border border-border dark:border-dark-border rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity z-10 whitespace-nowrap">
           90% 이상 읽어야 완료할 수 있어요!
         </span>
       )}

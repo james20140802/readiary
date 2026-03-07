@@ -19,7 +19,7 @@ export function Textarea({ label, error, fullWidth = false, className, ...props 
       )}
       <textarea
         className={clsx(
-          'block px-3 py-2 rounded-md shadow-sm border border-gray-300 dark:border-gray-600 text-sm text-label dark:text-white bg-background dark:bg-darkbg placeholder-secondary focus:outline-none focus:ring-2 focus:ring-tint focus:border-tint transition',
+          'block px-3 py-2 rounded-md shadow-sm border border-border dark:border-dark-border text-sm text-label dark:text-white bg-background dark:bg-darkbg placeholder-secondary focus:outline-none focus:ring-2 focus:ring-tint focus:border-tint transition',
           fullWidth && 'w-full',
           error && 'border-red-500 dark:border-red-400',
           className

@@ -45,7 +45,7 @@ export default function Modal({ isOpen, onClose, children }: ModalProps) {
               leaveFrom="opacity-100 translate-y-0 sm:scale-100"
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-6 text-left align-middle shadow-xl transition-all">
+              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-surface dark:bg-dark-surface p-6 text-left align-middle shadow-xl transition-all">
                 {children}
               </Dialog.Panel>
             </Transition.Child>

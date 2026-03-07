@@ -70,14 +70,14 @@ export default function SocialActionBar({
 
   return (
     <div
-      className={`${border && 'flex items-center px-5 py-2.5 border-t border-zinc-50 dark:border-zinc-800/50 bg-zinc-50/30 dark:bg-zinc-800/10'}`}
+      className={`${border && 'flex items-center px-5 py-2.5 border-t border-border-subtle dark:border-dark-border bg-surface-raised/30 dark:bg-dark-raised/30'}`}
     >
       <div className="flex items-center gap-4">
         {/* 좋아요 버튼 */}
         <button
           onClick={handleLikeToggle}
           className={`flex items-center gap-1.5 transition-all active:scale-90 hover:text-rose-500 ${
-            isLiked ? 'text-rose-500' : 'text-zinc-400 hover:text-rose-500'
+            isLiked ? 'text-rose-500' : 'text-label-muted hover:text-rose-500'
           } ${isLoading ? 'cursor-progress' : ''}`}
         >
           <Heart size={18} fill={isLiked ? 'currentColor' : 'none'} strokeWidth={2} />
@@ -88,7 +88,7 @@ export default function SocialActionBar({
 
         {/* 댓글 버튼 (나중에 여기서 댓글 리스트 토글 로직을 추가하면 됩니다) */}
         <button
-          className="flex items-center gap-1.5 text-zinc-400 hover:text-tint transition-all active:scale-95"
+          className="flex items-center gap-1.5 text-label-muted hover:text-tint transition-all active:scale-95"
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();

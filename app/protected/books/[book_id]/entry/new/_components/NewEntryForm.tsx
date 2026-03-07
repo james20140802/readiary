@@ -142,7 +142,7 @@ export default function NewEntryForm({ userBookId, userId, book, bookId }: Props
             value={new Date().toISOString().split('T')[0]}
             readOnly
             disabled
-            className="w-full appearance-none bg-zinc-50 dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800"
+            className="w-full appearance-none bg-surface dark:bg-dark-surface border-border-subtle dark:border-dark-border"
           />
         </FormGroup>
 

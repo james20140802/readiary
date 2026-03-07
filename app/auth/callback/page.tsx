@@ -35,7 +35,7 @@ export default function AuthCallbackPage() {
   }, [router, supabase]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center text-gray-900 dark:text-white">
+    <div className="min-h-screen flex items-center justify-center text-label dark:text-label-invert">
       <p className="text-center text-sm">
         이메일 인증이 완료되었습니다. 로그인 페이지로 이동합니다...
       </p>

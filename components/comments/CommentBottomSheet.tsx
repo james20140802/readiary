@@ -91,12 +91,12 @@ export default function CommentBottomSheet({
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed bottom-0 left-0 right-0 z-[70] bg-white dark:bg-zinc-900 shadow-2xl max-h-[90vh] rounded-t-[20px] flex flex-col w-full mx-auto sm:max-w-[640px] sm:bottom-4 sm:rounded-[24px]"
+            className="fixed bottom-0 left-0 right-0 z-[70] bg-surface dark:bg-dark-surface shadow-2xl max-h-[90vh] rounded-t-[20px] flex flex-col w-full mx-auto sm:max-w-[640px] sm:bottom-4 sm:rounded-[24px]"
           >
             {/* 헤더 */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-50 dark:border-zinc-800">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle dark:border-dark-border">
               <h3 className="text-[16px] font-bold">댓글 {comments.length}</h3>
-              <button onClick={onClose} className="p-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-full">
+              <button onClick={onClose} className="p-1.5 bg-surface-raised dark:bg-dark-raised rounded-full">
                 <X size={18} />
               </button>
             </div>
@@ -104,9 +104,9 @@ export default function CommentBottomSheet({
             {/* 리스트 영역 (스크롤) */}
             <div className="flex-1 overflow-y-auto px-5 py-2 custom-scrollbar min-h-[300px]">
               {isLoading ? (
-                <div className="py-10 text-center text-zinc-400 text-sm">기록을 불러오는 중...</div>
+                <div className="py-10 text-center text-label-muted text-sm">기록을 불러오는 중...</div>
               ) : comments.length > 0 ? (
-                <div className="divide-y divide-zinc-50 dark:divide-zinc-800/50">
+                <div className="divide-y divide-border-subtle dark:divide-dark-border">
                   {comments
                     .filter((c) => !c.parent_id)
                     .map((rootComment) => (
@@ -120,7 +120,7 @@ export default function CommentBottomSheet({
                         />
 
                         {/* 2. 해당 부모를 parent_id로 가지는 대댓글들 필터링 */}
-                        <div className="ml-10 border-l-2 border-zinc-50 dark:border-zinc-800/50">
+                        <div className="ml-10 border-l-2 border-border-subtle dark:border-dark-border">
                           {comments
                             .filter((reply) => reply.parent_id === rootComment.id)
                             .map((reply) => (
@@ -137,14 +137,14 @@ export default function CommentBottomSheet({
                     ))}
                 </div>
               ) : (
-                <div className="py-12 text-center text-zinc-400 text-[14px]">
+                <div className="py-12 text-center text-label-muted text-[14px]">
                   아직 댓글이 없어요. 첫 인사를 남겨보세요! 💬
                 </div>
               )}
             </div>
 
             {/* 고정 입력창 (Sticky) */}
-            <div className="p-4 border-t border-zinc-50 dark:border-zinc-800 bg-white dark:bg-zinc-900 sm:rounded-b-[24px]">
+            <div className="p-4 border-t border-border-subtle dark:border-dark-border bg-surface dark:bg-dark-surface sm:rounded-b-[24px]">
               <CommentInput
                 onCommentSubmit={handleAddComment}
                 replyingTo={replyingTo}
