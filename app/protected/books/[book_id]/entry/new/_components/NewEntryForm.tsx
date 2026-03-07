@@ -90,13 +90,13 @@ export default function NewEntryForm({ userBookId, userId, book, bookId }: Props
         {/* 1. 책 제목과 지은이 줄바꿈 처리 */}
         <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
           <div className="flex flex-col">
-            <strong className="text-xl text-label dark:text-white leading-tight">
+            <strong className="text-xl text-label dark:text-label-invert leading-tight">
               {book.title}
             </strong>
-            <span className="text-secondary text-sm font-medium mt-1">{book.author}</span>
+            <span className="text-label-sub text-sm font-medium mt-1">{book.author}</span>
           </div>
           <div className="flex items-center gap-2 self-end sm:self-auto">
-            <label htmlFor="isPrivate" className="text-sm text-secondary cursor-pointer">
+            <label htmlFor="isPrivate" className="text-sm text-label-sub cursor-pointer">
               🔒 비공개로 저장
             </label>
             <input

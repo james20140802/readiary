@@ -110,12 +110,12 @@ export default function KakaoBookSearchForm() {
             setHasSearched(false);
           }}
           placeholder="책 제목 혹은 ISBN을 입력하세요"
-          className="w-full px-4 py-2 border rounded-lg dark:bg-dark-surface dark:text-label-invert"
+          className="w-full px-4 py-2 text-body rounded-lg bg-surface-raised dark:bg-dark-raised border border-border dark:border-dark-border text-label dark:text-label-invert focus:ring-2 focus:ring-tint-muted outline-none transition-all"
         />
         <button
           onClick={handleSearch}
           disabled={loading}
-          className="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-600"
+          className="bg-tint hover:bg-tint-hover text-surface text-button px-4 py-2 rounded-lg transition-colors flex items-center justify-center shrink-0"
         >
           <MdSearch size={20} />
         </button>
@@ -165,7 +165,7 @@ export default function KakaoBookSearchForm() {
           setTotalPages(null);
         }}
       >
-        <div className="bg-surface dark:bg-dark-surface p-6 rounded-lg space-y-4 w-full max-w-sm mx-auto">
+        <div className="bg-surface dark:bg-dark-surface p-5 rounded-2xl space-y-4 w-full max-w-sm mx-auto">
           {/* Modal Book Info Block */}
           <div className="flex items-start gap-4">
             <Image
@@ -201,7 +201,7 @@ export default function KakaoBookSearchForm() {
                     value={manualTotalPages}
                     onChange={(e) => setManualTotalPages(e.target.value)}
                     placeholder="총 페이지 수"
-                    className="w-full border px-3 py-2 rounded dark:bg-dark-surface dark:text-label-invert"
+                    className="w-full px-4 py-2 text-body rounded-lg bg-surface-raised dark:bg-dark-raised border border-border dark:border-dark-border text-label dark:text-label-invert focus:ring-2 focus:ring-tint-muted outline-none transition-all"
                   />
                 </div>
               )}
