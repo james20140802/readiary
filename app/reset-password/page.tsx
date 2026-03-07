@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createSupabaseClient } from '@/lib/supabase/client';
+import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import { toast } from 'sonner';
@@ -11,7 +12,16 @@ export default function ResetPasswordPage() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const router = useRouter();
   const supabase = createSupabaseClient();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        router.push('/protected/dashboard');
+      }
+    });
+  }, [supabase, router]);
 
   const handleReset = async () => {
     if (!email.trim()) {
