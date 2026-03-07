@@ -98,6 +98,7 @@ export default function ProfileHeader({ user, profile, isFriend = false }: Props
                     const supabase = createSupabaseClient();
                     await supabase.auth.signOut();
                     router.push('/login');
+                    router.refresh();
                   }}
                   className="p-3 rounded-2xl hover:bg-danger-subtle dark:hover:bg-danger/10 transition-all text-label-muted hover:text-danger active:scale-90"
                   title="로그아웃"
