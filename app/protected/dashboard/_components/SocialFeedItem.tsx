@@ -80,8 +80,10 @@ export default function FeedItem({ entry, profile, initialLiked }: SocialFeedEnt
   return (
     <Card
       aria-label="소셜 피드 항목"
-      className="relative flex gap-4 p-4 items-start group transition-all"
+      className="relative flex gap-3 p-4 items-start"
+      hoverable={false}
     >
+      {/* 아바타 */}
       <Link href={userProfilePath} className="shrink-0 mt-0.5">
         <Avatar
           alt={`${profile.nickname}의 프로필 이미지`}
@@ -92,75 +94,91 @@ export default function FeedItem({ entry, profile, initialLiked }: SocialFeedEnt
       </Link>
 
       <div className="flex-1 min-w-0">
-        <div className="flex justify-between items-start mb-1.5">
-          <div className="text-sm">
-            <Link
-              href={userProfilePath}
-              className="font-bold text-label dark:text-label-invert hover:underline"
-            >
+        {/* 헤더: 이름 + 메뉴 */}
+        <div className="flex justify-between items-start mb-1">
+          <Link href={userProfilePath} className="flex items-center gap-1 group">
+            <span className="text-body-sm font-bold text-label dark:text-label-invert group-hover:underline">
               {profile.name}
-            </Link>
-            <span className="text-label-muted ml-1">님이</span>
-          </div>
+            </span>
+            <span className="text-body-sm text-label-muted">님이</span>
+          </Link>
 
           <div className="relative" ref={menuRef}>
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="p-1 text-label-muted hover:text-label-sub dark:hover:text-label-muted rounded-md transition-colors"
+              className="p-1 text-label-muted hover:text-label-sub dark:hover:text-label-invert rounded-md transition-colors"
             >
               <MoreHorizontal size={16} />
             </button>
 
             {isMenuOpen && (
-              <div className="absolute right-0 mt-1 w-40 bg-surface dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl shadow-xl z-50 py-1.5 animate-in fade-in zoom-in-95 duration-100 origin-top-right">
+              <div className="absolute right-0 mt-1 w-40 bg-surface dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl shadow-card-md z-50 py-1.5 animate-in fade-in zoom-in-95 duration-100 origin-top-right">
                 <button
                   onClick={() => router.push(userProfilePath)}
-                  className="flex items-center gap-2 w-full px-3.5 py-2 hover:bg-surface-raised dark:hover:bg-dark-raised text-left text-[13px] font-medium transition-colors text-label dark:text-label-invert"
+                  className="flex items-center gap-2 w-full px-3.5 py-2 hover:bg-surface-raised dark:hover:bg-dark-raised text-left text-body-sm transition-colors"
                 >
                   <User size={14} className="text-label-muted" /> 프로필 방문
                 </button>
                 <button
                   onClick={() => router.push(bookDetailPath)}
-                  className="flex items-center gap-2 w-full px-3.5 py-2 hover:bg-surface-raised dark:hover:bg-dark-raised text-left text-[13px] font-medium transition-colors text-label dark:text-label-invert"
+                  className="flex items-center gap-2 w-full px-3.5 py-2 hover:bg-surface-raised dark:hover:bg-dark-raised text-left text-body-sm transition-colors"
                 >
-                  <BookOpen size={14} className="text-label-muted" /> 책 보기
+                  <BookOpen size={14} className="text-label-muted" /> 도서 정보
                 </button>
                 <button
                   onClick={() => router.push(entryDetailPath)}
-                  className="flex items-center gap-2 w-full px-3.5 py-2 hover:bg-surface-raised dark:hover:bg-dark-raised text-left text-[13px] font-medium transition-colors text-label dark:text-label-invert"
+                  className="flex items-center gap-2 w-full px-3.5 py-2 hover:bg-surface-raised dark:hover:bg-dark-raised text-left text-body-sm font-semibold border-t border-border dark:border-dark-border text-tint transition-colors"
                 >
-                  <Maximize2 size={14} className="text-label-muted" /> 기록 보기
+                  <Maximize2 size={14} /> 상세 보기
                 </button>
               </div>
             )}
           </div>
         </div>
 
+        {/* 책 제목 + 페이지 배지 */}
         <Link href={bookDetailPath} className="flex items-center gap-1.5 mb-2 group/book">
-          <BookOpen size={12} className="text-label-muted" />
-          <span className="text-xs text-label-muted group-hover/book:text-tint transition-colors truncate">
+          <span className="text-caption text-label-muted">📚</span>
+          <span className="text-body-sm font-semibold text-label dark:text-label-invert group-hover/book:text-tint transition-colors line-clamp-1">
             {entry.book.title}
           </span>
+          {entry.to_page && (
+            <span className="shrink-0 text-[10px] font-bold text-tint bg-tint-subtle dark:bg-tint/10 px-1.5 py-0.5 rounded-full border border-tint/20">
+              {entry.from_page ? `${entry.from_page}→${entry.to_page}p` : `${entry.to_page}p`}
+            </span>
+          )}
         </Link>
 
-        <Link href={entryDetailPath}>
-          <p className="text-sm text-label-sub dark:text-label-muted leading-relaxed line-clamp-3 hover:text-label dark:hover:text-label-invert transition-colors">
-            {entry.summary}
-          </p>
-        </Link>
+        {/* 본문 */}
+        {entry.summary && (
+          <Link href={entryDetailPath}>
+            <p className="text-body-sm text-label-sub dark:text-label-muted leading-relaxed line-clamp-3 hover:text-label dark:hover:text-label-invert transition-colors">
+              {entry.summary}
+            </p>
+          </Link>
+        )}
 
-        <div className="flex items-center justify-between mt-3">
-          <span className="text-[11px] text-label-muted tabular-nums">
+        {/* 하단: 시간 + 좋아요 */}
+        <div className="flex items-center justify-between mt-2.5">
+          <span className="text-caption text-label-muted">
             {formatDistance(targetDate, now, { addSuffix: true, locale: ko })}
           </span>
+
           <button
             onClick={handleLike}
             disabled={isLikeLoading}
-            className={`flex items-center gap-1 text-xs transition-colors ${
-              isLiked ? 'text-danger' : 'text-label-muted hover:text-danger'
-            }`}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full transition-all active:scale-95 border ${
+              isLiked
+                ? 'text-red-500 bg-red-50 border-red-100 dark:bg-red-900/20 dark:border-red-900/40'
+                : 'text-label-muted bg-surface dark:bg-dark-surface border-border dark:border-dark-border hover:text-red-400 hover:border-red-100'
+            } ${isLikeLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
           >
-            <Heart size={13} fill={isLiked ? 'currentColor' : 'none'} />
+            <Heart
+              size={12}
+              fill={isLiked ? 'currentColor' : 'none'}
+              strokeWidth={isLiked ? 0 : 2.5}
+            />
+            <span className="text-[11px] font-bold">좋아요</span>
           </button>
         </div>
       </div>

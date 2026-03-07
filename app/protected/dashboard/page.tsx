@@ -1,5 +1,4 @@
 import AnimatedSection from '@/components/ui/AnimatedSection';
-import { TodaySummarySection } from './_components/TodaySummarySection';
 import { InProgressBooksSection } from './_components/InProgressBooksSection';
 import { NoBooksSection } from './_components/NoBooksSection';
 import { WeeklyStreakSection } from './_components/WeeklyStreakSection';
@@ -33,8 +32,7 @@ export default async function DashboardPage() {
       <GreetingHeader name={profile?.name ?? null} />
 
       <AnimatedSection>
-        <WeeklyStreakSection streak={streak} weekActivity={weekActivity} />
-        <TodaySummarySection entry={entry} />
+        <WeeklyStreakSection streak={streak} weekActivity={weekActivity} entry={entry} />
         {books && books.length > 0 ? (
           <InProgressBooksSection myBooks={books} />
         ) : (
