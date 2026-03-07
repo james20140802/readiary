@@ -52,98 +52,106 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
 
   const readRange =
     entry.from_page && entry.to_page
-      ? `${entry.from_page}p → ${entry.to_page}p`
+      ? `${entry.from_page}→${entry.to_page}p`
       : `${entry.to_page || entry.from_page}p까지`;
 
   return (
-    <Card
-      aria-label="상세 소셜 피드 항목"
-      className="py-6 !p-0 overflow-hidden relative"
-      hoverable={false}
-    >
-      {/* 1. 헤더: 유저 정보 */}
-      <div className="flex items-center justify-between px-5 pb-3 pt-5">
+    <Card aria-label="상세 소셜 피드 항목" className="!p-0 overflow-hidden" hoverable={false}>
+      {/* 1. 헤더 */}
+      <div className="flex items-center justify-between px-4 pt-4 pb-3">
         <Link href={userProfilePath} className="flex items-center gap-3 group">
-          <div className="relative w-11 h-11 overflow-hidden rounded-full bg-surface-raised dark:bg-dark-raised border border-border dark:border-dark-border">
-            <Avatar
-              alt={`${profile.nickname}의 프로필 이미지`}
-              fallbackText={profile.nickname.charAt(0).toUpperCase()}
-              src={getImageUrl(profile.profile_image) || undefined}
-              size="md"
-            />
-          </div>
+          <Avatar
+            alt={`${profile.nickname}의 프로필 이미지`}
+            fallbackText={profile.nickname.charAt(0).toUpperCase()}
+            src={getImageUrl(profile.profile_image) || undefined}
+            size="md"
+          />
           <div>
-            <div className="flex items-center gap-1">
-              <span className="font-bold text-sm text-label dark:text-label-invert group-hover:underline">
-                {profile.name}
-              </span>
-            </div>
-            <p className="text-[11px] text-label-muted">
+            <span className="text-body-sm font-bold text-label dark:text-label-invert group-hover:underline">
+              {profile.name}
+            </span>
+            <p className="text-caption text-label-muted">
               {formatDistance(targetDate, now, { addSuffix: true, locale: ko })}
             </p>
           </div>
         </Link>
 
+        {/* 드롭다운 */}
         <div className="relative" ref={menuRef}>
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="text-label-muted hover:text-label-sub p-2 hover:bg-surface-raised dark:hover:bg-dark-raised rounded-full transition-colors"
           >
-            <MoreHorizontal size={20} />
+            <MoreHorizontal size={18} />
           </button>
           {isMenuOpen && (
-            <div className="absolute right-0 mt-1 w-40 bg-surface dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl shadow-xl z-50 py-1.5 animate-in fade-in zoom-in-95 duration-100 origin-top-right">
-              <button
-                onClick={() => router.push(userProfilePath)}
-                className="flex items-center gap-2 w-full px-3.5 py-2 hover:bg-surface-raised dark:hover:bg-dark-raised text-left text-[13px] font-medium transition-colors text-label dark:text-label-invert"
-              >
-                <User size={14} className="text-label-muted" /> 프로필 방문
-              </button>
-              <button
-                onClick={() => router.push(bookDetailPath)}
-                className="flex items-center gap-2 w-full px-3.5 py-2 hover:bg-surface-raised dark:hover:bg-dark-raised text-left text-[13px] font-medium transition-colors text-label dark:text-label-invert"
-              >
-                <BookOpen size={14} className="text-label-muted" /> 책 보기
-              </button>
-              <button
-                onClick={() => router.push(entryDetailPath)}
-                className="flex items-center gap-2 w-full px-3.5 py-2 hover:bg-surface-raised dark:hover:bg-dark-raised text-left text-[13px] font-medium transition-colors text-label dark:text-label-invert"
-              >
-                <Maximize2 size={14} className="text-label-muted" /> 기록 보기
-              </button>
-            </div>
+            <>
+              <div className="fixed inset-0 z-10" onClick={() => setIsMenuOpen(false)} />
+              <div className="absolute right-0 mt-1 w-36 bg-surface dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl shadow-card-lg z-20 py-1 overflow-hidden animate-in fade-in zoom-in-95 duration-100 origin-top-right">
+                <button
+                  onClick={() => {
+                    router.push(userProfilePath);
+                    setIsMenuOpen(false);
+                  }}
+                  className="flex items-center gap-2 w-full px-3 py-2 text-caption font-medium text-label-sub dark:text-label-muted hover:bg-surface-raised dark:hover:bg-dark-raised transition-colors"
+                >
+                  <User size={13} className="text-label-muted" /> 프로필 방문
+                </button>
+                <button
+                  onClick={() => {
+                    router.push(bookDetailPath);
+                    setIsMenuOpen(false);
+                  }}
+                  className="flex items-center gap-2 w-full px-3 py-2 text-caption font-medium text-label-sub dark:text-label-muted hover:bg-surface-raised dark:hover:bg-dark-raised transition-colors"
+                >
+                  <BookOpen size={13} className="text-label-muted" /> 도서 정보
+                </button>
+                <button
+                  onClick={() => {
+                    router.push(entryDetailPath);
+                    setIsMenuOpen(false);
+                  }}
+                  className="flex items-center gap-2 w-full px-3 py-2 text-caption font-semibold text-tint hover:bg-tint-subtle dark:hover:bg-tint/10 border-t border-border dark:border-dark-border transition-colors"
+                >
+                  <Maximize2 size={13} /> 상세 보기
+                </button>
+              </div>
+            </>
           )}
         </div>
       </div>
 
-      {/* 2. 도서 정보 섹션 */}
-      <div className="mx-5 mb-5 flex gap-5 bg-surface-raised dark:bg-dark-raised rounded-2xl p-4 border border-border dark:border-dark-border">
-        <div className="relative w-20 h-28 shrink-0 shadow-lg rotate-[-2deg] transition-transform hover:rotate-0">
-          <Image
-            src={book.cover_url || '/images/default-book-cover.png'}
-            alt={book.title}
-            fill
-            className="rounded-md object-cover"
-          />
-        </div>
-        <div className="flex flex-col justify-center">
-          <div className="mb-2">
-            <h3 className="font-extrabold text-base text-label dark:text-label-invert line-clamp-1">
-              {book.title}
-            </h3>
-            <p className="text-xs text-label-muted line-clamp-1">{book.author}</p>
+      {/* 2. 도서 정보 — 테두리만, 배경 없음 */}
+      <Link href={bookDetailPath}>
+        <div className="mx-4 mb-3 flex gap-4 rounded-xl p-3 border border-border dark:border-dark-border hover:border-border-strong dark:hover:border-dark-border transition-colors">
+          <div className="relative w-[52px] h-[72px] shrink-0 rounded-lg overflow-hidden shadow-card-md">
+            <Image
+              src={book.cover_url || '/images/default-book-cover.png'}
+              alt={book.title}
+              fill
+              className="object-cover"
+              sizes="52px"
+            />
           </div>
-          <div className="inline-flex items-center px-2.5 py-1 rounded-full bg-surface dark:bg-dark-surface border border-border dark:border-dark-border text-tint text-[11px] font-bold w-fit">
-            📖 {readRange}
+          <div className="flex flex-col justify-center gap-1.5 min-w-0">
+            <div>
+              <h3 className="text-body-sm font-bold text-label dark:text-label-invert line-clamp-1">
+                {book.title}
+              </h3>
+              <p className="text-caption text-label-muted line-clamp-1">{book.author}</p>
+            </div>
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-tint-subtle dark:bg-tint/10 border border-tint/20 text-tint text-[11px] font-bold w-fit">
+              📖 {readRange}
+            </span>
           </div>
         </div>
-      </div>
+      </Link>
 
-      {/* 3. 독서 기록 요약 */}
+      {/* 3. 독서 기록 본문 */}
       {entry.summary && entry.summary.trim() !== '' && (
-        <div className="px-5 pb-4">
+        <div className="px-4 pb-3">
           <p
-            className={`text-[15px] leading-relaxed text-label-sub dark:text-label-muted whitespace-pre-wrap ${
+            className={`text-body-sm leading-relaxed text-label-sub dark:text-label-muted whitespace-pre-wrap ${
               !isExpanded ? 'line-clamp-4' : ''
             }`}
           >
@@ -152,7 +160,7 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
           {entry.summary.length > 120 && !isExpanded && (
             <button
               onClick={() => setIsExpanded(true)}
-              className="mt-1 text-[13px] font-bold text-label-muted hover:text-label-sub dark:hover:text-label-invert transition-colors"
+              className="mt-2 text-caption font-bold text-tint hover:text-tint-hover transition-colors"
             >
               ...더 보기
             </button>
@@ -160,7 +168,7 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
           {isExpanded && (
             <button
               onClick={() => setIsExpanded(false)}
-              className="mt-2 text-[12px] font-medium text-label-muted hover:underline"
+              className="mt-2 text-caption font-medium text-label-muted hover:text-label-sub transition-colors"
             >
               접기
             </button>
@@ -168,7 +176,7 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
         </div>
       )}
 
-      {/* 4. 하단 소셜 액션 바 */}
+      {/* 4. 소셜 액션 바 */}
       <SocialActionBar
         entryId={entry.id}
         initialLikeCount={initialLikeCount}
