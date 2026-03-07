@@ -26,7 +26,7 @@ export default function Card({
       aria-disabled={disabled}
       tabIndex={disabled ? -1 : 0}
       className={clsx(
-        'rounded-xl p-4',
+        'rounded-2xl p-5',
         // variant별 스타일
         variant === 'default' &&
           'bg-surface dark:bg-dark-surface border border-border dark:border-dark-border shadow-card',
