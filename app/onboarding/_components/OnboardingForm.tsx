@@ -16,15 +16,13 @@ export default function OnboardingForm() {
   const [nickname, setNickname] = useState('');
   const [bio, setBio] = useState('');
   const [loading, setLoading] = useState(false);
-
   const router = useRouter();
 
   const handleSubmit = async () => {
     setLoading(true);
 
     if (!/^[a-zA-Z0-9_]+$/.test(nickname)) {
-      const errorMessage = '닉네임은 영어 알파벳과 숫자, 언더스코어(_)만 사용할 수 있습니다.';
-      toast.error(errorMessage);
+      toast.error('닉네임은 영어 알파벳과 숫자, 언더스코어(_)만 사용할 수 있습니다.');
       setLoading(false);
       return;
     }
@@ -52,20 +50,16 @@ export default function OnboardingForm() {
           tag = generateRandomTag();
           tries++;
         } else if (res.status === 409) {
-          const errorMessage = result.error || '이미 프로필이 존재합니다.';
-          toast.error(errorMessage);
+          toast.error(result.error || '이미 프로필이 존재합니다.');
           router.push('/protected/dashboard');
           return;
         } else {
-          const errorMessage = result.error || '프로필 등록 중 오류가 발생했습니다.';
-          toast.error(errorMessage);
+          toast.error(result.error || '프로필 등록 중 오류가 발생했습니다.');
           setLoading(false);
           return;
         }
       }
-
-      const errorMessage = '중복 태그가 너무 많습니다. 닉네임을 바꿔보세요.';
-      toast.error(errorMessage);
+      toast.error('중복 태그가 너무 많습니다. 닉네임을 바꿔보세요.');
     } catch (error) {
       toast.error('예기치 않은 오류가 발생했습니다. 나중에 다시 시도해주세요.');
       console.error(error);
@@ -77,7 +71,7 @@ export default function OnboardingForm() {
   return (
     <div className="flex items-center justify-center">
       <div className="w-full space-y-4">
-        <h1 className="text-xl font-semibold text-center text-gray-900 dark:text-white">
+        <h1 className="text-xl font-semibold text-center text-label dark:text-label-invert">
           프로필 설정
         </h1>
         <AnimatedSection>
@@ -87,7 +81,7 @@ export default function OnboardingForm() {
             placeholder="이름"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full border p-2 rounded bg-white dark:bg-gray-800 dark:text-white"
+            className="w-full border p-2 rounded bg-surface dark:bg-dark-surface dark:text-label-invert"
           />
           <FormLabel htmlFor="nickname">닉네임</FormLabel>
           <Input
@@ -95,9 +89,9 @@ export default function OnboardingForm() {
             placeholder="닉네임"
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}
-            className="w-full border p-2 rounded bg-white dark:bg-gray-800 dark:text-white"
+            className="w-full border p-2 rounded bg-surface dark:bg-dark-surface dark:text-label-invert"
           />
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-1 text-sm text-label-muted">
             닉네임은 영어 알파벳과 숫자, 언더스코어(_)만 사용할 수 있습니다.
           </p>
           <FormLabel htmlFor="bio">자기소개</FormLabel>
@@ -106,9 +100,8 @@ export default function OnboardingForm() {
             placeholder="자기소개 (선택)"
             value={bio}
             onChange={(e) => setBio(e.target.value)}
-            className="w-full border p-2 rounded bg-white dark:bg-gray-800 dark:text-white resize-none"
+            className="w-full border p-2 rounded bg-surface dark:bg-dark-surface dark:text-label-invert resize-none"
           />
-
           <Button className="w-full" onClick={handleSubmit} disabled={loading} variant="primary">
             {loading ? '등록 중...' : '프로필 등록하기'}
           </Button>
