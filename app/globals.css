@@ -2,36 +2,74 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================================
+   Pretendard 폰트 (한국어 최적화)
+   CDN 방식 - next/font 대신 사용 가능
+   또는 layout.tsx에서 next/font/local로 로드해도 됩니다.
+============================================================ */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css');
+
+/* ============================================================
+   CSS 변수 (라이트 모드)
+============================================================ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* 페이지 배경 - 크림톤 유지 */
+  --color-page-bg: #faf9f6;
+
+  /* 스크롤바 */
+  --scrollbar-thumb: #e4e4e7;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ============================================================
+   다크모드 CSS 변수
+============================================================ */
+.dark {
+  --color-page-bg: #0f0f10;
+  --scrollbar-thumb: #3f3f46;
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  overflow-y: scroll;
-  -ms-overflow-style: none;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-body::-webkit-scrollbar {
-  display: none;
-}
-
-* {
+/* ============================================================
+   Base Styles
+============================================================ */
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   padding: 0;
   margin: 0;
+}
+
+html {
+  /* 부드러운 스크롤 */
+  scroll-behavior: smooth;
+  /* 다크모드 색상 테마 */
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+body {
+  font-family:
+    'Pretendard Variable',
+    -apple-system,
+    BlinkMacSystemFont,
+    system-ui,
+    sans-serif;
+  background-color: var(--color-page-bg);
+  color: #18181b; /* label.DEFAULT */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  /* 단어 단위 줄바꿈 (한국어) */
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.dark body {
+  color: #fafafa; /* label.invert */
 }
 
 a {
@@ -39,12 +77,65 @@ a {
   text-decoration: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
-}
-
 li {
   list-style-type: none;
+}
+
+/* ============================================================
+   스크롤바 커스텀 (웹킷)
+============================================================ */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a1a1aa;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+/* ============================================================
+   선택 영역 색상
+============================================================ */
+::selection {
+  background-color: #bfdbfe; /* tint-muted */
+  color: #1e3a5f;
+}
+
+/* ============================================================
+   포커스 스타일 (키보드 접근성)
+============================================================ */
+:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ============================================================
+   공통 유틸리티
+============================================================ */
+
+/* 바텀시트/모달 열릴 때 body 스크롤 막기 */
+body.overflow-hidden {
+  overflow: hidden;
+}
+
+/* 이미지 드래그 방지 */
+img {
+  -webkit-user-drag: none;
+  user-select: none;
 }
