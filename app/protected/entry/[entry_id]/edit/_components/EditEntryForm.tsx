@@ -69,7 +69,7 @@ export default function EditEntryForm({
     <form onSubmit={handleSubmit} className="space-y-6">
       <header className="flex items-center mb-6">
         <BackButton />
-        <h1 className="text-page-title text-label dark:text-white ml-4">🌤️ 독서 기록 수정</h1>
+        <h1 className="text-page-title text-label dark:text-label-invert ml-4">🌤️ 독서 기록 수정</h1>
       </header>
       <AnimatedSection>
         <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -82,13 +82,13 @@ export default function EditEntryForm({
               className="rounded shadow object-cover"
             />
             <div>
-              <h2 className="text-lg font-semibold text-label dark:text-white">
+              <h2 className="text-lg font-semibold text-label dark:text-label-invert">
                 {book.title ?? '제목 없음'}
               </h2>
-              <p className="text-sm text-secondary">{book.author ?? '저자 미상'}</p>
+              <p className="text-sm text-label-sub">{book.author ?? '저자 미상'}</p>
             </div>
           </div>
-          <label className="flex items-center gap-2 text-sm text-label dark:text-white">
+          <label className="flex items-center gap-2 text-sm text-label dark:text-label-invert">
             <input
               id="isPrivate"
               type="checkbox"
