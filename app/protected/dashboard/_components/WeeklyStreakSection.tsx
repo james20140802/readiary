@@ -16,19 +16,18 @@ export function WeeklyStreakSection({ streak, weekActivity }: Props) {
 
   useEffect(() => {
     setMounted(true);
-    setToday(new Date()); // 브라우저에 접속한 바로 그 시점의 시간을 세팅
+    setToday(new Date());
   }, []);
 
-  // 서버에서 렌더링할 때는 아무것도 보여주지 않거나 스켈레톤을 보여줍니다.
   if (!mounted) {
-    return <div className="min-h-[200px]" />; // 레이아웃 시프트 방지용 빈 박스
+    return <div className="min-h-[200px]" />;
   }
 
   const startDate = startOfWeek(today, { weekStartsOn: 0 });
 
   return (
     <Card className="mb-6 px-5 py-6" hoverable={false}>
-      <h2 className="text-section-title font-bold text-label dark:text-white mb-4">
+      <h2 className="text-section-title font-bold text-label dark:text-label-invert mb-4">
         📅 이번 주의 리듬
       </h2>
       <div className="flex flex-col items-center gap-5">
@@ -41,10 +40,10 @@ export function WeeklyStreakSection({ streak, weekActivity }: Props) {
             const baseStyle =
               'w-8 h-8 rounded-md flex items-center justify-center text-sm font-semibold border';
             const stateClass = didWrite
-              ? 'bg-green-500 text-white'
+              ? 'bg-success text-white border-success'
               : isPast && !isToday
-                ? 'bg-red-200 text-red-700 dark:bg-red-900 dark:text-red-300'
-                : 'bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400';
+                ? 'bg-danger-subtle text-danger border-danger-muted dark:bg-danger/20 dark:text-danger dark:border-danger/30'
+                : 'bg-surface-raised text-label-muted border-border dark:bg-dark-raised dark:text-label-muted dark:border-dark-border';
 
             return (
               <div key={index} className={`${baseStyle} ${stateClass}`}>
@@ -54,7 +53,7 @@ export function WeeklyStreakSection({ streak, weekActivity }: Props) {
           })}
         </div>
         <div className="w-full text-left">
-          <p className="text-sm text-secondary dark:text-gray-300 bg-gray-50 dark:bg-gray-700 px-3 py-1 rounded-md max-w-fit">
+          <p className="text-sm text-label-sub dark:text-label-muted bg-surface-raised dark:bg-dark-raised px-3 py-1 rounded-md max-w-fit">
             {streak > 0 ? (
               <>🔥 현재 {streak}일 연속 기록 중!</>
             ) : (
