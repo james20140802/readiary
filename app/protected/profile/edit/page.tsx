@@ -94,7 +94,7 @@ export default function EditProfilePage() {
           </div>
           <div className="text-center sm:text-left">
             <h3 className="font-bold text-label dark:text-label-invert">프로필 사진</h3>
-            <p className="text-sm text-label-muted mt-1 font-medium">
+            <p className="text-caption text-label-muted mt-1 font-medium">
               나를 나타내는 멋진 사진을 올려보세요.
             </p>
           </div>

@@ -6,6 +6,7 @@ import { BookOpen, CheckCircle2, Hash, ScrollText } from 'lucide-react';
 import Image from 'next/image';
 import { useState } from 'react';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import Card from '@/components/ui/Card';
 
 interface ProfileStatsProps {
   stats: Stats;
@@ -65,13 +66,12 @@ export default function ProfileStats({ stats, badges }: ProfileStatsProps) {
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {STAT_ITEMS(stats).map((item, i) => (
-            <div
+            <Card
               key={i}
+              hoverable
               className={`
-                p-5 rounded-2xl bg-surface dark:bg-dark-surface border border-border dark:border-dark-border
-                shadow-card cursor-pointer select-none
-                transition-all duration-150
-                ${pressedStat === i ? 'scale-95 shadow-none border-border-strong dark:border-dark-border' : 'hover:shadow-card-md hover:-translate-y-0.5'}
+                select-none transition-all duration-150
+                ${pressedStat === i ? 'scale-95 !shadow-none !border-border-strong dark:!border-dark-border' : 'hover:-translate-y-0.5'}
               `}
               onMouseDown={() => setPressedStat(i)}
               onMouseUp={() => setPressedStat(null)}
@@ -88,7 +88,7 @@ export default function ProfileStats({ stats, badges }: ProfileStatsProps) {
               <p className="text-2xl font-black text-label dark:text-label-invert tracking-tight">
                 {item.value}
               </p>
-            </div>
+            </Card>
           ))}
         </div>
       </section>
@@ -116,8 +116,9 @@ export default function ProfileStats({ stats, badges }: ProfileStatsProps) {
                   if (!isMobile) setTooltipId(badge.id);
                 }}
               >
-                <div
-                  className={`flex flex-col items-center p-4 sm:p-5 text-center gap-3 rounded-2xl bg-surface dark:bg-dark-surface border border-border dark:border-dark-border shadow-card cursor-default select-none transition-all duration-150 ${pressedBadge === badge.id ? 'scale-95 shadow-none border-border-strong dark:border-dark-border' : 'hover:shadow-card-md hover:-translate-y-0.5'}`}
+                <Card
+                  hoverable
+                  className={`flex flex-col items-center text-center gap-3 select-none transition-all duration-150 ${pressedBadge === badge.id ? 'scale-95 !shadow-none !border-border-strong dark:!border-dark-border' : 'hover:-translate-y-0.5'}`}
                   onMouseDown={() => setPressedBadge(badge.id)}
                   onMouseUp={() => setPressedBadge(null)}
                   onMouseLeave={() => {
@@ -143,7 +144,7 @@ export default function ProfileStats({ stats, badges }: ProfileStatsProps) {
                     </p>
                     <p className="text-caption text-label-muted mt-0.5">{formatDate(awarded_at)}</p>
                   </div>
-                </div>
+                </Card>
 
                 {/* 툴팁 — 한 줄 고정 */}
                 {tooltipId === badge.id && badge.description && (

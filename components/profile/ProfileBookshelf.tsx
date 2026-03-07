@@ -55,7 +55,7 @@ export default function ProfileBookshelf({
               href={`${baseLink ?? '/protected/books'}/${ub.book_id}`}
               className="group block"
             >
-              <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl shadow-card border border-border dark:border-dark-border group-hover:shadow-card-md group-hover:-translate-y-1 transition-all duration-200">
+              <div className="relative aspect-[2/3] w-full overflow-hidden rounded-2xl shadow-card border border-border dark:border-dark-border group-hover:shadow-card-md group-hover:-translate-y-1 transition-all duration-200">
                 <Image
                   src={ub.books?.cover_url || '/images/default-book-cover.png'}
                   alt={ub.books.title}
