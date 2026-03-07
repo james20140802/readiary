@@ -8,8 +8,10 @@ import Image from 'next/image';
 import MarkAsFinishedButton from './MarkAsFinishedButton';
 import { Profile } from '@/types/profile';
 import AnimatedListSection from '../ui/AnimatedListSecion';
-import { BookOpen, CheckCircle2 } from 'lucide-react';
+import { BookOpen, CheckCircle2, Plus } from 'lucide-react';
 import Card from '@/components/ui/Card';
+import Button from '../ui/Button';
+import Link from 'next/link';
 
 interface Props {
   userBook: MyBook;
@@ -119,12 +121,12 @@ export default function BookDetailContent({
         <div className="flex items-center justify-between">
           <h2 className="text-section-title text-label dark:text-label-invert">📓 독서 기록</h2>
           {!isFriend && (
-            <a
-              href={`/protected/books/${book_id}/entry/new`}
-              className="inline-block bg-tint text-white px-4 py-2 rounded hover:bg-tint-hover text-sm"
-            >
-              ➕ 기록 추가하기
-            </a>
+            <Link href={`/protected/books/${book_id}/entry/new`}>
+              <Button size="sm" variant="primary" className="flex items-center gap-1.5">
+                <Plus size={16} />
+                기록 추가하기
+              </Button>
+            </Link>
           )}
         </div>
 
