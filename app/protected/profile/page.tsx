@@ -1,5 +1,4 @@
 import { fetchProfileData } from '@/lib/profile/fetchProfileData';
-
 import ProfileBookshelf from '@/components/profile/ProfileBookshelf';
 import ProfileStats from '@/components/profile/ProfileStats';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
@@ -17,7 +16,7 @@ export default async function ProfilePage() {
   } = await supabase.auth.getUser();
 
   if (!user || userError) {
-    return <p className="text-center mt-10 text-red-500">로그인이 필요합니다.</p>;
+    return <p className="text-center mt-10 text-danger">로그인이 필요합니다.</p>;
   }
 
   const [{ profile, userBooks, userBadges }, stats] = await Promise.all([
@@ -31,15 +30,18 @@ export default async function ProfilePage() {
 
   return (
     <div>
-      <h1 className="text-page-title text-label dark:text-white mb-6">👤 내 프로필</h1>
+      <h1 className="text-page-title text-label dark:text-label-invert mb-2">👤 내 프로필</h1>
       <AnimatedSection>
-        <ProfileHeader user={user} profile={profile} />
-        <ProfileBookshelf userBooks={userBooks} isOwnProfile />
-        {stats ? (
-          <ProfileStats stats={stats} badges={userBadges} />
-        ) : (
-          <p className="text-sm text-gray-500">통계 정보를 불러올 수 없습니다.</p>
-        )}
+        {/* 모든 섹션 px-6으로 통일 */}
+        <div className="px-6">
+          <ProfileHeader user={user} profile={profile} />
+          <ProfileBookshelf userBooks={userBooks} isOwnProfile />
+          {stats ? (
+            <ProfileStats stats={stats} badges={userBadges} />
+          ) : (
+            <p className="text-body-sm text-label-muted">통계 정보를 불러올 수 없습니다.</p>
+          )}
+        </div>
       </AnimatedSection>
     </div>
   );

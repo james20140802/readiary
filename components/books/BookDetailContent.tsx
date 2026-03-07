@@ -8,7 +8,10 @@ import Image from 'next/image';
 import MarkAsFinishedButton from './MarkAsFinishedButton';
 import { Profile } from '@/types/profile';
 import AnimatedListSection from '../ui/AnimatedListSecion';
-import { BookOpen, CheckCircle2 } from 'lucide-react';
+import { BookOpen, CheckCircle2, Plus } from 'lucide-react';
+import Card from '@/components/ui/Card';
+import Button from '../ui/Button';
+import Link from 'next/link';
 
 interface Props {
   userBook: MyBook;
@@ -56,9 +59,9 @@ export default function BookDetailContent({
 
             <div className="mt-8 space-y-6">
               <div className="space-y-3">
-                <div className="w-full bg-dark-raised rounded-full h-2 overflow-hidden">
+                <div className="w-full bg-border dark:bg-dark-border rounded-full h-2 overflow-hidden">
                   <div
-                    className="bg-success h-full rounded-full transition-all duration-1000 ease-out shadow-[0_0_12px_rgba(34,197,94,0.4)]"
+                    className="bg-tint h-full rounded-full transition-all duration-1000 ease-out"
                     style={{ width: `${progress}%` }}
                   />
                 </div>
@@ -66,7 +69,7 @@ export default function BookDetailContent({
                   <span>
                     {last_read_page} / {total_pages} PAGES
                   </span>
-                  <span className="text-success">{progress}% COMPLETED</span>
+                  <span className="text-tint">{progress}% COMPLETED</span>
                 </div>
               </div>
             </div>
@@ -77,8 +80,8 @@ export default function BookDetailContent({
       <div className="pt-2">
         {!isFriend &&
           (!isFinished ? (
-            <div className="flex flex-row items-center gap-4 p-4 bg-dark-raised/20 rounded-2xl border border-dark-border/50 group/action hover:bg-dark-raised/40 transition-colors">
-              <div className="p-2 bg-dark-surface rounded-xl text-label-muted group-hover/action:text-success transition-colors">
+            <Card className="flex flex-row items-center gap-4 group/action">
+              <div className="p-2 bg-surface-raised dark:bg-dark-raised rounded-xl text-label-muted group-hover/action:text-tint transition-colors">
                 <BookOpen size={20} />
               </div>
               <div className="flex-1 text-left">
@@ -100,7 +103,7 @@ export default function BookDetailContent({
                 progress={progress ?? 0}
                 userId={userId ?? ''}
               />
-            </div>
+            </Card>
           ) : (
             <div className="flex items-center gap-3 p-4 bg-success-subtle rounded-2xl border border-success-muted text-success animate-in fade-in slide-in-from-top-2 duration-500">
               <CheckCircle2 size={24} />
@@ -118,12 +121,12 @@ export default function BookDetailContent({
         <div className="flex items-center justify-between">
           <h2 className="text-section-title text-label dark:text-label-invert">📓 독서 기록</h2>
           {!isFriend && (
-            <a
-              href={`/protected/books/${book_id}/entry/new`}
-              className="inline-block bg-tint text-white px-4 py-2 rounded hover:bg-tint-hover text-sm"
-            >
-              ➕ 기록 추가하기
-            </a>
+            <Link href={`/protected/books/${book_id}/entry/new`}>
+              <Button size="sm" variant="primary" className="flex items-center gap-1.5">
+                <Plus size={16} />
+                기록 추가하기
+              </Button>
+            </Link>
           )}
         </div>
 

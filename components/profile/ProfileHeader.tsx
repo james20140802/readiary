@@ -8,8 +8,15 @@ import { createSupabaseClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { getImageUrl } from '@/utils/profile';
+import RemoveFriendButton from '@/components/social/RemoveFriendButton';
 
-export default function ProfileHeader({ user, profile }: { user: User; profile: Profile }) {
+interface Props {
+  user: User;
+  profile: Profile;
+  isFriend?: boolean;
+}
+
+export default function ProfileHeader({ user, profile, isFriend = false }: Props) {
   const router = useRouter();
   const isOwnProfile = user.id === profile.id;
   const [copied, setCopied] = useState(false);
@@ -27,11 +34,11 @@ export default function ProfileHeader({ user, profile }: { user: User; profile: 
   };
 
   return (
-    <section className="px-6 pt-12 pb-8 flex flex-col items-center sm:items-start sm:flex-row gap-8 transition-all">
-      {/* 1. 프로필 이미지 */}
+    <section className="pt-8 pb-8 flex flex-col items-center sm:items-start sm:flex-row gap-8">
+      {/* 프로필 이미지 */}
       <div className="relative group shrink-0">
-        <div className="relative w-32 h-32 rounded-2xl overflow-hidden bg-surface dark:bg-dark-surface border-2 border-border dark:border-dark-border shadow-xl transition-all group-hover:scale-[1.02] duration-500 p-1">
-          <div className="relative w-full h-full rounded-xl overflow-hidden bg-surface-raised dark:bg-dark-raised">
+        <div className="relative w-32 h-32 rounded-[2.5rem] overflow-hidden bg-surface dark:bg-dark-surface border-2 border-border-strong dark:border-dark-border shadow-card-lg transition-all group-hover:scale-[1.02] duration-500 p-1">
+          <div className="relative w-full h-full rounded-[2.2rem] overflow-hidden bg-surface-raised dark:bg-dark-raised">
             {profileUrl ? (
               <Image src={profileUrl} alt="profile" fill className="object-cover" priority />
             ) : (
@@ -43,7 +50,7 @@ export default function ProfileHeader({ user, profile }: { user: User; profile: 
         </div>
       </div>
 
-      {/* 2. 유저 정보 및 액션 */}
+      {/* 유저 정보 */}
       <div className="flex-1 flex flex-col justify-center text-center sm:text-left min-w-0">
         <div className="flex flex-col sm:flex-row sm:items-center gap-4 justify-between w-full">
           <div className="space-y-1">
@@ -54,7 +61,7 @@ export default function ProfileHeader({ user, profile }: { user: User; profile: 
               onClick={handleCopyTag}
               className="group/copy flex items-center justify-center sm:justify-start gap-1.5 transition-all active:scale-95"
             >
-              <p className="text-[15px] font-bold text-label-muted font-mono group-hover/copy:text-label-sub dark:group-hover/copy:text-label-muted transition-colors">
+              <p className="text-[15px] font-bold text-label-muted font-mono group-hover/copy:text-label-sub transition-colors">
                 @{profile.nickname}#{profile.tag || '0000'}
               </p>
               <div className="flex items-center justify-center">
@@ -75,28 +82,33 @@ export default function ProfileHeader({ user, profile }: { user: User; profile: 
             </button>
           </div>
 
-          {isOwnProfile && (
-            <div className="flex items-center justify-center sm:justify-end gap-1 -mr-2">
-              <button
-                onClick={() => router.push('/protected/profile/edit')}
-                className="p-3 rounded-2xl hover:bg-surface-raised dark:hover:bg-dark-raised transition-all text-label-muted hover:text-label dark:hover:text-label-invert active:scale-90"
-                title="프로필 수정"
-              >
-                <Pencil size={22} strokeWidth={2.5} />
-              </button>
-              <button
-                onClick={async () => {
-                  const supabase = createSupabaseClient();
-                  await supabase.auth.signOut();
-                  router.push('/login');
-                }}
-                className="p-3 rounded-2xl hover:bg-danger-subtle dark:hover:bg-danger/20 transition-all text-label-muted hover:text-danger active:scale-90"
-                title="로그아웃"
-              >
-                <LogOut size={22} strokeWidth={2.5} />
-              </button>
-            </div>
-          )}
+          {/* 내 프로필: 수정 + 로그아웃 / 친구 프로필: 친구 삭제 */}
+          <div className="flex items-center justify-center sm:justify-end gap-1 -mr-2">
+            {isOwnProfile ? (
+              <>
+                <button
+                  onClick={() => router.push('/protected/profile/edit')}
+                  className="p-3 rounded-2xl hover:bg-surface-raised dark:hover:bg-dark-raised transition-all text-label-muted hover:text-label dark:hover:text-label-invert active:scale-90"
+                  title="프로필 수정"
+                >
+                  <Pencil size={22} strokeWidth={2.5} />
+                </button>
+                <button
+                  onClick={async () => {
+                    const supabase = createSupabaseClient();
+                    await supabase.auth.signOut();
+                    router.push('/login');
+                  }}
+                  className="p-3 rounded-2xl hover:bg-danger-subtle dark:hover:bg-danger/10 transition-all text-label-muted hover:text-danger active:scale-90"
+                  title="로그아웃"
+                >
+                  <LogOut size={22} strokeWidth={2.5} />
+                </button>
+              </>
+            ) : isFriend ? (
+              <RemoveFriendButton friendId={profile.id} />
+            ) : null}
+          </div>
         </div>
 
         {profile.bio ? (

@@ -110,12 +110,12 @@ export default function KakaoBookSearchForm() {
             setHasSearched(false);
           }}
           placeholder="책 제목 혹은 ISBN을 입력하세요"
-          className="w-full px-4 py-2 border rounded-lg dark:bg-gray-900 dark:text-white"
+          className="w-full px-4 py-2 text-body rounded-lg bg-surface-raised dark:bg-dark-raised border border-border dark:border-dark-border text-label dark:text-label-invert focus:ring-2 focus:ring-tint-muted outline-none transition-all"
         />
         <button
           onClick={handleSearch}
           disabled={loading}
-          className="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-600"
+          className="bg-tint hover:bg-tint-hover text-surface text-button px-4 py-2 rounded-lg transition-colors flex items-center justify-center shrink-0"
         >
           <MdSearch size={20} />
         </button>
@@ -123,7 +123,7 @@ export default function KakaoBookSearchForm() {
 
       {results.length === 0 && !loading && query !== '' && hasSearched && (
         <div className="flex justify-center items-center py-8">
-          <p className="text-sm text-gray-500 dark:text-gray-400">검색 결과가 없습니다.</p>
+          <p className="text-sm text-label-sub dark:text-label-muted">검색 결과가 없습니다.</p>
         </div>
       )}
       <ul className="space-y-4">
@@ -148,9 +148,9 @@ export default function KakaoBookSearchForm() {
                 className="object-cover rounded"
               />
               <div className="text-sm">
-                <div className="font-medium text-gray-900 dark:text-white">{book.title}</div>
-                <div className="text-gray-500 dark:text-gray-400">{book.authors?.join(', ')}</div>
-                <div className="text-xs text-gray-400">ISBN: {book.isbn.split(' ').join(', ')}</div>
+                <div className="font-medium text-label dark:text-label-invert">{book.title}</div>
+                <div className="text-label-sub dark:text-label-muted">{book.authors?.join(', ')}</div>
+                <div className="text-xs text-label-muted">ISBN: {book.isbn.split(' ').join(', ')}</div>
               </div>
             </Card>
           );
@@ -165,7 +165,7 @@ export default function KakaoBookSearchForm() {
           setTotalPages(null);
         }}
       >
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg space-y-4 w-full max-w-sm mx-auto">
+        <div className="bg-surface dark:bg-dark-surface p-5 rounded-2xl space-y-4 w-full max-w-sm mx-auto">
           {/* Modal Book Info Block */}
           <div className="flex items-start gap-4">
             <Image
@@ -176,24 +176,24 @@ export default function KakaoBookSearchForm() {
               className="rounded object-cover"
             />
             <div className="flex-1 text-sm">
-              <div className="font-semibold text-gray-900 dark:text-white mb-1">
+              <div className="font-semibold text-label dark:text-label-invert mb-1">
                 {selectedBook?.title}
               </div>
-              <div className="text-gray-600 dark:text-gray-300 mb-1">
+              <div className="text-label-sub dark:text-label-muted mb-1">
                 {selectedBook?.authors?.join(', ')}
               </div>
               {selectedBook?.isbn && (
-                <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                <div className="text-xs text-label-sub dark:text-label-muted mb-1">
                   ISBN: {selectedBook.isbn.split(' ').join(', ')}
                 </div>
               )}
               {totalPages ? (
-                <p className="text-gray-700 dark:text-gray-200">
+                <p className="text-label dark:text-label-invert">
                   총 페이지 수: <strong>{totalPages}</strong>
                 </p>
               ) : (
                 <div className="mt-2">
-                  <p className="mb-1 text-gray-700 dark:text-gray-200">
+                  <p className="mb-1 text-label dark:text-label-invert">
                     페이지 수를 찾을 수 없습니다. 직접 입력해주세요:
                   </p>
                   <input
@@ -201,7 +201,7 @@ export default function KakaoBookSearchForm() {
                     value={manualTotalPages}
                     onChange={(e) => setManualTotalPages(e.target.value)}
                     placeholder="총 페이지 수"
-                    className="w-full border px-3 py-2 rounded dark:bg-gray-800 dark:text-white"
+                    className="w-full px-4 py-2 text-body rounded-lg bg-surface-raised dark:bg-dark-raised border border-border dark:border-dark-border text-label dark:text-label-invert focus:ring-2 focus:ring-tint-muted outline-none transition-all"
                   />
                 </div>
               )}

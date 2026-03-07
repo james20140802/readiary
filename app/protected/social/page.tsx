@@ -27,7 +27,7 @@ export default async function SocialPage() {
   return (
     <div className="space-y-4">
       <header className="px-1">
-        <h1 className="text-page-title text-label dark:text-white">🌏 소셜</h1>
+        <h1 className="text-page-title text-label dark:text-label-invert">🌏 소셜</h1>
       </header>
 
       <SocialTab

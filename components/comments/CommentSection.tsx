@@ -82,16 +82,16 @@ export default function CommentSection({
   return (
     <div className="mt-10 space-y-6">
       <div className="flex items-center justify-between px-1">
-        <h3 className="text-[16px] font-extrabold text-zinc-900 dark:text-zinc-100">
+        <h3 className="text-[16px] font-extrabold text-label dark:text-label-invert">
           댓글 <span className="text-tint ml-1">{comments.length}</span>
         </h3>
       </div>
 
       <div className="min-h-[100px]">
         {isLoading ? (
-          <div className="py-10 text-center text-zinc-400 text-sm">기록을 불러오는 중...</div>
+          <div className="py-10 text-center text-label-muted text-sm">기록을 불러오는 중...</div>
         ) : comments.length > 0 ? (
-          <div className="divide-y divide-zinc-50 dark:divide-zinc-800/50">
+          <div className="divide-y divide-border-subtle dark:divide-dark-border">
             {comments
               .filter((c) => !c.parent_id)
               .map((rootComment) => (
@@ -105,7 +105,7 @@ export default function CommentSection({
                   />
 
                   {/* 2. 해당 부모를 parent_id로 가지는 대댓글들 필터링 */}
-                  <div className="ml-10 border-l-2 border-zinc-50 dark:border-zinc-800/50">
+                  <div className="ml-10 border-l-2 border-border-subtle dark:border-dark-border">
                     {comments
                       .filter((reply) => reply.parent_id === rootComment.id)
                       .map((reply) => (
@@ -122,7 +122,7 @@ export default function CommentSection({
               ))}
           </div>
         ) : (
-          <div className="py-12 text-center text-zinc-400 text-[14px]">
+          <div className="py-12 text-center text-label-muted text-[14px]">
             아직 댓글이 없어요. 첫 인사를 남겨보세요! 💬
           </div>
         )}

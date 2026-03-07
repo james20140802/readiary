@@ -34,7 +34,7 @@ export default function Tabs({
 
   return (
     <div className={clsx(fullWidth && 'w-full', className)}>
-      <div className="flex space-x-2 border-b border-gray-200 dark:border-gray-700">
+      <div className="flex space-x-2 border-b border-border dark:border-dark-border">
         {tabs.map((tab) => (
           <button
             key={tab.value}

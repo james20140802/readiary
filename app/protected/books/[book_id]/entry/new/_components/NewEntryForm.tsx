@@ -13,6 +13,7 @@ import FormGroup from '@/components/ui/FormGroup';
 import { Textarea } from '@/components/ui/Textarea';
 import AnimatedSection from '@/components/ui/AnimatedSection';
 import BackButton from '@/components/ui/BackButton';
+import Image from 'next/image';
 
 interface Props {
   userBookId: string;
@@ -87,27 +88,41 @@ export default function NewEntryForm({ userBookId, userId, book, bookId }: Props
       </header>
 
       <AnimatedSection>
-        {/* 1. 책 제목과 지은이 줄바꿈 처리 */}
-        <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-          <div className="flex flex-col">
-            <strong className="text-xl text-label dark:text-white leading-tight">
-              {book.title}
-            </strong>
-            <span className="text-secondary text-sm font-medium mt-1">{book.author}</span>
+        <div className="max-w-2xl mx-auto py-4 sm:py-6 space-y-8">
+          {/* 1. 책 제목과 지은이 줄바꿈 처리 */}
+          <div className="flex flex-col sm:flex-row justify-between items-start gap-6 pb-6 border-b border-border dark:border-dark-border">
+            <div className="flex items-center gap-4">
+              <Image
+                src={book.cover_url ?? '/images/default-book-cover.png'}
+                alt="Book cover"
+                width={48}
+                height={72}
+                className="rounded shadow object-cover"
+              />
+              <div className="flex flex-col">
+                <strong className="text-xl text-label dark:text-label-invert leading-tight">
+                  {book.title}
+                </strong>
+                <span className="text-label-sub text-sm font-medium mt-1">{book.author}</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 self-end sm:self-auto mt-4 sm:mt-0">
+              <span className="text-sm text-label-sub font-medium">🔒 비공개</span>
+              <button
+                type="button"
+                onClick={() => setIsPrivate(!isPrivate)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-tint focus:ring-offset-2 dark:focus:ring-offset-dark-page ${
+                  isPrivate ? 'bg-tint' : 'bg-surface-raised dark:bg-dark-border'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    isPrivate ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
           </div>
-          <div className="flex items-center gap-2 self-end sm:self-auto">
-            <label htmlFor="isPrivate" className="text-sm text-secondary cursor-pointer">
-              🔒 비공개로 저장
-            </label>
-            <input
-              id="isPrivate"
-              type="checkbox"
-              checked={isPrivate}
-              onChange={(e) => setIsPrivate(e.target.checked)}
-              className="w-4 h-4 cursor-pointer"
-            />
-          </div>
-        </div>
 
         {/* 페이지 입력 (기존 가로 정렬 방식 복구) */}
         <div className="flex flex-col gap-4 sm:flex-row">
@@ -142,7 +157,7 @@ export default function NewEntryForm({ userBookId, userId, book, bookId }: Props
             value={new Date().toISOString().split('T')[0]}
             readOnly
             disabled
-            className="w-full appearance-none bg-zinc-50 dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800"
+            className="w-full appearance-none bg-surface dark:bg-dark-surface border-border-subtle dark:border-dark-border"
           />
         </FormGroup>
 
@@ -160,11 +175,12 @@ export default function NewEntryForm({ userBookId, userId, book, bookId }: Props
 
         {error && <p className="text-red-500 text-sm font-medium">{error}</p>}
 
-        {/* 2. 제출 시 버튼 비활성화 */}
-        <div className="flex justify-end pt-2">
-          <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
-            {isSubmitting ? '저장 중...' : '📥 기록 저장하기'}
-          </Button>
+          {/* 2. 제출 시 버튼 비활성화 */}
+          <div className="flex justify-end pt-4">
+            <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
+              {isSubmitting ? '저장 중...' : '📥 기록 저장하기'}
+            </Button>
+          </div>
         </div>
       </AnimatedSection>
     </form>

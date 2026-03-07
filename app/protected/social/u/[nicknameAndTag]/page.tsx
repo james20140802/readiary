@@ -37,30 +37,32 @@ export default async function FriendProfilePage({ params }: FriendProfilePagePro
     .maybeSingle();
 
   const isFriend = !!friendRecord;
-
   if (!isFriend && user.id !== profile.id) return notFound();
 
   const stats = await getUserStats(profile.id);
 
   return (
     <div>
-      <header className="flex items-center mb-6">
+      <header className="flex items-center mb-2">
         <BackButton />
-        <h1 className="text-page-title text-label dark:text-white ml-4">👤 친구 프로필</h1>
+        <h1 className="text-page-title text-label dark:text-label-invert ml-4">👤 친구 프로필</h1>
       </header>
       <AnimatedSection>
-        <ProfileHeader user={user} profile={profile} />
-        <ProfileBookshelf
-          userBooks={userBooks}
-          baseLink={`/protected/social/u/${(await params).nicknameAndTag}/books`}
-          isOwnProfile={false}
-          profile={profile}
-        />
-        {stats ? (
-          <ProfileStats stats={stats} badges={userBadges} />
-        ) : (
-          <p className="text-sm text-secondary">통계 정보를 불러올 수 없습니다.</p>
-        )}
+        {/* 모든 섹션 px-6으로 통일 */}
+        <div className="px-6">
+          <ProfileHeader user={user} profile={profile} isFriend />
+          <ProfileBookshelf
+            userBooks={userBooks}
+            baseLink={`/protected/social/u/${(await params).nicknameAndTag}/books`}
+            isOwnProfile={false}
+            profile={profile}
+          />
+          {stats ? (
+            <ProfileStats stats={stats} badges={userBadges} />
+          ) : (
+            <p className="text-body-sm text-label-muted">통계 정보를 불러올 수 없습니다.</p>
+          )}
+        </div>
       </AnimatedSection>
     </div>
   );

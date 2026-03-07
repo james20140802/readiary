@@ -103,7 +103,7 @@ export default function EntryDetailContent({
             className="rounded shadow object-cover"
           />
           <div className="space-y-1">
-            <h2 className="text-section-title text-label dark:text-white">
+            <h2 className="text-section-title text-label dark:text-label-invert">
               {book.title ?? '제목 없음'}
             </h2>
             <p className="text-sm text-secondary">{book.author ?? '저자 미상'}</p>
@@ -111,11 +111,11 @@ export default function EntryDetailContent({
         </div>
 
         <AnimatedSection>
-          <div className="bg-background dark:bg-darkbg rounded-xl shadow-md overflow-hidden flex flex-col">
+          <div className="bg-background dark:bg-dark-surface rounded-xl shadow-md overflow-hidden flex flex-col">
             {/* 1. 본문 영역 */}
             <div className="p-5 sm:p-6 pb-4 space-y-4">
               <div className="flex items-center justify-between relative">
-                <h1 className="text-[1.125rem] font-bold text-label dark:text-white flex items-center gap-2">
+                <h1 className="text-[1.125rem] font-bold text-label dark:text-label-invert flex items-center gap-2">
                   ✍️ 오늘의 독서 기록
                 </h1>
 
@@ -124,20 +124,20 @@ export default function EntryDetailContent({
                   <div className="relative" ref={menuRef}>
                     <button
                       onClick={() => setIsMenuOpen(!isMenuOpen)}
-                      className="p-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400 transition-colors"
+                      className="p-1.5 rounded-full hover:bg-surface-raised dark:hover:bg-dark-raised text-label-muted transition-colors"
                     >
                       <MoreHorizontal size={20} />
                     </button>
 
                     {/* 드롭다운 메뉴 */}
                     {isMenuOpen && (
-                      <div className="absolute right-0 mt-2 w-32 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-xl shadow-xl z-10 py-1.5">
+                      <div className="absolute right-0 mt-2 w-32 bg-surface dark:bg-dark-surface border border-border-subtle dark:border-dark-border rounded-xl shadow-xl z-10 py-1.5">
                         <button
                           onClick={() => {
                             router.push(`/protected/entry/${entry.id}/edit`);
                             setIsMenuOpen(false);
                           }}
-                          className="w-full px-4 py-2 text-left text-[13px] font-medium flex items-center gap-2 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300"
+                          className="w-full px-4 py-2 text-left text-[13px] font-medium flex items-center gap-2 hover:bg-surface-raised dark:hover:bg-dark-raised text-label-sub dark:text-label-muted"
                         >
                           <Edit2 size={14} /> 수정하기
                         </button>
@@ -146,7 +146,7 @@ export default function EntryDetailContent({
                             setIsDeleteDialogOpen(true);
                             setIsMenuOpen(false);
                           }}
-                          className="w-full px-4 py-2 text-left text-[13px] font-medium flex items-center gap-2 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-rose-500"
+                          className="w-full px-4 py-2 text-left text-[13px] font-medium flex items-center gap-2 hover:bg-surface-raised dark:hover:bg-dark-raised text-danger"
                         >
                           <Trash2 size={14} /> 삭제하기
                         </button>
@@ -156,16 +156,16 @@ export default function EntryDetailContent({
                 )}
               </div>
 
-              <p className="text-[0.9375rem] leading-relaxed text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap">
+              <p className="text-[0.9375rem] leading-relaxed text-label-sub dark:text-label-muted whitespace-pre-wrap">
                 {entry.summary ?? ''}
               </p>
             </div>
 
             {/* 2. 하단 액션 통합 바 (정보 + 소셜) */}
-            <div className="px-5 sm:px-6 py-4 bg-zinc-50/50 dark:bg-zinc-800/10 border-t border-zinc-50 dark:border-zinc-800">
+            <div className="px-5 sm:px-6 py-4 bg-tint-subtle dark:bg-dark-raised/30 border-t border-border-subtle dark:border-dark-border">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-                  <p className="text-[0.75rem] sm:text-[0.875rem] text-zinc-400 tabular-nums">
+                  <p className="text-[0.75rem] sm:text-[0.875rem] text-label-muted tabular-nums">
                     📅 {new Date(entry.date).toLocaleDateString()} <span className="mx-1">|</span>{' '}
                     📖 {entry.from_page}~{entry.to_page}쪽
                   </p>
@@ -184,7 +184,7 @@ export default function EntryDetailContent({
           </div>
         </AnimatedSection>
         {/* 3. 댓글 섹션 배치 (블로그 스타일) */}
-        <div ref={commentRef} className="pt-4 border-t border-zinc-100 dark:border-zinc-800">
+        <div ref={commentRef} className="pt-4 border-t border-border dark:border-dark-border">
           <CommentSection
             entryId={entry.id}
             currentUserId={currentUserId}
@@ -196,8 +196,8 @@ export default function EntryDetailContent({
       {/* 삭제 확인 모달 */}
       <Modal isOpen={isDeleteDialogOpen} onClose={() => setIsDeleteDialogOpen(false)}>
         <div className="space-y-4">
-          <h2 className="text-lg font-bold text-label dark:text-white">정말 삭제하시겠어요?</h2>
-          <p className="text-sm text-secondary dark:text-gray-300">이 작업은 되돌릴 수 없습니다.</p>
+          <h2 className="text-lg font-bold text-label dark:text-label-invert">정말 삭제하시겠어요?</h2>
+          <p className="text-sm text-secondary dark:text-label-muted">이 작업은 되돌릴 수 없습니다.</p>
           {deleteError && <p className="text-sm text-red-500">{deleteError}</p>}
           <div className="flex justify-end gap-2 pt-2">
             <Button size="sm" onClick={() => setIsDeleteDialogOpen(false)}>

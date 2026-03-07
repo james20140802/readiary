@@ -90,7 +90,7 @@ export default function FriendRequestForm() {
 
       <Modal isOpen={showConfirmModal} onClose={() => setShowConfirmModal(false)}>
         <div className="space-y-4">
-          <h2 className="text-section-title font-semibold text-label dark:text-white">
+          <h2 className="text-section-title font-semibold text-label dark:text-label-invert">
             친구 요청 보내기
           </h2>
           <p className="text-body-text text-secondary">

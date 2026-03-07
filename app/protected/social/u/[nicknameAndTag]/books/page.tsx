@@ -32,7 +32,7 @@ export default async function FriendBooksPage({ params }: Props) {
         <h1 className="text-page-title ml-4">
           <Link
             href={`/protected/profile/u/${profile.nickname}-${profile.tag}`}
-            className="font-bold text-zinc-900 dark:text-zinc-100 hover:underline"
+            className="font-bold text-zinc-900 dark:text-label-invert hover:underline"
           >
             {profile.name}
           </Link>

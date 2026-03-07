@@ -14,7 +14,7 @@ export default async function MyBooksPage() {
     <div className="flex justify-center">
       <div className="w-full">
         <header className="flex justify-between items-center mb-6">
-          <h1 className="text-page-title text-label dark:text-white" aria-label="내 책장">
+          <h1 className="text-page-title text-label dark:text-label-invert" aria-label="내 책장">
             📚 내 책장
           </h1>
           <Button asChild>
