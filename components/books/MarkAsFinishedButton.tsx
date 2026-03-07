@@ -44,7 +44,7 @@ export default function MarkAsFinishedButton({
         disabled={progress < 90}
         size="sm"
         color="primary"
-        variant={progress < 90 ? 'subtle' : 'primary'}
+        variant={progress < 90 ? 'ghost' : 'primary'}
         className={`mt-2 ${progress < 90 ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
         📘 책 읽기 완료!

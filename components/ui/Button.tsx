@@ -5,39 +5,67 @@ import { Slot } from '@radix-ui/react-slot';
 import clsx from 'clsx';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'danger' | 'success' | 'subtle';
+  /**
+   * primary : 주요 액션 (파란색)
+   * secondary: 보조 액션 (아웃라인)
+   * ghost   : 텍스트형 버튼
+   * danger  : 삭제/경고
+   * success : 완료/확인
+   */
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'success';
+  size?: 'sm' | 'md' | 'lg';
   fullWidth?: boolean;
   asChild?: boolean;
-  size?: 'sm' | 'md' | 'lg';
+  loading?: boolean;
 }
 
 export default function Button({
   variant = 'primary',
-  fullWidth = false,
   size = 'md',
+  fullWidth = false,
   type = 'button',
   className,
   asChild,
+  loading,
+  disabled,
+  children,
   ...props
 }: ButtonProps) {
-  const base =
-    'px-4 py-2 rounded-md text-button-text font-medium transition focus:outline-none focus:ring-2 focus:ring-offset-2 flex items-center justify-center';
+  const base = clsx(
+    'inline-flex items-center justify-center gap-2',
+    'font-medium rounded-md transition-all duration-150',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+    'active:scale-[0.97]',
+    'disabled:opacity-50 disabled:pointer-events-none'
+  );
 
-  const variantClasses = {
-    primary: 'bg-tint text-white hover:bg-blue-600 focus:ring-tint',
-    secondary: 'bg-secondary text-white hover:bg-gray-600 focus:ring-secondary',
-    danger: 'bg-red-500 text-white hover:bg-red-600 focus:ring-red-500',
-    success: 'bg-green-500 text-white hover:bg-green-600 focus:ring-green-500',
-    subtle:
-      'bg-gray-100 text-secondary hover:bg-gray-200 focus:ring-secondary dark:bg-transparent dark:hover:bg-gray-100',
+  const variants = {
+    primary: clsx(
+      'bg-tint text-white',
+      'hover:bg-tint-hover',
+      'focus-visible:ring-tint',
+      'shadow-sm hover:shadow-tint'
+    ),
+    secondary: clsx(
+      'bg-transparent text-label dark:text-label-invert',
+      'border border-border dark:border-dark-border',
+      'hover:bg-surface-raised dark:hover:bg-dark-raised',
+      'focus-visible:ring-label'
+    ),
+    ghost: clsx(
+      'bg-transparent text-label-sub dark:text-label-muted',
+      'hover:bg-surface-raised dark:hover:bg-dark-raised',
+      'hover:text-label dark:hover:text-label-invert',
+      'focus-visible:ring-label'
+    ),
+    danger: clsx('bg-danger text-white', 'hover:bg-red-600', 'focus-visible:ring-danger'),
+    success: clsx('bg-success text-white', 'hover:bg-green-600', 'focus-visible:ring-success'),
   };
 
-  const widthClass = fullWidth ? 'w-full' : '';
-
-  const sizeClasses = {
-    sm: 'px-2 py-1',
-    md: 'px-4 py-2',
-    lg: 'px-6 py-3',
+  const sizes = {
+    sm: 'h-8  px-3 text-caption gap-1.5',
+    md: 'h-10 px-4 text-button',
+    lg: 'h-12 px-6 text-button text-base',
   };
 
   const Comp = asChild ? Slot : 'button';
@@ -45,8 +73,18 @@ export default function Button({
   return (
     <Comp
       type={asChild ? undefined : type}
-      className={clsx(base, sizeClasses[size], variantClasses[variant], widthClass, className)}
+      disabled={disabled || loading}
+      className={clsx(base, variants[variant], sizes[size], fullWidth && 'w-full', className)}
       {...props}
-    />
+    >
+      {loading ? (
+        <>
+          <span className="w-4 h-4 rounded-full border-2 border-current border-t-transparent animate-spin" />
+          {children}
+        </>
+      ) : (
+        children
+      )}
+    </Comp>
   );
 }

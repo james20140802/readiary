@@ -28,9 +28,7 @@ export default function SocialTab({
   pendingFriends,
   sentFriends,
 }: Props) {
-  // 메인 탭: 피드 vs 친구 관리
   const [mainTab, setMainTab] = useState<'feed' | 'manage'>('feed');
-  // 친구 관리 내부 서브 탭
   const [friendTab, setFriendTab] = useState<'friends' | 'pending' | 'sent'>('friends');
   const isMobile = useIsMobile();
 
@@ -47,7 +45,6 @@ export default function SocialTab({
 
   return (
     <div className="space-y-6">
-      {/* 대분류 탭 */}
       <Tabs
         tabs={mainTabs}
         defaultValue={mainTab}
@@ -55,13 +52,13 @@ export default function SocialTab({
         fullWidth
       />
 
-      {/* --- 1. 피드 영역 --- */}
+      {/* 피드 */}
       {mainTab === 'feed' && (
         <div className="animate-in fade-in duration-300">
           {initialFeed.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 rounded-3xl border">
+            <div className="flex flex-col items-center justify-center py-20 rounded-3xl border border-border dark:border-dark-border">
               <span className="text-4xl mb-4">📭</span>
-              <p className="text-secondary text-body-text">친구들의 활동이 아직 없어요.</p>
+              <p className="text-label-muted text-body-text">친구들의 활동이 아직 없어요.</p>
             </div>
           ) : (
             <DetailSocailFeedList initialFeed={initialFeed} userId={userId} />
@@ -69,19 +66,17 @@ export default function SocialTab({
         </div>
       )}
 
-      {/* --- 2. 친구 관리 영역 --- */}
+      {/* 친구 관리 */}
       {mainTab === 'manage' && (
         <div className="space-y-6 animate-in fade-in duration-300">
-          {/* 친구 검색 및 신청 폼 */}
-          <div className="p-4 rounded-2xl border border-zinc-100 dark:border-zinc-800">
-            <p className="text-sm font-bold mb-3 ml-1 text-label dark:text-zinc-300">
+          <div className="p-4 rounded-2xl border border-border dark:border-dark-border">
+            <p className="text-sm font-bold mb-3 ml-1 text-label dark:text-label-invert">
               새로운 친구 찾기
             </p>
             <FriendRequestForm />
           </div>
 
           <div className="space-y-4">
-            {/* 친구 관리 서브 탭 */}
             <Tabs
               tabs={friendTabs}
               defaultValue={friendTab}
@@ -89,12 +84,12 @@ export default function SocialTab({
               fullWidth={isMobile}
             />
 
-            {/* 친구 목록 */}
             <div className="px-1">
+              {/* 친구 목록 */}
               {friendTab === 'friends' && (
                 <section className="animate-in fade-in slide-in-from-bottom-2 duration-300">
                   {acceptedFriends.length === 0 ? (
-                    <p className="text-secondary text-center py-10 text-body-text">
+                    <p className="text-label-muted text-center py-10 text-body-text">
                       아직 친구가 없습니다.
                     </p>
                   ) : (
@@ -117,7 +112,7 @@ export default function SocialTab({
               {friendTab === 'pending' && (
                 <section className="animate-in fade-in slide-in-from-bottom-2 duration-300">
                   {pendingFriends.length === 0 ? (
-                    <p className="text-secondary text-center py-10 text-body-text">
+                    <p className="text-label-muted text-center py-10 text-body-text">
                       받은 친구 요청이 없습니다.
                     </p>
                   ) : (
@@ -145,7 +140,7 @@ export default function SocialTab({
               {friendTab === 'sent' && (
                 <section className="animate-in fade-in slide-in-from-bottom-2 duration-300">
                   {sentFriends.length === 0 ? (
-                    <p className="text-secondary text-center py-10 text-body-text">
+                    <p className="text-label-muted text-center py-10 text-body-text">
                       보낸 친구 요청이 없습니다.
                     </p>
                   ) : (

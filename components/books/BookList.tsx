@@ -6,6 +6,7 @@ import { MyBook } from '@/types/book';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import AnimatedListSection from '../ui/AnimatedListSecion';
+
 interface Props {
   books: MyBook[];
   isFriend?: boolean;
@@ -15,7 +16,7 @@ interface Props {
 export default function BookList({ books, isFriend = false, nicknameAndTag = '' }: Props) {
   if (!books || books.length === 0)
     return (
-      <div className="text-center text-secondary space-y-2">
+      <div className="text-center text-label-muted space-y-2">
         <p>아직 등록한 책이 없습니다.</p>
         {!isFriend && (
           <Link href="/protected/books/new" className="text-tint underline">
@@ -42,19 +43,17 @@ export default function BookList({ books, isFriend = false, nicknameAndTag = '' 
                   height={112}
                   className="rounded-md object-cover w-[80px] h-[112px]"
                 />
-
                 <div className="flex-1 flex items-center justify-between min-w-0">
                   <div className="flex flex-col justify-center min-w-0">
-                    <h2 className="text-base font-semibold text-label dark:text-white line-clamp-2">
+                    <h2 className="text-base font-semibold text-label dark:text-label-invert line-clamp-2">
                       {book?.title}
                     </h2>
-                    <p className="text-sm text-secondary truncate">{book?.author}</p>
-                    <p className="text-sm mt-2 text-label dark:text-gray-300">
+                    <p className="text-sm text-label-sub truncate">{book?.author}</p>
+                    <p className="text-sm mt-2 text-label-sub dark:text-label-muted">
                       📖 {percent}% 진행 중
                     </p>
                   </div>
-
-                  <div className="flex flex-col sm:flex-row justify-center sm:items-center gap-2 sm:gap-2">
+                  <div className="flex flex-col sm:flex-row justify-center sm:items-center gap-2">
                     <Button
                       size="sm"
                       variant="secondary"
