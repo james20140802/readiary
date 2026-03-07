@@ -48,12 +48,12 @@ export default function LoginPage() {
   return (
     <div className="flex items-center justify-center">
       <div className="w-full">
-        <h1 className="text-section-title font-semibold mb-6 text-center text-gray-900 dark:text-label-invert">
+        <h1 className="text-section-title font-semibold mb-6 text-center dark:text-label-invert">
           로그인
         </h1>
         <AnimatedSection>
           {error && (
-            <div className="mb-4 p-2 rounded text-sm text-red-700 bg-red-100 dark:bg-red-900 dark:text-red-200">
+            <div className="mb-4 p-2 rounded text-sm danger bg-red-100 dark:bg-red-900 dark:danger-muted">
               {error}
             </div>
           )}
@@ -76,8 +76,13 @@ export default function LoginPage() {
           </Button>
 
           <p className="text-sm text-center mt-4">
-            <a href="/signup" className="text-gray-500 underline dark:text-label-muted">
+            <a href="/signup" className="label-sub underline dark:text-label-muted">
               아직 회원이 아니신가요?
+            </a>
+          </p>
+          <p className="text-sm text-center !mt-4">
+            <a href="/reset-password" className="label-sub underline dark:text-label-muted">
+              비밀번호를 잊으셨나요?
             </a>
           </p>
         </AnimatedSection>
