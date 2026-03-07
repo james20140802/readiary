@@ -11,7 +11,6 @@ import Button from '@/components/ui/Button';
 import FormLabel from '@/components/ui/FormLabel';
 import AnimatedSection from '@/components/ui/AnimatedSection';
 import BackButton from '@/components/ui/BackButton';
-
 interface Props {
   entryId: string;
   book: Book;
@@ -72,33 +71,40 @@ export default function EditEntryForm({
         <h1 className="text-page-title text-label dark:text-label-invert ml-4">🌤️ 독서 기록 수정</h1>
       </header>
       <AnimatedSection>
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-4">
-            <Image
-              src={book.cover_url ?? '/images/default-book-cover.png'}
-              alt="Book cover"
-              width={48}
-              height={72}
-              className="rounded shadow object-cover"
-            />
-            <div>
-              <h2 className="text-lg font-semibold text-label dark:text-label-invert">
-                {book.title ?? '제목 없음'}
-              </h2>
-              <p className="text-sm text-label-sub">{book.author ?? '저자 미상'}</p>
+        <div className="max-w-2xl mx-auto py-4 sm:py-6 space-y-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start gap-6 pb-6 border-b border-border dark:border-dark-border">
+            <div className="flex items-center gap-4">
+              <Image
+                src={book.cover_url ?? '/images/default-book-cover.png'}
+                alt="Book cover"
+                width={48}
+                height={72}
+                className="rounded shadow object-cover"
+              />
+              <div className="flex flex-col">
+                <strong className="text-xl text-label dark:text-label-invert leading-tight">
+                  {book.title ?? '제목 없음'}
+                </strong>
+                <span className="text-label-sub text-sm font-medium mt-1">{book.author ?? '저자 미상'}</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 self-end sm:self-auto mt-4 sm:mt-0">
+              <span className="text-sm text-label-sub font-medium">🔒 비공개</span>
+              <button
+                type="button"
+                onClick={() => setIsPrivate(!isPrivate)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-tint focus:ring-offset-2 dark:focus:ring-offset-dark-page ${
+                  isPrivate ? 'bg-tint' : 'bg-surface-raised dark:bg-dark-border'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    isPrivate ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
             </div>
           </div>
-          <label className="flex items-center gap-2 text-sm text-label dark:text-label-invert">
-            <input
-              id="isPrivate"
-              type="checkbox"
-              checked={isPrivate}
-              onChange={(e) => setIsPrivate(e.target.checked)}
-              className="w-4 h-4"
-            />
-            🔒 비공개로 저장
-          </label>
-        </div>
 
         <div className="flex flex-col gap-4 sm:flex-row">
           <FormGroup className="flex-1">
@@ -145,8 +151,9 @@ export default function EditEntryForm({
 
         {error && <p className="text-sm text-red-500">{error}</p>}
 
-        <div className="flex justify-end">
-          <Button type="submit">✅ 기록 수정하기</Button>
+          <div className="flex justify-end pt-4">
+            <Button type="submit" className="w-full sm:w-auto">✅ 기록 수정하기</Button>
+          </div>
         </div>
       </AnimatedSection>
     </form>
