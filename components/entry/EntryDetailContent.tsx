@@ -103,7 +103,7 @@ export default function EntryDetailContent({
             className="rounded shadow object-cover"
           />
           <div className="space-y-1">
-            <h2 className="text-section-title text-label dark:text-white">
+            <h2 className="text-section-title text-label dark:text-label-invert">
               {book.title ?? '제목 없음'}
             </h2>
             <p className="text-sm text-secondary">{book.author ?? '저자 미상'}</p>
@@ -111,11 +111,11 @@ export default function EntryDetailContent({
         </div>
 
         <AnimatedSection>
-          <div className="bg-background dark:bg-darkbg rounded-xl shadow-md overflow-hidden flex flex-col">
+          <div className="bg-background dark:bg-dark-surface rounded-xl shadow-md overflow-hidden flex flex-col">
             {/* 1. 본문 영역 */}
             <div className="p-5 sm:p-6 pb-4 space-y-4">
               <div className="flex items-center justify-between relative">
-                <h1 className="text-[1.125rem] font-bold text-label dark:text-white flex items-center gap-2">
+                <h1 className="text-[1.125rem] font-bold text-label dark:text-label-invert flex items-center gap-2">
                   ✍️ 오늘의 독서 기록
                 </h1>
 
@@ -196,8 +196,8 @@ export default function EntryDetailContent({
       {/* 삭제 확인 모달 */}
       <Modal isOpen={isDeleteDialogOpen} onClose={() => setIsDeleteDialogOpen(false)}>
         <div className="space-y-4">
-          <h2 className="text-lg font-bold text-label dark:text-white">정말 삭제하시겠어요?</h2>
-          <p className="text-sm text-secondary dark:text-gray-300">이 작업은 되돌릴 수 없습니다.</p>
+          <h2 className="text-lg font-bold text-label dark:text-label-invert">정말 삭제하시겠어요?</h2>
+          <p className="text-sm text-secondary dark:text-label-muted">이 작업은 되돌릴 수 없습니다.</p>
           {deleteError && <p className="text-sm text-red-500">{deleteError}</p>}
           <div className="flex justify-end gap-2 pt-2">
             <Button size="sm" onClick={() => setIsDeleteDialogOpen(false)}>

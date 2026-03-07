@@ -24,7 +24,7 @@ export default async function Home() {
         </p>
         <div className="mt-8 flex justify-center gap-4">
           <Link href="/login">
-            <button className="px-6 py-3 rounded-md bg-primary hover:bg-primary/90 text-base font-medium text-black dark:text-white">
+            <button className="px-6 py-3 rounded-md bg-primary hover:bg-primary/90 text-base font-medium text-black dark:text-label-invert">
               로그인
             </button>
           </Link>

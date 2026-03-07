@@ -48,7 +48,7 @@ export default function LoginPage() {
   return (
     <div className="flex items-center justify-center">
       <div className="w-full">
-        <h1 className="text-section-title font-semibold mb-6 text-center text-gray-900 dark:text-white">
+        <h1 className="text-section-title font-semibold mb-6 text-center text-gray-900 dark:text-label-invert">
           로그인
         </h1>
         <AnimatedSection>
@@ -76,7 +76,7 @@ export default function LoginPage() {
           </Button>
 
           <p className="text-sm text-center mt-4">
-            <a href="/signup" className="text-gray-500 underline dark:text-gray-400">
+            <a href="/signup" className="text-gray-500 underline dark:text-label-muted">
               아직 회원이 아니신가요?
             </a>
           </p>

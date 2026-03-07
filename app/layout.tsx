@@ -32,7 +32,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
-      <body className="overflow-x-hidden bg-[var(--color-page-bg)] dark:bg-dark-page">
+      <body className="overflow-x-hidden bg-surface-page text-label dark:bg-dark-page dark:text-label-invert">
         <Header />
         <Navbar />
         <main className="flex-1 max-w-screen-md w-full mx-auto px-4 pt-[4rem] pb-[4.75rem] md:pt-[6rem] md:pb-[4rem]">
