@@ -28,7 +28,7 @@ export function WeeklyStreakSection({ streak, weekActivity, entry }: Props) {
   const todayStr = format(today, 'yyyy-MM-dd');
 
   return (
-    <Card className="mb-4 px-5 py-5" hoverable={false}>
+    <Card className="mb-4" hoverable={false}>
       <h2 className="text-section-title text-label dark:text-label-invert mb-4">
         📅 이번 주의 리듬
       </h2>

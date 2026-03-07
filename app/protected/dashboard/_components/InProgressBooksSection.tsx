@@ -38,7 +38,7 @@ function ProgressBar({ progress }: { progress: number }) {
 function SingleBookCard({ book }: { book: BookItem }) {
   return (
     <Link href={`/protected/books/${book.book_id}`}>
-      <Card hoverable className="flex gap-4 items-center p-4">
+      <Card hoverable variant="flat" className="flex gap-4 items-center p-4">
         <div className="relative w-[72px] h-[100px] shrink-0 rounded-lg overflow-hidden shadow-card-md">
           <Image
             src={book.cover_url ?? '/images/default-book-cover.png'}
@@ -68,7 +68,7 @@ function SingleBookCard({ book }: { book: BookItem }) {
 function MultiBookCard({ book }: { book: BookItem }) {
   return (
     <Link href={`/protected/books/${book.book_id}`}>
-      <Card hoverable className="flex gap-3 items-center p-3 h-full">
+      <Card hoverable variant="flat" className="flex gap-3 items-center p-3 h-full">
         <div className="relative w-12 h-[68px] shrink-0 rounded-md overflow-hidden shadow-card">
           <Image
             src={book.cover_url ?? '/images/default-book-cover.png'}

@@ -8,6 +8,7 @@ import { SocialFeedEntry } from '@/types/entry';
 import Button from '@/components/ui/Button';
 import { Users } from 'lucide-react';
 import Link from 'next/link';
+import Card from '@/components/ui/Card';
 
 interface Props {
   feed: SocialFeedEntry[];
@@ -43,9 +44,9 @@ export default function SocialFeed({ feed }: Props) {
 
       {/* 피드 없을 때 empty state */}
       {feed.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-10 gap-2 text-center bg-surface dark:bg-dark-surface rounded-xl border border-border dark:border-dark-border">
+        <Card hoverable={false} className="flex flex-col items-center justify-center py-12 gap-2 text-center">
           <Users size={28} className="text-label-muted" />
-          <p className="text-body-sm font-medium text-label dark:text-label-invert">
+          <p className="text-body font-semibold text-label dark:text-label-invert">
             아직 친구 활동이 없어요
           </p>
           <p className="text-caption text-label-muted">친구를 추가하면 피드가 채워져요!</p>
@@ -55,7 +56,7 @@ export default function SocialFeed({ feed }: Props) {
           >
             친구 찾기 →
           </Link>
-        </div>
+        </Card>
       ) : (
         <>
           <AnimatedListSection>
