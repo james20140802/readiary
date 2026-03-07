@@ -2,15 +2,53 @@
 
 import { UserBadge } from '@/types/badges';
 import { Stats } from '@/types/profile';
-import { Trophy, BookOpen, CheckCircle2, Hash, Calendar } from 'lucide-react';
+import { BookOpen, CheckCircle2, Hash, ScrollText } from 'lucide-react';
 import Image from 'next/image';
+import { useState } from 'react';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 interface ProfileStatsProps {
   stats: Stats;
   badges: UserBadge[];
 }
 
+const STAT_ITEMS = (stats: Stats) => [
+  {
+    label: '총 읽은 책',
+    value: `${stats.totalBooks}권`,
+    icon: BookOpen,
+    color: 'text-tint',
+    bg: 'bg-tint-subtle dark:bg-tint/10',
+  },
+  {
+    label: '완독한 책',
+    value: `${stats.finishedBooks}권`,
+    icon: CheckCircle2,
+    color: 'text-success',
+    bg: 'bg-success-subtle dark:bg-success/10',
+  },
+  {
+    label: '총 엔트리',
+    value: `${stats.totalEntries}개`,
+    icon: Hash,
+    color: 'text-label-sub',
+    bg: 'bg-surface-raised dark:bg-dark-raised',
+  },
+  {
+    label: '읽은 페이지',
+    value: `${stats.totalPages}p`,
+    icon: ScrollText,
+    color: 'text-[#F97316]',
+    bg: 'bg-orange-50 dark:bg-orange-500/10',
+  },
+];
+
 export default function ProfileStats({ stats, badges }: ProfileStatsProps) {
+  const isMobile = useIsMobile();
+  const [tooltipId, setTooltipId] = useState<string | null>(null);
+  const [pressedStat, setPressedStat] = useState<number | null>(null);
+  const [pressedBadge, setPressedBadge] = useState<string | null>(null);
+
   const formatDate = (dateString: string | null | undefined) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -19,47 +57,34 @@ export default function ProfileStats({ stats, badges }: ProfileStatsProps) {
   };
 
   return (
-    <div className="px-6 space-y-10 pb-20">
-      {/* 1. 독서 요약 */}
+    <div className="space-y-10 pb-20">
+      {/* 독서 요약 */}
       <section>
-        <div className="flex items-center gap-2 mb-6">
-          <h2 className="text-lg font-bold text-label dark:text-label-invert">
-            <span className="text-lg">📊</span> 독서 요약
-          </h2>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            {
-              label: '총 읽은 책',
-              value: `${stats.totalBooks}권`,
-              icon: BookOpen,
-              color: 'text-blue-500',
-            },
-            {
-              label: '완료한 책',
-              value: `${stats.finishedBooks}권`,
-              icon: CheckCircle2,
-              color: 'text-success',
-            },
-            {
-              label: '총 엔트리',
-              value: `${stats.totalEntries}개`,
-              icon: Hash,
-              color: 'text-purple-500',
-            },
-            {
-              label: '읽은 페이지',
-              value: `${stats.totalPages}p`,
-              icon: Calendar,
-              color: 'text-orange-500',
-            },
-          ].map((item, i) => (
+        <h2 className="text-section-title font-bold text-label dark:text-label-invert mb-4">
+          📊 독서 요약
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {STAT_ITEMS(stats).map((item, i) => (
             <div
               key={i}
-              className="p-5 rounded-[2rem] bg-surface dark:bg-dark-surface border-[2.5px] border-border dark:border-dark-border shadow-sm transition-all hover:border-border-strong dark:hover:border-dark-border"
+              className={`
+                p-5 rounded-2xl bg-surface dark:bg-dark-surface border border-border dark:border-dark-border
+                shadow-card cursor-pointer select-none
+                transition-all duration-150
+                ${pressedStat === i ? 'scale-95 shadow-none border-border-strong dark:border-dark-border' : 'hover:shadow-card-md hover:-translate-y-0.5'}
+              `}
+              onMouseDown={() => setPressedStat(i)}
+              onMouseUp={() => setPressedStat(null)}
+              onMouseLeave={() => setPressedStat(null)}
+              onTouchStart={() => setPressedStat(i)}
+              onTouchEnd={() => setPressedStat(null)}
             >
-              <item.icon className={`mb-3 ${item.color}`} size={24} strokeWidth={2.5} />
-              <p className="text-sm font-bold text-label-muted mb-1">{item.label}</p>
+              <div
+                className={`w-10 h-10 rounded-xl ${item.bg} flex items-center justify-center mb-3`}
+              >
+                <item.icon className={item.color} size={20} strokeWidth={2.5} />
+              </div>
+              <p className="text-caption font-bold text-label-muted mb-1">{item.label}</p>
               <p className="text-2xl font-black text-label dark:text-label-invert tracking-tight">
                 {item.value}
               </p>
@@ -68,61 +93,70 @@ export default function ProfileStats({ stats, badges }: ProfileStatsProps) {
         </div>
       </section>
 
-      {/* 2. 획득한 배지 */}
-      <section>
-        <div className="flex items-center gap-2 mb-6">
-          <h2 className="text-lg font-bold text-label dark:text-label-invert">
-            <span className="text-lg">🥇</span> 획득한 배지
+      {/* 획득한 배지 */}
+      {badges.length > 0 && (
+        <section>
+          <h2 className="text-section-title font-bold text-label dark:text-label-invert mb-4">
+            🏅 획득한 배지
+            <span className="ml-2 text-caption font-bold px-2 py-0.5 bg-surface-raised dark:bg-dark-raised text-label-muted border border-border dark:border-dark-border rounded-full align-middle">
+              {badges.length}
+            </span>
           </h2>
-          <span className="px-2.5 py-0.5 rounded-full bg-surface-raised dark:bg-dark-raised text-xs font-bold text-label-muted">
-            {badges.length}
-          </span>
-        </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-8">
-          {badges.map((badge, i) => (
-            <div
-              key={i}
-              className="group relative flex flex-col items-center p-6 sm:p-10 rounded-[3.5rem] bg-surface-raised/50 dark:bg-dark-raised/50 border-2 border-transparent hover:border-border dark:hover:border-dark-border hover:bg-surface dark:hover:bg-dark-surface transition-all duration-300"
-            >
-              {/* 툴팁 */}
-              <div className="absolute -top-6 left-1/2 -translate-x-1/2 z-20 w-44 p-3 rounded-2xl bg-dark-surface dark:bg-surface text-label-invert dark:text-label text-[11px] font-bold text-center opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none shadow-2xl">
-                {badge.badge?.description || '특별한 성취를 달성했습니다!'}
-                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-dark-surface dark:bg-surface rotate-45" />
-              </div>
+          {/* 모바일: 2열 / sm+: 3열 */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {badges.map(({ badge, awarded_at }) => (
+              <div
+                key={badge.id}
+                className="relative"
+                onClick={() => {
+                  if (isMobile) setTooltipId((prev) => (prev === badge.id ? null : badge.id));
+                }}
+                onMouseEnter={() => {
+                  if (!isMobile) setTooltipId(badge.id);
+                }}
+              >
+                <div
+                  className={`flex flex-col items-center p-4 sm:p-5 text-center gap-3 rounded-2xl bg-surface dark:bg-dark-surface border border-border dark:border-dark-border shadow-card cursor-default select-none transition-all duration-150 ${pressedBadge === badge.id ? 'scale-95 shadow-none border-border-strong dark:border-dark-border' : 'hover:shadow-card-md hover:-translate-y-0.5'}`}
+                  onMouseDown={() => setPressedBadge(badge.id)}
+                  onMouseUp={() => setPressedBadge(null)}
+                  onMouseLeave={() => {
+                    setPressedBadge(null);
+                    if (!isMobile) setTooltipId(null);
+                  }}
+                  onTouchStart={() => setPressedBadge(badge.id)}
+                  onTouchEnd={() => setPressedBadge(null)}
+                >
+                  {/* 배지 이미지 — border 없음 */}
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center">
+                    <Image
+                      src={badge.icon_url || '/images/default-badge.png'}
+                      alt={badge.name}
+                      width={80}
+                      height={80}
+                      className="object-contain"
+                    />
+                  </div>
+                  <div className="w-full">
+                    <p className="text-body-sm font-bold text-label dark:text-label-invert truncate">
+                      {badge.name}
+                    </p>
+                    <p className="text-caption text-label-muted mt-0.5">{formatDate(awarded_at)}</p>
+                  </div>
+                </div>
 
-              {/* 배지 이미지/아이콘 */}
-              <div className="relative w-24 h-24 sm:w-32 sm:h-32 mb-6 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3 shrink-0">
-                {badge.badge?.icon_url ? (
-                  <Image
-                    src={badge.badge.icon_url}
-                    alt={badge.badge.name}
-                    fill
-                    className="object-contain"
-                  />
-                ) : (
-                  <div className="w-full h-full rounded-full bg-gradient-to-br from-yellow-300 to-yellow-600 p-0.5 shadow-lg shadow-yellow-500/10">
-                    <div className="w-full h-full rounded-full bg-surface dark:bg-dark-surface flex items-center justify-center">
-                      <Trophy className="text-yellow-500" size={48} strokeWidth={2.5} />
-                    </div>
+                {/* 툴팁 — 한 줄 고정 */}
+                {tooltipId === badge.id && badge.description && (
+                  <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 z-30 bg-label dark:bg-label-invert text-label-invert dark:text-label text-[11px] font-medium px-3 py-2 rounded-xl shadow-card-lg whitespace-nowrap pointer-events-none animate-in fade-in zoom-in-95 duration-100">
+                    {badge.description}
+                    <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-label dark:border-t-label-invert" />
                   </div>
                 )}
               </div>
-
-              {/* 배지 이름 */}
-              <div className="w-full text-center overflow-hidden">
-                <p className="font-black text-label dark:text-label-invert text-[12px] sm:text-[16px] leading-tight whitespace-nowrap">
-                  {badge.badge?.name || '알 수 없는 배지'}
-                </p>
-              </div>
-
-              <p className="mt-2 text-[10px] sm:text-[12px] font-bold text-label-muted font-mono shrink-0">
-                {formatDate(badge.awarded_at)}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
