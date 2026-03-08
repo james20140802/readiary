@@ -162,7 +162,7 @@ export default function EntryDetailContent({
             </div>
 
             {/* 2. 하단 액션 통합 바 (정보 + 소셜) */}
-            <div className="px-5 sm:px-6 py-4 bg-tint-subtle dark:bg-dark-raised/30 border-t border-border-subtle dark:border-dark-border">
+            <div className="px-5 sm:px-6 py-4 border-t border-border dark:border-dark-border/50">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                   <div className="flex items-center gap-2">
