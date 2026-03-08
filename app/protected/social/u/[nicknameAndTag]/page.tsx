@@ -48,8 +48,7 @@ export default async function FriendProfilePage({ params }: FriendProfilePagePro
         <h1 className="text-page-title text-label dark:text-label-invert ml-4">👤 친구 프로필</h1>
       </header>
       <AnimatedSection>
-        {/* 모든 섹션 px-6으로 통일 */}
-        <div className="px-6">
+        <div>
           <ProfileHeader user={user} profile={profile} isFriend />
           <ProfileBookshelf
             userBooks={userBooks}

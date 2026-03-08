@@ -47,7 +47,7 @@ export async function fetchFriendBookEntries({
         id,
         book_id,
         progress,
-        started_at,
+        created_at,
         is_finished,
         last_read_page,
         books (*)

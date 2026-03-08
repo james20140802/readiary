@@ -32,8 +32,7 @@ export default async function ProfilePage() {
     <div>
       <h1 className="text-page-title text-label dark:text-label-invert mb-2">👤 내 프로필</h1>
       <AnimatedSection>
-        {/* 모든 섹션 px-6으로 통일 */}
-        <div className="px-6">
+        <div>
           <ProfileHeader user={user} profile={profile} />
           <ProfileBookshelf userBooks={userBooks} isOwnProfile />
           {stats ? (
