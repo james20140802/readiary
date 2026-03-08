@@ -40,10 +40,10 @@ export async function fetchDashboardData(): Promise<{
     await Promise.all([
       supabase
         .from('user_books')
-        .select('id, progress, started_at, is_finished, last_read_page, book_id, books:books(*)')
+        .select('id, progress, created_at, is_finished, last_read_page, book_id, books:books(*)')
         .eq('user_id', user.id)
         .eq('is_finished', false)
-        .order('started_at', { ascending: false }),
+        .order('created_at', { ascending: false }),
 
       supabase
         .from('entries')

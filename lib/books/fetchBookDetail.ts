@@ -16,7 +16,7 @@ export async function fetchBookDetail(bookId: string): Promise<BookDetailData | 
     .from('user_books')
     .select(
       `
-        id, progress, started_at, last_read_page, is_finished,
+        id, progress, created_at, last_read_page, is_finished,
         book:books (
           id,
           title,
@@ -55,7 +55,7 @@ export async function fetchBookDetail(bookId: string): Promise<BookDetailData | 
     userBook: {
       id: data.id,
       progress: data.progress,
-      started_at: data.started_at,
+      created_at: data.created_at,
       last_read_page: data.last_read_page,
       is_finished: data.is_finished,
       books: data.book,
