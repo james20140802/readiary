@@ -12,6 +12,8 @@ import { toZonedTime } from 'date-fns-tz';
 import { MoreHorizontal, Heart, User, BookOpen, Maximize2 } from 'lucide-react';
 import { createSupabaseClient } from '@/lib/supabase/client';
 import { getImageUrl } from '@/utils/profile';
+import Modal from '@/components/ui/Modal';
+import Button from '@/components/ui/Button';
 
 export default function FeedItem({ entry, profile, initialLiked }: SocialFeedEntry) {
   const router = useRouter();
@@ -20,6 +22,8 @@ export default function FeedItem({ entry, profile, initialLiked }: SocialFeedEnt
   const [isLiked, setIsLiked] = useState(initialLiked);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLikeLoading, setIsLikeLoading] = useState(false);
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [errorModalMessage, setErrorModalMessage] = useState('');
   const menuRef = useRef<HTMLDivElement>(null);
 
   const timeZone = 'Asia/Seoul';
@@ -48,7 +52,8 @@ export default function FeedItem({ entry, profile, initialLiked }: SocialFeedEnt
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) {
-      alert('로그인이 필요한 기능입니다.');
+      setErrorModalMessage('로그인이 필요한 기능입니다.');
+      setIsErrorModalOpen(true);
       return;
     }
 
@@ -182,6 +187,19 @@ export default function FeedItem({ entry, profile, initialLiked }: SocialFeedEnt
           </button>
         </div>
       </div>
+
+      {/* 에러 모달 */}
+      <Modal isOpen={isErrorModalOpen} onClose={() => setIsErrorModalOpen(false)}>
+        <div className="space-y-4">
+          <h2 className="text-lg font-bold text-label dark:text-label-invert">알림</h2>
+          <p className="text-sm text-secondary dark:text-label-muted">{errorModalMessage}</p>
+          <div className="flex justify-end pt-2">
+            <Button size="sm" onClick={() => setIsErrorModalOpen(false)}>
+              확인
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </Card>
   );
 }
