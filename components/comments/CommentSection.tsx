@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { Comment } from '@/types/comments';
 import CommentItem from './CommentItem';
 import CommentInput from './CommentInput';
+import Modal from '@/components/ui/Modal';
+import Button from '@/components/ui/Button';
 
 interface CommentSectionProps {
   entryId: string;
@@ -21,6 +23,10 @@ export default function CommentSection({
   const [comments, setComments] = useState<Comment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [replyingTo, setReplyingTo] = useState<Comment | null>(null);
+
+  const [deleteModalCommentId, setDeleteModalCommentId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [errorModalMessage, setErrorModalMessage] = useState<string | null>(null);
 
   // 1. GET: 댓글 목록 불러오기
   useEffect(() => {
@@ -58,25 +64,33 @@ export default function CommentSection({
       onCountChange?.(updatedComments.length);
     } catch (error) {
       console.error('댓글 추가 에러:', error);
-      alert('댓글 등록에 실패했습니다.');
+      setErrorModalMessage('댓글 등록에 실패했습니다.');
     }
   };
 
   // 3. DELETE: 댓글 삭제
   const handleDeleteComment = async (id: string) => {
-    if (!confirm('댓글을 삭제하시겠습니까?')) return;
+    setDeleteModalCommentId(id);
+  };
+
+  const confirmDeleteComment = async () => {
+    if (!deleteModalCommentId) return;
+    setIsDeleting(true);
 
     try {
-      const res = await fetch(`/api/comments?id=${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/comments?id=${deleteModalCommentId}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('삭제 실패');
 
-      const updatedComments = comments.filter((c) => c.id !== id && c.parent_id !== id);
+      const updatedComments = comments.filter((c) => c.id !== deleteModalCommentId && c.parent_id !== deleteModalCommentId);
 
       setComments(updatedComments);
       onCountChange?.(updatedComments.length);
     } catch (error) {
       console.error('댓글 삭제 에러:', error);
-      alert('삭제에 실패했습니다.');
+      setErrorModalMessage('삭제에 실패했습니다.');
+    } finally {
+      setIsDeleting(false);
+      setDeleteModalCommentId(null);
     }
   };
   return (
@@ -137,6 +151,35 @@ export default function CommentSection({
           />
         )}
       </div>
+
+      {/* 삭제 확인 모달 */}
+      <Modal isOpen={!!deleteModalCommentId} onClose={() => setDeleteModalCommentId(null)}>
+        <div className="space-y-4">
+          <h2 className="text-lg font-bold text-label dark:text-label-invert">정말 삭제하시겠어요?</h2>
+          <p className="text-sm text-secondary dark:text-label-muted">이 작업은 되돌릴 수 없습니다.</p>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button size="sm" onClick={() => setDeleteModalCommentId(null)}>
+              취소
+            </Button>
+            <Button size="sm" variant="danger" onClick={confirmDeleteComment} disabled={isDeleting}>
+              {isDeleting ? '삭제 중...' : '삭제하기'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* 에러 모달 */}
+      <Modal isOpen={!!errorModalMessage} onClose={() => setErrorModalMessage(null)}>
+        <div className="space-y-4">
+          <h2 className="text-lg font-bold text-label dark:text-label-invert">알림</h2>
+          <p className="text-sm text-secondary dark:text-label-muted">{errorModalMessage}</p>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button size="sm" onClick={() => setErrorModalMessage(null)}>
+              확인
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
