@@ -57,29 +57,31 @@ export default function ProfileHeader({ user, profile, isFriend = false }: Props
             <h2 className="text-3xl font-black text-label dark:text-label-invert tracking-tight leading-none">
               {profile.name || '이름 없음'}
             </h2>
-            <button
-              onClick={handleCopyTag}
-              className="group/copy flex items-center justify-center sm:justify-start gap-1.5 transition-all active:scale-95"
-            >
-              <p className="text-[15px] font-bold text-label-muted font-mono group-hover/copy:text-label-sub transition-colors">
-                @{profile.nickname}#{profile.tag || '0000'}
-              </p>
-              <div className="flex items-center justify-center">
-                {copied ? (
-                  <Check size={14} className="text-success animate-in fade-in zoom-in" />
-                ) : (
-                  <Copy
-                    size={14}
-                    className="text-label-muted opacity-0 group-hover/copy:opacity-100 transition-opacity"
-                  />
-                )}
-              </div>
-              {copied && (
-                <span className="text-[10px] font-bold text-success animate-in slide-in-from-left-1">
-                  Copied!
-                </span>
-              )}
-            </button>
+            <div className="flex justify-center sm:justify-start">
+              <button
+                onClick={handleCopyTag}
+                className="group/copy relative inline-flex items-center transition-all active:scale-95"
+              >
+                <p className="text-[15px] font-bold text-label-muted font-mono group-hover/copy:text-label-sub transition-colors">
+                  @{profile.nickname}#{profile.tag || '0000'}
+                </p>
+                <div className="absolute left-full ml-1.5 flex items-center justify-center">
+                  {copied ? (
+                    <Check size={14} className="text-success animate-in fade-in zoom-in" />
+                  ) : (
+                    <Copy
+                      size={14}
+                      className="text-label-muted opacity-0 group-hover/copy:opacity-100 transition-opacity"
+                    />
+                  )}
+                  {copied && (
+                    <span className="absolute left-full ml-1.5 whitespace-nowrap text-[10px] font-bold text-success animate-in slide-in-from-left-1">
+                      Copied!
+                    </span>
+                  )}
+                </div>
+              </button>
+            </div>
           </div>
 
           {/* 내 프로필: 수정 + 로그아웃 / 친구 프로필: 친구 삭제 */}
