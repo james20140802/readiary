@@ -34,7 +34,7 @@ export default function ProfileHeader({ user, profile, isFriend = false }: Props
   };
 
   return (
-    <section className="pt-8 pb-8 flex flex-col items-center sm:items-start sm:flex-row gap-8">
+    <section className="pt-8 flex flex-col items-center sm:items-start sm:flex-row gap-8">
       {/* 프로필 이미지 */}
       <div className="relative group shrink-0">
         <div className="relative w-32 h-32 rounded-[2.5rem] overflow-hidden bg-surface dark:bg-dark-surface border-2 border-border-strong dark:border-dark-border shadow-card-lg transition-all group-hover:scale-[1.02] duration-500 p-1">
