@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { useState, useMemo } from 'react';
 import { MyBook } from '@/types/book';
 import Card from '@/components/ui/Card';
@@ -52,6 +53,7 @@ function ProgressBar({ progress, isFinished }: { progress: number; isFinished: b
 }
 
 export default function BookList({ books, isFriend = false, nicknameAndTag = '' }: Props) {
+  const router = useRouter();
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [filter, setFilter] = useState<FilterMode>('all');
   const [sort, setSort] = useState<SortMode>('recent');
@@ -236,13 +238,16 @@ export default function BookList({ books, isFriend = false, nicknameAndTag = '' 
                           {!isFriend && (
                             <div className="shrink-0 mt-0.5">
                               {!isFinished ? (
-                                <Link
-                                  href={`/protected/books/${userBook.book_id}/entry/new`}
-                                  onClick={(e) => e.stopPropagation()}
+                                <button
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    router.push(`/protected/books/${userBook.book_id}/entry/new`);
+                                  }}
                                   className="text-caption font-semibold text-tint bg-tint-subtle dark:bg-tint/10 hover:bg-tint/20 px-2.5 py-1 rounded-full border border-tint/20 transition-colors whitespace-nowrap"
                                 >
                                   + 기록
-                                </Link>
+                                </button>
                               ) : (
                                 <span className="invisible text-caption px-2.5 py-1 whitespace-nowrap">
                                   + 기록

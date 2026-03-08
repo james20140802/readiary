@@ -9,7 +9,7 @@ import { Book } from '@/types/book';
 import { Profile } from '@/types/profile';
 import AnimatedSection from '@/components/ui/AnimatedSection';
 import SocialActionBar from '../social/SocialActionBar';
-import { MoreHorizontal, Edit2, Trash2 } from 'lucide-react'; // 아이콘 추가
+import { MoreHorizontal, Edit2, Trash2, Lock } from 'lucide-react'; // 아이콘 추가
 import Button from '../ui/Button';
 import CommentSection from '../comments/CommentSection';
 
@@ -165,10 +165,18 @@ export default function EntryDetailContent({
             <div className="px-5 sm:px-6 py-4 bg-tint-subtle dark:bg-dark-raised/30 border-t border-border-subtle dark:border-dark-border">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-                  <p className="text-[0.75rem] sm:text-[0.875rem] text-label-muted tabular-nums">
-                    📅 {new Date(entry.date).toLocaleDateString()} <span className="mx-1">|</span>{' '}
-                    📖 {entry.from_page}~{entry.to_page}쪽
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-[0.75rem] sm:text-[0.875rem] text-label-muted tabular-nums">
+                      📅 {new Date(entry.date).toLocaleDateString()} <span className="mx-1">|</span>{' '}
+                      📖 {entry.from_page}~{entry.to_page}쪽
+                    </p>
+                    {entry.is_private && (
+                      <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-surface-raised dark:bg-dark-raised border border-border-subtle dark:border-dark-border">
+                        <Lock size={10} className="text-label-muted" />
+                        <span className="text-[10px] font-medium text-label-muted leading-none">비공개</span>
+                      </div>
+                    )}
+                  </div>
 
                   <SocialActionBar
                     entryId={entry.id}
