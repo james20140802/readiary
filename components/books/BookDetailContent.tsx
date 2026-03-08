@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import EntryCard from '@/components/EntryCard';
 import { MyBook } from '@/types/book';
 import { EntryDetailData } from '@/types/entry';
@@ -8,7 +8,7 @@ import Image from 'next/image';
 import MarkAsFinishedButton from './MarkAsFinishedButton';
 import { Profile } from '@/types/profile';
 import AnimatedListSection from '../ui/AnimatedListSecion';
-import { BookOpen, CheckCircle2, Plus } from 'lucide-react';
+import { BookOpen, CheckCircle2, Plus, ChevronDown } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Button from '../ui/Button';
 import Link from 'next/link';
@@ -29,8 +29,30 @@ export default function BookDetailContent({
   friendProfile,
 }: Props) {
   const [isFinished, setIsFinished] = useState(userBook.is_finished);
+  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
+  const [sortOpen, setSortOpen] = useState(false);
+
+  const SORT_OPTIONS: { value: 'desc' | 'asc'; label: string }[] = [
+    { value: 'desc', label: '최신순' },
+    { value: 'asc', label: '오래된순' },
+  ];
+
   const { books, progress, last_read_page, book_id, id } = userBook;
   const { title, author, total_pages, cover_url } = books;
+
+  const sortedEntries = useMemo(() => {
+    if (!entries) return null;
+    return [...entries].sort((a, b) => {
+      const dateA = new Date(a.entry.date).getTime();
+      const dateB = new Date(b.entry.date).getTime();
+      if (dateA !== dateB) {
+        return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+      }
+      const createdA = new Date(a.entry.created_at).getTime();
+      const createdB = new Date(b.entry.created_at).getTime();
+      return sortOrder === 'desc' ? createdB - createdA : createdA - createdB;
+    });
+  }, [entries, sortOrder]);
 
   return (
     <div className="space-y-8">
@@ -118,8 +140,49 @@ export default function BookDetailContent({
       </div>
 
       <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-section-title text-label dark:text-label-invert">📓 독서 기록</h2>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <h2 className="text-section-title text-label dark:text-label-invert">📓 독서 기록</h2>
+            {entries && entries.length > 0 && (
+              <div className="relative">
+                <button
+                  onClick={() => setSortOpen((v) => !v)}
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-border dark:border-dark-border bg-surface dark:bg-dark-surface text-caption font-medium text-label-sub dark:text-label-muted hover:border-border-strong transition-all"
+                >
+                  <span className="inline">
+                    {SORT_OPTIONS.find((o) => o.value === sortOrder)?.label}
+                  </span>
+                  <ChevronDown
+                    size={13}
+                    className={`transition-transform ${sortOpen ? 'rotate-180' : ''}`}
+                  />
+                </button>
+                {sortOpen && (
+                  <>
+                    <div className="fixed inset-0 z-10" onClick={() => setSortOpen(false)} />
+                    <div className="absolute left-0 top-full mt-1 z-20 bg-surface dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl shadow-card-lg overflow-hidden min-w-[100px]">
+                      {SORT_OPTIONS.map((opt) => (
+                        <button
+                          key={opt.value}
+                          onClick={() => {
+                            setSortOrder(opt.value);
+                            setSortOpen(false);
+                          }}
+                          className={`w-full text-left px-3 py-2 text-caption transition-colors ${
+                            sortOrder === opt.value
+                              ? 'text-tint font-semibold bg-tint-subtle dark:bg-tint/10'
+                              : 'text-label-sub dark:text-label-muted hover:bg-surface-raised dark:hover:bg-dark-raised'
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
           {!isFriend && (
             <Link href={`/protected/books/${book_id}/entry/new`}>
               <Button size="sm" variant="primary" className="flex items-center gap-1.5">
@@ -130,9 +193,9 @@ export default function BookDetailContent({
           )}
         </div>
 
-        {entries && entries.length > 0 ? (
+        {sortedEntries && sortedEntries.length > 0 ? (
           <AnimatedListSection>
-            {entries.map((data) => (
+            {sortedEntries.map((data) => (
               <li key={data.entry.id}>
                 <EntryCard
                   id={data.entry.id}
