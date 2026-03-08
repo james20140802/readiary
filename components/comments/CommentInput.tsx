@@ -36,22 +36,26 @@ export default function CommentInput({
   };
 
   return (
-    <div className="space-y-2">
+    <div className="relative flex flex-col bg-surface-raised dark:bg-dark-raised/50 rounded-2xl border border-border-subtle dark:border-dark-border focus-within:border-tint/50 transition-all overflow-hidden">
       {/* 답글 모드일 때 상단에 표시되는 바 */}
       {replyingTo && (
-        <div className="flex items-center justify-between px-3 py-1.5 bg-surface-raised dark:bg-dark-raised rounded-t-xl border-b border-surface dark:border-dark-border animate-in slide-in-from-bottom-2">
+        <div className="flex items-center justify-between px-4 py-2 bg-surface-raised/50 dark:bg-dark-raised/50 border-b border-border-subtle dark:border-dark-border animate-in fade-in slide-in-from-top-1">
           <p className="text-[12px] text-label-sub">
             <span className="font-bold text-tint">@{replyingTo.profile.nickname}</span>님에게 답글
             남기는 중
           </p>
-          <button onClick={onCancelReply} className="text-[11px] text-label-muted hover:text-label-sub">
+          <button
+            type="button"
+            onClick={onCancelReply}
+            className="text-[11px] text-label-muted hover:text-label-sub"
+          >
             취소
           </button>
         </div>
       )}
       <form
         onSubmit={handleSubmit}
-        className="relative flex items-center gap-3 bg-surface-raised dark:bg-dark-raised/50 p-2 pl-4 rounded-2xl border border-border-subtle dark:border-dark-border focus-within:border-tint/50 transition-all"
+        className="relative flex items-center gap-3 p-2 pl-4"
       >
         <input
           type="text"
