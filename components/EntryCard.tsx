@@ -6,10 +6,13 @@ import Card from './ui/Card';
 import SocialActionBar from './social/SocialActionBar';
 import CommentBottomSheet from './comments/CommentBottomSheet';
 
+import { Lock } from 'lucide-react';
+
 interface EntryCardProps {
   id: string;
   summary: string;
   date: string;
+  isPrivate?: boolean;
   userId?: string;
   href?: string;
   initialLikeCount?: number;
@@ -21,6 +24,7 @@ export default function EntryCard({
   id,
   summary,
   date,
+  isPrivate = false,
   userId,
   href,
   initialLikeCount = 0,
@@ -70,9 +74,14 @@ export default function EntryCard({
           onClick={handleCardClick}
           className="mt-4 flex justify-between items-center cursor-pointer group/link"
         >
-          <p className="text-[11px] text-label-muted tabular-nums">
-            {new Date(date).toLocaleDateString()}
-          </p>
+          <div className="flex items-center gap-1.5">
+            <p className="text-[11px] text-label-muted tabular-nums">
+              {new Date(date).toLocaleDateString()}
+            </p>
+            {isPrivate && (
+              <Lock size={10} className="text-label-muted/70" />
+            )}
+          </div>
           <span className="text-[11px] font-bold text-label-muted group-hover/link:text-tint transition-colors">
             상세 보기 →
           </span>

@@ -31,10 +31,17 @@ export default function BookDetailContent({
   const [isFinished, setIsFinished] = useState(userBook.is_finished);
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
   const [sortOpen, setSortOpen] = useState(false);
+  const [filterOption, setFilterOption] = useState<'all' | 'public' | 'private'>('all');
 
   const SORT_OPTIONS: { value: 'desc' | 'asc'; label: string }[] = [
     { value: 'desc', label: '최신순' },
     { value: 'asc', label: '오래된순' },
+  ];
+
+  const FILTER_OPTIONS: { value: 'all' | 'public' | 'private'; label: string }[] = [
+    { value: 'all', label: '전체' },
+    { value: 'public', label: '공개' },
+    { value: 'private', label: '비공개' },
   ];
 
   const { books, progress, last_read_page, book_id, id } = userBook;
@@ -42,7 +49,17 @@ export default function BookDetailContent({
 
   const sortedEntries = useMemo(() => {
     if (!entries) return null;
-    return [...entries].sort((a, b) => {
+    
+    // 1. 먼저 필터링
+    let processed = [...entries];
+    if (filterOption === 'public') {
+      processed = processed.filter(e => !e.entry.is_private);
+    } else if (filterOption === 'private') {
+      processed = processed.filter(e => e.entry.is_private);
+    }
+
+    // 2. 이어서 정렬
+    return processed.sort((a, b) => {
       const dateA = new Date(a.entry.date).getTime();
       const dateB = new Date(b.entry.date).getTime();
       if (dateA !== dateB) {
@@ -52,7 +69,7 @@ export default function BookDetailContent({
       const createdB = new Date(b.entry.created_at).getTime();
       return sortOrder === 'desc' ? createdB - createdA : createdA - createdB;
     });
-  }, [entries, sortOrder]);
+  }, [entries, filterOption, sortOrder]);
 
   return (
     <div className="space-y-8">
@@ -140,57 +157,107 @@ export default function BookDetailContent({
       </div>
 
       <section className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
+        {/* 전체 컨테이너: 데스크탑에서는 한 줄, 모바일에서는 여러 줄로 래핑 */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+          
+          {/* 모바일 1줄: 타이틀 & 기록 추가 버튼 */}
+          <div className="flex items-center justify-between gap-4 w-full sm:w-auto">
             <h2 className="text-section-title text-label dark:text-label-invert">📓 독서 기록</h2>
-            {entries && entries.length > 0 && (
-              <div className="relative">
-                <button
-                  onClick={() => setSortOpen((v) => !v)}
-                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-border dark:border-dark-border bg-surface dark:bg-dark-surface text-caption font-medium text-label-sub dark:text-label-muted hover:border-border-strong transition-all"
-                >
-                  <span className="inline">
-                    {SORT_OPTIONS.find((o) => o.value === sortOrder)?.label}
-                  </span>
-                  <ChevronDown
-                    size={13}
-                    className={`transition-transform ${sortOpen ? 'rotate-180' : ''}`}
-                  />
-                </button>
-                {sortOpen && (
-                  <>
-                    <div className="fixed inset-0 z-10" onClick={() => setSortOpen(false)} />
-                    <div className="absolute left-0 top-full mt-1 z-20 bg-surface dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl shadow-card-lg overflow-hidden min-w-[100px]">
-                      {SORT_OPTIONS.map((opt) => (
-                        <button
-                          key={opt.value}
-                          onClick={() => {
-                            setSortOrder(opt.value);
-                            setSortOpen(false);
-                          }}
-                          className={`w-full text-left px-3 py-2 text-caption transition-colors ${
-                            sortOrder === opt.value
-                              ? 'text-tint font-semibold bg-tint-subtle dark:bg-tint/10'
-                              : 'text-label-sub dark:text-label-muted hover:bg-surface-raised dark:hover:bg-dark-raised'
-                          }`}
-                        >
-                          {opt.label}
-                        </button>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
+            {!isFriend && (
+              <span className="sm:hidden">
+                <Link href={`/protected/books/${book_id}/entry/new`}>
+                  <Button size="sm" variant="primary" className="flex items-center gap-1.5 px-3 py-1.5 text-xs">
+                    <Plus size={14} />
+                    기록 추가
+                  </Button>
+                </Link>
+              </span>
             )}
           </div>
-          {!isFriend && (
-            <Link href={`/protected/books/${book_id}/entry/new`}>
-              <Button size="sm" variant="primary" className="flex items-center gap-1.5">
-                <Plus size={16} />
-                기록 추가하기
-              </Button>
-            </Link>
-          )}
+
+          {/* 데스크탑에서 필터와 추가 버튼을 하나로 묶음, 모바일에서는 아래로 */}
+          <div className="flex flex-row items-center justify-between sm:justify-end gap-2 sm:gap-4 w-full sm:w-auto pb-1 sm:pb-0">
+            {entries && entries.length > 0 && (
+              <div className="flex items-center justify-between w-full sm:w-auto gap-2">
+                <div className="flex items-center gap-2">
+                  {/* 공개 여부 필터 탭 */}
+                  {!isFriend && (
+                    <>
+                      <div className="flex items-center bg-surface-raised dark:bg-dark-raised p-1 rounded-lg border border-border dark:border-dark-border shrink-0">
+                        {FILTER_OPTIONS.map((opt) => (
+                          <button
+                            key={opt.value}
+                            onClick={() => setFilterOption(opt.value)}
+                            className={`px-2.5 py-1 rounded-md text-caption font-semibold transition-all whitespace-nowrap ${
+                              filterOption === opt.value
+                                ? 'bg-surface dark:bg-dark-surface text-label dark:text-label-invert shadow-card'
+                                : 'text-label-muted hover:text-label-sub'
+                            }`}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* 구분을 위한 희미한 선 */}
+                      <div className="w-px h-4 bg-border dark:bg-dark-border hidden sm:block" />
+                    </>
+                  )}
+                </div>
+
+                {/* 정렬 옵션 드롭다운 (모바일에서는 오른쪽 끝으로 밀림) */}
+                <div className="relative shrink-0">
+                  <button
+                    onClick={() => setSortOpen((v) => !v)}
+                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-border dark:border-dark-border bg-surface dark:bg-dark-surface text-caption font-medium text-label-sub dark:text-label-muted hover:border-border-strong transition-all"
+                  >
+                    <span className="inline">
+                      {SORT_OPTIONS.find((o) => o.value === sortOrder)?.label}
+                    </span>
+                    <ChevronDown
+                      size={13}
+                      className={`transition-transform ${sortOpen ? 'rotate-180' : ''}`}
+                    />
+                  </button>
+                  {sortOpen && (
+                    <>
+                      <div className="fixed inset-0 z-10" onClick={() => setSortOpen(false)} />
+                      <div className="absolute right-0 sm:left-0 top-full mt-1 z-20 bg-surface dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl shadow-card-lg overflow-hidden min-w-[100px]">
+                        {SORT_OPTIONS.map((opt) => (
+                          <button
+                            key={opt.value}
+                            onClick={() => {
+                              setSortOrder(opt.value);
+                              setSortOpen(false);
+                            }}
+                            className={`w-full text-left px-3 py-2 text-caption transition-colors ${
+                              sortOrder === opt.value
+                                ? 'text-tint font-semibold bg-tint-subtle dark:bg-tint/10'
+                                : 'text-label-sub dark:text-label-muted hover:bg-surface-raised dark:hover:bg-dark-raised'
+                            }`}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* 데스크탑용 기록 추가 버튼 */}
+            {!isFriend && (
+              <span className="hidden sm:inline">
+                <Link href={`/protected/books/${book_id}/entry/new`}>
+                  <Button size="sm" variant="primary" className="flex items-center gap-1.5 shrink-0">
+                    <Plus size={16} />
+                    기록 추가하기
+                  </Button>
+                </Link>
+              </span>
+            )}
+          </div>
         </div>
 
         {sortedEntries && sortedEntries.length > 0 ? (
@@ -201,6 +268,7 @@ export default function BookDetailContent({
                   id={data.entry.id}
                   summary={data.entry.summary ?? ''}
                   date={data.entry.date}
+                  isPrivate={data.entry.is_private}
                   userId={userId}
                   href={
                     isFriend && friendProfile
