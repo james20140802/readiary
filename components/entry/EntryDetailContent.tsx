@@ -111,7 +111,7 @@ export default function EntryDetailContent({
         </div>
 
         <AnimatedSection>
-          <div className="bg-background dark:bg-dark-surface rounded-xl shadow-md overflow-hidden flex flex-col">
+          <div className="bg-surface dark:bg-dark-surface rounded-xl shadow-md overflow-hidden flex flex-col">
             {/* 1. 본문 영역 */}
             <div className="p-5 sm:p-6 pb-4 space-y-4">
               <div className="flex items-center justify-between relative">

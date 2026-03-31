@@ -43,7 +43,7 @@ export default function ProfileBadges({ userBadges }: ProfileBadgesProps) {
                 className="mx-auto rounded-md"
               />
               <div className="mt-2 text-sm font-medium">{badge.name}</div>
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-label-sub dark:text-label-muted">
                 {awarded_at && new Date(awarded_at).toLocaleDateString()}
               </div>
               {tooltipIndex === badge.id && (

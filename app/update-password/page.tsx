@@ -107,7 +107,7 @@ export default function UpdatePasswordPage() {
   return (
     <div className="flex items-center justify-center">
       <div className="w-full">
-        <h1 className="text-section-title font-semibold mb-6 text-center text-gray-900 dark:text-label-invert">
+        <h1 className="text-section-title font-semibold mb-6 text-center text-label dark:text-label-invert">
           새 비밀번호 설정
         </h1>
         <AnimatedSection>
@@ -142,7 +142,7 @@ export default function UpdatePasswordPage() {
           <p className="text-sm text-center mt-4">
             <a
               href="/login"
-              className="text-gray-500 underline dark:text-label-muted"
+              className="text-label-sub dark:text-label-muted underline"
             >
               로그인으로 돌아가기
             </a>

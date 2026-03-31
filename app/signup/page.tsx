@@ -82,7 +82,7 @@ export default function SignupPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-label-sub dark:text-label-muted mt-1">
                   비밀번호는 최소 6자 이상이어야 합니다.
                 </p>
               </FormGroup>
@@ -105,7 +105,7 @@ export default function SignupPage() {
                 onChange={(e) => setPrivacyAgreed(e.target.checked)}
                 className="w-4 h-4"
               />
-              <label htmlFor="privacy" className="text-sm text-muted-foreground">
+              <label htmlFor="privacy" className="text-sm text-label-sub dark:text-label-muted">
                 <button
                   type="button"
                   onClick={() => setShowPrivacyModal(true)}
@@ -124,7 +124,7 @@ export default function SignupPage() {
                 onChange={(e) => setAgreed(e.target.checked)}
                 className="w-4 h-4"
               />
-              <label htmlFor="terms" className="text-sm text-muted-foreground">
+              <label htmlFor="terms" className="text-sm text-label-sub dark:text-label-muted">
                 <button
                   type="button"
                   onClick={() => setShowTermsModal(true)}
@@ -156,7 +156,7 @@ export default function SignupPage() {
       <Modal isOpen={showTermsModal} onClose={() => setShowTermsModal(false)}>
         <div className="space-y-4 max-h-[60vh] overflow-y-auto px-2 py-4">
           <h2 className="text-lg font-semibold">서비스 이용 약관</h2>
-          <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
+          <p className="text-sm text-label-sub dark:text-label-muted leading-relaxed whitespace-pre-wrap">
             {`[이용 약관]
 
 제1조 (목적)
@@ -209,7 +209,7 @@ export default function SignupPage() {
       <Modal isOpen={showPrivacyModal} onClose={() => setShowPrivacyModal(false)}>
         <div className="space-y-4 max-h-[60vh] overflow-y-auto px-2 py-4">
           <h2 className="text-lg font-semibold">개인정보 수집 및 이용 동의서</h2>
-          <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
+          <p className="text-sm text-label-sub dark:text-label-muted leading-relaxed whitespace-pre-wrap">
             {`[개인정보 수집 및 이용 동의서]
 
 Readiary는 회원가입 및 서비스 제공을 위해 아래와 같이 개인정보를 수집·이용합니다.
