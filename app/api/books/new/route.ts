@@ -33,7 +33,7 @@ export async function POST(req: Request) {
       return new Response(JSON.stringify({ error: 'Failed to create book' }), { status: 500 });
     }
 
-    const bookId = book.id;
+    const bookId = (book as any).id;
 
     const { error: userBookError } = await supabase.from('user_books').insert({
       user_id: user.id,
