@@ -38,7 +38,7 @@ export async function POST(req: Request) {
     const { error: userBookError } = await supabase.from('user_books').insert({
       user_id: user.id,
       book_id: bookId,
-    } as UserBookInsert);
+    } as any);
 
     if (userBookError) {
       return new Response(JSON.stringify({ error: 'Failed to link book to user' }), {
