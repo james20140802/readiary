@@ -24,6 +24,7 @@ export async function POST(req: Request) {
 
     const { data: book, error: bookError } = await supabase
       .from('books')
+      // @ts-ignore Types in Supabase might resolve to never depending on the TS version
       .upsert({ title, author, total_pages, isbn, cover_url } as BookInsert, { onConflict: 'isbn' })
       .select('*')
       .single();
