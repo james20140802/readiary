@@ -13,7 +13,10 @@ export function Textarea({ label, error, fullWidth = false, className, ...props 
   return (
     <div className={clsx('space-y-1', fullWidth && 'w-full')}>
       {label && (
-        <label htmlFor={props.id} className="block text-sm font-medium text-label dark:text-label-invert">
+        <label
+          htmlFor={props.id}
+          className="block text-sm font-medium text-label dark:text-label-invert"
+        >
           {label}
         </label>
       )}

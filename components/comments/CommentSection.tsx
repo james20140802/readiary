@@ -81,7 +81,9 @@ export default function CommentSection({
       const res = await fetch(`/api/comments?id=${deleteModalCommentId}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('삭제 실패');
 
-      const updatedComments = comments.filter((c) => c.id !== deleteModalCommentId && c.parent_id !== deleteModalCommentId);
+      const updatedComments = comments.filter(
+        (c) => c.id !== deleteModalCommentId && c.parent_id !== deleteModalCommentId
+      );
 
       setComments(updatedComments);
       onCountChange?.(updatedComments.length);
@@ -155,8 +157,12 @@ export default function CommentSection({
       {/* 삭제 확인 모달 */}
       <Modal isOpen={!!deleteModalCommentId} onClose={() => setDeleteModalCommentId(null)}>
         <div className="space-y-4">
-          <h2 className="text-lg font-bold text-label dark:text-label-invert">정말 삭제하시겠어요?</h2>
-          <p className="text-sm text-secondary dark:text-label-muted">이 작업은 되돌릴 수 없습니다.</p>
+          <h2 className="text-lg font-bold text-label dark:text-label-invert">
+            정말 삭제하시겠어요?
+          </h2>
+          <p className="text-sm text-secondary dark:text-label-muted">
+            이 작업은 되돌릴 수 없습니다.
+          </p>
           <div className="flex justify-end gap-2 pt-2">
             <Button size="sm" onClick={() => setDeleteModalCommentId(null)}>
               취소

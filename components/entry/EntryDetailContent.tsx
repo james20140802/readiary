@@ -173,7 +173,9 @@ export default function EntryDetailContent({
                     {entry.is_private && (
                       <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-surface-raised dark:bg-dark-raised border border-border-subtle dark:border-dark-border">
                         <Lock size={10} className="text-label-muted" />
-                        <span className="text-[10px] font-medium text-label-muted leading-none">비공개</span>
+                        <span className="text-[10px] font-medium text-label-muted leading-none">
+                          비공개
+                        </span>
                       </div>
                     )}
                   </div>
@@ -204,8 +206,12 @@ export default function EntryDetailContent({
       {/* 삭제 확인 모달 */}
       <Modal isOpen={isDeleteDialogOpen} onClose={() => setIsDeleteDialogOpen(false)}>
         <div className="space-y-4">
-          <h2 className="text-lg font-bold text-label dark:text-label-invert">정말 삭제하시겠어요?</h2>
-          <p className="text-sm text-secondary dark:text-label-muted">이 작업은 되돌릴 수 없습니다.</p>
+          <h2 className="text-lg font-bold text-label dark:text-label-invert">
+            정말 삭제하시겠어요?
+          </h2>
+          <p className="text-sm text-secondary dark:text-label-muted">
+            이 작업은 되돌릴 수 없습니다.
+          </p>
           {deleteError && <p className="text-sm text-red-500">{deleteError}</p>}
           <div className="flex justify-end gap-2 pt-2">
             <Button size="sm" onClick={() => setIsDeleteDialogOpen(false)}>

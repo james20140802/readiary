@@ -7,7 +7,10 @@ export default function FormLabel({ className, ...props }: FormLabelProps) {
   return (
     <label
       {...props}
-      className={clsx('block text-sm font-medium text-label dark:text-label-invert mb-1', className)}
+      className={clsx(
+        'block text-sm font-medium text-label dark:text-label-invert mb-1',
+        className
+      )}
     />
   );
 }

@@ -115,7 +115,10 @@ export function useProfileUpdate(initialProfile: Profile | null) {
         }
 
         if (!isUnique) {
-          return { success: false, error: '사용 가능한 닉네임 조합을 찾지 못했습니다. 다시 시도해주세요.' };
+          return {
+            success: false,
+            error: '사용 가능한 닉네임 조합을 찾지 못했습니다. 다시 시도해주세요.',
+          };
         }
       }
 

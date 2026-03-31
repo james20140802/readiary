@@ -124,56 +124,56 @@ export default function NewEntryForm({ userBookId, userId, book, bookId }: Props
             </div>
           </div>
 
-        {/* 페이지 입력 (기존 가로 정렬 방식 복구) */}
-        <div className="flex flex-col gap-4 sm:flex-row">
-          <FormGroup className="flex-1 min-w-0">
-            <FormLabel>시작 페이지</FormLabel>
+          {/* 페이지 입력 (기존 가로 정렬 방식 복구) */}
+          <div className="flex flex-col gap-4 sm:flex-row">
+            <FormGroup className="flex-1 min-w-0">
+              <FormLabel>시작 페이지</FormLabel>
+              <Input
+                type="number"
+                placeholder="ex. 10"
+                value={fromPage}
+                onChange={(e) => setFromPage(e.target.value)}
+                className="w-full"
+              />
+            </FormGroup>
+            <FormGroup className="flex-1 min-w-0">
+              <FormLabel>종료 페이지</FormLabel>
+              <Input
+                type="number"
+                placeholder="ex. 25"
+                value={toPage}
+                max={book.total_pages ?? undefined}
+                onChange={(e) => setToPage(e.target.value)}
+                className="w-full"
+              />
+            </FormGroup>
+          </div>
+
+          {/* 날짜 입력 (기존 독자 줄 방식 복구) */}
+          <FormGroup className="w-full min-w-0">
+            <FormLabel>읽은 날짜</FormLabel>
             <Input
-              type="number"
-              placeholder="ex. 10"
-              value={fromPage}
-              onChange={(e) => setFromPage(e.target.value)}
-              className="w-full"
+              type="date"
+              value={new Date().toISOString().split('T')[0]}
+              readOnly
+              disabled
+              className="w-full appearance-none bg-surface dark:bg-dark-surface border-border-subtle dark:border-dark-border"
             />
           </FormGroup>
-          <FormGroup className="flex-1 min-w-0">
-            <FormLabel>종료 페이지</FormLabel>
-            <Input
-              type="number"
-              placeholder="ex. 25"
-              value={toPage}
-              max={book.total_pages ?? undefined}
-              onChange={(e) => setToPage(e.target.value)}
-              className="w-full"
+
+          <FormGroup>
+            <FormLabel>줄거리 요약</FormLabel>
+            <Textarea
+              value={summary}
+              onChange={(e) => setSummary(e.target.value)}
+              placeholder="오늘 읽은 내용을 간단히 정리해보세요..."
+              rows={5}
+              fullWidth
+              className="resize-none"
             />
           </FormGroup>
-        </div>
 
-        {/* 날짜 입력 (기존 독자 줄 방식 복구) */}
-        <FormGroup className="w-full min-w-0">
-          <FormLabel>읽은 날짜</FormLabel>
-          <Input
-            type="date"
-            value={new Date().toISOString().split('T')[0]}
-            readOnly
-            disabled
-            className="w-full appearance-none bg-surface dark:bg-dark-surface border-border-subtle dark:border-dark-border"
-          />
-        </FormGroup>
-
-        <FormGroup>
-          <FormLabel>줄거리 요약</FormLabel>
-          <Textarea
-            value={summary}
-            onChange={(e) => setSummary(e.target.value)}
-            placeholder="오늘 읽은 내용을 간단히 정리해보세요..."
-            rows={5}
-            fullWidth
-            className="resize-none"
-          />
-        </FormGroup>
-
-        {error && <p className="text-red-500 text-sm font-medium">{error}</p>}
+          {error && <p className="text-red-500 text-sm font-medium">{error}</p>}
 
           {/* 2. 제출 시 버튼 비활성화 */}
           <div className="flex justify-end pt-4">

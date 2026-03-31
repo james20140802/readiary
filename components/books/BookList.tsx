@@ -66,7 +66,9 @@ export default function BookList({ books, isFriend = false, nicknameAndTag = '' 
     if (sort === 'progress_desc') list.sort((a, b) => (b.progress ?? 0) - (a.progress ?? 0));
     else if (sort === 'progress_asc') list.sort((a, b) => (a.progress ?? 0) - (b.progress ?? 0));
     else if (sort === 'recent')
-      list.sort((a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime());
+      list.sort(
+        (a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime()
+      );
     else if (sort === 'title')
       list.sort((a, b) => (a.books.title ?? '').localeCompare(b.books.title ?? ''));
     return list;

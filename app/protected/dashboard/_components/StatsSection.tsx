@@ -11,7 +11,9 @@ type DashboardStats = {
 export function StatsSection({ stats }: { stats: DashboardStats }) {
   return (
     <div className="mt-12 space-y-4">
-      <h2 className="text-section-title text-label dark:text-label-invert mb-3">📈 나의 독서 통계</h2>
+      <h2 className="text-section-title text-label dark:text-label-invert mb-3">
+        📈 나의 독서 통계
+      </h2>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard label="등록한 책" value={stats.bookCount} icon="📚" />
         <StatCard label="작성한 기록" value={stats.entryCount} icon="✍️" />

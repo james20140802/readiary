@@ -42,7 +42,8 @@ export default function EditProfilePage() {
     loadData();
   }, [supabase, router]);
 
-  const { uploading, updating, imagePath, uploadAvatar, deleteAvatar, updateProfile } = useProfileUpdate(profile);
+  const { uploading, updating, imagePath, uploadAvatar, deleteAvatar, updateProfile } =
+    useProfileUpdate(profile);
 
   const handleUploadAvatar = async (file: File) => {
     const res = await uploadAvatar(file);
@@ -175,11 +176,7 @@ export default function EditProfilePage() {
         </div>
 
         <div className="flex flex-col space-y-4 pt-2">
-          <Button
-            onClick={handleUpdateProfile}
-            disabled={updating || uploading}
-            fullWidth
-          >
+          <Button onClick={handleUpdateProfile} disabled={updating || uploading} fullWidth>
             {updating ? '저장 중...' : '변경사항 저장하기'}
           </Button>
 

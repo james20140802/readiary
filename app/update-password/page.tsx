@@ -18,14 +18,12 @@ export default function UpdatePasswordPage() {
   const supabase = createSupabaseClient();
 
   useEffect(() => {
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      (event) => {
-        if (event === 'PASSWORD_RECOVERY') {
-          setIsRecovery(true);
-        }
-        setChecking(false);
+    const { data: listener } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsRecovery(true);
       }
-    );
+      setChecking(false);
+    });
 
     // 이미 세션이 있으면 허용 (콜백에서 리다이렉트된 경우)
     const checkSession = async () => {
@@ -92,10 +90,7 @@ export default function UpdatePasswordPage() {
             <p className="text-sm text-label-sub dark:text-label-muted">
               비밀번호 재설정 이메일의 링크를 통해 접근해주세요.
             </p>
-            <a
-              href="/reset-password"
-              className="text-sm text-tint underline"
-            >
+            <a href="/reset-password" className="text-sm text-tint underline">
               비밀번호 재설정 요청하기
             </a>
           </div>
@@ -131,19 +126,12 @@ export default function UpdatePasswordPage() {
             className="mt-3"
             onKeyDown={(e) => e.key === 'Enter' && handleUpdate()}
           />
-          <Button
-            onClick={handleUpdate}
-            loading={loading}
-            className="w-full mt-4"
-          >
+          <Button onClick={handleUpdate} loading={loading} className="w-full mt-4">
             비밀번호 변경하기
           </Button>
 
           <p className="text-sm text-center mt-4">
-            <a
-              href="/login"
-              className="text-gray-500 underline dark:text-label-muted"
-            >
+            <a href="/login" className="text-gray-500 underline dark:text-label-muted">
               로그인으로 돌아가기
             </a>
           </p>

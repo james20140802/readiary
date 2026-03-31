@@ -23,7 +23,10 @@ export default async function SocialFeedPage() {
         {/* 피드 집중도를 위해 max-width를 조금 더 조여줍니다 */}
         <header className="flex items-center mb-6">
           <BackButton />
-          <h1 className="text-page-title text-label dark:text-label-invert ml-4" aria-label="소셜 피드">
+          <h1
+            className="text-page-title text-label dark:text-label-invert ml-4"
+            aria-label="소셜 피드"
+          >
             👥 소셜 피드
           </h1>
         </header>

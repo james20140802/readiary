@@ -68,7 +68,9 @@ export default function EditEntryForm({
     <form onSubmit={handleSubmit} className="space-y-6">
       <header className="flex items-center mb-6">
         <BackButton />
-        <h1 className="text-page-title text-label dark:text-label-invert ml-4">🌤️ 독서 기록 수정</h1>
+        <h1 className="text-page-title text-label dark:text-label-invert ml-4">
+          🌤️ 독서 기록 수정
+        </h1>
       </header>
       <AnimatedSection>
         <div className="max-w-2xl mx-auto py-4 sm:py-6 space-y-8">
@@ -85,7 +87,9 @@ export default function EditEntryForm({
                 <strong className="text-xl text-label dark:text-label-invert leading-tight">
                   {book.title ?? '제목 없음'}
                 </strong>
-                <span className="text-label-sub text-sm font-medium mt-1">{book.author ?? '저자 미상'}</span>
+                <span className="text-label-sub text-sm font-medium mt-1">
+                  {book.author ?? '저자 미상'}
+                </span>
               </div>
             </div>
             <div className="flex items-center gap-3 self-end sm:self-auto mt-4 sm:mt-0">
@@ -106,53 +110,55 @@ export default function EditEntryForm({
             </div>
           </div>
 
-        <div className="flex flex-col gap-4 sm:flex-row">
-          <FormGroup className="flex-1">
-            <FormLabel>시작 페이지</FormLabel>
+          <div className="flex flex-col gap-4 sm:flex-row">
+            <FormGroup className="flex-1">
+              <FormLabel>시작 페이지</FormLabel>
+              <Input
+                type="number"
+                placeholder="ex. 10"
+                value={fromPage}
+                onChange={(e) => setFromPage(e.target.value)}
+              />
+            </FormGroup>
+            <FormGroup className="flex-1">
+              <FormLabel>종료 페이지</FormLabel>
+              <Input
+                type="number"
+                placeholder="ex. 25"
+                value={toPage}
+                onChange={(e) => setToPage(e.target.value)}
+              />
+            </FormGroup>
+          </div>
+
+          <FormGroup>
+            <FormLabel>읽은 날짜</FormLabel>
             <Input
-              type="number"
-              placeholder="ex. 10"
-              value={fromPage}
-              onChange={(e) => setFromPage(e.target.value)}
+              type="date"
+              value={date}
+              max={new Date().toISOString().split('T')[0]}
+              onChange={(e) => setDate(e.target.value)}
             />
           </FormGroup>
-          <FormGroup className="flex-1">
-            <FormLabel>종료 페이지</FormLabel>
-            <Input
-              type="number"
-              placeholder="ex. 25"
-              value={toPage}
-              onChange={(e) => setToPage(e.target.value)}
+
+          <FormGroup>
+            <FormLabel>줄거리 요약</FormLabel>
+            <Textarea
+              value={summary}
+              onChange={(e) => setSummary(e.target.value)}
+              placeholder="오늘 읽은 내용을 간단히 정리해보세요..."
+              rows={5}
+              className="resize-none"
+              fullWidth
             />
           </FormGroup>
-        </div>
 
-        <FormGroup>
-          <FormLabel>읽은 날짜</FormLabel>
-          <Input
-            type="date"
-            value={date}
-            max={new Date().toISOString().split('T')[0]}
-            onChange={(e) => setDate(e.target.value)}
-          />
-        </FormGroup>
-
-        <FormGroup>
-          <FormLabel>줄거리 요약</FormLabel>
-          <Textarea
-            value={summary}
-            onChange={(e) => setSummary(e.target.value)}
-            placeholder="오늘 읽은 내용을 간단히 정리해보세요..."
-            rows={5}
-            className="resize-none"
-            fullWidth
-          />
-        </FormGroup>
-
-        {error && <p className="text-sm text-red-500">{error}</p>}
+          {error && <p className="text-sm text-red-500">{error}</p>}
 
           <div className="flex justify-end pt-4">
-            <Button type="submit" className="w-full sm:w-auto">✅ 기록 수정하기</Button>
+            <Button type="submit" className="w-full sm:w-auto">
+              ✅ 기록 수정하기
+            </Button>
           </div>
         </div>
       </AnimatedSection>

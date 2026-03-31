@@ -149,8 +149,12 @@ export default function KakaoBookSearchForm() {
               />
               <div className="text-sm">
                 <div className="font-medium text-label dark:text-label-invert">{book.title}</div>
-                <div className="text-label-sub dark:text-label-muted">{book.authors?.join(', ')}</div>
-                <div className="text-xs text-label-muted">ISBN: {book.isbn.split(' ').join(', ')}</div>
+                <div className="text-label-sub dark:text-label-muted">
+                  {book.authors?.join(', ')}
+                </div>
+                <div className="text-xs text-label-muted">
+                  ISBN: {book.isbn.split(' ').join(', ')}
+                </div>
               </div>
             </Card>
           );

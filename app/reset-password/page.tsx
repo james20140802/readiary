@@ -63,11 +63,7 @@ export default function ResetPasswordPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleReset()}
               />
-              <Button
-                onClick={handleReset}
-                loading={loading}
-                className="w-full mt-4"
-              >
+              <Button onClick={handleReset} loading={loading} className="w-full mt-4">
                 재설정 링크 보내기
               </Button>
             </>
@@ -87,10 +83,7 @@ export default function ResetPasswordPage() {
           )}
 
           <p className="text-sm text-center mt-4">
-            <a
-              href="/login"
-              className="text-gray-500 underline dark:text-label-muted"
-            >
+            <a href="/login" className="text-gray-500 underline dark:text-label-muted">
               로그인으로 돌아가기
             </a>
           </p>

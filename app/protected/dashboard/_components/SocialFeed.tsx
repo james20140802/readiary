@@ -44,7 +44,10 @@ export default function SocialFeed({ feed }: Props) {
 
       {/* 피드 없을 때 empty state */}
       {feed.length === 0 ? (
-        <Card hoverable={false} className="flex flex-col items-center justify-center py-12 gap-2 text-center">
+        <Card
+          hoverable={false}
+          className="flex flex-col items-center justify-center py-12 gap-2 text-center"
+        >
           <Users size={28} className="text-label-muted" />
           <p className="text-body font-semibold text-label dark:text-label-invert">
             아직 친구 활동이 없어요
