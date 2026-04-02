@@ -24,7 +24,7 @@ export async function POST(req: Request) {
 
     const { data: book, error: bookError } = await supabase
       .from('books')
-      .upsert({ title, author, total_pages, isbn, cover_url } as BookInsert, { onConflict: 'isbn' })
+      .upsert({ title, author, total_pages, isbn, cover_url } as any, { onConflict: 'isbn' })
       .select('*')
       .single();
 
@@ -32,12 +32,12 @@ export async function POST(req: Request) {
       return new Response(JSON.stringify({ error: 'Failed to create book' }), { status: 500 });
     }
 
-    const bookId = book.id;
+    const bookId = (book as any).id;
 
     const { error: userBookError } = await supabase.from('user_books').insert({
       user_id: user.id,
       book_id: bookId,
-    } as UserBookInsert);
+    } as any);
 
     if (userBookError) {
       return new Response(JSON.stringify({ error: 'Failed to link book to user' }), {
