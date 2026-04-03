@@ -53,10 +53,7 @@ export default function CommentInput({
           </button>
         </div>
       )}
-      <form
-        onSubmit={handleSubmit}
-        className="relative flex items-center gap-3 p-2 pl-4"
-      >
+      <form onSubmit={handleSubmit} className="relative flex items-center gap-3 p-2 pl-4">
         <input
           type="text"
           value={content}
@@ -68,6 +65,7 @@ export default function CommentInput({
 
         <button
           type="submit"
+          aria-label="댓글 전송"
           disabled={!content.trim() || isSubmitting}
           className={`p-2 rounded-xl transition-all ${
             content.trim() && !isSubmitting

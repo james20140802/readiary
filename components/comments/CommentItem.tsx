@@ -67,6 +67,7 @@ export default function CommentItem({
           {/* 3. 삭제 버튼 (본인일 때만, 마우스 오버 시 노출) */}
           {isMyComment && (
             <button
+              aria-label="댓글 삭제"
               onClick={() => onDelete(comment.id)}
               className="p-1 text-label-muted hover:text-danger transition-colors"
               title="댓글 삭제"

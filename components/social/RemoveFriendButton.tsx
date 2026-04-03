@@ -35,6 +35,7 @@ export default function RemoveFriendButton({ friendId }: Props) {
   return (
     <>
       <button
+        aria-label="친구 삭제"
         onClick={() => setShowConfirm(true)}
         className="p-3 rounded-2xl hover:bg-danger-subtle dark:hover:bg-danger/10 transition-all text-label-muted hover:text-danger active:scale-90"
         title="친구 삭제"

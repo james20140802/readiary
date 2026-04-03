@@ -76,6 +76,7 @@ export default function SocialActionBar({
         {/* 좋아요 버튼 */}
         <button
           onClick={handleLikeToggle}
+          aria-label={isLiked ? '좋아요 취소' : '좋아요'}
           className={`flex items-center gap-1.5 transition-all active:scale-90 hover:text-rose-500 ${
             isLiked ? 'text-rose-500' : 'text-label-muted hover:text-rose-500'
           } ${isLoading ? 'cursor-progress' : ''}`}
@@ -88,6 +89,7 @@ export default function SocialActionBar({
 
         {/* 댓글 버튼 (나중에 여기서 댓글 리스트 토글 로직을 추가하면 됩니다) */}
         <button
+          aria-label="댓글 보기"
           className="flex items-center gap-1.5 text-label-muted hover:text-tint transition-all active:scale-95"
           onClick={(e) => {
             e.preventDefault();
