@@ -1,4 +1,4 @@
-import { forwardRef, InputHTMLAttributes } from 'react';
+import { forwardRef, InputHTMLAttributes, useId } from 'react';
 import clsx from 'clsx';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -8,15 +8,20 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, fullWidth = true, className, ...props }, ref) => {
+  ({ label, error, fullWidth = true, className, id: explicitId, ...props }, ref) => {
+    const generatedId = useId();
+    const id = explicitId || generatedId;
+    const errorId = error ? `${id}-error` : undefined;
+
     return (
       <div className={clsx(fullWidth && 'w-full')}>
         {label && (
-          <label className="block mb-1 text-sm font-medium text-label dark:text-label-invert">
+          <label htmlFor={id} className="block mb-1 text-sm font-medium text-label dark:text-label-invert">
             {label}
           </label>
         )}
         <input
+          id={id}
           ref={ref}
           className={clsx(
             'w-full',
@@ -27,9 +32,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             props.disabled && 'bg-surface-raised dark:bg-dark-raised cursor-not-allowed opacity-60',
             className
           )}
+          aria-invalid={!!error}
+          aria-describedby={errorId}
           {...props}
         />
-        {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
+        {error && <p id={errorId} className="mt-1 text-xs text-red-500">{error}</p>}
       </div>
     );
   }
