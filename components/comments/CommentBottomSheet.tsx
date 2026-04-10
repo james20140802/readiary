@@ -112,7 +112,7 @@ export default function CommentBottomSheet({
             {/* 헤더 */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle dark:border-dark-border">
               <h3 className="text-[16px] font-bold">댓글 {comments.length}</h3>
-              <button onClick={onClose} className="p-1.5 bg-surface-raised dark:bg-dark-raised rounded-full">
+              <button onClick={onClose} aria-label="댓글창 닫기" className="p-1.5 bg-surface-raised dark:bg-dark-raised rounded-full">
                 <X size={18} />
               </button>
             </div>

@@ -70,6 +70,7 @@ export default function CommentItem({
               onClick={() => onDelete(comment.id)}
               className="p-1 text-label-muted hover:text-danger transition-colors"
               title="댓글 삭제"
+              aria-label="댓글 삭제"
             >
               <Trash2 size={14} />
             </button>

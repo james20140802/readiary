@@ -68,6 +68,7 @@ export default function CommentInput({
 
         <button
           type="submit"
+          aria-label="댓글 전송"
           disabled={!content.trim() || isSubmitting}
           className={`p-2 rounded-xl transition-all ${
             content.trim() && !isSubmitting
