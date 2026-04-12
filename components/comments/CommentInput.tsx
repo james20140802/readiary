@@ -62,12 +62,15 @@ export default function CommentInput({
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="칭찬과 응원은 큰 힘이 됩니다 ✍️"
+          aria-label="댓글 입력"
           className="flex-1 bg-transparent border-none outline-none text-[14px] py-1.5 text-label-sub dark:text-label-invert placeholder:text-label-muted"
           disabled={isSubmitting}
         />
 
         <button
           type="submit"
+          aria-label="댓글 전송"
+          title="댓글 전송"
           disabled={!content.trim() || isSubmitting}
           className={`p-2 rounded-xl transition-all ${
             content.trim() && !isSubmitting
@@ -75,7 +78,7 @@ export default function CommentInput({
               : 'text-label-muted bg-transparent'
           }`}
         >
-          <Send size={18} className={isSubmitting ? 'animate-pulse' : ''} />
+          <Send size={18} aria-hidden="true" className={isSubmitting ? 'animate-pulse' : ''} />
         </button>
       </form>
     </div>

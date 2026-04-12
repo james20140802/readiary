@@ -76,11 +76,13 @@ export default function SocialActionBar({
         {/* 좋아요 버튼 */}
         <button
           onClick={handleLikeToggle}
+          aria-label={isLiked ? "좋아요 취소" : "좋아요"}
+          aria-pressed={isLiked}
           className={`flex items-center gap-1.5 transition-all active:scale-90 hover:text-rose-500 ${
             isLiked ? 'text-rose-500' : 'text-label-muted hover:text-rose-500'
           } ${isLoading ? 'cursor-progress' : ''}`}
         >
-          <Heart size={18} fill={isLiked ? 'currentColor' : 'none'} strokeWidth={2} />
+          <Heart size={18} fill={isLiked ? 'currentColor' : 'none'} strokeWidth={2} aria-hidden="true" />
           <span className="text-[12.5px] font-extrabold tabular-nums">
             {formatCount(likeCount)}
           </span>
@@ -89,13 +91,14 @@ export default function SocialActionBar({
         {/* 댓글 버튼 (나중에 여기서 댓글 리스트 토글 로직을 추가하면 됩니다) */}
         <button
           className="flex items-center gap-1.5 text-label-muted hover:text-tint transition-all active:scale-95"
+          aria-label="댓글 보기"
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
             onCommentClick();
           }}
         >
-          <MessageCircle size={18} strokeWidth={2} />
+          <MessageCircle size={18} strokeWidth={2} aria-hidden="true" />
           {showCommentCount && (
             <span className="text-[12.5px] font-extrabold tabular-nums">
               {formatCount(initialCommentCount)}
