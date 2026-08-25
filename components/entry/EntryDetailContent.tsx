@@ -156,9 +156,16 @@ export default function EntryDetailContent({
                 )}
               </div>
 
-              <p className="text-[0.9375rem] leading-relaxed text-label-sub dark:text-label-muted whitespace-pre-wrap">
-                {entry.note ?? ''}
-              </p>
+              {entry.quote && (
+                <p className="mb-3 text-[0.9375rem] leading-relaxed text-label dark:text-label-invert whitespace-pre-wrap">
+                  “{entry.quote}”
+                </p>
+              )}
+              {entry.note && (
+                <p className="text-[0.9375rem] leading-relaxed text-label-sub dark:text-label-muted whitespace-pre-wrap">
+                  {entry.note}
+                </p>
+              )}
             </div>
 
             {/* 2. 하단 액션 통합 바 (정보 + 소셜) */}

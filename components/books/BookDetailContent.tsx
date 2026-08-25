@@ -261,7 +261,9 @@ export default function BookDetailContent({
               <li key={data.entry.id}>
                 <EntryCard
                   id={data.entry.id}
-                  note={data.entry.note ?? ''}
+                  note={[data.entry.quote ? `“${data.entry.quote}”` : null, data.entry.note]
+                    .filter(Boolean)
+                    .join('\n\n')}
                   date={data.entry.date}
                   isPrivate={data.entry.is_private}
                   userId={userId}

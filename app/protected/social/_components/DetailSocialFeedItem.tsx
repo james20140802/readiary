@@ -148,16 +148,16 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
       </Link>
 
       {/* 3. 독서 기록 본문 */}
-      {entry.note && entry.note.trim() !== '' && (
+      {(entry.note || entry.quote) && (
         <div className="px-4 pb-3">
           <p
             className={`text-body-sm leading-relaxed text-label-sub dark:text-label-muted whitespace-pre-wrap ${
               !isExpanded ? 'line-clamp-4' : ''
             }`}
           >
-            {entry.note}
+            {[entry.quote ? `“${entry.quote}”` : null, entry.note].filter(Boolean).join('\n\n')}
           </p>
-          {entry.note.length > 120 && !isExpanded && (
+          {((entry.note ?? entry.quote) || '').length > 120 && !isExpanded && (
             <button
               onClick={() => setIsExpanded(true)}
               className="mt-2 text-caption font-bold text-tint hover:text-tint-hover transition-colors"

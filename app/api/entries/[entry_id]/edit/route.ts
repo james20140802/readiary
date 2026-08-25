@@ -57,12 +57,13 @@ export async function PATCH(
   const { error } = await supabase.from('entries').update(patch).eq('id', entry_id);
 
   if (error) {
-    // 한쪽 키만 전송되어 CHECK(quote or note) 제약을 어긴 경우
+    // CHECK 제약 위반은 어떤 제약이 걸렸는지에 따라 사용자 메시지를 나눈다
     if (error.code === '23514') {
-      return NextResponse.json(
-        { error: '문장(quote) 또는 생각(note) 중 하나는 필요합니다.' },
-        { status: 400 }
-      );
+      const violated = `${error.message} ${error.details ?? ''}`;
+      const msg = violated.includes('entries_page_order_check')
+        ? '시작 페이지는 종료 페이지보다 작거나 같아야 합니다.'
+        : '문장(quote) 또는 생각(note) 중 하나는 필요합니다.';
+      return NextResponse.json({ error: msg }, { status: 400 });
     }
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
