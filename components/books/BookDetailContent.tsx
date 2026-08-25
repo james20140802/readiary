@@ -261,7 +261,7 @@ export default function BookDetailContent({
               <li key={data.entry.id}>
                 <EntryCard
                   id={data.entry.id}
-                  summary={data.entry.summary ?? ''}
+                  note={data.entry.note ?? ''}
                   date={data.entry.date}
                   isPrivate={data.entry.is_private}
                   userId={userId}

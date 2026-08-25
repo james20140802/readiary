@@ -4,7 +4,8 @@ import { Profile } from './profile';
 export type Entry = {
   id: string;
   date: string;
-  summary: string | null;
+  note: string | null;
+  quote: string | null;
   from_page: number | null;
   to_page: number | null;
   is_private: boolean;
@@ -28,7 +29,8 @@ export type DetailSocialFeedEntry = {
 
 export type RawEntry = {
   id: string;
-  summary: string | null;
+  note: string | null;
+  quote: string | null;
   date: string;
   from_page: number | null;
   to_page: number | null;
@@ -45,7 +47,8 @@ export type RawEntry = {
 
 export type RawDetailEntry = {
   id: string;
-  summary: string | null;
+  note: string | null;
+  quote: string | null;
   date: string;
   from_page: number | null;
   to_page: number | null;

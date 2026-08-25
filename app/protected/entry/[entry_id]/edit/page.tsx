@@ -16,7 +16,7 @@ export default async function EditEntryPage({ params }: Props) {
   return (
     <EditEntryForm
       entryId={entry.id}
-      initialSummary={entry.summary ?? ''}
+      initialNote={entry.note ?? ''}
       initialFromPage={entry.from_page ?? null}
       initialToPage={entry.to_page ?? null}
       initialDate={entry.date}

@@ -69,7 +69,8 @@ export async function fetchBookDetail(bookId: string): Promise<BookDetailData | 
             entry: {
               id: e.id,
               date: e.date,
-              summary: e.summary,
+              note: e.note,
+              quote: e.quote,
               from_page: e.from_page,
               to_page: e.to_page,
               is_private: e.is_private,

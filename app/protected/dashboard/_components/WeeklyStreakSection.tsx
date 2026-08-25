@@ -98,9 +98,9 @@ export function WeeklyStreakSection({ streak, weekActivity, entry }: Props) {
           <h3 className="text-body font-semibold text-label dark:text-label-invert">
             {entry.book.title}
           </h3>
-          {entry.summary && (
+          {entry.note && (
             <p className="mt-0.5 text-body-sm text-label-sub dark:text-label-muted italic line-clamp-2">
-              &quot;{entry.summary}&quot;
+              &quot;{entry.note}&quot;
             </p>
           )}
         </div>

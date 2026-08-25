@@ -157,7 +157,7 @@ export default function EntryDetailContent({
               </div>
 
               <p className="text-[0.9375rem] leading-relaxed text-label-sub dark:text-label-muted whitespace-pre-wrap">
-                {entry.summary ?? ''}
+                {entry.note ?? ''}
               </p>
             </div>
 

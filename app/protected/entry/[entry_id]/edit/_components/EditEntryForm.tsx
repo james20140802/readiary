@@ -14,7 +14,7 @@ import BackButton from '@/components/ui/BackButton';
 interface Props {
   entryId: string;
   book: Book;
-  initialSummary: string;
+  initialNote: string;
   initialFromPage: number | null;
   initialToPage: number | null;
   initialIsPrivate: boolean;
@@ -24,7 +24,7 @@ interface Props {
 export default function EditEntryForm({
   entryId,
   book,
-  initialSummary,
+  initialNote,
   initialFromPage,
   initialToPage,
   initialIsPrivate,
@@ -32,7 +32,7 @@ export default function EditEntryForm({
 }: Props) {
   const router = useRouter();
 
-  const [summary, setSummary] = useState(initialSummary);
+  const [note, setNote] = useState(initialNote);
   const [fromPage, setFromPage] = useState(initialFromPage?.toString() ?? '');
   const [toPage, setToPage] = useState(initialToPage?.toString() ?? '');
   const [isPrivate, setIsPrivate] = useState(initialIsPrivate);
@@ -49,7 +49,7 @@ export default function EditEntryForm({
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        summary,
+        note,
         from_page: Number(fromPage),
         to_page: Number(toPage),
         is_private: isPrivate,
@@ -140,8 +140,8 @@ export default function EditEntryForm({
         <FormGroup>
           <FormLabel>줄거리 요약</FormLabel>
           <Textarea
-            value={summary}
-            onChange={(e) => setSummary(e.target.value)}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
             placeholder="오늘 읽은 내용을 간단히 정리해보세요..."
             rows={5}
             className="resize-none"

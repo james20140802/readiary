@@ -16,17 +16,33 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { user_book_id, summary, from_page, to_page, date, is_private, book_id, user_id } = body;
+    const { user_book_id, quote, note, from_page, to_page, date, is_private, book_id, user_id } =
+      body;
 
-    if (!user_book_id || !summary || from_page == null || to_page == null || !date) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    const hasContent =
+      (typeof quote === 'string' && quote.trim() !== '') ||
+      (typeof note === 'string' && note.trim() !== '');
+
+    if (!user_book_id || !date || !hasContent) {
+      return NextResponse.json(
+        { error: '문장(quote) 또는 생각(note) 중 하나는 필요합니다.' },
+        { status: 400 }
+      );
+    }
+
+    if (from_page != null && to_page != null && Number(from_page) > Number(to_page)) {
+      return NextResponse.json(
+        { error: '시작 페이지는 종료 페이지보다 작거나 같아야 합니다.' },
+        { status: 400 }
+      );
     }
 
     const { error } = await supabase.from('entries').insert({
       user_book_id,
-      summary,
-      from_page,
-      to_page,
+      quote: typeof quote === 'string' && quote.trim() !== '' ? quote.trim() : null,
+      note: typeof note === 'string' && note.trim() !== '' ? note.trim() : null,
+      from_page: from_page ?? null,
+      to_page: to_page ?? null,
       date,
       is_private: is_private ?? false,
     });

@@ -13,15 +13,17 @@ export async function PATCH(
   }
 
   const {
-    summary,
+    quote,
+    note,
     from_page,
     to_page,
     is_private,
   }: {
-    summary: string;
-    from_page: number;
-    to_page: number;
-    is_private: boolean;
+    quote?: string | null;
+    note?: string | null;
+    from_page?: number | null;
+    to_page?: number | null;
+    is_private?: boolean;
   } = await req.json();
 
   const {
@@ -33,12 +35,24 @@ export async function PATCH(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  const hasContent =
+    (typeof quote === 'string' && quote.trim() !== '') ||
+    (typeof note === 'string' && note.trim() !== '');
+
+  if (!hasContent) {
+    return NextResponse.json(
+      { error: '문장(quote) 또는 생각(note) 중 하나는 필요합니다.' },
+      { status: 400 }
+    );
+  }
+
   const { error } = await supabase
     .from('entries')
     .update({
-      summary,
-      from_page,
-      to_page,
+      quote: typeof quote === 'string' && quote.trim() !== '' ? quote.trim() : null,
+      note: typeof note === 'string' && note.trim() !== '' ? note.trim() : null,
+      from_page: from_page ?? null,
+      to_page: to_page ?? null,
       is_private,
     })
     .eq('id', entry_id);

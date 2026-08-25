@@ -48,7 +48,7 @@ export async function fetchDashboardData(): Promise<{
       supabase
         .from('entries')
         .select(
-          `id, date, summary, from_page, to_page, is_private, created_at, user_books (
+          `id, date, note, quote, from_page, to_page, is_private, created_at, user_books (
                 book_id,
                 book:books (
                   id,
@@ -103,7 +103,8 @@ export async function fetchDashboardData(): Promise<{
       entries && entries.length > 0
         ? {
             id: entries[0].id,
-            summary: entries[0].summary,
+            note: entries[0].note,
+            quote: entries[0].quote,
             from_page: entries[0].from_page,
             to_page: entries[0].to_page,
             is_private: entries[0].is_private,
