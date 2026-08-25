@@ -24,7 +24,7 @@ export default async function FriendProfilePage({ params }: FriendProfilePagePro
   const [nickname, tag] = processed.split('-');
   if (!nickname || !tag) return notFound();
 
-  const { profile, userBooks, userBadges } = await fetchProfileData(nickname, tag);
+  const { profile, userBooks } = await fetchProfileData(nickname, tag);
   if (!profile) return notFound();
 
   const { data: friendRecord } = await supabase
@@ -57,7 +57,7 @@ export default async function FriendProfilePage({ params }: FriendProfilePagePro
             profile={profile}
           />
           {stats ? (
-            <ProfileStats stats={stats} badges={userBadges} />
+            <ProfileStats stats={stats} />
           ) : (
             <p className="text-body-sm text-label-muted">통계 정보를 불러올 수 없습니다.</p>
           )}

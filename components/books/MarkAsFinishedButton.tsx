@@ -2,25 +2,16 @@
 
 import { useRouter } from 'next/navigation';
 import { createSupabaseClient } from '@/lib/supabase/client';
-import { useBadgeAwarder } from '@/hooks/useBadgeAwarder';
 import Button from '@/components/ui/Button';
 
 interface MarkAsFinishedButtonProps {
   userBookId: string;
-  progress: number;
-  userId: string;
   onFinish: () => void;
 }
 
-export default function MarkAsFinishedButton({
-  userBookId,
-  progress,
-  userId,
-  onFinish,
-}: MarkAsFinishedButtonProps) {
+export default function MarkAsFinishedButton({ userBookId, onFinish }: MarkAsFinishedButtonProps) {
   const router = useRouter();
   const supabase = createSupabaseClient();
-  const awardBadges = useBadgeAwarder();
 
   const handleMarkAsFinished = async () => {
     const { error } = await supabase
@@ -30,7 +21,6 @@ export default function MarkAsFinishedButton({
 
     if (!error) {
       onFinish();
-      await awardBadges(userId);
       router.refresh();
     } else {
       console.error('Failed to mark as finished:', error.message);
@@ -38,22 +28,8 @@ export default function MarkAsFinishedButton({
   };
 
   return (
-    <div className="relative group inline-block">
-      <Button
-        onClick={handleMarkAsFinished}
-        disabled={progress < 90}
-        size="sm"
-        color="primary"
-        variant={progress < 90 ? 'ghost' : 'primary'}
-        className={`mt-2 ${progress < 90 ? 'opacity-50 cursor-not-allowed' : ''}`}
-      >
-        📘 책 읽기 완료!
-      </Button>
-      {progress < 90 && (
-        <span className="absolute left-1/2 -translate-x-1/2 mt-1 text-xs text-white bg-black border border-border dark:border-dark-border rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity z-10 whitespace-nowrap">
-          90% 이상 읽어야 완료할 수 있어요!
-        </span>
-      )}
-    </div>
+    <Button onClick={handleMarkAsFinished} size="sm" color="primary" className="mt-2">
+      다 읽었어요
+    </Button>
   );
 }

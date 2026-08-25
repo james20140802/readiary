@@ -136,12 +136,7 @@ export default function BookDetailContent({
                           : '새로운 탐험의 시작입니다.'}
                 </p>
               </div>
-              <MarkAsFinishedButton
-                onFinish={() => setIsFinished(true)}
-                userBookId={id}
-                progress={progress ?? 0}
-                userId={userId ?? ''}
-              />
+              <MarkAsFinishedButton onFinish={() => setIsFinished(true)} userBookId={id} />
             </Card>
           ) : (
             <div className="flex items-center gap-3 p-4 bg-success-subtle rounded-2xl border border-success-muted text-success animate-in fade-in slide-in-from-top-2 duration-500">
