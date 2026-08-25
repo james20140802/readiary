@@ -43,6 +43,11 @@ export default function EditEntryForm({
     e.preventDefault();
     setError('');
 
+    if (fromPage !== '' && toPage !== '' && Number(fromPage) > Number(toPage)) {
+      setError('시작 페이지는 종료 페이지보다 작거나 같아야 합니다.');
+      return;
+    }
+
     const res = await fetch(`/api/entries/${entryId}/edit`, {
       method: 'PATCH',
       headers: {
@@ -50,15 +55,16 @@ export default function EditEntryForm({
       },
       body: JSON.stringify({
         note,
-        from_page: Number(fromPage),
-        to_page: Number(toPage),
+        from_page: fromPage === '' ? null : Number(fromPage),
+        to_page: toPage === '' ? null : Number(toPage),
         is_private: isPrivate,
         date,
       }),
     });
 
     if (!res.ok) {
-      setError('수정에 실패했어요. 다시 시도해주세요.');
+      const data = await res.json().catch(() => null);
+      setError(data?.error ?? '수정에 실패했어요.');
     } else {
       router.push(`/protected/entry/${entryId}`);
     }

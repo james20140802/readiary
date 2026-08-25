@@ -101,14 +101,14 @@ export default function BookDetailContent({
                 <div className="w-full bg-border dark:bg-dark-border rounded-full h-2 overflow-hidden">
                   <div
                     className="bg-tint h-full rounded-full transition-all duration-1000 ease-out"
-                    style={{ width: `${progress}%` }}
+                    style={{ width: `${progress ?? 0}%` }}
                   />
                 </div>
                 <div className="flex justify-between items-center text-[11px] font-bold tracking-widest text-label-muted uppercase">
                   <span>
-                    {last_read_page} / {total_pages} PAGES
+                    {last_read_page ?? 0} / {total_pages} PAGES
                   </span>
-                  <span className="text-tint">{progress}% COMPLETED</span>
+                  <span className="text-tint">{progress ?? 0}% COMPLETED</span>
                 </div>
               </div>
             </div>

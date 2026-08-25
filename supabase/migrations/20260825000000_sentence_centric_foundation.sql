@@ -1,3 +1,4 @@
+-- 주의: 이 디렉터리는 이 파일 이전의 기존 스키마 이력을 포함하지 않는다(스키마는 원격 Supabase에만 존재).
 -- 문장 중심 리디자인 기반 마이그레이션
 -- 스펙: docs/superpowers/specs/2026-08-25-sentence-centric-redesign-design.md §3
 
