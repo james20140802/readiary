@@ -51,9 +51,11 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
   const entryDetailPath = `/protected/social/u/${profile.nickname}-${profile.tag}/entry/${entry.id}`;
 
   const readRange =
-    entry.from_page && entry.to_page
+    entry.from_page != null && entry.to_page != null
       ? `${entry.from_page}→${entry.to_page}p`
-      : `${entry.to_page || entry.from_page}p까지`;
+      : entry.from_page != null || entry.to_page != null
+        ? `${entry.to_page ?? entry.from_page}p까지`
+        : null;
 
   return (
     <Card aria-label="상세 소셜 피드 항목" className="!p-0 overflow-hidden" hoverable={false}>
@@ -140,9 +142,11 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
               </h3>
               <p className="text-caption text-label-muted line-clamp-1">{book.author}</p>
             </div>
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-tint-subtle dark:bg-tint/10 border border-tint/20 text-tint text-[11px] font-bold w-fit">
-              📖 {readRange}
-            </span>
+            {readRange && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-tint-subtle dark:bg-tint/10 border border-tint/20 text-tint text-[11px] font-bold w-fit">
+                📖 {readRange}
+              </span>
+            )}
           </div>
         </div>
       </Link>
