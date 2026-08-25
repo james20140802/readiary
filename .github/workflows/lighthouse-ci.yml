@@ -18,39 +18,31 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Install npm
-        uses: pnpm/action-setup@v3
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          version: 8
-          run_install: false
-
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - name: Setup pnpm cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+          node-version: 20
+          cache: npm
 
       - name: Install dependencies
-        run: pnpm install
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm test
 
       - name: Build the site
-        run: pnpm build
+        run: npm run build
 
       - name: Run Lighthouse CI
+        continue-on-error: true
         env:
           LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
         run: |
-          nnpx @lhci/cli@latest autorun || echo "Fail to Run Lighthouse CI!"
+          npx @lhci/cli@latest autorun || echo "Fail to Run Lighthouse CI!"
 
       - name: Format lighthouse score
         id: format_lighthouse_score
+        continue-on-error: true
         uses: actions/github-script@v3
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
@@ -98,6 +90,7 @@ jobs:
             core.setOutput('comments', comments);
 
       - name: comment PR
+        continue-on-error: true
         uses: unsplash/comment-on-pr@v1.3.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
