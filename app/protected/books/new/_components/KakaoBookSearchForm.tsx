@@ -8,7 +8,7 @@ import { searchBook } from '@/lib/books/searchBook';
 import Modal from '@/components/ui/Modal';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
-import { MdSearch } from 'react-icons/md';
+import { Search } from 'lucide-react';
 import Image from 'next/image';
 
 export default function KakaoBookSearchForm() {
@@ -117,7 +117,7 @@ export default function KakaoBookSearchForm() {
           disabled={loading}
           className="bg-accent hover:bg-accent-hover text-card text-button px-4 py-2 rounded-lg transition-colors flex items-center justify-center shrink-0"
         >
-          <MdSearch size={20} />
+          <Search size={20} />
         </button>
       </div>
 
