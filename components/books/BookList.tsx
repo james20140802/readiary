@@ -280,7 +280,7 @@ export default function BookList({ books, isFriend = false, nicknameAndTag = '' 
 
             return (
               <Link key={userBook.id} href={getDetailHref(userBook)} className="group block">
-                <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl border border-hairline group- group-hover:-translate-y-1 transition-all duration-200">
+                <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl border border-hairline group-hover:-translate-y-1 transition-all duration-200">
                   <Image
                     src={book.cover_url ?? '/images/default-book-cover.png'}
                     alt={book.title}

@@ -105,7 +105,7 @@ export default function CommentSection({
         {isLoading ? (
           <div className="py-10 text-center text-ink-faint text-sm">기록을 불러오는 중...</div>
         ) : comments.length > 0 ? (
-          <div className="divide-y divide-hairline-subtle">
+          <div className="divide-y divide-hairline">
             {comments
               .filter((c) => !c.parent_id)
               .map((rootComment) => (
