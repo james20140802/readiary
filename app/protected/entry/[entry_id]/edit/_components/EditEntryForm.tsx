@@ -99,7 +99,7 @@ export default function EditEntryForm({
               <button
                 type="button"
                 onClick={() => setIsPrivate(!isPrivate)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 ${
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-paper ${
                   isPrivate ? 'bg-accent' : 'bg-card-raised'
                 }`}
               >
