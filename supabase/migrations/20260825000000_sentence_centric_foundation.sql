@@ -5,6 +5,11 @@
 -- 1) entries: summary → note, quote 추가, 내용 필수 제약
 alter table public.entries rename column summary to note;
 alter table public.entries add column if not exists quote text;
+
+-- 구 스키마(nullable summary)에서 생성됐을 수 있는 내용 없는 행 방어.
+-- (2026-08-26 프로덕션 적용 시점에는 사전 검증으로 0건 확인됨 — fresh DB 재현용 안전망)
+update public.entries set note = '' where note is null;
+
 alter table public.entries
   add constraint entries_content_check check (quote is not null or note is not null);
 

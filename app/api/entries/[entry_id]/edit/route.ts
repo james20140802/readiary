@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { updateProgress } from '@/utils/sync';
 
 export async function PATCH(
   req: NextRequest,
@@ -66,6 +67,19 @@ export async function PATCH(
       return NextResponse.json({ error: msg }, { status: 400 });
     }
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  // 페이지가 바뀌면 user_books.last_read_page/progress를 재계산한다 (생성/삭제 경로와 동일)
+  if ('from_page' in body || 'to_page' in body) {
+    const { data: entryRow } = await supabase
+      .from('entries')
+      .select('user_books(book_id, user_id)')
+      .eq('id', entry_id)
+      .single();
+    const ub = Array.isArray(entryRow?.user_books) ? entryRow?.user_books[0] : entryRow?.user_books;
+    if (ub?.book_id && ub?.user_id) {
+      await updateProgress(ub.book_id, ub.user_id);
+    }
   }
 
   return NextResponse.json({ success: true });
