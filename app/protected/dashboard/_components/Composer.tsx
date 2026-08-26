@@ -50,8 +50,12 @@ export default function Composer({ books, recentUserBookId, userId }: ComposerPr
 
   if (books.length === 0) return null;
 
-  const chipBooks = books.slice(0, MAX_BOOK_CHIPS);
   const selectedBook = books.find((b) => b.id === selectedId) ?? null;
+  const head = books.slice(0, MAX_BOOK_CHIPS);
+  const chipBooks =
+    selectedBook && !head.some((b) => b.id === selectedBook.id)
+      ? [selectedBook, ...head.slice(0, MAX_BOOK_CHIPS - 1)]
+      : head;
 
   const handleSave = async () => {
     if (!selectedBook || text.trim() === '' || isSubmitting) return;
@@ -150,11 +154,15 @@ export default function Composer({ books, recentUserBookId, userId }: ComposerPr
 
         {!showExtraText && !showPages ? (
           <div className="mt-4 flex flex-wrap gap-2">
-            <Chip onClick={() => setShowExtraText(true)}>
+            <Chip onClick={() => setShowExtraText(true)} disabled={isSubmitting}>
               {savedEntry.mode === 'quote' ? '생각 덧붙이기' : '문장 덧붙이기'}
             </Chip>
-            <Chip onClick={() => setShowPages(true)}>페이지 남기기</Chip>
-            <Chip onClick={resetAll}>닫기</Chip>
+            <Chip onClick={() => setShowPages(true)} disabled={isSubmitting}>
+              페이지 남기기
+            </Chip>
+            <Chip onClick={resetAll} disabled={isSubmitting}>
+              닫기
+            </Chip>
           </div>
         ) : (
           <div className="mt-4 space-y-3">
@@ -190,13 +198,17 @@ export default function Composer({ books, recentUserBookId, userId }: ComposerPr
             )}
             <div className="flex flex-wrap items-center gap-2">
               {!showExtraText && (
-                <Chip onClick={() => setShowExtraText(true)}>
+                <Chip onClick={() => setShowExtraText(true)} disabled={isSubmitting}>
                   {savedEntry.mode === 'quote' ? '생각 덧붙이기' : '문장 덧붙이기'}
                 </Chip>
               )}
-              {!showPages && <Chip onClick={() => setShowPages(true)}>페이지 남기기</Chip>}
+              {!showPages && (
+                <Chip onClick={() => setShowPages(true)} disabled={isSubmitting}>
+                  페이지 남기기
+                </Chip>
+              )}
               <div className="ml-auto flex gap-2">
-                <Button size="sm" variant="ghost" onClick={resetAll}>
+                <Button size="sm" variant="ghost" onClick={resetAll} disabled={isSubmitting}>
                   닫기
                 </Button>
                 <Button size="sm" onClick={handleExpand} disabled={isSubmitting}>
