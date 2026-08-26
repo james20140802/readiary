@@ -29,7 +29,7 @@ export function WeeklyStreakSection({ streak, weekActivity, entry }: Props) {
 
   return (
     <Card className="mb-4" hoverable={false}>
-      <h2 className="text-section-title text-label dark:text-label-invert mb-4">
+      <h2 className="text-section-title text-ink mb-4">
         📅 이번 주의 리듬
       </h2>
 
@@ -45,17 +45,17 @@ export function WeeklyStreakSection({ streak, weekActivity, entry }: Props) {
           let content: string = dayLabel;
 
           if (didWrite && isToday) {
-            dotClass = 'bg-tint text-white ring-2 ring-tint/40 ring-offset-2';
+            dotClass = 'bg-accent text-ink-invert ring-2 ring-accent/40 ring-offset-2';
             content = '✓';
           } else if (didWrite) {
-            dotClass = 'bg-success text-white';
+            dotClass = 'bg-success text-ink-invert';
             content = '✓';
           } else if (isToday) {
-            dotClass = 'bg-tint/10 text-tint ring-2 ring-tint ring-offset-1';
+            dotClass = 'bg-accent/10 text-accent ring-2 ring-accent ring-offset-1';
           } else if (isPast) {
-            dotClass = 'bg-border/70 text-label-muted';
+            dotClass = 'bg-hairline/70 text-ink-faint';
           } else {
-            dotClass = 'bg-surface-raised text-label-muted';
+            dotClass = 'bg-card-raised text-ink-faint';
           }
 
           return (
@@ -66,7 +66,7 @@ export function WeeklyStreakSection({ streak, weekActivity, entry }: Props) {
                 {content}
               </div>
               <span
-                className={`text-[10px] font-semibold ${isToday ? 'text-tint' : 'text-label-muted'}`}
+                className={`text-[10px] font-semibold ${isToday ? 'text-accent' : 'text-ink-faint'}`}
               >
                 {dayLabel}
               </span>
@@ -78,28 +78,28 @@ export function WeeklyStreakSection({ streak, weekActivity, entry }: Props) {
       {/* 스트릭 배지 — 미기록시 border로 구분감 추가 */}
       <div className="mb-4">
         {streak > 0 ? (
-          <span className="inline-flex items-center gap-1.5 text-body-sm font-medium text-orange-500 bg-orange-50 dark:bg-orange-500/10 px-3 py-1.5 rounded-full border border-orange-100 dark:border-orange-500/20">
+          <span className="inline-flex items-center gap-1.5 text-body-sm font-medium text-accent bg-accent-soft px-3 py-1.5 rounded-full border border-accent/20">
             🔥 현재 {streak}일 연속 기록 중!
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1.5 text-body-sm text-label-sub bg-surface-raised dark:bg-dark-raised px-3 py-1.5 rounded-full border border-border dark:border-dark-border">
+          <span className="inline-flex items-center gap-1.5 text-body-sm text-ink-sub bg-card-raised px-3 py-1.5 rounded-full border border-hairline">
             🕓 아직 기록을 시작하지 않았어요!
           </span>
         )}
       </div>
 
       {/* 구분선 */}
-      <div className="border-t border-border dark:border-dark-border mb-4" />
+      <div className="border-t border-hairline mb-4" />
 
       {/* 오늘 읽은 책 */}
       {entry ? (
         <div className="flex flex-col gap-0.5">
-          <p className="text-caption text-label-muted tracking-wide">📖 오늘 읽은 책</p>
-          <h3 className="text-body font-semibold text-label dark:text-label-invert">
+          <p className="text-caption text-ink-faint tracking-wide">📖 오늘 읽은 책</p>
+          <h3 className="text-body font-semibold text-ink">
             {entry.book.title}
           </h3>
           {(entry.note || entry.quote) && (
-            <p className="mt-0.5 text-body-sm text-label-sub dark:text-label-muted italic line-clamp-2">
+            <p className="mt-0.5 text-body-sm text-ink-sub italic line-clamp-2">
               &quot;{entry.note ?? entry.quote}&quot;
             </p>
           )}
@@ -107,14 +107,14 @@ export function WeeklyStreakSection({ streak, weekActivity, entry }: Props) {
       ) : (
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-caption text-label-muted tracking-wide">🕐 오늘의 기록</p>
-            <p className="mt-0.5 text-body-sm font-medium text-label dark:text-label-invert">
+            <p className="text-caption text-ink-faint tracking-wide">🕐 오늘의 기록</p>
+            <p className="mt-0.5 text-body-sm font-medium text-ink">
               하루 한 줄 기록, 지금 써보는 건 어때요?
             </p>
           </div>
           <Link
             href="/protected/books"
-            className="text-caption font-semibold text-tint hover:text-tint-hover shrink-0"
+            className="text-caption font-semibold text-accent hover:text-accent-hover shrink-0"
           >
             기록하기 →
           </Link>

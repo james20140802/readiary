@@ -13,20 +13,22 @@ export function Textarea({ label, error, fullWidth = false, className, ...props 
   return (
     <div className={clsx('space-y-1', fullWidth && 'w-full')}>
       {label && (
-        <label htmlFor={props.id} className="block text-sm font-medium text-label dark:text-label-invert">
+        <label htmlFor={props.id} className="block text-sm font-medium text-ink">
           {label}
         </label>
       )}
       <textarea
         className={clsx(
-          'block px-3 py-2 rounded-md shadow-sm border border-border dark:border-dark-border text-sm text-label dark:text-label-invert bg-background dark:bg-dark-surface placeholder-secondary focus:outline-none focus:ring-2 focus:ring-tint focus:border-tint transition',
+          'block px-4 py-3 rounded-md border text-sm leading-relaxed transition-colors',
+          'bg-card text-ink placeholder:text-ink-faint',
+          'border-hairline-strong focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent',
           fullWidth && 'w-full',
-          error && 'border-red-500 dark:border-red-400',
+          error && 'border-danger',
           className
         )}
         {...props}
       />
-      {error && <p className="text-sm text-red-500">{error}</p>}
+      {error && <p className="text-sm text-danger">{error}</p>}
     </div>
   );
 }

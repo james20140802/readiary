@@ -1,133 +1,68 @@
-# 🧭 Readiary UI Guidelines
+# Readiary UI Guidelines — 먹과 종이
 
-Readiary의 UI/UX 일관성을 유지하기 위한 스타일 가이드입니다. 
-최근 리팩터링된 시맨틱(Semantic) 디자인 시스템을 기반으로 작성되었습니다.
+에디토리얼 디자인 시스템 규범. 시안: "먹과 종이" 아티팩트, 스펙 §6.
+원칙: **문장이 주인공. 콘텐츠는 부리, 도구는 산세리프. 그림자 대신 헤어라인. 파랑은 잉크처럼 아껴서.**
 
----
+## 색 (Colors)
 
-## 🎨 색상 (Colors)
+모든 색은 `app/globals.css`의 CSS 변수를 Tailwind 토큰이 참조한다.
+**라이트/다크는 변수가 자동 전환하므로 색상에 `dark:` 프리픽스를 쓰지 않는다.**
 
-Tailwind의 `tailwind.config.ts`에 정의된 시맨틱 토큰을 사용합니다. 하드코딩된 색상(예: `bg-blue-500`) 대신 아래의 토큰을 사용해주세요.
+| 토큰 | 라이트 | 다크 | 용도 |
+| --- | --- | --- | --- |
+| `bg-paper` | `#F7F3EC` | `#1B1612` | 앱 바탕(종이) |
+| `bg-card` | `#FDFBF7` | `#241E19` | 카드·입력 표면 |
+| `bg-card-raised` | `#F2ECE1` | `#2E2721` | 눌린/돌출 표면 |
+| `text-ink` | `#221E1A` | `#EAE2D6` | 기본 글 (먹) |
+| `text-ink-sub` | `#6E665C` | `#9A8F81` | 보조 글 |
+| `text-ink-faint` | `#A39A8D` | `#6E655A` | 흐린 글·플레이스홀더 |
+| `text-ink-invert` | 카드색 | 종이색 | 먹 배경 위 글 |
+| `border-hairline` | `#E3DCD0` | `#3A322A` | 기본 헤어라인 |
+| `border-hairline-strong` | `#CFC5B4` | `#4A4036` | 강조 헤어라인(위계) |
+| `*-accent` | `#2D5FB8` | `#85A9EC` | 강조(잉크). 아껴 쓴다 |
+| `bg-accent-soft` | 잉크 7% | 잉크 7% | 강조 연한 배경 |
+| `*-danger` / `*-success` | 가라앉힌 적갈/초록 | 밝힌 톤 | 상태 |
 
-### Tint (주요/강조색 ✨)
-| 토큰 | 용도 | 클래스 예시 |
-| --- | --- | --- |
-| `tint` (`#3B82F6`) | 기본 강조색 (프라이머리 버튼, 링크) | `bg-tint`, `text-tint` |
-| `tint-hover` (`#2563EB`) | 사용자와 상호작용 시 강조색 (Hover) | `hover:bg-tint-hover` |
-| `tint-subtle` (`#EFF6FF`) | 강조 요소의 연한 배경 | `bg-tint-subtle` |
-| `tint-muted` (`#BFDBFE`) | 비활성화 또는 은은한 강조 경계선 | `border-tint-muted` |
+- 강조색 후보 B(주홍 `#C1441E`)는 `<html data-accent="vermilion">`으로 전환해 볼 수 있다. 확정 전까지 유지.
+- 원색 Tailwind 팔레트(`blue-500`, `red-500` 등)와 하드코딩 hex 금지.
 
-### Surface (배경/표면 🔲)
-| 토큰 | 용도 | 클래스 예시 |
-| --- | --- | --- |
-| `surface-page` (`#FAF9F6`) | 앱 전체의 기본 배경 | `bg-surface-page` |
-| `surface` (`#FFFFFF`) | 카드, 모달 등 주 표면 영역 | `bg-surface` |
-| `surface-raised` (`#F5F3EE`) | 약간 돌출된 듯한 배경 요소 (입력창 등) | `bg-surface-raised` |
+## 서체 (Typography)
 
-### Label (텍스트 📝)
-| 토큰 | 용도 | 클래스 예시 |
-| --- | --- | --- |
-| `label` (`#18181B`) | 기본 텍스트 및 제목 수준 | `text-label` |
-| `label-sub` (`#52525B`) | 부가 설명, 본문 텍스트 | `text-label-sub` |
-| `label-muted` (`#A1A1AA`) | 비활성 텍스트 또는 덜 중요한 메타데이터 | `text-label-muted` |
-| `label-invert` (`#FAFAFA`) | 어두운 배경 위의 흰색 텍스트 | `text-label-invert` |
+2서체 체계. **책의 목소리는 부리, 나의 도구는 산세리프.**
 
-### Border (경계선/구분선 📏)
-| 토큰 | 용도 | 클래스 예시 |
-| --- | --- | --- |
-| `border` (`#E4E4E7`) | 기본 경계선 및 디바이더 | `border-border` |
-| `border-strong` (`#D4D4D8`) | 뚜렷한 경계선이 필요한 경우 | `border-border-strong` |
-| `border-subtle` (`#F4F4F5`) | 매우 은은한 경계선 | `border-border-subtle` |
+- `font-serif` — 마루 부리(셀프호스팅, `app/fonts.ts`). 인용문, 책 제목, 워드마크, 회고 카피.
+- `font-sans` — Pretendard. UI 크롬, 버튼, 라벨, 메타데이터. (기본값)
 
-### 다크 모드 (Dark 🌙)
-| 토큰 | 용도 | 클래스 예시 |
-| --- | --- | --- |
-| `dark-page` (`#0F0F10`) | 다크모드 기본 배경 | `dark:bg-dark-page` |
-| `dark-surface` (`#18181B`) | 다크모드 카드, 모달 표면 | `dark:bg-dark-surface` |
-| `dark-raised` (`#27272A`) | 다크모드 입력창, 돌출 요소 | `dark:bg-dark-raised` |
-| `dark-border` (`#3F3F46`) | 다크모드 기본 경계선 | `dark:border-dark-border` |
+크기 토큰: `text-page-title`(24) `text-section-title`(18) `text-body`(15) `text-body-sm`(14) `text-button`(14) `text-caption`(12) `text-overline`(11) 그리고:
 
----
+- `text-quote` — 20px/1.85. 인용 문장 전용(`font-serif`와 함께).
+- `text-seal` — 10.5px/굵게/자간 0.16em. 날짜·상태 표식 전용.
 
-## 🔠 타이포그래피 (Typography)
+## 표면 규칙 (Surfaces)
 
-폰트는 전역으로 적용된 **Pretendard**를 사용합니다. 
-Tailwind 크기 유틸리티 대신, `line-height`와 `font-weight`가 미리 포함된 커스텀 클래스들을 사용하세요.
+- **그림자 금지.** `shadow-*` 클래스를 쓰지 않는다. 위계는 헤어라인 굵기·톤(`hairline` → `hairline-strong`)과 배경 단차(`paper` → `card` → `card-raised`)로.
+- 곡률은 절제: 카드 `rounded-md`(6px), 알약형(버튼·칩) `rounded-full`. 큰 라운드(`rounded-2xl` 이상) 지양.
+- 기울어진 도장 박스(스탬프) 장식 금지. 날짜 표식은 `<Seal>` 컴포넌트. 한자 장식(讀 등)은 허용.
+- 이모지 장식 지양.
 
-| 용도 | 클래스 | 특성 |
-| --- | --- | --- |
-| 페이지 제목 | `text-page-title` | `24px`, bold |
-| 섹션 제목 | `text-section-title` | `18px`, semibold |
-| 본문 기본 | `text-body` | `15px`, 기본 밝기/간격 |
-| 본문 작음 | `text-body-sm` | `14px`, 보조 내용용 |
-| 버튼 텍스트 | `text-button` | `14px`, medium |
-| 캡션/설명 | `text-caption` | `12px`, 부가메시지 |
-| 오버라인(라벨) | `text-overline` | `11px`, 대문자/넓은자간 |
+## 프리미티브 (components/ui)
 
-사용 예시:
-```tsx
-<h1 className="text-page-title text-label dark:text-label-invert">홈</h1>
-<p className="text-body text-label-sub">새로운 책을 읽어보세요.</p>
-```
+| 컴포넌트 | 요지 |
+| --- | --- |
+| `Button` | 알약형. primary=먹 배경, secondary=헤어라인 아웃라인, ghost/danger/success |
+| `Card` | 헤어라인 카드. `raised`는 진한 헤어라인(그림자 없음) |
+| `Input`/`Textarea` | 카드 표면 + strong 헤어라인, 포커스에 accent 1px |
+| `Modal` | `bg-ink/30` 스크림 + 헤어라인 패널 |
+| `Tabs` | 밑줄형, 활성=accent |
+| `Seal` | 잉크색 날짜/상태 라벨 ("1년 전 오늘", "완독") |
+| `Chip` | 알약형 선택 칩, `dot`으로 잉크 점 |
+| `Avatar` | card-raised 배경 + 헤어라인 |
 
----
+## 다크 모드
 
-## 🎛️ 컴포넌트 패턴
+어두운 종이. OS 설정 따름(`darkMode: 'media'`), 앱 내 토글 없음.
+토큰이 자동 전환하므로 **컴포넌트 코드에는 다크 분기가 없어야 정상**이다. `dark:`가 필요하다고 느껴지면 토큰 선택이 잘못된 것.
 
-### 버튼 (Buttons)
-```tsx
-<button className="bg-tint hover:bg-tint-hover text-surface text-button px-4 py-2 rounded-lg transition-colors">
-  시작하기
-</button>
-```
+## 아이콘
 
-### 입력창 및 텍스트영역 (Inputs)
-기존에 사용하던 `border`, `rounded-lg`, 및 `dark:` 프리픽스 하드코딩을 아래와 같이 토큰으로 구성합니다.
-```tsx
-<input 
-  className="w-full px-4 py-2 text-body rounded-lg 
-             bg-surface-raised dark:bg-dark-raised 
-             border border-border dark:border-dark-border 
-             text-label dark:text-label-invert 
-             focus:ring-2 focus:ring-tint-muted outline-none transition-all"
-  placeholder="제목을 입력하세요"
-/>
-```
-
----
-
-## 📦 UI 효과 및 곡률 (Radius & Shadow)
-
-- **곡률 (Radius):** 기본적으로 컴포넌트에는 `rounded-lg`(`16px`) 혹은 `rounded-2xl`(`24px` 카드용)를 추천합니다. (sm, md, lg, xl, 2xl, 3xl 커스텀 지원)
-- **그림자 (Shadow):** 
-  - `shadow-card`: 가벼운 패널/카드용
-  - `shadow-card-md`: 약간 떠있는 듯 한 컴포넌트
-  - `shadow-card-lg`: 중요 모달 등 최상위 요소
-
----
-
-## 🌙 다크 모드 (Dark Mode)
-
-모든 컴포넌트를 설계할 때 다크 모드를 필수로 대응합니다. `dark:` 프리픽스와 시맨틱 토큰을 짝지어 구성합니다.
-
-```tsx
-<div className="bg-surface dark:bg-dark-surface border border-border dark:border-dark-border shadow-card rounded-2xl p-6">
-  <h2 className="text-section-title text-label dark:text-label-invert">독서 통계</h2>
-  <span className="text-caption text-label-muted">2026년 3월 기준</span>
-</div>
-```
-
----
-
-## 🧩 컴포넌트 네이밍 규칙
-
-- 공통 UI 요소: `Button`, `Input`, `Textarea`, `Modal`, `Card`
-- 도메인 특화 컴포넌트: `BookCard`, `TimelineEntry`, `UserProfile`
-- 스타일은 항상 위에서 정의된 디자인 토큰을 활용합니다.
-
----
-
-## 📌 기타 규칙
-
-- 로딩 스피너 및 인터랙션 상태(Disabled, Loading) 스타일 대응은 투명도(`opacity-50`) 등을 활용합니다.
-- 여백과 간격은 일관된 Tailwind Spacing (`mt-4`, `space-y-6`, `p-5` 등)을 사용하여 시각적 하이어라키를 형성합니다.
+lucide-react 단일. `strokeWidth={1.75}` 권장. react-icons 금지(의존성 제거됨).

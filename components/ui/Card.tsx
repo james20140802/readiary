@@ -26,17 +26,12 @@ export default function Card({
       aria-disabled={disabled}
       tabIndex={disabled ? -1 : 0}
       className={clsx(
-        'rounded-2xl p-5',
-        // variant별 스타일
-        variant === 'default' &&
-          'bg-surface dark:bg-dark-surface border border-border dark:border-dark-border shadow-card',
-        variant === 'raised' &&
-          'bg-surface dark:bg-dark-surface border border-border dark:border-dark-border shadow-card-md',
-        variant === 'flat' &&
-          'bg-surface dark:bg-dark-surface border border-border dark:border-dark-border',
+        'rounded-md p-5',
+        variant === 'default' && 'bg-card border border-hairline',
+        variant === 'raised' && 'bg-card border border-hairline-strong',
+        variant === 'flat' && 'bg-card-raised border border-hairline',
         variant === 'ghost' && 'bg-transparent',
-        // hover
-        hoverable && !disabled && 'transition-shadow hover:shadow-card-md cursor-pointer',
+        hoverable && !disabled && 'transition-colors hover:border-hairline-strong cursor-pointer',
         disabled && 'opacity-50 pointer-events-none',
         className
       )}

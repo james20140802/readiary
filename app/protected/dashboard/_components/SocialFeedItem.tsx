@@ -102,37 +102,37 @@ export default function FeedItem({ entry, profile, initialLiked }: SocialFeedEnt
         {/* 헤더: 이름 + 메뉴 */}
         <div className="flex justify-between items-start mb-1">
           <Link href={userProfilePath} className="flex items-center gap-1 group">
-            <span className="text-body-sm font-bold text-label dark:text-label-invert group-hover:underline">
+            <span className="text-body-sm font-bold text-ink group-hover:underline">
               {profile.name}
             </span>
-            <span className="text-body-sm text-label-muted">님이</span>
+            <span className="text-body-sm text-ink-faint">님이</span>
           </Link>
 
           <div className="relative" ref={menuRef}>
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="p-1 text-label-muted hover:text-label-sub dark:hover:text-label-invert rounded-md transition-colors"
+              className="p-1 text-ink-faint hover:text-ink-sub rounded-md transition-colors"
             >
               <MoreHorizontal size={16} />
             </button>
 
             {isMenuOpen && (
-              <div className="absolute right-0 mt-1 w-40 bg-surface dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl shadow-card-md z-50 py-1.5 animate-in fade-in zoom-in-95 duration-100 origin-top-right">
+              <div className="absolute right-0 mt-1 w-40 bg-card border border-hairline rounded-xl z-50 py-1.5 animate-in fade-in zoom-in-95 duration-100 origin-top-right">
                 <button
                   onClick={() => router.push(userProfilePath)}
-                  className="flex items-center gap-2 w-full px-3.5 py-2 hover:bg-surface-raised dark:hover:bg-dark-raised text-left text-body-sm transition-colors"
+                  className="flex items-center gap-2 w-full px-3.5 py-2 hover:bg-card-raised text-left text-body-sm transition-colors"
                 >
-                  <User size={14} className="text-label-muted" /> 프로필 방문
+                  <User size={14} className="text-ink-faint" /> 프로필 방문
                 </button>
                 <button
                   onClick={() => router.push(bookDetailPath)}
-                  className="flex items-center gap-2 w-full px-3.5 py-2 hover:bg-surface-raised dark:hover:bg-dark-raised text-left text-body-sm transition-colors"
+                  className="flex items-center gap-2 w-full px-3.5 py-2 hover:bg-card-raised text-left text-body-sm transition-colors"
                 >
-                  <BookOpen size={14} className="text-label-muted" /> 도서 정보
+                  <BookOpen size={14} className="text-ink-faint" /> 도서 정보
                 </button>
                 <button
                   onClick={() => router.push(entryDetailPath)}
-                  className="flex items-center gap-2 w-full px-3.5 py-2 hover:bg-surface-raised dark:hover:bg-dark-raised text-left text-body-sm font-semibold border-t border-border dark:border-dark-border text-tint transition-colors"
+                  className="flex items-center gap-2 w-full px-3.5 py-2 hover:bg-card-raised text-left text-body-sm font-semibold border-t border-hairline text-accent transition-colors"
                 >
                   <Maximize2 size={14} /> 상세 보기
                 </button>
@@ -143,12 +143,12 @@ export default function FeedItem({ entry, profile, initialLiked }: SocialFeedEnt
 
         {/* 책 제목 + 페이지 배지 */}
         <Link href={bookDetailPath} className="flex items-center gap-1.5 mb-2 group/book">
-          <span className="text-caption text-label-muted">📚</span>
-          <span className="text-body-sm font-semibold text-label dark:text-label-invert group-hover/book:text-tint transition-colors line-clamp-1">
+          <span className="text-caption text-ink-faint">📚</span>
+          <span className="text-body-sm font-semibold text-ink group-hover/book:text-accent transition-colors line-clamp-1">
             {entry.book.title}
           </span>
           {entry.to_page && (
-            <span className="shrink-0 text-[10px] font-bold text-tint bg-tint-subtle dark:bg-tint/10 px-1.5 py-0.5 rounded-full border border-tint/20">
+            <span className="shrink-0 text-[10px] font-bold text-accent bg-accent-soft px-1.5 py-0.5 rounded-full border border-accent/20">
               {entry.from_page ? `${entry.from_page}→${entry.to_page}p` : `${entry.to_page}p`}
             </span>
           )}
@@ -157,7 +157,7 @@ export default function FeedItem({ entry, profile, initialLiked }: SocialFeedEnt
         {/* 본문 */}
         {(entry.note || entry.quote) && (
           <Link href={entryDetailPath}>
-            <p className="text-body-sm text-label-sub dark:text-label-muted leading-relaxed line-clamp-3 hover:text-label dark:hover:text-label-invert transition-colors">
+            <p className="text-body-sm text-ink-sub leading-relaxed line-clamp-3 hover:text-ink transition-colors">
               {entry.note ?? `“${entry.quote}”`}
             </p>
           </Link>
@@ -165,7 +165,7 @@ export default function FeedItem({ entry, profile, initialLiked }: SocialFeedEnt
 
         {/* 하단: 시간 + 좋아요 */}
         <div className="flex items-center justify-between mt-2.5">
-          <span className="text-caption text-label-muted">
+          <span className="text-caption text-ink-faint">
             {formatDistance(targetDate, now, { addSuffix: true, locale: ko })}
           </span>
 
@@ -174,8 +174,8 @@ export default function FeedItem({ entry, profile, initialLiked }: SocialFeedEnt
             disabled={isLikeLoading}
             className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full transition-all active:scale-95 border ${
               isLiked
-                ? 'text-red-500 bg-red-50 border-red-100 dark:bg-red-900/20 dark:border-red-900/40'
-                : 'text-label-muted bg-surface dark:bg-dark-surface border-border dark:border-dark-border hover:text-red-400 hover:border-red-100'
+                ? 'text-danger bg-danger-soft border-danger/30'
+                : 'text-ink-faint bg-card border-hairline hover:text-danger hover:border-danger/30'
             } ${isLikeLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
           >
             <Heart
@@ -191,8 +191,8 @@ export default function FeedItem({ entry, profile, initialLiked }: SocialFeedEnt
       {/* 에러 모달 */}
       <Modal isOpen={isErrorModalOpen} onClose={() => setIsErrorModalOpen(false)}>
         <div className="space-y-4">
-          <h2 className="text-lg font-bold text-label dark:text-label-invert">알림</h2>
-          <p className="text-sm text-secondary dark:text-label-muted">{errorModalMessage}</p>
+          <h2 className="text-lg font-bold text-ink">알림</h2>
+          <p className="text-sm text-ink-sub">{errorModalMessage}</p>
           <div className="flex justify-end pt-2">
             <Button size="sm" onClick={() => setIsErrorModalOpen(false)}>
               확인

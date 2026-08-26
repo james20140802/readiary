@@ -34,17 +34,17 @@ export default function Tabs({
 
   return (
     <div className={clsx(fullWidth && 'w-full', className)}>
-      <div className="flex space-x-2 border-b border-border dark:border-dark-border">
+      <div className="flex space-x-2 border-b border-hairline">
         {tabs.map((tab) => (
           <button
             key={tab.value}
             onClick={() => handleTabClick(tab.value)}
             className={clsx(
               fullWidth && 'flex-1',
-              'px-4 py-2 text-sm md:text-lg font-medium transition-colors',
+              'px-4 py-2 text-sm md:text-base font-medium transition-colors',
               selected === tab.value
-                ? 'border-b-2 border-tint text-tint'
-                : 'text-secondary hover:text-label'
+                ? 'border-b-2 border-accent text-accent'
+                : 'text-ink-sub hover:text-ink'
             )}
           >
             {tab.label}

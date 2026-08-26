@@ -73,10 +73,10 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
             size="md"
           />
           <div>
-            <span className="text-body-sm font-bold text-label dark:text-label-invert group-hover:underline">
+            <span className="text-body-sm font-bold text-ink group-hover:underline">
               {profile.name}
             </span>
-            <p className="text-caption text-label-muted">
+            <p className="text-caption text-ink-faint">
               {formatDistance(targetDate, now, { addSuffix: true, locale: ko })}
             </p>
           </div>
@@ -86,38 +86,38 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
         <div className="relative" ref={menuRef}>
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="text-label-muted hover:text-label-sub p-2 hover:bg-surface-raised dark:hover:bg-dark-raised rounded-full transition-colors"
+            className="text-ink-faint hover:text-ink-sub p-2 hover:bg-card-raised rounded-full transition-colors"
           >
             <MoreHorizontal size={18} />
           </button>
           {isMenuOpen && (
             <>
               <div className="fixed inset-0 z-10" onClick={() => setIsMenuOpen(false)} />
-              <div className="absolute right-0 mt-1 w-36 bg-surface dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl shadow-card-lg z-20 py-1 overflow-hidden animate-in fade-in zoom-in-95 duration-100 origin-top-right">
+              <div className="absolute right-0 mt-1 w-36 bg-card border border-hairline rounded-xl z-20 py-1 overflow-hidden animate-in fade-in zoom-in-95 duration-100 origin-top-right">
                 <button
                   onClick={() => {
                     router.push(userProfilePath);
                     setIsMenuOpen(false);
                   }}
-                  className="flex items-center gap-2 w-full px-3 py-2 text-caption font-medium text-label-sub dark:text-label-muted hover:bg-surface-raised dark:hover:bg-dark-raised transition-colors"
+                  className="flex items-center gap-2 w-full px-3 py-2 text-caption font-medium text-ink-sub hover:bg-card-raised transition-colors"
                 >
-                  <User size={13} className="text-label-muted" /> 프로필 방문
+                  <User size={13} className="text-ink-faint" /> 프로필 방문
                 </button>
                 <button
                   onClick={() => {
                     router.push(bookDetailPath);
                     setIsMenuOpen(false);
                   }}
-                  className="flex items-center gap-2 w-full px-3 py-2 text-caption font-medium text-label-sub dark:text-label-muted hover:bg-surface-raised dark:hover:bg-dark-raised transition-colors"
+                  className="flex items-center gap-2 w-full px-3 py-2 text-caption font-medium text-ink-sub hover:bg-card-raised transition-colors"
                 >
-                  <BookOpen size={13} className="text-label-muted" /> 도서 정보
+                  <BookOpen size={13} className="text-ink-faint" /> 도서 정보
                 </button>
                 <button
                   onClick={() => {
                     router.push(entryDetailPath);
                     setIsMenuOpen(false);
                   }}
-                  className="flex items-center gap-2 w-full px-3 py-2 text-caption font-semibold text-tint hover:bg-tint-subtle dark:hover:bg-tint/10 border-t border-border dark:border-dark-border transition-colors"
+                  className="flex items-center gap-2 w-full px-3 py-2 text-caption font-semibold text-accent hover:bg-accent-soft border-t border-hairline transition-colors"
                 >
                   <Maximize2 size={13} /> 상세 보기
                 </button>
@@ -129,8 +129,8 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
 
       {/* 2. 도서 정보 — 테두리만, 배경 없음 */}
       <Link href={bookDetailPath}>
-        <div className="mx-4 mb-3 flex gap-4 rounded-xl p-3 border border-border dark:border-dark-border hover:border-border-strong dark:hover:border-dark-border transition-colors">
-          <div className="relative w-[52px] h-[72px] shrink-0 rounded-lg overflow-hidden shadow-card-md">
+        <div className="mx-4 mb-3 flex gap-4 rounded-xl p-3 border border-hairline hover:border-hairline-strong transition-colors">
+          <div className="relative w-[52px] h-[72px] shrink-0 rounded-lg overflow-hidden">
             <Image
               src={book.cover_url || '/images/default-book-cover.png'}
               alt={book.title}
@@ -141,13 +141,13 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
           </div>
           <div className="flex flex-col justify-center gap-1.5 min-w-0">
             <div>
-              <h3 className="text-body-sm font-bold text-label dark:text-label-invert line-clamp-1">
+              <h3 className="text-body-sm font-bold text-ink line-clamp-1">
                 {book.title}
               </h3>
-              <p className="text-caption text-label-muted line-clamp-1">{book.author}</p>
+              <p className="text-caption text-ink-faint line-clamp-1">{book.author}</p>
             </div>
             {readRange && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-tint-subtle dark:bg-tint/10 border border-tint/20 text-tint text-[11px] font-bold w-fit">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent-soft border border-accent/20 text-accent text-[11px] font-bold w-fit">
                 📖 {readRange}
               </span>
             )}
@@ -159,7 +159,7 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
       {content && (
         <div className="px-4 pb-3">
           <p
-            className={`text-body-sm leading-relaxed text-label-sub dark:text-label-muted whitespace-pre-wrap ${
+            className={`text-body-sm leading-relaxed text-ink-sub whitespace-pre-wrap ${
               !isExpanded ? 'line-clamp-4' : ''
             }`}
           >
@@ -168,7 +168,7 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
           {content.length > 120 && !isExpanded && (
             <button
               onClick={() => setIsExpanded(true)}
-              className="mt-2 text-caption font-bold text-tint hover:text-tint-hover transition-colors"
+              className="mt-2 text-caption font-bold text-accent hover:text-accent-hover transition-colors"
             >
               ...더 보기
             </button>
@@ -176,7 +176,7 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
           {isExpanded && (
             <button
               onClick={() => setIsExpanded(false)}
-              className="mt-2 text-caption font-medium text-label-muted hover:text-label-sub transition-colors"
+              className="mt-2 text-caption font-medium text-ink-faint hover:text-ink-sub transition-colors"
             >
               접기
             </button>

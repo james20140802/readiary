@@ -17,8 +17,8 @@ export default function LogoutPage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-surface-page dark:bg-dark-page">
-      <p className="text-label-sub dark:text-label-muted">로그아웃 중...</p>
+    <div className="min-h-screen flex items-center justify-center bg-paper">
+      <p className="text-ink-sub">로그아웃 중...</p>
     </div>
   );
 }

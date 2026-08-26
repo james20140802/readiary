@@ -1,7 +1,6 @@
 'use client';
-import { MdHome, MdMenuBook, MdPerson, MdPublic } from 'react-icons/md';
 import Link from 'next/link';
-import { BookMarked } from 'lucide-react';
+import { BookMarked, Home, LibraryBig, Globe, UserRound } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import clsx from 'clsx';
 import type { User } from '@supabase/auth-helpers-nextjs';
@@ -9,10 +8,10 @@ import { useEffect, useState } from 'react';
 import { createSupabaseClient } from '@/lib/supabase/client';
 
 const navItems = [
-  { href: '/protected/dashboard', label: '홈', icon: <MdHome size={20} /> },
-  { href: '/protected/books', label: '내 책', icon: <MdMenuBook size={20} /> },
-  { href: '/protected/social', label: '소셜', icon: <MdPublic size={20} /> },
-  { href: '/protected/profile', label: '프로필', icon: <MdPerson size={20} /> },
+  { href: '/protected/dashboard', label: '홈', icon: <Home size={20} strokeWidth={1.75} /> },
+  { href: '/protected/books', label: '내 책', icon: <LibraryBig size={20} strokeWidth={1.75} /> },
+  { href: '/protected/social', label: '소셜', icon: <Globe size={20} strokeWidth={1.75} /> },
+  { href: '/protected/profile', label: '프로필', icon: <UserRound size={20} strokeWidth={1.75} /> },
 ];
 
 export default function Navbar() {
@@ -48,15 +47,15 @@ export default function Navbar() {
     <>
       {/* Mobile Bottom Navbar */}
       {user && (
-        <nav className="fixed bottom-0 inset-x-0 z-50 border-t border-border dark:border-dark-border bg-surface/80 dark:bg-dark-surface/80 backdrop-blur-md px-4 py-2 block md:hidden">
-          <div className="max-w-screen-md mx-auto flex justify-around text-xs text-label-sub dark:text-label-muted">
+        <nav className="fixed bottom-0 inset-x-0 z-50 border-t border-hairline bg-paper/90 backdrop-blur-md px-4 py-2 block md:hidden">
+          <div className="max-w-screen-md mx-auto flex justify-around text-xs text-ink-sub">
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 className={clsx(
                   'flex flex-col items-center gap-1 py-1 px-2 transition',
-                  pathname === item.href ? 'text-tint font-semibold' : 'text-label-muted'
+                  pathname === item.href ? 'text-accent font-semibold' : 'text-ink-faint'
                 )}
                 prefetch
               >
@@ -69,11 +68,11 @@ export default function Navbar() {
       )}
 
       {/* Desktop Top Navbar */}
-      <nav className="hidden md:flex fixed top-0 inset-x-0 z-50 border-b border-border dark:border-dark-border bg-surface/90 dark:bg-dark-surface/90 backdrop-blur-md px-8 py-5">
-        <div className="max-w-screen-md mx-auto flex items-center justify-between w-full text-sm text-label-sub dark:text-label-muted">
+      <nav className="hidden md:flex fixed top-0 inset-x-0 z-50 border-b border-hairline bg-paper/90 backdrop-blur-md px-8 py-5">
+        <div className="max-w-screen-md mx-auto flex items-center justify-between w-full text-sm text-ink-sub">
           <Link
             href="/"
-            className="text-lg font-bold text-label dark:text-label-invert flex items-center gap-2"
+            className="font-serif text-lg font-bold tracking-wide text-ink flex items-center gap-2"
             prefetch
           >
             <BookMarked size={20} />
@@ -86,10 +85,10 @@ export default function Navbar() {
                   key={item.href}
                   href={item.href}
                   className={clsx(
-                    'flex items-center gap-2 px-3 py-1 rounded-md transition hover:bg-surface-raised dark:hover:bg-dark-raised',
+                    'flex items-center gap-2 px-3 py-1 rounded-md transition hover:bg-card-raised',
                     pathname === item.href
-                      ? 'text-label dark:text-label-invert font-semibold'
-                      : 'text-label-muted'
+                      ? 'text-ink font-semibold'
+                      : 'text-ink-faint'
                   )}
                   prefetch
                 >

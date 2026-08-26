@@ -43,13 +43,13 @@ export default function EntryCard({
   };
 
   return (
-    <Card className="!p-0 overflow-hidden transition-all hover:border-border-strong dark:hover:border-dark-border group">
+    <Card className="!p-0 overflow-hidden transition-all hover:border-hairline-strong group">
       {/* 1. 콘텐츠 영역 */}
       <div className="p-5 pb-3 cursor-default">
         {note && note.trim() !== '' && (
           <div className="relative">
             <p
-              className={`text-[15px] leading-relaxed text-label-sub dark:text-label-muted whitespace-pre-wrap ${
+              className={`text-[15px] leading-relaxed text-ink-sub whitespace-pre-wrap ${
                 !isExpanded ? 'line-clamp-4' : ''
               }`}
             >
@@ -61,7 +61,7 @@ export default function EntryCard({
                   e.stopPropagation();
                   setIsExpanded(!isExpanded);
                 }}
-                className="mt-1 text-[13px] font-bold text-label-muted hover:text-label-sub dark:hover:text-label-invert transition-colors"
+                className="mt-1 text-[13px] font-bold text-ink-faint hover:text-ink-sub transition-colors"
               >
                 {isExpanded ? '접기' : '...더 보기'}
               </button>
@@ -75,21 +75,21 @@ export default function EntryCard({
           className="mt-4 flex justify-between items-center cursor-pointer group/link"
         >
           <div className="flex items-center gap-1.5">
-            <p className="text-[11px] text-label-muted tabular-nums">
+            <p className="text-[11px] text-ink-faint tabular-nums">
               {new Date(date).toLocaleDateString()}
             </p>
             {isPrivate && (
-              <Lock size={10} className="text-label-muted/70" />
+              <Lock size={10} className="text-ink-faint/70" />
             )}
           </div>
-          <span className="text-[11px] font-bold text-label-muted group-hover/link:text-tint transition-colors">
+          <span className="text-[11px] font-bold text-ink-faint group-hover/link:text-accent transition-colors">
             상세 보기 →
           </span>
         </div>
       </div>
 
       {/* 3. 하단 액션 바 */}
-      <div className="border-t border-border dark:border-dark-border/50">
+      <div className="border-t border-hairline">
         <SocialActionBar
           entryId={id}
           initialLikeCount={initialLikeCount}

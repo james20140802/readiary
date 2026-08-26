@@ -76,7 +76,7 @@ export default function BookDetailContent({
       <section className="flex flex-col sm:flex-row sm:items-start sm:gap-6 w-full">
         <div className="flex flex-col sm:flex-row sm:items-stretch sm:gap-10 w-full">
           <div className="flex-shrink-0 self-center sm:self-start">
-            <div className="relative group shadow-2xl">
+            <div className="relative group">
               <Image
                 src={cover_url ?? '/images/default-book-cover.png'}
                 alt="Book cover"
@@ -90,25 +90,25 @@ export default function BookDetailContent({
 
           <div className="w-full flex flex-col mt-8 sm:mt-0 justify-between">
             <div>
-              <h1 className="text-3xl sm:text-4xl font-bold text-label dark:text-label-invert leading-tight tracking-tight">
+              <h1 className="text-3xl sm:text-4xl font-bold text-ink leading-tight tracking-tight">
                 {title}
               </h1>
-              <p className="text-label-muted mt-2 text-lg">{author}</p>
+              <p className="text-ink-faint mt-2 text-lg">{author}</p>
             </div>
 
             <div className="mt-8 space-y-6">
               <div className="space-y-3">
-                <div className="w-full bg-border dark:bg-dark-border rounded-full h-2 overflow-hidden">
+                <div className="w-full bg-hairline rounded-full h-2 overflow-hidden">
                   <div
-                    className="bg-tint h-full rounded-full transition-all duration-1000 ease-out"
+                    className="bg-accent h-full rounded-full transition-all duration-1000 ease-out"
                     style={{ width: `${progress ?? 0}%` }}
                   />
                 </div>
-                <div className="flex justify-between items-center text-[11px] font-bold tracking-widest text-label-muted uppercase">
+                <div className="flex justify-between items-center text-[11px] font-bold tracking-widest text-ink-faint uppercase">
                   <span>
                     {last_read_page ?? 0} / {total_pages} PAGES
                   </span>
-                  <span className="text-tint">{progress ?? 0}% COMPLETED</span>
+                  <span className="text-accent">{progress ?? 0}% COMPLETED</span>
                 </div>
               </div>
             </div>
@@ -120,11 +120,11 @@ export default function BookDetailContent({
         {!isFriend &&
           (!isFinished ? (
             <Card className="flex flex-row items-center gap-4 group/action">
-              <div className="p-2 bg-surface-raised dark:bg-dark-raised rounded-xl text-label-muted group-hover/action:text-tint transition-colors">
+              <div className="p-2 bg-card-raised rounded-xl text-ink-faint group-hover/action:text-accent transition-colors">
                 <BookOpen size={20} />
               </div>
               <div className="flex-1 text-left">
-                <p className="text-xs text-label-muted font-medium leading-relaxed">
+                <p className="text-xs text-ink-faint font-medium leading-relaxed">
                   {progress && progress >= 90
                     ? '이제 마침표를 찍을 시간입니다.'
                     : progress && progress > 60
@@ -139,7 +139,7 @@ export default function BookDetailContent({
               <MarkAsFinishedButton onFinish={() => setIsFinished(true)} userBookId={id} />
             </Card>
           ) : (
-            <div className="flex items-center gap-3 p-4 bg-success-subtle rounded-2xl border border-success-muted text-success animate-in fade-in slide-in-from-top-2 duration-500">
+            <div className="flex items-center gap-3 p-4 bg-success-soft rounded-2xl border border-success/30 text-success animate-in fade-in slide-in-from-top-2 duration-500">
               <CheckCircle2 size={24} />
               <div>
                 <p className="text-sm font-bold">완독한 도서입니다</p>
@@ -157,7 +157,7 @@ export default function BookDetailContent({
           
           {/* 모바일 1줄: 타이틀 & 기록 추가 버튼 */}
           <div className="flex items-center justify-between gap-4 w-full sm:w-auto">
-            <h2 className="text-section-title text-label dark:text-label-invert">📓 독서 기록</h2>
+            <h2 className="text-section-title text-ink">📓 독서 기록</h2>
             {!isFriend && (
               <span className="sm:hidden">
                 <Link href={`/protected/books/${book_id}/entry/new`}>
@@ -178,15 +178,15 @@ export default function BookDetailContent({
                   {/* 공개 여부 필터 탭 */}
                   {!isFriend && (
                     <>
-                      <div className="flex items-center bg-surface-raised dark:bg-dark-raised p-1 rounded-lg border border-border dark:border-dark-border shrink-0">
+                      <div className="flex items-center bg-card-raised p-1 rounded-lg border border-hairline shrink-0">
                         {FILTER_OPTIONS.map((opt) => (
                           <button
                             key={opt.value}
                             onClick={() => setFilterOption(opt.value)}
                             className={`px-2.5 py-1 rounded-md text-caption font-semibold transition-all whitespace-nowrap ${
                               filterOption === opt.value
-                                ? 'bg-surface dark:bg-dark-surface text-label dark:text-label-invert shadow-card'
-                                : 'text-label-muted hover:text-label-sub'
+                                ? 'bg-card text-ink'
+                                : 'text-ink-faint hover:text-ink-sub'
                             }`}
                           >
                             {opt.label}
@@ -195,7 +195,7 @@ export default function BookDetailContent({
                       </div>
 
                       {/* 구분을 위한 희미한 선 */}
-                      <div className="w-px h-4 bg-border dark:bg-dark-border hidden sm:block" />
+                      <div className="w-px h-4 bg-hairline hidden sm:block" />
                     </>
                   )}
                 </div>
@@ -204,7 +204,7 @@ export default function BookDetailContent({
                 <div className="relative shrink-0">
                   <button
                     onClick={() => setSortOpen((v) => !v)}
-                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-border dark:border-dark-border bg-surface dark:bg-dark-surface text-caption font-medium text-label-sub dark:text-label-muted hover:border-border-strong transition-all"
+                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-hairline bg-card text-caption font-medium text-ink-sub hover:border-hairline-strong transition-all"
                   >
                     <span className="inline">
                       {SORT_OPTIONS.find((o) => o.value === sortOrder)?.label}
@@ -217,7 +217,7 @@ export default function BookDetailContent({
                   {sortOpen && (
                     <>
                       <div className="fixed inset-0 z-10" onClick={() => setSortOpen(false)} />
-                      <div className="absolute right-0 sm:left-0 top-full mt-1 z-20 bg-surface dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl shadow-card-lg overflow-hidden min-w-[100px]">
+                      <div className="absolute right-0 sm:left-0 top-full mt-1 z-20 bg-card border border-hairline rounded-xl overflow-hidden min-w-[100px]">
                         {SORT_OPTIONS.map((opt) => (
                           <button
                             key={opt.value}
@@ -227,8 +227,8 @@ export default function BookDetailContent({
                             }}
                             className={`w-full text-left px-3 py-2 text-caption transition-colors ${
                               sortOrder === opt.value
-                                ? 'text-tint font-semibold bg-tint-subtle dark:bg-tint/10'
-                                : 'text-label-sub dark:text-label-muted hover:bg-surface-raised dark:hover:bg-dark-raised'
+                                ? 'text-accent font-semibold bg-accent-soft'
+                                : 'text-ink-sub hover:bg-card-raised'
                             }`}
                           >
                             {opt.label}
@@ -280,7 +280,7 @@ export default function BookDetailContent({
             ))}
           </AnimatedListSection>
         ) : (
-          <p className="text-sm text-label-muted">아직 작성된 기록이 없습니다.</p>
+          <p className="text-sm text-ink-faint">아직 작성된 기록이 없습니다.</p>
         )}
       </section>
     </div>

@@ -82,7 +82,7 @@ export default function EditProfilePage() {
     <main>
       <header className="flex items-center mb-6">
         <BackButton />
-        <h1 className="text-page-title font-black text-label dark:text-label-invert ml-4">
+        <h1 className="text-page-title font-black text-ink ml-4">
           프로필 수정
         </h1>
       </header>
@@ -91,7 +91,7 @@ export default function EditProfilePage() {
         {/* 이미지 수정 섹션 */}
         <section className="flex flex-col items-center sm:flex-row gap-8">
           <div className="relative group shrink-0">
-            <div className="w-32 h-32 rounded-2xl overflow-hidden bg-surface-raised dark:bg-dark-raised border-2 border-border dark:border-dark-border relative shadow-xl">
+            <div className="w-32 h-32 rounded-2xl overflow-hidden bg-card-raised border-2 border-hairline relative">
               {imagePath ? (
                 <>
                   <Image
@@ -110,7 +110,7 @@ export default function EditProfilePage() {
                   </button>
                 </>
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-label-muted font-black text-4xl uppercase">
+                <div className="w-full h-full flex items-center justify-center text-ink-faint font-black text-4xl uppercase">
                   {nickname?.at(0) || 'U'}
                 </div>
               )}
@@ -120,7 +120,7 @@ export default function EditProfilePage() {
                 </div>
               )}
             </div>
-            <label className="absolute bottom-0 right-0 p-2.5 bg-dark-surface dark:bg-surface text-label-invert dark:text-label rounded-2xl cursor-pointer hover:scale-110 shadow-lg transition-transform">
+            <label className="absolute bottom-0 right-0 p-2.5 bg-ink text-ink-invert rounded-2xl cursor-pointer border border-hairline-strong hover:scale-110 transition-transform">
               <Camera size={18} strokeWidth={2.5} />
               <input
                 type="file"
@@ -132,8 +132,8 @@ export default function EditProfilePage() {
             </label>
           </div>
           <div className="text-center sm:text-left">
-            <h3 className="font-bold text-label dark:text-label-invert">프로필 사진</h3>
-            <p className="text-caption text-label-muted mt-1 font-medium">
+            <h3 className="font-bold text-ink">프로필 사진</h3>
+            <p className="text-caption text-ink-faint mt-1 font-medium">
               나를 나타내는 멋진 사진을 올려보세요.
             </p>
           </div>
@@ -187,7 +187,7 @@ export default function EditProfilePage() {
           <div className="text-center">
             <button
               onClick={() => router.push('/protected/profile/update-password')}
-              className="text-sm font-semibold text-label-sub hover:text-label dark:text-label-muted dark:hover:text-label-invert transition-colors underline underline-offset-4"
+              className="text-sm font-semibold text-ink-sub hover:text-ink transition-colors underline underline-offset-4"
             >
               비밀번호 변경
             </button>

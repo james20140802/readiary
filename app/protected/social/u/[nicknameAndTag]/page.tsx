@@ -45,7 +45,7 @@ export default async function FriendProfilePage({ params }: FriendProfilePagePro
     <div>
       <header className="flex items-center mb-2">
         <BackButton />
-        <h1 className="text-page-title text-label dark:text-label-invert ml-4">👤 친구 프로필</h1>
+        <h1 className="text-page-title text-ink ml-4">👤 친구 프로필</h1>
       </header>
       <AnimatedSection>
         <div>
@@ -59,7 +59,7 @@ export default async function FriendProfilePage({ params }: FriendProfilePagePro
           {stats ? (
             <ProfileStats stats={stats} />
           ) : (
-            <p className="text-body-sm text-label-muted">통계 정보를 불러올 수 없습니다.</p>
+            <p className="text-body-sm text-ink-faint">통계 정보를 불러올 수 없습니다.</p>
           )}
         </div>
       </AnimatedSection>

@@ -8,7 +8,7 @@ import { searchBook } from '@/lib/books/searchBook';
 import Modal from '@/components/ui/Modal';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
-import { MdSearch } from 'react-icons/md';
+import { Search } from 'lucide-react';
 import Image from 'next/image';
 
 export default function KakaoBookSearchForm() {
@@ -110,20 +110,20 @@ export default function KakaoBookSearchForm() {
             setHasSearched(false);
           }}
           placeholder="책 제목 혹은 ISBN을 입력하세요"
-          className="w-full px-4 py-2 text-body rounded-lg bg-surface-raised dark:bg-dark-raised border border-border dark:border-dark-border text-label dark:text-label-invert focus:ring-2 focus:ring-tint-muted outline-none transition-all"
+          className="w-full px-4 py-2 text-body rounded-lg bg-card-raised border border-hairline text-ink focus:ring-2 focus:ring-accent/30 outline-none transition-all"
         />
         <button
           onClick={handleSearch}
           disabled={loading}
-          className="bg-tint hover:bg-tint-hover text-surface text-button px-4 py-2 rounded-lg transition-colors flex items-center justify-center shrink-0"
+          className="bg-accent hover:bg-accent-hover text-card text-button px-4 py-2 rounded-lg transition-colors flex items-center justify-center shrink-0"
         >
-          <MdSearch size={20} />
+          <Search size={20} />
         </button>
       </div>
 
       {results.length === 0 && !loading && query !== '' && hasSearched && (
         <div className="flex justify-center items-center py-8">
-          <p className="text-sm text-label-sub dark:text-label-muted">검색 결과가 없습니다.</p>
+          <p className="text-sm text-ink-sub">검색 결과가 없습니다.</p>
         </div>
       )}
       <ul className="space-y-4">
@@ -148,9 +148,9 @@ export default function KakaoBookSearchForm() {
                 className="object-cover rounded"
               />
               <div className="text-sm">
-                <div className="font-medium text-label dark:text-label-invert">{book.title}</div>
-                <div className="text-label-sub dark:text-label-muted">{book.authors?.join(', ')}</div>
-                <div className="text-xs text-label-muted">ISBN: {book.isbn.split(' ').join(', ')}</div>
+                <div className="font-medium text-ink">{book.title}</div>
+                <div className="text-ink-sub">{book.authors?.join(', ')}</div>
+                <div className="text-xs text-ink-faint">ISBN: {book.isbn.split(' ').join(', ')}</div>
               </div>
             </Card>
           );
@@ -165,7 +165,7 @@ export default function KakaoBookSearchForm() {
           setTotalPages(null);
         }}
       >
-        <div className="bg-surface dark:bg-dark-surface p-5 rounded-2xl space-y-4 w-full max-w-sm mx-auto">
+        <div className="bg-card p-5 rounded-2xl space-y-4 w-full max-w-sm mx-auto">
           {/* Modal Book Info Block */}
           <div className="flex items-start gap-4">
             <Image
@@ -176,24 +176,24 @@ export default function KakaoBookSearchForm() {
               className="rounded object-cover"
             />
             <div className="flex-1 text-sm">
-              <div className="font-semibold text-label dark:text-label-invert mb-1">
+              <div className="font-semibold text-ink mb-1">
                 {selectedBook?.title}
               </div>
-              <div className="text-label-sub dark:text-label-muted mb-1">
+              <div className="text-ink-sub mb-1">
                 {selectedBook?.authors?.join(', ')}
               </div>
               {selectedBook?.isbn && (
-                <div className="text-xs text-label-sub dark:text-label-muted mb-1">
+                <div className="text-xs text-ink-sub mb-1">
                   ISBN: {selectedBook.isbn.split(' ').join(', ')}
                 </div>
               )}
               {totalPages ? (
-                <p className="text-label dark:text-label-invert">
+                <p className="text-ink">
                   총 페이지 수: <strong>{totalPages}</strong>
                 </p>
               ) : (
                 <div className="mt-2">
-                  <p className="mb-1 text-label dark:text-label-invert">
+                  <p className="mb-1 text-ink">
                     페이지 수를 찾을 수 없습니다. 직접 입력해주세요:
                   </p>
                   <input
@@ -201,7 +201,7 @@ export default function KakaoBookSearchForm() {
                     value={manualTotalPages}
                     onChange={(e) => setManualTotalPages(e.target.value)}
                     placeholder="총 페이지 수"
-                    className="w-full px-4 py-2 text-body rounded-lg bg-surface-raised dark:bg-dark-raised border border-border dark:border-dark-border text-label dark:text-label-invert focus:ring-2 focus:ring-tint-muted outline-none transition-all"
+                    className="w-full px-4 py-2 text-body rounded-lg bg-card-raised border border-hairline text-ink focus:ring-2 focus:ring-accent/30 outline-none transition-all"
                   />
                 </div>
               )}
