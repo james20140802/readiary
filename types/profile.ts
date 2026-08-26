@@ -1,4 +1,3 @@
-import { UserBadge } from './badges';
 import { UserBookWithCover } from './book';
 
 export type Profile = {
@@ -14,7 +13,6 @@ export type Profile = {
 export type ProfileFullData = {
   profile: Profile | null;
   userBooks: UserBookWithCover[];
-  userBadges: UserBadge[];
 };
 
 export type Stats = {

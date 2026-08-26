@@ -16,7 +16,8 @@ export async function fetchEntryDetail(entryId: string): Promise<EntryDetailData
     .select(
       `
             id,
-            summary,
+            note,
+            quote,
             from_page,
             to_page,
             date,
@@ -52,7 +53,8 @@ export async function fetchEntryDetail(entryId: string): Promise<EntryDetailData
   return {
     entry: {
       id: data.id,
-      summary: data.summary,
+      note: data.note,
+      quote: data.quote,
       from_page: data.from_page,
       to_page: data.to_page,
       date: data.date,

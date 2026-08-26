@@ -19,12 +19,12 @@ export default async function ProfilePage() {
     return <p className="text-center mt-10 text-danger">로그인이 필요합니다.</p>;
   }
 
-  const [{ profile, userBooks, userBadges }, stats] = await Promise.all([
+  const [{ profile, userBooks }, stats] = await Promise.all([
     fetchProfileData(user.id),
     getUserStats(user.id),
   ]);
 
-  if (!profile || !userBooks || !userBadges) {
+  if (!profile || !userBooks) {
     return notFound();
   }
 
@@ -36,7 +36,7 @@ export default async function ProfilePage() {
           <ProfileHeader user={user} profile={profile} />
           <ProfileBookshelf userBooks={userBooks} isOwnProfile />
           {stats ? (
-            <ProfileStats stats={stats} badges={userBadges} />
+            <ProfileStats stats={stats} />
           ) : (
             <p className="text-body-sm text-label-muted">통계 정보를 불러올 수 없습니다.</p>
           )}

@@ -29,7 +29,14 @@ export async function getUserStats(userId: string): Promise<Stats | null> {
   const totalBooks = books.length;
   const finishedBooks = books.filter((book) => book.is_finished).length;
   const totalEntries = entries.length;
-  const totalPages = entries.reduce((sum, e) => sum + ((e.to_page ?? 0) - (e.from_page ?? 0)), 0);
+  // 페이지 범위는 양끝 포함(inclusive)으로 센다 — 100~100은 1쪽
+  const totalPages = entries.reduce(
+    (sum, e) =>
+      e.from_page != null && e.to_page != null
+        ? sum + Math.max(0, e.to_page - e.from_page + 1)
+        : sum,
+    0
+  );
 
   return {
     totalBooks,

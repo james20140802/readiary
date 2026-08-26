@@ -10,7 +10,7 @@ import { Lock } from 'lucide-react';
 
 interface EntryCardProps {
   id: string;
-  summary: string;
+  note: string;
   date: string;
   isPrivate?: boolean;
   userId?: string;
@@ -22,7 +22,7 @@ interface EntryCardProps {
 
 export default function EntryCard({
   id,
-  summary,
+  note,
   date,
   isPrivate = false,
   userId,
@@ -46,16 +46,16 @@ export default function EntryCard({
     <Card className="!p-0 overflow-hidden transition-all hover:border-border-strong dark:hover:border-dark-border group">
       {/* 1. 콘텐츠 영역 */}
       <div className="p-5 pb-3 cursor-default">
-        {summary && summary.trim() !== '' && (
+        {note && note.trim() !== '' && (
           <div className="relative">
             <p
               className={`text-[15px] leading-relaxed text-label-sub dark:text-label-muted whitespace-pre-wrap ${
                 !isExpanded ? 'line-clamp-4' : ''
               }`}
             >
-              {summary}
+              {note}
             </p>
-            {summary.length > 120 && (
+            {note.length > 120 && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();

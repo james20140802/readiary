@@ -14,7 +14,7 @@ import BackButton from '@/components/ui/BackButton';
 interface Props {
   entryId: string;
   book: Book;
-  initialSummary: string;
+  initialNote: string;
   initialFromPage: number | null;
   initialToPage: number | null;
   initialIsPrivate: boolean;
@@ -24,7 +24,7 @@ interface Props {
 export default function EditEntryForm({
   entryId,
   book,
-  initialSummary,
+  initialNote,
   initialFromPage,
   initialToPage,
   initialIsPrivate,
@@ -32,7 +32,7 @@ export default function EditEntryForm({
 }: Props) {
   const router = useRouter();
 
-  const [summary, setSummary] = useState(initialSummary);
+  const [note, setNote] = useState(initialNote);
   const [fromPage, setFromPage] = useState(initialFromPage?.toString() ?? '');
   const [toPage, setToPage] = useState(initialToPage?.toString() ?? '');
   const [isPrivate, setIsPrivate] = useState(initialIsPrivate);
@@ -43,22 +43,28 @@ export default function EditEntryForm({
     e.preventDefault();
     setError('');
 
+    if (fromPage !== '' && toPage !== '' && Number(fromPage) > Number(toPage)) {
+      setError('시작 페이지는 종료 페이지보다 작거나 같아야 합니다.');
+      return;
+    }
+
     const res = await fetch(`/api/entries/${entryId}/edit`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        summary,
-        from_page: Number(fromPage),
-        to_page: Number(toPage),
+        note,
+        from_page: fromPage === '' ? null : Number(fromPage),
+        to_page: toPage === '' ? null : Number(toPage),
         is_private: isPrivate,
         date,
       }),
     });
 
     if (!res.ok) {
-      setError('수정에 실패했어요. 다시 시도해주세요.');
+      const data = await res.json().catch(() => null);
+      setError(data?.error ?? '수정에 실패했어요.');
     } else {
       router.push(`/protected/entry/${entryId}`);
     }
@@ -140,8 +146,8 @@ export default function EditEntryForm({
         <FormGroup>
           <FormLabel>줄거리 요약</FormLabel>
           <Textarea
-            value={summary}
-            onChange={(e) => setSummary(e.target.value)}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
             placeholder="오늘 읽은 내용을 간단히 정리해보세요..."
             rows={5}
             className="resize-none"

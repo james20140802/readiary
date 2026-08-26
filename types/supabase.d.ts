@@ -143,7 +143,8 @@ export type Database = {
           from_page: number | null;
           id: string;
           is_private: boolean;
-          summary: string | null;
+          note: string | null;
+          quote: string | null;
           to_page: number | null;
           user_book_id: string;
         };
@@ -153,7 +154,8 @@ export type Database = {
           from_page?: number | null;
           id?: string;
           is_private?: boolean;
-          summary?: string | null;
+          note?: string | null;
+          quote?: string | null;
           to_page?: number | null;
           user_book_id: string;
         };
@@ -163,7 +165,8 @@ export type Database = {
           from_page?: number | null;
           id?: string;
           is_private?: boolean;
-          summary?: string | null;
+          note?: string | null;
+          quote?: string | null;
           to_page?: number | null;
           user_book_id?: string;
         };
@@ -251,6 +254,58 @@ export type Database = {
             columns: ['user_id'];
             isOneToOne: false;
             referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      notifications: {
+        Row: {
+          actor_id: string;
+          created_at: string;
+          entry_id: string | null;
+          id: string;
+          read_at: string | null;
+          type: string;
+          user_id: string;
+        };
+        Insert: {
+          actor_id: string;
+          created_at?: string;
+          entry_id?: string | null;
+          id?: string;
+          read_at?: string | null;
+          type: string;
+          user_id: string;
+        };
+        Update: {
+          actor_id?: string;
+          created_at?: string;
+          entry_id?: string | null;
+          id?: string;
+          read_at?: string | null;
+          type?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'notifications_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'notifications_actor_id_fkey';
+            columns: ['actor_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'notifications_entry_id_fkey';
+            columns: ['entry_id'];
+            isOneToOne: false;
+            referencedRelation: 'entries';
             referencedColumns: ['id'];
           },
         ];

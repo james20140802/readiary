@@ -101,14 +101,14 @@ export default function BookDetailContent({
                 <div className="w-full bg-border dark:bg-dark-border rounded-full h-2 overflow-hidden">
                   <div
                     className="bg-tint h-full rounded-full transition-all duration-1000 ease-out"
-                    style={{ width: `${progress}%` }}
+                    style={{ width: `${progress ?? 0}%` }}
                   />
                 </div>
                 <div className="flex justify-between items-center text-[11px] font-bold tracking-widest text-label-muted uppercase">
                   <span>
-                    {last_read_page} / {total_pages} PAGES
+                    {last_read_page ?? 0} / {total_pages} PAGES
                   </span>
-                  <span className="text-tint">{progress}% COMPLETED</span>
+                  <span className="text-tint">{progress ?? 0}% COMPLETED</span>
                 </div>
               </div>
             </div>
@@ -136,12 +136,7 @@ export default function BookDetailContent({
                           : '새로운 탐험의 시작입니다.'}
                 </p>
               </div>
-              <MarkAsFinishedButton
-                onFinish={() => setIsFinished(true)}
-                userBookId={id}
-                progress={progress ?? 0}
-                userId={userId ?? ''}
-              />
+              <MarkAsFinishedButton onFinish={() => setIsFinished(true)} userBookId={id} />
             </Card>
           ) : (
             <div className="flex items-center gap-3 p-4 bg-success-subtle rounded-2xl border border-success-muted text-success animate-in fade-in slide-in-from-top-2 duration-500">
@@ -266,7 +261,9 @@ export default function BookDetailContent({
               <li key={data.entry.id}>
                 <EntryCard
                   id={data.entry.id}
-                  summary={data.entry.summary ?? ''}
+                  note={[data.entry.quote ? `“${data.entry.quote}”` : null, data.entry.note]
+                    .filter(Boolean)
+                    .join('\n\n')}
                   date={data.entry.date}
                   isPrivate={data.entry.is_private}
                   userId={userId}

@@ -155,10 +155,10 @@ export default function FeedItem({ entry, profile, initialLiked }: SocialFeedEnt
         </Link>
 
         {/* 본문 */}
-        {entry.summary && (
+        {(entry.note || entry.quote) && (
           <Link href={entryDetailPath}>
             <p className="text-body-sm text-label-sub dark:text-label-muted leading-relaxed line-clamp-3 hover:text-label dark:hover:text-label-invert transition-colors">
-              {entry.summary}
+              {entry.note ?? `“${entry.quote}”`}
             </p>
           </Link>
         )}

@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Book } from '@/types/book';
 import Input from '@/components/ui/Input';
-import { useBadgeAwarder } from '@/hooks/useBadgeAwarder';
 import { toast } from 'sonner';
 
 import Button from '@/components/ui/Button';
@@ -24,17 +23,16 @@ interface Props {
 
 export default function NewEntryForm({ userBookId, userId, book, bookId }: Props) {
   const router = useRouter();
-  const [summary, setSummary] = useState('');
+  const [note, setNote] = useState('');
   const [fromPage, setFromPage] = useState('');
   const [toPage, setToPage] = useState('');
   const [error, setError] = useState('');
   const [isPrivate, setIsPrivate] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false); // 2. 제출 상태 추가
-  const awardBadges = useBadgeAwarder();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!summary || !fromPage || !toPage) {
+    if (!note || !fromPage || !toPage) {
       setError('모든 필드를 입력해주세요.');
       return;
     }
@@ -53,7 +51,7 @@ export default function NewEntryForm({ userBookId, userId, book, bookId }: Props
       const res = await fetch('/api/entries/new', {
         method: 'POST',
         body: JSON.stringify({
-          summary,
+          note,
           from_page: from,
           to_page: to,
           date: new Date().toISOString().split('T')[0],
@@ -69,7 +67,6 @@ export default function NewEntryForm({ userBookId, userId, book, bookId }: Props
         setError('기록 저장 중 오류가 발생했습니다.');
       } else {
         toast.success('기록이 성공적으로 저장되었습니다.');
-        await awardBadges(userId);
         router.push(`/protected/books/${bookId}`);
       }
     } catch (err) {
@@ -164,8 +161,8 @@ export default function NewEntryForm({ userBookId, userId, book, bookId }: Props
         <FormGroup>
           <FormLabel>줄거리 요약</FormLabel>
           <Textarea
-            value={summary}
-            onChange={(e) => setSummary(e.target.value)}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
             placeholder="오늘 읽은 내용을 간단히 정리해보세요..."
             rows={5}
             fullWidth

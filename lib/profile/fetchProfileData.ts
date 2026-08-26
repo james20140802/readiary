@@ -24,50 +24,34 @@ export async function fetchByNicknameAndTag(nickname: string, tag: string) {
     .eq('tag', tag)
     .single();
 
-  if (profileError || !profile) return { profile: null, userBooks: [], userBadges: [] };
+  if (profileError || !profile) return { profile: null, userBooks: [] };
 
-  const [{ data: userBooks }, { data: userBadges }] = await Promise.all([
-    supabase
-      .from('user_books')
-      .select('*, books(*)')
-      .eq('user_id', profile.id)
-      .order('created_at', { ascending: false }),
-
-    supabase
-      .from('user_badges')
-      .select('awarded_at, badge:badges!fk_user_badges_badge_id(id, name, description, icon_url)')
-      .eq('user_id', profile.id)
-      .order('awarded_at', { ascending: false }),
-  ]);
+  const { data: userBooks } = await supabase
+    .from('user_books')
+    .select('*, books(*)')
+    .eq('user_id', profile.id)
+    .order('created_at', { ascending: false });
 
   return {
     profile,
     userBooks: userBooks ?? [],
-    userBadges: userBadges ?? [],
   };
 }
 
 export async function fetchByUserId(userId: string) {
   const supabase = await createSupabaseServerClient();
 
-  const [{ data: profile }, { data: userBooks }, { data: userBadges }] = await Promise.all([
+  const [{ data: profile }, { data: userBooks }] = await Promise.all([
     supabase.from('profiles').select('*').eq('id', userId).single(),
     supabase
       .from('user_books')
       .select('*, books(*)')
       .eq('user_id', userId)
       .order('created_at', { ascending: false }),
-
-    supabase
-      .from('user_badges')
-      .select('awarded_at, badge:badges!fk_user_badges_badge_id(id, name, description, icon_url)')
-      .eq('user_id', userId)
-      .order('awarded_at', { ascending: false }),
   ]);
 
   return {
     profile,
     userBooks: userBooks ?? [],
-    userBadges: userBadges ?? [],
   };
 }

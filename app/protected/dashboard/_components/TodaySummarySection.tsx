@@ -17,9 +17,9 @@ export function TodaySummarySection({ entry }: Props) {
           <h2 className="text-section-title text-label dark:text-label-invert">
             {entry.book.title}
           </h2>
-          {entry.summary && (
+          {entry.note && (
             <p className="mt-1 text-body-sm text-label-sub dark:text-label-muted italic line-clamp-2">
-              &quot;{entry.summary}&quot;
+              &quot;{entry.note}&quot;
             </p>
           )}
         </div>

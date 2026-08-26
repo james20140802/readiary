@@ -53,7 +53,8 @@ export async function fetchSocialFeedEntries(page: number = 0, limit: number = 1
         `
         id,
         date,
-        summary,
+        note,
+        quote,
         from_page,
         to_page,
         created_at,
@@ -135,7 +136,8 @@ export async function fetchDetailSocialFeedEntries(page: number = 0, limit: numb
         `
         id,
         date,
-        summary,
+        note,
+        quote,
         from_page,
         to_page,
         created_at,

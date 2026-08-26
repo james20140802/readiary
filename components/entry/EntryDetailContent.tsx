@@ -156,9 +156,16 @@ export default function EntryDetailContent({
                 )}
               </div>
 
-              <p className="text-[0.9375rem] leading-relaxed text-label-sub dark:text-label-muted whitespace-pre-wrap">
-                {entry.summary ?? ''}
-              </p>
+              {entry.quote && (
+                <p className="mb-3 text-[0.9375rem] leading-relaxed text-label dark:text-label-invert whitespace-pre-wrap">
+                  “{entry.quote}”
+                </p>
+              )}
+              {entry.note && (
+                <p className="text-[0.9375rem] leading-relaxed text-label-sub dark:text-label-muted whitespace-pre-wrap">
+                  {entry.note}
+                </p>
+              )}
             </div>
 
             {/* 2. 하단 액션 통합 바 (정보 + 소셜) */}
@@ -167,8 +174,16 @@ export default function EntryDetailContent({
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                   <div className="flex items-center gap-2">
                     <p className="text-[0.75rem] sm:text-[0.875rem] text-label-muted tabular-nums">
-                      📅 {new Date(entry.date).toLocaleDateString()} <span className="mx-1">|</span>{' '}
-                      📖 {entry.from_page}~{entry.to_page}쪽
+                      📅 {new Date(entry.date).toLocaleDateString()}
+                      {(entry.from_page != null || entry.to_page != null) && (
+                        <>
+                          {' '}
+                          <span className="mx-1">|</span> 📖{' '}
+                          {entry.from_page != null && entry.to_page != null
+                            ? `${entry.from_page}~${entry.to_page}쪽`
+                            : `${entry.to_page ?? entry.from_page}쪽`}
+                        </>
+                      )}
                     </p>
                     {entry.is_private && (
                       <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-surface-raised dark:bg-dark-raised border border-border-subtle dark:border-dark-border">
