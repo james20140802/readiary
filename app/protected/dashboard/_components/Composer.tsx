@@ -10,6 +10,8 @@ import Card from '@/components/ui/Card';
 import Chip from '@/components/ui/Chip';
 import Button from '@/components/ui/Button';
 import { Textarea } from '@/components/ui/Textarea';
+import Seal from '@/components/ui/Seal';
+import Input from '@/components/ui/Input';
 
 interface ComposerProps {
   books: MyBook[];
@@ -40,6 +42,11 @@ export default function Composer({ books, recentUserBookId, userId }: ComposerPr
   const [isPrivate, setIsPrivate] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [savedEntry, setSavedEntry] = useState<SavedEntry | null>(null);
+  const [showExtraText, setShowExtraText] = useState(false);
+  const [showPages, setShowPages] = useState(false);
+  const [extraText, setExtraText] = useState('');
+  const [fromPage, setFromPage] = useState('');
+  const [toPage, setToPage] = useState('');
 
   if (books.length === 0) return null;
 
@@ -84,12 +91,121 @@ export default function Composer({ books, recentUserBookId, userId }: ComposerPr
     }
   };
 
+  const resetAll = () => {
+    setSavedEntry(null);
+    setShowExtraText(false);
+    setShowPages(false);
+    setExtraText('');
+    setFromPage('');
+    setToPage('');
+    setMode('quote');
+  };
+
+  const handleExpand = async () => {
+    if (!savedEntry || isSubmitting) return;
+    if (fromPage !== '' && toPage !== '' && Number(fromPage) > Number(toPage)) {
+      toast.error('시작 페이지는 종료 페이지보다 작거나 같아야 합니다.');
+      return;
+    }
+    const body: Record<string, unknown> = {};
+    if (showExtraText && extraText.trim() !== '') {
+      body[savedEntry.mode === 'quote' ? 'note' : 'quote'] = extraText.trim();
+    }
+    if (showPages && (fromPage !== '' || toPage !== '')) {
+      body.from_page = fromPage === '' ? null : Number(fromPage);
+      body.to_page = toPage === '' ? null : Number(toPage);
+    }
+    if (Object.keys(body).length === 0) {
+      resetAll();
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const res = await fetch(`/api/entries/${savedEntry.id}/edit`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        toast.error(data?.error ?? '덧붙이기에 실패했어요.');
+        return;
+      }
+      toast.success('기록에 덧붙였어요.');
+      resetAll();
+      router.refresh();
+    } catch {
+      toast.error('서버와 통신 중 오류가 발생했습니다.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   if (savedEntry) {
-    // Task 5에서 확장 UI로 교체된다 — Task 4 시점에는 최소 확인 카드만
     return (
       <Card hoverable={false} className="mb-8">
-        <p className="font-serif text-quote text-ink">{savedEntry.text}</p>
-        <p className="mt-2 text-caption text-ink-sub">{savedEntry.bookTitle}</p>
+        <Seal>오늘의 기록</Seal>
+        <p className="mt-2 font-serif text-quote text-ink">{savedEntry.text}</p>
+        <p className="mt-1 text-caption text-ink-sub">{savedEntry.bookTitle}</p>
+
+        {!showExtraText && !showPages ? (
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Chip onClick={() => setShowExtraText(true)}>
+              {savedEntry.mode === 'quote' ? '생각 덧붙이기' : '문장 덧붙이기'}
+            </Chip>
+            <Chip onClick={() => setShowPages(true)}>페이지 남기기</Chip>
+            <Chip onClick={resetAll}>닫기</Chip>
+          </div>
+        ) : (
+          <div className="mt-4 space-y-3">
+            {showExtraText && (
+              <Textarea
+                value={extraText}
+                onChange={(e) => setExtraText(e.target.value)}
+                placeholder={
+                  savedEntry.mode === 'quote'
+                    ? '이 문장에 대한 생각을 덧붙여보세요'
+                    : '책에서 마음에 남은 문장을 옮겨 적어보세요'
+                }
+                rows={3}
+                fullWidth
+                className="resize-none"
+              />
+            )}
+            {showPages && (
+              <div className="flex gap-3">
+                <Input
+                  type="number"
+                  placeholder="시작 페이지"
+                  value={fromPage}
+                  onChange={(e) => setFromPage(e.target.value)}
+                />
+                <Input
+                  type="number"
+                  placeholder="종료 페이지"
+                  value={toPage}
+                  onChange={(e) => setToPage(e.target.value)}
+                />
+              </div>
+            )}
+            <div className="flex flex-wrap items-center gap-2">
+              {!showExtraText && (
+                <Chip onClick={() => setShowExtraText(true)}>
+                  {savedEntry.mode === 'quote' ? '생각 덧붙이기' : '문장 덧붙이기'}
+                </Chip>
+              )}
+              {!showPages && <Chip onClick={() => setShowPages(true)}>페이지 남기기</Chip>}
+              <div className="ml-auto flex gap-2">
+                <Button size="sm" variant="ghost" onClick={resetAll}>
+                  닫기
+                </Button>
+                <Button size="sm" onClick={handleExpand} disabled={isSubmitting}>
+                  {isSubmitting ? '저장 중...' : '덧붙이기'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </Card>
     );
   }
