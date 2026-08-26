@@ -17,6 +17,11 @@ export default function NewBookForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (totalPages.trim() !== '' && (isNaN(Number(totalPages)) || Number(totalPages) <= 0)) {
+      setError('페이지 수는 1 이상의 숫자여야 합니다.');
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -29,7 +34,7 @@ export default function NewBookForm() {
         body: JSON.stringify({
           title,
           author,
-          total_pages: Number(totalPages),
+          total_pages: totalPages.trim() === '' ? null : Number(totalPages),
         }),
       });
 
@@ -76,13 +81,12 @@ export default function NewBookForm() {
       </FormGroup>
 
       <FormGroup>
-        <FormLabel>총 페이지 수</FormLabel>
+        <FormLabel>총 페이지 수 (선택)</FormLabel>
         <Input
           type="number"
           placeholder="총 페이지 수"
           value={totalPages}
           onChange={(e) => setTotalPages(e.target.value)}
-          required
         />
       </FormGroup>
 

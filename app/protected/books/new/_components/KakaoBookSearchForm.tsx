@@ -62,10 +62,14 @@ export default function KakaoBookSearchForm() {
 
   const handleConfirm = async () => {
     if (!selectedBook) return;
-    const pages = totalPages ?? parseInt(manualTotalPages);
-    if (!pages || isNaN(pages)) {
-      toast.error('유효한 페이지 수를 입력해주세요');
-      return;
+    let pages: number | null = totalPages;
+    if (pages == null && manualTotalPages.trim() !== '') {
+      const parsed = parseInt(manualTotalPages, 10);
+      if (isNaN(parsed) || parsed <= 0) {
+        toast.error('페이지 수는 1 이상의 숫자여야 합니다');
+        return;
+      }
+      pages = parsed;
     }
 
     try {
@@ -194,13 +198,13 @@ export default function KakaoBookSearchForm() {
               ) : (
                 <div className="mt-2">
                   <p className="mb-1 text-ink">
-                    페이지 수를 찾을 수 없습니다. 직접 입력해주세요:
+                    페이지 수를 찾지 못했어요. 몰라도 등록할 수 있습니다.
                   </p>
                   <input
                     type="number"
                     value={manualTotalPages}
                     onChange={(e) => setManualTotalPages(e.target.value)}
-                    placeholder="총 페이지 수"
+                    placeholder="총 페이지 수 (선택)"
                     className="w-full px-4 py-2 text-body rounded-lg bg-card-raised border border-hairline text-ink focus:ring-2 focus:ring-accent/30 outline-none transition-all"
                   />
                 </div>
