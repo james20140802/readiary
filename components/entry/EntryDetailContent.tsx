@@ -111,7 +111,7 @@ export default function EntryDetailContent({
         </div>
 
         <AnimatedSection>
-          <div className="bg-card rounded-xl shadow-md overflow-hidden flex flex-col">
+          <div className="bg-card rounded-xl border border-hairline overflow-hidden flex flex-col">
             {/* 1. 본문 영역 */}
             <div className="p-5 sm:p-6 pb-4 space-y-4">
               <div className="flex items-center justify-between relative">
@@ -131,7 +131,7 @@ export default function EntryDetailContent({
 
                     {/* 드롭다운 메뉴 */}
                     {isMenuOpen && (
-                      <div className="absolute right-0 mt-2 w-32 bg-card border border-hairline rounded-xl shadow-xl z-10 py-1.5">
+                      <div className="absolute right-0 mt-2 w-32 bg-card border border-hairline rounded-xl z-10 py-1.5">
                         <button
                           onClick={() => {
                             router.push(`/protected/entry/${entry.id}/edit`);

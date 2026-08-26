@@ -76,7 +76,7 @@ export default function BookDetailContent({
       <section className="flex flex-col sm:flex-row sm:items-start sm:gap-6 w-full">
         <div className="flex flex-col sm:flex-row sm:items-stretch sm:gap-10 w-full">
           <div className="flex-shrink-0 self-center sm:self-start">
-            <div className="relative group shadow-2xl">
+            <div className="relative group">
               <Image
                 src={cover_url ?? '/images/default-book-cover.png'}
                 alt="Book cover"

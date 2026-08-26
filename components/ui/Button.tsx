@@ -6,8 +6,8 @@ import clsx from 'clsx';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /**
-   * primary : 주요 액션 (파란색)
-   * secondary: 보조 액션 (아웃라인)
+   * primary : 주요 액션 (먹 배경)
+   * secondary: 보조 액션 (헤어라인 아웃라인)
    * ghost   : 텍스트형 버튼
    * danger  : 삭제/경고
    * success : 완료/확인
@@ -33,39 +33,24 @@ export default function Button({
 }: ButtonProps) {
   const base = clsx(
     'inline-flex items-center justify-center gap-2',
-    'font-medium rounded-md transition-all duration-150',
-    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
-    'active:scale-[0.97]',
+    'font-sans font-bold rounded-full transition-colors duration-150',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-paper',
+    'active:opacity-80',
     'disabled:opacity-50 disabled:pointer-events-none'
   );
 
   const variants = {
-    primary: clsx(
-      'bg-accent text-ink-invert',
-      'hover:bg-accent-hover',
-      'focus-visible:ring-accent',
-      'shadow-sm'
-    ),
-    secondary: clsx(
-      'bg-transparent text-ink',
-      'border border-hairline',
-      'hover:bg-card-raised',
-      'focus-visible:ring-ink'
-    ),
-    ghost: clsx(
-      'bg-transparent text-ink-sub',
-      'hover:bg-card-raised',
-      'hover:text-ink',
-      'focus-visible:ring-ink'
-    ),
-    danger: clsx('bg-danger text-ink-invert', 'hover:bg-danger/90', 'focus-visible:ring-danger'),
-    success: clsx('bg-success text-ink-invert', 'hover:bg-success/90', 'focus-visible:ring-success'),
+    primary: 'bg-ink text-ink-invert hover:opacity-90',
+    secondary: 'bg-transparent text-ink border border-hairline-strong hover:bg-card-raised',
+    ghost: 'bg-transparent text-ink-sub hover:bg-card-raised hover:text-ink',
+    danger: 'bg-danger text-ink-invert hover:opacity-90',
+    success: 'bg-success text-ink-invert hover:opacity-90',
   };
 
   const sizes = {
-    sm: 'h-8  px-3 text-caption gap-1.5',
-    md: 'h-10 px-4 text-button',
-    lg: 'h-12 px-6 text-button text-base',
+    sm: 'h-8  px-4 text-caption gap-1.5',
+    md: 'h-10 px-5 text-button',
+    lg: 'h-12 px-7 text-button text-base',
   };
 
   const Comp = asChild ? Slot : 'button';

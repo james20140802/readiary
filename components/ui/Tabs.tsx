@@ -41,7 +41,7 @@ export default function Tabs({
             onClick={() => handleTabClick(tab.value)}
             className={clsx(
               fullWidth && 'flex-1',
-              'px-4 py-2 text-sm md:text-lg font-medium transition-colors',
+              'px-4 py-2 text-sm md:text-base font-medium transition-colors',
               selected === tab.value
                 ? 'border-b-2 border-accent text-accent'
                 : 'text-ink-sub hover:text-ink'

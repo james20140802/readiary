@@ -91,7 +91,7 @@ export default function EditProfilePage() {
         {/* 이미지 수정 섹션 */}
         <section className="flex flex-col items-center sm:flex-row gap-8">
           <div className="relative group shrink-0">
-            <div className="w-32 h-32 rounded-2xl overflow-hidden bg-card-raised border-2 border-hairline relative shadow-xl">
+            <div className="w-32 h-32 rounded-2xl overflow-hidden bg-card-raised border-2 border-hairline relative">
               {imagePath ? (
                 <>
                   <Image
@@ -120,7 +120,7 @@ export default function EditProfilePage() {
                 </div>
               )}
             </div>
-            <label className="absolute bottom-0 right-0 p-2.5 bg-ink text-ink-invert rounded-2xl cursor-pointer hover:scale-110 shadow-lg transition-transform">
+            <label className="absolute bottom-0 right-0 p-2.5 bg-ink text-ink-invert rounded-2xl cursor-pointer border border-hairline-strong hover:scale-110 transition-transform">
               <Camera size={18} strokeWidth={2.5} />
               <input
                 type="file"

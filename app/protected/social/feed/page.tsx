@@ -28,7 +28,7 @@ export default async function SocialFeedPage() {
           </h1>
         </header>
         {feed.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 bg-card rounded-3xl border border-hairline shadow-sm">
+          <div className="flex flex-col items-center justify-center py-20 bg-card rounded-3xl border border-hairline">
             <span className="text-4xl mb-4">📭</span>
             <p className="text-ink-sub">친구들의 활동이 아직 없어요.</p>
           </div>
