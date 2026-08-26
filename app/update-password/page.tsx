@@ -76,7 +76,7 @@ export default function UpdatePasswordPage() {
   if (checking) {
     return (
       <div className="flex items-center justify-center min-h-[40vh]">
-        <p className="text-sm text-label-sub dark:text-label-muted">확인 중...</p>
+        <p className="text-sm text-ink-sub">확인 중...</p>
       </div>
     );
   }
@@ -86,15 +86,15 @@ export default function UpdatePasswordPage() {
       <div className="flex items-center justify-center min-h-[40vh]">
         <AnimatedSection>
           <div className="text-center space-y-3">
-            <h2 className="text-lg font-semibold text-label dark:text-label-invert">
+            <h2 className="text-lg font-semibold text-ink">
               접근할 수 없습니다
             </h2>
-            <p className="text-sm text-label-sub dark:text-label-muted">
+            <p className="text-sm text-ink-sub">
               비밀번호 재설정 이메일의 링크를 통해 접근해주세요.
             </p>
             <a
               href="/reset-password"
-              className="text-sm text-tint underline"
+              className="text-sm text-accent underline"
             >
               비밀번호 재설정 요청하기
             </a>
@@ -107,11 +107,11 @@ export default function UpdatePasswordPage() {
   return (
     <div className="flex items-center justify-center">
       <div className="w-full">
-        <h1 className="text-section-title font-semibold mb-6 text-center text-gray-900 dark:text-label-invert">
+        <h1 className="text-section-title font-semibold mb-6 text-center text-ink">
           새 비밀번호 설정
         </h1>
         <AnimatedSection>
-          <p className="text-sm text-label-sub dark:text-label-muted text-center mb-4">
+          <p className="text-sm text-ink-sub text-center mb-4">
             새로운 비밀번호를 입력해주세요.
           </p>
           <Input
@@ -120,7 +120,7 @@ export default function UpdatePasswordPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          <p className="text-xs text-label-sub dark:text-label-muted mt-1">
+          <p className="text-xs text-ink-sub mt-1">
             비밀번호는 최소 6자 이상이어야 합니다.
           </p>
           <Input
@@ -142,7 +142,7 @@ export default function UpdatePasswordPage() {
           <p className="text-sm text-center mt-4">
             <a
               href="/login"
-              className="text-gray-500 underline dark:text-label-muted"
+              className="text-ink-sub underline"
             >
               로그인으로 돌아가기
             </a>

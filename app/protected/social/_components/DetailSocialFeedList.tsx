@@ -52,7 +52,7 @@ export default function DetailSocailFeedList({
       {/* 바닥 감지 영역 */}
       {hasMore && (
         <div ref={ref} className="h-20 flex items-center justify-center">
-          {loading && <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-tint" />}
+          {loading && <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-accent" />}
         </div>
       )}
     </div>

@@ -37,14 +37,14 @@ function ProgressBar({ progress, isFinished }: { progress: number; isFinished: b
   return (
     <div className="space-y-1 w-full">
       <div className="flex justify-between items-center">
-        <span className="text-caption text-label-muted">{isFinished ? '완독' : '진행률'}</span>
-        <span className={`text-caption font-bold ${isFinished ? 'text-success' : 'text-tint'}`}>
+        <span className="text-caption text-ink-faint">{isFinished ? '완독' : '진행률'}</span>
+        <span className={`text-caption font-bold ${isFinished ? 'text-success' : 'text-accent'}`}>
           {pct}%
         </span>
       </div>
-      <div className="w-full bg-border dark:bg-dark-border rounded-full h-1.5 overflow-hidden">
+      <div className="w-full bg-hairline rounded-full h-1.5 overflow-hidden">
         <div
-          className={`h-full rounded-full transition-all duration-500 ${isFinished ? 'bg-success' : 'bg-tint'}`}
+          className={`h-full rounded-full transition-all duration-500 ${isFinished ? 'bg-success' : 'bg-accent'}`}
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -79,15 +79,15 @@ export default function BookList({ books, isFriend = false, nicknameAndTag = '' 
 
   if (!books || books.length === 0)
     return (
-      <div className="flex flex-col items-center justify-center py-16 gap-3 border-2 border-dashed border-border dark:border-dark-border rounded-xl">
-        <BookOpen size={32} className="text-label-muted" />
-        <p className="text-body-sm font-medium text-label dark:text-label-invert">
+      <div className="flex flex-col items-center justify-center py-16 gap-3 border-2 border-dashed border-hairline rounded-xl">
+        <BookOpen size={32} className="text-ink-faint" />
+        <p className="text-body-sm font-medium text-ink">
           아직 등록한 책이 없어요
         </p>
         {!isFriend && (
           <Link
             href="/protected/books/new"
-            className="text-caption font-semibold text-tint hover:text-tint-hover"
+            className="text-caption font-semibold text-accent hover:text-accent-hover"
           >
             첫 번째 책 등록하기 →
           </Link>
@@ -100,15 +100,15 @@ export default function BookList({ books, isFriend = false, nicknameAndTag = '' 
       {/* ── 툴바 ── */}
       <div className="flex items-center justify-between gap-2 mb-4">
         {/* 필터 탭 */}
-        <div className="flex items-center gap-1 bg-surface-raised dark:bg-dark-raised p-1 rounded-lg border border-border dark:border-dark-border">
+        <div className="flex items-center gap-1 bg-card-raised p-1 rounded-lg border border-hairline">
           {FILTER_OPTIONS.map((opt) => (
             <button
               key={opt.value}
               onClick={() => setFilter(opt.value)}
               className={`px-2.5 py-1 rounded-md text-caption font-semibold transition-all ${
                 filter === opt.value
-                  ? 'bg-surface dark:bg-dark-surface text-label dark:text-label-invert shadow-card'
-                  : 'text-label-muted hover:text-label-sub'
+                  ? 'bg-card text-ink'
+                  : 'text-ink-faint hover:text-ink-sub'
               }`}
             >
               {opt.label}
@@ -122,7 +122,7 @@ export default function BookList({ books, isFriend = false, nicknameAndTag = '' 
           <div className="relative">
             <button
               onClick={() => setSortOpen((v) => !v)}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-border dark:border-dark-border bg-surface dark:bg-dark-surface text-caption font-medium text-label-sub dark:text-label-muted hover:border-border-strong transition-all"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-hairline bg-card text-caption font-medium text-ink-sub hover:border-hairline-strong transition-all"
             >
               <span className="hidden sm:inline">
                 {SORT_OPTIONS.find((o) => o.value === sort)?.label}
@@ -135,7 +135,7 @@ export default function BookList({ books, isFriend = false, nicknameAndTag = '' 
             {sortOpen && (
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setSortOpen(false)} />
-                <div className="absolute right-0 top-full mt-1 z-20 bg-surface dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl shadow-card-lg overflow-hidden min-w-[130px]">
+                <div className="absolute right-0 top-full mt-1 z-20 bg-card border border-hairline rounded-xl overflow-hidden min-w-[130px]">
                   {SORT_OPTIONS.map((opt) => (
                     <button
                       key={opt.value}
@@ -145,8 +145,8 @@ export default function BookList({ books, isFriend = false, nicknameAndTag = '' 
                       }}
                       className={`w-full text-left px-3 py-2 text-caption transition-colors ${
                         sort === opt.value
-                          ? 'text-tint font-semibold bg-tint-subtle dark:bg-tint/10'
-                          : 'text-label-sub dark:text-label-muted hover:bg-surface-raised dark:hover:bg-dark-raised'
+                          ? 'text-accent font-semibold bg-accent-soft'
+                          : 'text-ink-sub hover:bg-card-raised'
                       }`}
                     >
                       {opt.label}
@@ -158,13 +158,13 @@ export default function BookList({ books, isFriend = false, nicknameAndTag = '' 
           </div>
 
           {/* 뷰 토글 */}
-          <div className="flex items-center gap-0.5 bg-surface-raised dark:bg-dark-raised p-1 rounded-lg border border-border dark:border-dark-border">
+          <div className="flex items-center gap-0.5 bg-card-raised p-1 rounded-lg border border-hairline">
             <button
               onClick={() => setViewMode('list')}
               className={`p-1.5 rounded-md transition-all ${
                 viewMode === 'list'
-                  ? 'bg-surface dark:bg-dark-surface text-label dark:text-label-invert shadow-card'
-                  : 'text-label-muted hover:text-label-sub'
+                  ? 'bg-card text-ink'
+                  : 'text-ink-faint hover:text-ink-sub'
               }`}
               aria-label="리스트 뷰"
             >
@@ -174,8 +174,8 @@ export default function BookList({ books, isFriend = false, nicknameAndTag = '' 
               onClick={() => setViewMode('grid')}
               className={`p-1.5 rounded-md transition-all ${
                 viewMode === 'grid'
-                  ? 'bg-surface dark:bg-dark-surface text-label dark:text-label-invert shadow-card'
-                  : 'text-label-muted hover:text-label-sub'
+                  ? 'bg-card text-ink'
+                  : 'text-ink-faint hover:text-ink-sub'
               }`}
               aria-label="그리드 뷰"
             >
@@ -188,8 +188,8 @@ export default function BookList({ books, isFriend = false, nicknameAndTag = '' 
       {/* 필터 결과 없음 */}
       {processed.length === 0 && (
         <div className="flex flex-col items-center justify-center py-12 gap-2">
-          <BookOpen size={28} className="text-label-muted" />
-          <p className="text-body-sm text-label-muted">
+          <BookOpen size={28} className="text-ink-faint" />
+          <p className="text-body-sm text-ink-faint">
             {filter === 'reading' ? '읽는 중인 책이 없어요' : '완독한 책이 없어요'}
           </p>
         </div>
@@ -209,7 +209,7 @@ export default function BookList({ books, isFriend = false, nicknameAndTag = '' 
                   <Card hoverable className="p-3">
                     <div className="flex gap-4 items-center">
                       {/* 표지 */}
-                      <div className="relative w-[72px] h-[100px] shrink-0 rounded-lg overflow-hidden shadow-card-md">
+                      <div className="relative w-[72px] h-[100px] shrink-0 rounded-lg overflow-hidden">
                         <Image
                           src={book.cover_url ?? '/images/default-book-cover.png'}
                           alt={book.title}
@@ -218,7 +218,7 @@ export default function BookList({ books, isFriend = false, nicknameAndTag = '' 
                           sizes="72px"
                         />
                         {isFinished && (
-                          <div className="absolute top-1.5 right-1.5 bg-tint/90 text-white text-[9px] font-black px-1 py-0.5 rounded">
+                          <div className="absolute top-1.5 right-1.5 bg-accent/90 text-white text-[9px] font-black px-1 py-0.5 rounded">
                             DONE
                           </div>
                         )}
@@ -229,10 +229,10 @@ export default function BookList({ books, isFriend = false, nicknameAndTag = '' 
                         {/* 상단: 제목 + 기록하기 버튼 (같은 행) */}
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0">
-                            <h2 className="text-body font-semibold text-label dark:text-label-invert line-clamp-2 leading-snug">
+                            <h2 className="text-body font-semibold text-ink line-clamp-2 leading-snug">
                               {book.title}
                             </h2>
-                            <p className="text-body-sm text-label-muted mt-0.5 truncate">
+                            <p className="text-body-sm text-ink-faint mt-0.5 truncate">
                               {book.author}
                             </p>
                           </div>
@@ -246,7 +246,7 @@ export default function BookList({ books, isFriend = false, nicknameAndTag = '' 
                                     e.stopPropagation();
                                     router.push(`/protected/books/${userBook.book_id}/entry/new`);
                                   }}
-                                  className="text-caption font-semibold text-tint bg-tint-subtle dark:bg-tint/10 hover:bg-tint/20 px-2.5 py-1 rounded-full border border-tint/20 transition-colors whitespace-nowrap"
+                                  className="text-caption font-semibold text-accent bg-accent-soft hover:bg-accent/20 px-2.5 py-1 rounded-full border border-accent/20 transition-colors whitespace-nowrap"
                                 >
                                   + 기록
                                 </button>
@@ -280,7 +280,7 @@ export default function BookList({ books, isFriend = false, nicknameAndTag = '' 
 
             return (
               <Link key={userBook.id} href={getDetailHref(userBook)} className="group block">
-                <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl shadow-card border border-border dark:border-dark-border group-hover:shadow-card-md group-hover:-translate-y-1 transition-all duration-200">
+                <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl border border-hairline group- group-hover:-translate-y-1 transition-all duration-200">
                   <Image
                     src={book.cover_url ?? '/images/default-book-cover.png'}
                     alt={book.title}
@@ -289,12 +289,12 @@ export default function BookList({ books, isFriend = false, nicknameAndTag = '' 
                     sizes="(max-width: 640px) 33vw, 25vw"
                   />
                   {isFinished && (
-                    <div className="absolute top-2 right-2 bg-tint/90 backdrop-blur-sm text-white px-1.5 py-0.5 rounded-lg">
+                    <div className="absolute top-2 right-2 bg-accent/90 backdrop-blur-sm text-white px-1.5 py-0.5 rounded-lg">
                       <span className="text-[9px] font-black tracking-tighter">DONE</span>
                     </div>
                   )}
                 </div>
-                <p className="mt-1.5 text-caption font-medium text-label-sub dark:text-label-muted truncate px-0.5 group-hover:text-label dark:group-hover:text-label-invert transition-colors">
+                <p className="mt-1.5 text-caption font-medium text-ink-sub truncate px-0.5 group-hover:text-ink transition-colors">
                   {book.title}
                 </p>
               </Link>

@@ -48,15 +48,15 @@ export default function Navbar() {
     <>
       {/* Mobile Bottom Navbar */}
       {user && (
-        <nav className="fixed bottom-0 inset-x-0 z-50 border-t border-border dark:border-dark-border bg-surface/80 dark:bg-dark-surface/80 backdrop-blur-md px-4 py-2 block md:hidden">
-          <div className="max-w-screen-md mx-auto flex justify-around text-xs text-label-sub dark:text-label-muted">
+        <nav className="fixed bottom-0 inset-x-0 z-50 border-t border-hairline bg-card/80 backdrop-blur-md px-4 py-2 block md:hidden">
+          <div className="max-w-screen-md mx-auto flex justify-around text-xs text-ink-sub">
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 className={clsx(
                   'flex flex-col items-center gap-1 py-1 px-2 transition',
-                  pathname === item.href ? 'text-tint font-semibold' : 'text-label-muted'
+                  pathname === item.href ? 'text-accent font-semibold' : 'text-ink-faint'
                 )}
                 prefetch
               >
@@ -69,11 +69,11 @@ export default function Navbar() {
       )}
 
       {/* Desktop Top Navbar */}
-      <nav className="hidden md:flex fixed top-0 inset-x-0 z-50 border-b border-border dark:border-dark-border bg-surface/90 dark:bg-dark-surface/90 backdrop-blur-md px-8 py-5">
-        <div className="max-w-screen-md mx-auto flex items-center justify-between w-full text-sm text-label-sub dark:text-label-muted">
+      <nav className="hidden md:flex fixed top-0 inset-x-0 z-50 border-b border-hairline bg-card/90 backdrop-blur-md px-8 py-5">
+        <div className="max-w-screen-md mx-auto flex items-center justify-between w-full text-sm text-ink-sub">
           <Link
             href="/"
-            className="text-lg font-bold text-label dark:text-label-invert flex items-center gap-2"
+            className="text-lg font-bold text-ink flex items-center gap-2"
             prefetch
           >
             <BookMarked size={20} />
@@ -86,10 +86,10 @@ export default function Navbar() {
                   key={item.href}
                   href={item.href}
                   className={clsx(
-                    'flex items-center gap-2 px-3 py-1 rounded-md transition hover:bg-surface-raised dark:hover:bg-dark-raised',
+                    'flex items-center gap-2 px-3 py-1 rounded-md transition hover:bg-card-raised',
                     pathname === item.href
-                      ? 'text-label dark:text-label-invert font-semibold'
-                      : 'text-label-muted'
+                      ? 'text-ink font-semibold'
+                      : 'text-ink-faint'
                   )}
                   prefetch
                 >

@@ -71,7 +71,7 @@ export default function OnboardingForm() {
   return (
     <div className="flex items-center justify-center">
       <div className="w-full space-y-4">
-        <h1 className="text-xl font-semibold text-center text-label dark:text-label-invert">
+        <h1 className="text-xl font-semibold text-center text-ink">
           프로필 설정
         </h1>
         <AnimatedSection>
@@ -81,7 +81,7 @@ export default function OnboardingForm() {
             placeholder="이름"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full border p-2 rounded bg-surface dark:bg-dark-surface dark:text-label-invert"
+            className="w-full border p-2 rounded bg-card"
           />
           <FormLabel htmlFor="nickname">닉네임</FormLabel>
           <Input
@@ -89,9 +89,9 @@ export default function OnboardingForm() {
             placeholder="닉네임"
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}
-            className="w-full border p-2 rounded bg-surface dark:bg-dark-surface dark:text-label-invert"
+            className="w-full border p-2 rounded bg-card"
           />
-          <p className="mt-1 text-sm text-label-muted">
+          <p className="mt-1 text-sm text-ink-faint">
             닉네임은 영어 알파벳과 숫자, 언더스코어(_)만 사용할 수 있습니다.
           </p>
           <FormLabel htmlFor="bio">자기소개</FormLabel>
@@ -100,7 +100,7 @@ export default function OnboardingForm() {
             placeholder="자기소개 (선택)"
             value={bio}
             onChange={(e) => setBio(e.target.value)}
-            className="w-full border p-2 rounded bg-surface dark:bg-dark-surface dark:text-label-invert resize-none"
+            className="w-full border p-2 rounded bg-card resize-none"
           />
           <Button className="w-full" onClick={handleSubmit} disabled={loading} variant="primary">
             {loading ? '등록 중...' : '프로필 등록하기'}

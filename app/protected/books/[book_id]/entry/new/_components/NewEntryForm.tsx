@@ -87,7 +87,7 @@ export default function NewEntryForm({ userBookId, userId, book, bookId }: Props
       <AnimatedSection>
         <div className="max-w-2xl mx-auto py-4 sm:py-6 space-y-8">
           {/* 1. 책 제목과 지은이 줄바꿈 처리 */}
-          <div className="flex flex-col sm:flex-row justify-between items-start gap-6 pb-6 border-b border-border dark:border-dark-border">
+          <div className="flex flex-col sm:flex-row justify-between items-start gap-6 pb-6 border-b border-hairline">
             <div className="flex items-center gap-4">
               <Image
                 src={book.cover_url ?? '/images/default-book-cover.png'}
@@ -97,19 +97,19 @@ export default function NewEntryForm({ userBookId, userId, book, bookId }: Props
                 className="rounded shadow object-cover"
               />
               <div className="flex flex-col">
-                <strong className="text-xl text-label dark:text-label-invert leading-tight">
+                <strong className="text-xl text-ink leading-tight">
                   {book.title}
                 </strong>
-                <span className="text-label-sub text-sm font-medium mt-1">{book.author}</span>
+                <span className="text-ink-sub text-sm font-medium mt-1">{book.author}</span>
               </div>
             </div>
             <div className="flex items-center gap-3 self-end sm:self-auto mt-4 sm:mt-0">
-              <span className="text-sm text-label-sub font-medium">🔒 비공개</span>
+              <span className="text-sm text-ink-sub font-medium">🔒 비공개</span>
               <button
                 type="button"
                 onClick={() => setIsPrivate(!isPrivate)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-tint focus:ring-offset-2 dark:focus:ring-offset-dark-page ${
-                  isPrivate ? 'bg-tint' : 'bg-surface-raised dark:bg-dark-border'
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 ${
+                  isPrivate ? 'bg-accent' : 'bg-card-raised'
                 }`}
               >
                 <span
@@ -154,7 +154,7 @@ export default function NewEntryForm({ userBookId, userId, book, bookId }: Props
             value={new Date().toISOString().split('T')[0]}
             readOnly
             disabled
-            className="w-full appearance-none bg-surface dark:bg-dark-surface border-border-subtle dark:border-dark-border"
+            className="w-full appearance-none bg-card border-hairline"
           />
         </FormGroup>
 
@@ -170,7 +170,7 @@ export default function NewEntryForm({ userBookId, userId, book, bookId }: Props
           />
         </FormGroup>
 
-        {error && <p className="text-red-500 text-sm font-medium">{error}</p>}
+        {error && <p className="text-danger text-sm font-medium">{error}</p>}
 
           {/* 2. 제출 시 버튼 비활성화 */}
           <div className="flex justify-end pt-4">

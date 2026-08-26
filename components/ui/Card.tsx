@@ -29,14 +29,14 @@ export default function Card({
         'rounded-2xl p-5',
         // variant별 스타일
         variant === 'default' &&
-          'bg-surface dark:bg-dark-surface border border-border dark:border-dark-border shadow-card',
+          'bg-card border border-hairline',
         variant === 'raised' &&
-          'bg-surface dark:bg-dark-surface border border-border dark:border-dark-border shadow-card-md',
+          'bg-card border border-hairline',
         variant === 'flat' &&
-          'bg-surface dark:bg-dark-surface border border-border dark:border-dark-border',
+          'bg-card border border-hairline',
         variant === 'ghost' && 'bg-transparent',
         // hover
-        hoverable && !disabled && 'transition-shadow hover:shadow-card-md cursor-pointer',
+        hoverable && !disabled && 'transition-shadow cursor-pointer',
         disabled && 'opacity-50 pointer-events-none',
         className
       )}

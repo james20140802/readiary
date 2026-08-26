@@ -14,7 +14,10 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#FAF9F6',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#F7F3EC' },
+    { media: '(prefers-color-scheme: dark)', color: '#1B1612' },
+  ],
 };
 
 export default function RootLayout({
@@ -33,7 +36,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
-      <body className="overflow-x-hidden bg-surface-page text-label dark:bg-dark-page dark:text-label-invert">
+      <body className="overflow-x-hidden bg-paper text-ink">
         <Header />
         <Navbar />
         <main className="flex-1 max-w-screen-md w-full mx-auto px-4 pt-[4rem] pb-[4.75rem] md:pt-[6rem] md:pb-[4rem]">
@@ -46,7 +49,7 @@ export default function RootLayout({
           closeButton
           toastOptions={{
             className:
-              'text-sm font-sans text-label dark:text-label-invert bg-surface dark:bg-dark-surface rounded-md shadow-card-md border border-border dark:border-dark-border px-4 py-3',
+              'text-sm font-sans text-ink bg-card rounded-md border border-hairline px-4 py-3',
           }}
         />
       </body>

@@ -12,7 +12,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className={clsx(fullWidth && 'w-full')}>
         {label && (
-          <label className="block mb-1 text-sm font-medium text-label dark:text-label-invert">
+          <label className="block mb-1 text-sm font-medium text-ink">
             {label}
           </label>
         )}
@@ -21,15 +21,15 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           className={clsx(
             'w-full',
             'rounded-md px-4 py-2 text-sm border transition-colors',
-            'bg-background dark:bg-dark-surface text-label dark:text-label-invert',
-            'border-border dark:border-dark-border focus:outline-none focus:ring-2 focus:ring-tint focus:border-tint',
-            error && 'border-red-500 focus:ring-red-500 focus:border-red-500',
-            props.disabled && 'bg-surface-raised dark:bg-dark-raised cursor-not-allowed opacity-60',
+            'bg-card text-ink',
+            'border-hairline focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent',
+            error && 'border-danger focus:ring-danger focus:border-danger',
+            props.disabled && 'bg-card-raised cursor-not-allowed opacity-60',
             className
           )}
           {...props}
         />
-        {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
+        {error && <p className="mt-1 text-xs text-danger">{error}</p>}
       </div>
     );
   }

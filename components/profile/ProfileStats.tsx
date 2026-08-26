@@ -14,29 +14,29 @@ const STAT_ITEMS = (stats: Stats) => [
     label: '총 읽은 책',
     value: `${stats.totalBooks}권`,
     icon: BookOpen,
-    color: 'text-tint',
-    bg: 'bg-tint-subtle dark:bg-tint/10',
+    color: 'text-accent',
+    bg: 'bg-accent-soft',
   },
   {
     label: '완독한 책',
     value: `${stats.finishedBooks}권`,
     icon: CheckCircle2,
     color: 'text-success',
-    bg: 'bg-success-subtle dark:bg-success/10',
+    bg: 'bg-success-soft',
   },
   {
     label: '총 엔트리',
     value: `${stats.totalEntries}개`,
     icon: Hash,
-    color: 'text-label-sub',
-    bg: 'bg-surface-raised dark:bg-dark-raised',
+    color: 'text-ink-sub',
+    bg: 'bg-card-raised',
   },
   {
     label: '읽은 페이지',
     value: `${stats.totalPages}p`,
     icon: ScrollText,
-    color: 'text-[#F97316]',
-    bg: 'bg-orange-50 dark:bg-orange-500/10',
+    color: 'text-accent',
+    bg: 'bg-accent-soft',
   },
 ];
 
@@ -47,7 +47,7 @@ export default function ProfileStats({ stats }: ProfileStatsProps) {
     <div className="space-y-10 pb-20">
       {/* 독서 요약 */}
       <section>
-        <h2 className="text-section-title font-bold text-label dark:text-label-invert mb-4">
+        <h2 className="text-section-title font-bold text-ink mb-4">
           📊 독서 요약
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -57,7 +57,7 @@ export default function ProfileStats({ stats }: ProfileStatsProps) {
               hoverable
               className={`
                 select-none transition-all duration-150
-                ${pressedStat === i ? 'scale-95 !shadow-none !border-border-strong dark:!border-dark-border' : 'hover:-translate-y-0.5'}
+                ${pressedStat === i ? 'scale-95 !shadow-none !border-hairline-strong' : 'hover:-translate-y-0.5'}
               `}
               onMouseDown={() => setPressedStat(i)}
               onMouseUp={() => setPressedStat(null)}
@@ -70,8 +70,8 @@ export default function ProfileStats({ stats }: ProfileStatsProps) {
               >
                 <item.icon className={item.color} size={20} strokeWidth={2.5} />
               </div>
-              <p className="text-caption font-bold text-label-muted mb-1">{item.label}</p>
-              <p className="text-2xl font-black text-label dark:text-label-invert tracking-tight">
+              <p className="text-caption font-bold text-ink-faint mb-1">{item.label}</p>
+              <p className="text-2xl font-black text-ink tracking-tight">
                 {item.value}
               </p>
             </Card>

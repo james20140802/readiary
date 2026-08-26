@@ -41,25 +41,25 @@ export default function Button({
 
   const variants = {
     primary: clsx(
-      'bg-tint text-white',
-      'hover:bg-tint-hover',
-      'focus-visible:ring-tint',
-      'shadow-sm hover:shadow-tint'
+      'bg-accent text-ink-invert',
+      'hover:bg-accent-hover',
+      'focus-visible:ring-accent',
+      'shadow-sm'
     ),
     secondary: clsx(
-      'bg-transparent text-label dark:text-label-invert',
-      'border border-border dark:border-dark-border',
-      'hover:bg-surface-raised dark:hover:bg-dark-raised',
-      'focus-visible:ring-label'
+      'bg-transparent text-ink',
+      'border border-hairline',
+      'hover:bg-card-raised',
+      'focus-visible:ring-ink'
     ),
     ghost: clsx(
-      'bg-transparent text-label-sub dark:text-label-muted',
-      'hover:bg-surface-raised dark:hover:bg-dark-raised',
-      'hover:text-label dark:hover:text-label-invert',
-      'focus-visible:ring-label'
+      'bg-transparent text-ink-sub',
+      'hover:bg-card-raised',
+      'hover:text-ink',
+      'focus-visible:ring-ink'
     ),
-    danger: clsx('bg-danger text-white', 'hover:bg-red-600', 'focus-visible:ring-danger'),
-    success: clsx('bg-success text-white', 'hover:bg-green-600', 'focus-visible:ring-success'),
+    danger: clsx('bg-danger text-ink-invert', 'hover:bg-danger/90', 'focus-visible:ring-danger'),
+    success: clsx('bg-success text-ink-invert', 'hover:bg-success/90', 'focus-visible:ring-success'),
   };
 
   const sizes = {

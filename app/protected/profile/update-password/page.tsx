@@ -49,13 +49,13 @@ export default function UpdatePasswordPage() {
     <main>
       <header className="flex items-center mb-6">
         <BackButton />
-        <h1 className="text-page-title font-black text-label dark:text-label-invert ml-4">
+        <h1 className="text-page-title font-black text-ink ml-4">
           비밀번호 변경
         </h1>
       </header>
 
       <div className="space-y-6">
-        <p className="text-sm text-label-sub dark:text-label-muted">
+        <p className="text-sm text-ink-sub">
           새로운 비밀번호를 입력해주세요. 성공하면 다시 로그인해야 합니다.
         </p>
 
@@ -67,7 +67,7 @@ export default function UpdatePasswordPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          <p className="text-xs text-label-sub dark:text-label-muted mt-1">
+          <p className="text-xs text-ink-sub mt-1">
             비밀번호는 최소 6자 이상이어야 합니다.
           </p>
         </FormGroup>

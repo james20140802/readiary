@@ -33,11 +33,11 @@ export default function CommentItem({
 
   return (
     <div
-      className={`group flex gap-3 py-4 border-b border-border-subtle dark:border-dark-border last:border-none ${isReply ? 'pl-4 pb-2' : 'py-4'}`}
+      className={`group flex gap-3 py-4 border-b border-hairline last:border-none ${isReply ? 'pl-4 pb-2' : 'py-4'}`}
     >
       {/* 1. 프로필 이미지 */}
       <div
-        className={`relative w-9 h-9 overflow-hidden rounded-full shrink-0 bg-surface-raised dark:bg-dark-raised ${isReply ? 'w-7 h-7' : 'w-9 h-9'}`}
+        className={`relative w-9 h-9 overflow-hidden rounded-full shrink-0 bg-card-raised ${isReply ? 'w-7 h-7' : 'w-9 h-9'}`}
       >
         <Avatar
           alt={`${comment.profile.nickname}의 프로필 이미지`}
@@ -51,24 +51,24 @@ export default function CommentItem({
       <div className="flex-1 min-w-0 space-y-1">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-[13.5px] font-bold text-label dark:text-label-invert">
+            <span className="text-[13.5px] font-bold text-ink">
               {comment.profile.name}
             </span>
             {/* 닉네임과 태그 */}
-            <span className="text-[12px] text-label-muted dark:text-label-sub font-medium">
+            <span className="text-[12px] text-ink-faint font-medium">
               @{comment.profile.nickname}
               {comment.profile.tag && (
                 <span className="text-[10px] opacity-70">#{comment.profile.tag}</span>
               )}
             </span>
-            <span className="text-[11px] text-label-muted tabular-nums">{timeAgo || '...'}</span>
+            <span className="text-[11px] text-ink-faint tabular-nums">{timeAgo || '...'}</span>
           </div>
 
           {/* 3. 삭제 버튼 (본인일 때만, 마우스 오버 시 노출) */}
           {isMyComment && (
             <button
               onClick={() => onDelete(comment.id)}
-              className="p-1 text-label-muted hover:text-danger transition-colors"
+              className="p-1 text-ink-faint hover:text-danger transition-colors"
               title="댓글 삭제"
             >
               <Trash2 size={14} />
@@ -76,7 +76,7 @@ export default function CommentItem({
           )}
         </div>
 
-        <p className="text-[14.5px] text-label-sub dark:text-label-muted leading-relaxed whitespace-pre-wrap">
+        <p className="text-[14.5px] text-ink-sub leading-relaxed whitespace-pre-wrap">
           {comment.content}
         </p>
 
@@ -84,7 +84,7 @@ export default function CommentItem({
         {!isReply && (
           <button
             onClick={onReplyClick}
-            className="text-[11px] font-bold text-label-muted hover:text-tint mt-1"
+            className="text-[11px] font-bold text-ink-faint hover:text-accent mt-1"
           >
             답글 달기
           </button>

@@ -31,13 +31,13 @@ export default async function EntryDetailPage({
   const detail = await fetchFriendEntryDetail(nickname, tag, entryId);
 
   if (!detail) {
-    return <p className="p-4 text-red-500">기록을 찾을 수 없습니다.</p>;
+    return <p className="p-4 text-danger">기록을 찾을 수 없습니다.</p>;
   }
 
   const { entry, profile } = detail;
 
   if (entry.entry.is_private) {
-    return <p className="p-4 text-gray-500">비공개된 기록입니다.</p>;
+    return <p className="p-4 text-ink-sub">비공개된 기록입니다.</p>;
   }
 
   return (

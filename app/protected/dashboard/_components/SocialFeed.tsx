@@ -33,10 +33,10 @@ export default function SocialFeed({ feed }: Props) {
     <section className="mt-8 mb-6">
       {/* 헤더 */}
       <div className="flex justify-between items-center mb-3">
-        <h2 className="text-section-title text-label dark:text-label-invert">👥 소셜 피드</h2>
+        <h2 className="text-section-title text-ink">👥 소셜 피드</h2>
         <Link
           href="/protected/social"
-          className="text-caption font-semibold text-tint hover:text-tint-hover transition-colors"
+          className="text-caption font-semibold text-accent hover:text-accent-hover transition-colors"
         >
           전체보기 →
         </Link>
@@ -45,14 +45,14 @@ export default function SocialFeed({ feed }: Props) {
       {/* 피드 없을 때 empty state */}
       {feed.length === 0 ? (
         <Card hoverable={false} className="flex flex-col items-center justify-center py-12 gap-2 text-center">
-          <Users size={28} className="text-label-muted" />
-          <p className="text-body font-semibold text-label dark:text-label-invert">
+          <Users size={28} className="text-ink-faint" />
+          <p className="text-body font-semibold text-ink">
             아직 친구 활동이 없어요
           </p>
-          <p className="text-caption text-label-muted">친구를 추가하면 피드가 채워져요!</p>
+          <p className="text-caption text-ink-faint">친구를 추가하면 피드가 채워져요!</p>
           <Link
             href="/protected/social?tab=friends"
-            className="mt-2 text-caption font-semibold text-tint hover:text-tint-hover"
+            className="mt-2 text-caption font-semibold text-accent hover:text-accent-hover"
           >
             친구 찾기 →
           </Link>

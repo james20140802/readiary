@@ -31,7 +31,7 @@ export default function Header() {
   if (!isMobile) return null;
 
   return (
-    <header className="fixed top-0 left-0 w-full py-3 px-4 flex items-center bg-surface dark:bg-dark-surface z-50 border-b border-border dark:border-dark-border">
+    <header className="fixed top-0 left-0 w-full py-3 px-4 flex items-center bg-card z-50 border-b border-hairline">
       <Link
         href={isLoggedIn ? '/protected/dashboard' : '/'}
         className="flex items-center space-x-2"

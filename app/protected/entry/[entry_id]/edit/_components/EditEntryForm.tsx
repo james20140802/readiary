@@ -74,11 +74,11 @@ export default function EditEntryForm({
     <form onSubmit={handleSubmit} className="space-y-6">
       <header className="flex items-center mb-6">
         <BackButton />
-        <h1 className="text-page-title text-label dark:text-label-invert ml-4">🌤️ 독서 기록 수정</h1>
+        <h1 className="text-page-title text-ink ml-4">🌤️ 독서 기록 수정</h1>
       </header>
       <AnimatedSection>
         <div className="max-w-2xl mx-auto py-4 sm:py-6 space-y-8">
-          <div className="flex flex-col sm:flex-row justify-between items-start gap-6 pb-6 border-b border-border dark:border-dark-border">
+          <div className="flex flex-col sm:flex-row justify-between items-start gap-6 pb-6 border-b border-hairline">
             <div className="flex items-center gap-4">
               <Image
                 src={book.cover_url ?? '/images/default-book-cover.png'}
@@ -88,19 +88,19 @@ export default function EditEntryForm({
                 className="rounded shadow object-cover"
               />
               <div className="flex flex-col">
-                <strong className="text-xl text-label dark:text-label-invert leading-tight">
+                <strong className="text-xl text-ink leading-tight">
                   {book.title ?? '제목 없음'}
                 </strong>
-                <span className="text-label-sub text-sm font-medium mt-1">{book.author ?? '저자 미상'}</span>
+                <span className="text-ink-sub text-sm font-medium mt-1">{book.author ?? '저자 미상'}</span>
               </div>
             </div>
             <div className="flex items-center gap-3 self-end sm:self-auto mt-4 sm:mt-0">
-              <span className="text-sm text-label-sub font-medium">🔒 비공개</span>
+              <span className="text-sm text-ink-sub font-medium">🔒 비공개</span>
               <button
                 type="button"
                 onClick={() => setIsPrivate(!isPrivate)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-tint focus:ring-offset-2 dark:focus:ring-offset-dark-page ${
-                  isPrivate ? 'bg-tint' : 'bg-surface-raised dark:bg-dark-border'
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 ${
+                  isPrivate ? 'bg-accent' : 'bg-card-raised'
                 }`}
               >
                 <span
@@ -155,7 +155,7 @@ export default function EditEntryForm({
           />
         </FormGroup>
 
-        {error && <p className="text-sm text-red-500">{error}</p>}
+        {error && <p className="text-sm text-danger">{error}</p>}
 
           <div className="flex justify-end pt-4">
             <Button type="submit" className="w-full sm:w-auto">✅ 기록 수정하기</Button>

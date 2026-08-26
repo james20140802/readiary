@@ -4,8 +4,61 @@
 
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
 
+/* ── 먹과 종이 팔레트 ─────────────────────────────
+   RGB 트리플릿(공백 구분)로 정의해 Tailwind의
+   rgb(var(--x) / <alpha-value>) 알파 변조를 지원한다.
+   시안: docs/superpowers/specs/... §6, 아티팩트 "먹과 종이" */
+:root {
+  --paper: 247 243 236;        /* #F7F3EC 종이 */
+  --card: 253 251 247;         /* #FDFBF7 카드 */
+  --card-raised: 242 236 225;  /* #F2ECE1 돌출 표면 */
+  --ink: 34 30 26;             /* #221E1A 먹 */
+  --ink-sub: 110 102 92;       /* #6E665C 회갈 */
+  --ink-faint: 163 154 141;    /* #A39A8D 옅은 먹 */
+  --ink-invert: 253 251 247;   /* 먹 배경 위 글자 */
+  --hairline: 227 220 208;     /* #E3DCD0 */
+  --hairline-strong: 207 197 180; /* #CFC5B4 */
+  --accent: 45 95 184;         /* #2D5FB8 파란 잉크 (기본 후보) */
+  --accent-hover: 36 80 158;
+  --danger: 166 61 47;         /* #A63D2F 가라앉힌 적갈 */
+  --success: 74 124 89;        /* #4A7C59 가라앉힌 초록 */
+}
+
+/* 강조색 후보 B: 주홍 — 실화면 비교용. 확정 전까지 유지(스펙 §2-6) */
+:root[data-accent='vermilion'] {
+  --accent: 193 68 30;         /* #C1441E */
+  --accent-hover: 168 58 25;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: 27 22 18;         /* #1B1612 어두운 종이 */
+    --card: 36 30 25;          /* #241E19 */
+    --card-raised: 46 39 33;
+    --ink: 234 226 214;        /* #EAE2D6 미색 먹 */
+    --ink-sub: 154 143 129;    /* #9A8F81 */
+    --ink-faint: 110 101 90;
+    --ink-invert: 27 22 18;
+    --hairline: 58 50 42;      /* #3A322A */
+    --hairline-strong: 74 64 54;
+    --accent: 133 169 236;     /* #85A9EC 밤의 잉크 */
+    --accent-hover: 159 188 240;
+    --danger: 201 106 87;
+    --success: 127 174 143;
+  }
+  :root[data-accent='vermilion'] {
+    --accent: 224 118 79;
+    --accent-hover: 232 139 105;
+  }
+  html {
+    color-scheme: dark;
+  }
+}
+
 body {
   font-family: 'Pretendard', var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  background-color: rgb(var(--paper));
+  color: rgb(var(--ink));
   overflow-y: scroll;
   -ms-overflow-style: none;
   -webkit-font-smoothing: antialiased;
@@ -27,12 +80,10 @@ a {
   text-decoration: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
-}
-
 li {
   list-style-type: none;
+}
+
+::selection {
+  background: rgb(var(--accent) / 0.18);
 }

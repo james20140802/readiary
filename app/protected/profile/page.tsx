@@ -30,7 +30,7 @@ export default async function ProfilePage() {
 
   return (
     <div>
-      <h1 className="text-page-title text-label dark:text-label-invert mb-2">👤 내 프로필</h1>
+      <h1 className="text-page-title text-ink mb-2">👤 내 프로필</h1>
       <AnimatedSection>
         <div>
           <ProfileHeader user={user} profile={profile} />
@@ -38,7 +38,7 @@ export default async function ProfilePage() {
           {stats ? (
             <ProfileStats stats={stats} />
           ) : (
-            <p className="text-body-sm text-label-muted">통계 정보를 불러올 수 없습니다.</p>
+            <p className="text-body-sm text-ink-faint">통계 정보를 불러올 수 없습니다.</p>
           )}
         </div>
       </AnimatedSection>

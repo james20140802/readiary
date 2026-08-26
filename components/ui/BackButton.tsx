@@ -21,10 +21,10 @@ export default function BackButton() {
   return (
     <button
       onClick={handleBack}
-      className="p-2 -ml-3 hover:bg-surface-raised dark:hover:bg-dark-raised rounded-full transition-colors"
+      className="p-2 -ml-3 hover:bg-card-raised rounded-full transition-colors"
       aria-label="뒤로 가기"
     >
-      <ChevronLeft className="w-6 h-6 text-secondary" />
+      <ChevronLeft className="w-6 h-6 text-ink-sub" />
     </button>
   );
 }

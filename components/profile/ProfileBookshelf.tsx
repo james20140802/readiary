@@ -26,17 +26,17 @@ export default function ProfileBookshelf({
     <section className="mt-8 mb-8">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <h2 className="text-section-title font-bold text-label dark:text-label-invert">
+          <h2 className="text-section-title font-bold text-ink">
             {`📚 ${isOwnProfile ? '나' : (profile?.name ?? '') + '님'}의 책장`}
           </h2>
-          <span className="text-caption font-bold px-2 py-0.5 bg-surface-raised dark:bg-dark-raised text-label-muted border border-border dark:border-dark-border rounded-full">
+          <span className="text-caption font-bold px-2 py-0.5 bg-card-raised text-ink-faint border border-hairline rounded-full">
             {userBooks.length}
           </span>
         </div>
         {hasMore && (
           <Link
             href={baseLink ?? '/protected/books'}
-            className="flex items-center gap-0.5 text-caption font-semibold text-label-muted hover:text-tint transition-colors"
+            className="flex items-center gap-0.5 text-caption font-semibold text-ink-faint hover:text-accent transition-colors"
           >
             전체보기 <ChevronRight size={13} />
           </Link>
@@ -44,8 +44,8 @@ export default function ProfileBookshelf({
       </div>
 
       {userBooks.length === 0 ? (
-        <div className="py-12 border-2 border-dashed border-border dark:border-dark-border rounded-2xl text-center">
-          <p className="text-body-sm text-label-muted">아직 서재에 담긴 책이 없어요.</p>
+        <div className="py-12 border-2 border-dashed border-hairline rounded-2xl text-center">
+          <p className="text-body-sm text-ink-faint">아직 서재에 담긴 책이 없어요.</p>
         </div>
       ) : (
         <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
@@ -55,7 +55,7 @@ export default function ProfileBookshelf({
               href={`${baseLink ?? '/protected/books'}/${ub.book_id}`}
               className="group block"
             >
-              <div className="relative aspect-[2/3] w-full overflow-hidden rounded-2xl shadow-card border border-border dark:border-dark-border group-hover:shadow-card-md group-hover:-translate-y-1 transition-all duration-200">
+              <div className="relative aspect-[2/3] w-full overflow-hidden rounded-2xl border border-hairline group- group-hover:-translate-y-1 transition-all duration-200">
                 <Image
                   src={ub.books?.cover_url || '/images/default-book-cover.png'}
                   alt={ub.books.title}
@@ -64,12 +64,12 @@ export default function ProfileBookshelf({
                   sizes="(max-width: 640px) 33vw, 25vw"
                 />
                 {ub.is_finished && (
-                  <div className="absolute top-2 right-2 bg-tint/90 backdrop-blur-sm text-white px-1.5 py-0.5 rounded-lg">
+                  <div className="absolute top-2 right-2 bg-accent/90 backdrop-blur-sm text-white px-1.5 py-0.5 rounded-lg">
                     <span className="text-[9px] font-black tracking-tighter">DONE</span>
                   </div>
                 )}
               </div>
-              <p className="mt-1.5 text-caption font-medium text-label-muted truncate px-0.5 group-hover:text-label dark:group-hover:text-label-invert transition-colors">
+              <p className="mt-1.5 text-caption font-medium text-ink-faint truncate px-0.5 group-hover:text-ink transition-colors">
                 {ub.books.title}
               </p>
             </Link>

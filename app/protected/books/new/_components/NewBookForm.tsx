@@ -86,7 +86,7 @@ export default function NewBookForm() {
         />
       </FormGroup>
 
-      {error && <p className="text-red-500 text-sm">{error}</p>}
+      {error && <p className="text-danger text-sm">{error}</p>}
 
       <div className="flex justify-end">
         <Button type="submit" disabled={loading}>

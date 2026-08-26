@@ -140,7 +140,7 @@ export default function SignupPage() {
                 가입하기
               </Button>
             </div>
-            <p className="text-sm text-center mt-4 text-secondary">
+            <p className="text-sm text-center mt-4 text-ink-sub">
               <a href="/login" className="underline">
                 로그인으로 이동
               </a>
