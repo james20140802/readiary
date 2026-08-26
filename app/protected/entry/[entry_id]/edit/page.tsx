@@ -16,6 +16,7 @@ export default async function EditEntryPage({ params }: Props) {
   return (
     <EditEntryForm
       entryId={entry.id}
+      initialQuote={entry.quote ?? ''}
       initialNote={entry.note ?? ''}
       initialFromPage={entry.from_page ?? null}
       initialToPage={entry.to_page ?? null}

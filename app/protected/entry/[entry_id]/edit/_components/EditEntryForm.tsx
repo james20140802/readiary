@@ -1,19 +1,13 @@
 'use client';
 
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 import { Book } from '@/types/book';
-import { Textarea } from '@/components/ui/Textarea';
-import { Input } from '@/components/ui/Input';
-import FormGroup from '@/components/ui/FormGroup';
-import Button from '@/components/ui/Button';
-import FormLabel from '@/components/ui/FormLabel';
-import AnimatedSection from '@/components/ui/AnimatedSection';
-import BackButton from '@/components/ui/BackButton';
+import EntryForm, { EntryFormValues } from '@/components/entries/EntryForm';
+
 interface Props {
   entryId: string;
   book: Book;
+  initialQuote: string;
   initialNote: string;
   initialFromPage: number | null;
   initialToPage: number | null;
@@ -24,6 +18,7 @@ interface Props {
 export default function EditEntryForm({
   entryId,
   book,
+  initialQuote,
   initialNote,
   initialFromPage,
   initialToPage,
@@ -32,136 +27,38 @@ export default function EditEntryForm({
 }: Props) {
   const router = useRouter();
 
-  const [note, setNote] = useState(initialNote);
-  const [fromPage, setFromPage] = useState(initialFromPage?.toString() ?? '');
-  const [toPage, setToPage] = useState(initialToPage?.toString() ?? '');
-  const [isPrivate, setIsPrivate] = useState(initialIsPrivate);
-  const [error, setError] = useState('');
-  const [date, setDate] = useState(initialDate ?? new Date().toISOString().split('T')[0]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-
-    if (fromPage !== '' && toPage !== '' && Number(fromPage) > Number(toPage)) {
-      setError('시작 페이지는 종료 페이지보다 작거나 같아야 합니다.');
-      return;
-    }
-
-    const res = await fetch(`/api/entries/${entryId}/edit`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        note,
-        from_page: fromPage === '' ? null : Number(fromPage),
-        to_page: toPage === '' ? null : Number(toPage),
-        is_private: isPrivate,
-        date,
-      }),
-    });
-
-    if (!res.ok) {
-      const data = await res.json().catch(() => null);
-      setError(data?.error ?? '수정에 실패했어요.');
-    } else {
+  const handleSubmit = async (values: EntryFormValues): Promise<string | null> => {
+    try {
+      const res = await fetch(`/api/entries/${entryId}/edit`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(values),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        return data?.error ?? '수정에 실패했어요.';
+      }
       router.push(`/protected/entry/${entryId}`);
+      return null;
+    } catch {
+      return '서버와 통신 중 오류가 발생했습니다.';
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <header className="flex items-center mb-6">
-        <BackButton />
-        <h1 className="text-page-title text-ink ml-4">🌤️ 독서 기록 수정</h1>
-      </header>
-      <AnimatedSection>
-        <div className="max-w-2xl mx-auto py-4 sm:py-6 space-y-8">
-          <div className="flex flex-col sm:flex-row justify-between items-start gap-6 pb-6 border-b border-hairline">
-            <div className="flex items-center gap-4">
-              <Image
-                src={book.cover_url ?? '/images/default-book-cover.png'}
-                alt="Book cover"
-                width={48}
-                height={72}
-                className="rounded shadow object-cover"
-              />
-              <div className="flex flex-col">
-                <strong className="text-xl text-ink leading-tight">
-                  {book.title ?? '제목 없음'}
-                </strong>
-                <span className="text-ink-sub text-sm font-medium mt-1">{book.author ?? '저자 미상'}</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 self-end sm:self-auto mt-4 sm:mt-0">
-              <span className="text-sm text-ink-sub font-medium">🔒 비공개</span>
-              <button
-                type="button"
-                onClick={() => setIsPrivate(!isPrivate)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-paper ${
-                  isPrivate ? 'bg-accent' : 'bg-card-raised'
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    isPrivate ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
-              </button>
-            </div>
-          </div>
-
-        <div className="flex flex-col gap-4 sm:flex-row">
-          <FormGroup className="flex-1">
-            <FormLabel>시작 페이지</FormLabel>
-            <Input
-              type="number"
-              placeholder="ex. 10"
-              value={fromPage}
-              onChange={(e) => setFromPage(e.target.value)}
-            />
-          </FormGroup>
-          <FormGroup className="flex-1">
-            <FormLabel>종료 페이지</FormLabel>
-            <Input
-              type="number"
-              placeholder="ex. 25"
-              value={toPage}
-              onChange={(e) => setToPage(e.target.value)}
-            />
-          </FormGroup>
-        </div>
-
-        <FormGroup>
-          <FormLabel>읽은 날짜</FormLabel>
-          <Input
-            type="date"
-            value={date}
-            max={new Date().toISOString().split('T')[0]}
-            onChange={(e) => setDate(e.target.value)}
-          />
-        </FormGroup>
-
-        <FormGroup>
-          <FormLabel>줄거리 요약</FormLabel>
-          <Textarea
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            placeholder="오늘 읽은 내용을 간단히 정리해보세요..."
-            rows={5}
-            className="resize-none"
-            fullWidth
-          />
-        </FormGroup>
-
-        {error && <p className="text-sm text-danger">{error}</p>}
-
-          <div className="flex justify-end pt-4">
-            <Button type="submit" className="w-full sm:w-auto">✅ 기록 수정하기</Button>
-          </div>
-        </div>
-      </AnimatedSection>
-    </form>
+    <EntryForm
+      book={book}
+      heading="기록 수정"
+      submitLabel="수정 저장"
+      initial={{
+        quote: initialQuote,
+        note: initialNote,
+        fromPage: initialFromPage,
+        toPage: initialToPage,
+        date: initialDate,
+        isPrivate: initialIsPrivate,
+      }}
+      onSubmit={handleSubmit}
+    />
   );
 }
