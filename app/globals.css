@@ -37,7 +37,7 @@
     --card-raised: 46 39 33;
     --ink: 234 226 214;        /* #EAE2D6 미색 먹 */
     --ink-sub: 154 143 129;    /* #9A8F81 */
-    --ink-faint: 110 101 90;
+    --ink-faint: 142 132 118;  /* #8E8476 — 카드 위 4.5:1 (소형 메타 텍스트 가독성) */
     --ink-invert: 27 22 18;
     --hairline: 58 50 42;      /* #3A322A */
     --hairline-strong: 74 64 54;

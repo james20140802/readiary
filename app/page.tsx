@@ -29,7 +29,7 @@ export default async function Home() {
             </button>
           </Link>
           <Link href="/signup">
-            <button className="px-6 py-3 rounded-md border border-input hover:bg-accent hover:text-accent-foreground text-base font-medium">
+            <button className="px-6 py-3 rounded-md border border-hairline-strong hover:bg-accent hover:text-ink-invert text-base font-medium">
               회원가입
             </button>
           </Link>
