@@ -72,6 +72,7 @@ module.exports = {
       },
       fontFamily: {
         sans: ['Pretendard', 'var(--font-geist-sans)', 'ui-sans-serif', 'system-ui'],
+        serif: ['var(--font-serif)', 'Noto Serif KR', 'Georgia', 'serif'],
       },
     },
   },

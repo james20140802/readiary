@@ -3,6 +3,7 @@ import './globals.css';
 import { Toaster } from 'sonner';
 import Header from '@/components/Header';
 import Navbar from '@/components/Navbar';
+import { maruBuri } from './fonts';
 
 export const metadata: Metadata = {
   title: 'Readiary | 당신의 독서 일기',
@@ -22,7 +23,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko">
+    <html lang="ko" className={maruBuri.variable}>
       <head>
         <link rel="manifest" href="/manifest.json" />
         <link rel="icon" href="/icons/icon-192x192-v2.png" />
