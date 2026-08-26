@@ -28,10 +28,22 @@ export async function PATCH(
   const patch: Record<string, unknown> = {};
   if ('quote' in body) patch.quote = norm(body.quote);
   if ('note' in body) patch.note = norm(body.note);
-  if ('from_page' in body) patch.from_page = body.from_page ?? null;
-  if ('to_page' in body) patch.to_page = body.to_page ?? null;
   if ('is_private' in body) patch.is_private = body.is_private;
   if ('date' in body && body.date) patch.date = body.date;
+
+  // 페이지 필드가 오면 기존 값과 합친 뒤, 한쪽만 남는 경우 양쪽에 같은 값으로 정규화한다
+  // (진행률 RPC와 통계가 한쪽짜리 범위를 따로 다루지 않아도 되도록)
+  if ('from_page' in body || 'to_page' in body) {
+    const { data: cur } = await supabase
+      .from('entries')
+      .select('from_page, to_page')
+      .eq('id', entry_id)
+      .single();
+    const nextFrom = 'from_page' in body ? (body.from_page ?? null) : (cur?.from_page ?? null);
+    const nextTo = 'to_page' in body ? (body.to_page ?? null) : (cur?.to_page ?? null);
+    patch.from_page = nextFrom ?? nextTo;
+    patch.to_page = nextTo ?? nextFrom;
+  }
 
   if ('quote' in body && 'note' in body && patch.quote == null && patch.note == null) {
     return NextResponse.json(

@@ -37,12 +37,17 @@ export async function POST(req: Request) {
       );
     }
 
+    // 한쪽 페이지만 입력되면 양쪽에 같은 값을 저장한다 — 진행률(max to_page)·통계(to-from)가
+    // 한쪽짜리 범위를 따로 다루지 않아도 되도록 쓰기 시점에 정규화
+    const normFrom = from_page ?? to_page ?? null;
+    const normTo = to_page ?? from_page ?? null;
+
     const { error } = await supabase.from('entries').insert({
       user_book_id,
       quote: typeof quote === 'string' && quote.trim() !== '' ? quote.trim() : null,
       note: typeof note === 'string' && note.trim() !== '' ? note.trim() : null,
-      from_page: from_page ?? null,
-      to_page: to_page ?? null,
+      from_page: normFrom,
+      to_page: normTo,
       date,
       is_private: is_private ?? false,
     });
