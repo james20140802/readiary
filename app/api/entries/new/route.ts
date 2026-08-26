@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { hasEntryContent, isFutureKSTDate } from '@/lib/entries/validation';
 import { updateProgress } from '@/utils/sync';
 import { NextResponse } from 'next/server';
 
@@ -19,15 +20,15 @@ export async function POST(req: Request) {
     const { user_book_id, quote, note, from_page, to_page, date, is_private, book_id, user_id } =
       body;
 
-    const hasContent =
-      (typeof quote === 'string' && quote.trim() !== '') ||
-      (typeof note === 'string' && note.trim() !== '');
-
-    if (!user_book_id || !date || !hasContent) {
+    if (!user_book_id || !date || !hasEntryContent(quote, note)) {
       return NextResponse.json(
         { error: '문장(quote) 또는 생각(note) 중 하나는 필요합니다.' },
         { status: 400 }
       );
+    }
+
+    if (isFutureKSTDate(date)) {
+      return NextResponse.json({ error: '미래 날짜로는 기록할 수 없습니다.' }, { status: 400 });
     }
 
     if (from_page != null && to_page != null && Number(from_page) > Number(to_page)) {
@@ -42,21 +43,25 @@ export async function POST(req: Request) {
     const normFrom = from_page ?? to_page ?? null;
     const normTo = to_page ?? from_page ?? null;
 
-    const { error } = await supabase.from('entries').insert({
-      user_book_id,
-      quote: typeof quote === 'string' && quote.trim() !== '' ? quote.trim() : null,
-      note: typeof note === 'string' && note.trim() !== '' ? note.trim() : null,
-      from_page: normFrom,
-      to_page: normTo,
-      date,
-      is_private: is_private ?? false,
-    });
+    const { data: created, error } = await supabase
+      .from('entries')
+      .insert({
+        user_book_id,
+        quote: typeof quote === 'string' && quote.trim() !== '' ? quote.trim() : null,
+        note: typeof note === 'string' && note.trim() !== '' ? note.trim() : null,
+        from_page: normFrom,
+        to_page: normTo,
+        date,
+        is_private: is_private ?? false,
+      })
+      .select('id')
+      .single();
 
-    if (error) {
+    if (error || !created) {
       return NextResponse.json({ error: 'Failed to create entry' }, { status: 500 });
     }
     await updateProgress(book_id, user_id);
-    return NextResponse.json({ message: 'Entry created successfully' });
+    return NextResponse.json({ id: created.id });
   } catch (error) {
     console.error('Unexpected error in POST /api/entries/new:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

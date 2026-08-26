@@ -17,14 +17,16 @@ export async function POST(req: Request) {
 
     const { title, author, total_pages, isbn, cover_url } = await req.json();
 
-    if (!title || !author || !total_pages) {
-      // isbn and cover_url are optional
+    if (!title || !author) {
+      // total_pages, isbn, cover_url are optional
       return new Response(JSON.stringify({ error: 'Missing required fields' }), { status: 400 });
     }
 
     const { data: book, error: bookError } = await supabase
       .from('books')
-      .upsert({ title, author, total_pages, isbn, cover_url } as BookInsert, { onConflict: 'isbn' })
+      .upsert({ title, author, total_pages: total_pages ?? null, isbn, cover_url } as BookInsert, {
+        onConflict: 'isbn',
+      })
       .select('*')
       .single();
 
