@@ -8,6 +8,7 @@ export async function fetchDashboardData(): Promise<{
   entry: Entry | null;
   streak: number;
   weekActivity: boolean[];
+  recentUserBookId: string | null;
 } | null> {
   const supabase = await createSupabaseServerClient();
 
@@ -36,8 +37,13 @@ export async function fetchDashboardData(): Promise<{
   const start = startOfWeek(new Date(), { weekStartsOn: 0 });
   const end = addDays(start, 6);
 
-  const [{ data: myBooks }, { data: entries }, { data: weekEntries }, { data: allEntryDates }] =
-    await Promise.all([
+  const [
+    { data: myBooks },
+    { data: entries },
+    { data: weekEntries },
+    { data: allEntryDates },
+    { data: recentEntry },
+  ] = await Promise.all([
       supabase
         .from('user_books')
         .select('id, progress, created_at, is_finished, last_read_page, book_id, books:books(*)')
@@ -73,6 +79,13 @@ export async function fetchDashboardData(): Promise<{
         .lte('date', format(end, 'yyyy-MM-dd')),
 
       supabase.from('entries').select('date').in('user_book_id', bookIds),
+
+      supabase
+        .from('entries')
+        .select('user_book_id')
+        .in('user_book_id', bookIds)
+        .order('created_at', { ascending: false })
+        .limit(1),
     ]);
 
   const weekDays = [...Array(7)].map((_, i) => addDays(start, i));
@@ -115,5 +128,6 @@ export async function fetchDashboardData(): Promise<{
         : null,
     streak,
     weekActivity,
+    recentUserBookId: recentEntry?.[0]?.user_book_id ?? null,
   };
 }
