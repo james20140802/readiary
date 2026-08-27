@@ -23,23 +23,10 @@ export async function fetchMonthlyRecap(): Promise<MonthlyRecap | null> {
 
   if (!user || userError) return null;
 
-  // 책 목록도 행 캡을 넘을 수 있어 페이지네이션 — 잘리면 그 책들의 기록이 집계에서 빠진다.
-  const { rows: userBooks, error: userBooksError } = await fetchAllRows<{ id: string }>(
-    (from, to) =>
-      supabase
-        .from('user_books')
-        .select('id')
-        .eq('user_id', user.id)
-        .order('id', { ascending: true })
-        .range(from, to)
-  );
-
-  if (userBooksError || userBooks.length === 0) return null;
-
-  const bookIds = userBooks.map((b) => b.id);
   const { start, end, label } = prevMonthRange(todayKst);
 
   // 집계는 지난달 기록 전량이 필요 — 절단되면 수치가 조용히 줄어든다. 페이지네이션으로 끝까지 읽는다.
+  // 본인 책 필터는 ID 목록 .in() 대신 user_books 조인으로 — 책이 많아도 요청 URL 크기가 일정하다.
   const { rows: entries, error: entriesError } = await fetchAllRows<{
     id: string;
     quote: string | null;
@@ -47,8 +34,8 @@ export async function fetchMonthlyRecap(): Promise<MonthlyRecap | null> {
   }>((from, to) =>
     supabase
       .from('entries')
-      .select('id, quote, user_book_id')
-      .in('user_book_id', bookIds)
+      .select('id, quote, user_book_id, user_books!inner(user_id)')
+      .eq('user_books.user_id', user.id)
       .gte('date', start)
       .lte('date', end)
       .order('date', { ascending: true })

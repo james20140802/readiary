@@ -23,26 +23,6 @@ export async function fetchDashboardData(): Promise<{
 
   if (!user || userError) return null;
 
-  // 책 목록도 행 캡을 넘을 수 있어 페이지네이션 — 여기서 잘리면 bookIds 기반 조회 전부가 불완전해진다.
-  const { rows: books, error: booksError } = await fetchAllRows<{
-    id: string;
-    is_finished: boolean | null;
-  }>((from, to) =>
-    supabase
-      .from('user_books')
-      .select('id, is_finished')
-      .eq('user_id', user.id)
-      .order('id', { ascending: true })
-      .range(from, to)
-  );
-
-  if (booksError) {
-    console.error('Error fetching books:', booksError);
-    return null;
-  }
-
-  const bookIds = books.map((book) => book.id);
-
   const todayKst = todayKST();
   const weekDates = weekDatesKST(todayKst);
   const weekStart = weekDates[0];
@@ -66,10 +46,12 @@ export async function fetchDashboardData(): Promise<{
           .range(from, to)
       ),
 
+      // 본인 책 필터는 ID 목록 .in() 대신 user_books 조인으로 — 책이 많아도 요청 URL 크기가 일정하다.
       supabase
         .from('entries')
         .select(
-          `id, date, note, quote, from_page, to_page, is_private, created_at, user_books (
+          `id, date, note, quote, from_page, to_page, is_private, created_at, user_books!inner (
+                user_id,
                 book_id,
                 book:books (
                   id,
@@ -81,7 +63,7 @@ export async function fetchDashboardData(): Promise<{
                 )
               )`
         )
-        .in('user_book_id', bookIds)
+        .eq('user_books.user_id', user.id)
         .eq('date', todayKst)
         .order('created_at', { ascending: false })
         .limit(1),
@@ -89,8 +71,8 @@ export async function fetchDashboardData(): Promise<{
       fetchAllRows<{ date: string }>((from, to) =>
         supabase
           .from('entries')
-          .select('date')
-          .in('user_book_id', bookIds)
+          .select('date, user_books!inner(user_id)')
+          .eq('user_books.user_id', user.id)
           .gte('date', weekStart)
           .lte('date', weekEnd)
           .order('date', { ascending: true })
@@ -102,8 +84,8 @@ export async function fetchDashboardData(): Promise<{
       fetchAllRows<{ date: string }>((from, to) =>
         supabase
           .from('entries')
-          .select('date')
-          .in('user_book_id', bookIds)
+          .select('date, user_books!inner(user_id)')
+          .eq('user_books.user_id', user.id)
           .order('date', { ascending: false })
           .order('created_at', { ascending: false })
           .range(from, to)
@@ -111,8 +93,8 @@ export async function fetchDashboardData(): Promise<{
 
       supabase
         .from('entries')
-        .select('user_book_id')
-        .in('user_book_id', bookIds)
+        .select('user_book_id, user_books!inner(user_id)')
+        .eq('user_books.user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(1),
     ]);

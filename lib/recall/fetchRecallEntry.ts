@@ -41,10 +41,10 @@ export async function fetchRecallEntry(): Promise<RecallEntry | null> {
 
   if (userBooksError || userBooks.length === 0) return null;
 
-  const bookIds = userBooks.map((b) => b.id);
   const todayKst = todayKST();
 
   // 후보 전량 필요 — 절단되면 같은 월-일 우선 선택이 페이지 밖 기록을 놓친다. 페이지네이션으로 끝까지 읽는다.
+  // 본인 책 필터는 ID 목록 .in() 대신 user_books 조인으로 — 책이 많아도 요청 URL 크기가 일정하다.
   const { rows: entries, error: entriesError } = await fetchAllRows<{
     id: string;
     date: string;
@@ -54,8 +54,8 @@ export async function fetchRecallEntry(): Promise<RecallEntry | null> {
   }>((from, to) =>
     supabase
       .from('entries')
-      .select('id, date, quote, note, user_book_id')
-      .in('user_book_id', bookIds)
+      .select('id, date, quote, note, user_book_id, user_books!inner(user_id)')
+      .eq('user_books.user_id', user.id)
       .lt('date', todayKst)
       .order('date', { ascending: true })
       .order('created_at', { ascending: true })
