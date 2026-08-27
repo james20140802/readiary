@@ -1,6 +1,6 @@
 import { redirect, notFound } from 'next/navigation';
 
-import { fetchBookDetail } from '@/lib/books/fetchBookDetail';
+import { fetchBookExcerpts } from '@/lib/books/fetchBookExcerpts';
 import { hasEntryContent } from '@/lib/entries/validation';
 import ExcerptReader from '@/components/books/ExcerptReader';
 
@@ -13,46 +13,29 @@ interface Props {
 export default async function BookExcerptsPage({ params }: Props) {
   const book_id = (await params).book_id;
 
-  const data = await fetchBookDetail(book_id);
+  const data = await fetchBookExcerpts(book_id);
 
   if (!data) return notFound();
 
-  const { userBook, entries } = data;
-  const { books: book } = userBook;
-
-  if (!book) return notFound();
-
-  if (!userBook.is_finished) {
+  if (!data.isFinished) {
     redirect(`/protected/books/${book_id}`);
   }
 
-  const allEntries = entries ?? [];
-
-  const quotes = allEntries
-    .filter((e) => hasEntryContent(e.entry.quote, null))
-    .sort((a, b) => {
-      if (a.entry.date !== b.entry.date) {
-        return a.entry.date < b.entry.date ? -1 : 1;
-      }
-      const createdA = new Date(a.entry.created_at).getTime();
-      const createdB = new Date(b.entry.created_at).getTime();
-      return createdA - createdB;
-    })
+  // 쿼리가 date asc, created_at asc로 정렬해 오므로 추가 정렬이 필요 없다.
+  const quotes = data.entries
+    .filter((e) => hasEntryContent(e.quote, null))
     .map((e) => ({
-      id: e.entry.id,
-      date: e.entry.date,
-      quote: e.entry.quote as string,
+      id: e.id,
+      date: e.date,
+      quote: e.quote as string,
     }));
 
-  const lastDate =
-    allEntries.length > 0
-      ? allEntries.reduce((latest, e) => (e.entry.date > latest ? e.entry.date : latest), allEntries[0].entry.date)
-      : null;
+  const lastDate = data.entries.length > 0 ? data.entries[data.entries.length - 1].date : null;
 
   return (
     <ExcerptReader
-      bookTitle={book.title}
-      author={book.author}
+      bookTitle={data.bookTitle}
+      author={data.author}
       quotes={quotes}
       lastDate={lastDate}
     />
