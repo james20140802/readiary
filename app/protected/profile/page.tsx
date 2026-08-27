@@ -43,7 +43,11 @@ export default async function ProfilePage() {
           ) : (
             <p className="text-body-sm text-ink-faint">통계 정보를 불러올 수 없습니다.</p>
           )}
-          <ProfileRetrospect data={retrospect} />
+          {retrospect ? (
+            <ProfileRetrospect data={retrospect} />
+          ) : (
+            <p className="text-body-sm text-ink-faint">회고 정보를 불러올 수 없습니다.</p>
+          )}
         </div>
       </AnimatedSection>
     </div>
