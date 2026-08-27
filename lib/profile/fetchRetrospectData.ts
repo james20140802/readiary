@@ -1,5 +1,6 @@
 import { todayKST } from '@/lib/dates';
 import { hasEntryContent } from '@/lib/entries/validation';
+import { fetchAllRows } from '@/lib/supabase/fetchAllRows';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { summarizeByMonth, type MonthlySummary } from './monthlySummary';
 
@@ -18,37 +19,11 @@ export interface RetrospectData {
 }
 
 const RECENT_MONTHS = 6;
-const ENTRIES_PAGE_SIZE = 1000;
 
 interface RetrospectEntryRow {
   date: string;
   quote: string | null;
   user_book_id: string;
-}
-
-/**
- * PostgREST는 한 요청당 최대 행 수(기본 1,000)를 넘는 결과를 조용히 잘라낸다.
- * 회고 집계는 전체 entries가 필요하므로 range 페이지네이션으로 끝까지 읽는다.
- */
-async function fetchAllRetrospectEntries(
-  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
-  userBookIds: string[]
-): Promise<RetrospectEntryRow[]> {
-  const all: RetrospectEntryRow[] = [];
-
-  for (let offset = 0; ; offset += ENTRIES_PAGE_SIZE) {
-    const { data, error } = await supabase
-      .from('entries')
-      .select('date, quote, user_book_id')
-      .in('user_book_id', userBookIds)
-      .order('date', { ascending: true })
-      .order('created_at', { ascending: true })
-      .range(offset, offset + ENTRIES_PAGE_SIZE - 1);
-
-    if (error || !data) return all;
-    all.push(...data);
-    if (data.length < ENTRIES_PAGE_SIZE) return all;
-  }
 }
 
 /**
@@ -69,7 +44,16 @@ export async function fetchRetrospectData(userId: string): Promise<RetrospectDat
 
   const userBookIds = userBooks.map((b) => b.id);
 
-  const safeEntries = await fetchAllRetrospectEntries(supabase, userBookIds);
+  // 회고 집계는 전체 entries가 필요 — 절단 방지를 위해 페이지네이션으로 끝까지 읽는다(부분 실패 시 읽은 만큼 집계).
+  const { rows: safeEntries } = await fetchAllRows<RetrospectEntryRow>((from, to) =>
+    supabase
+      .from('entries')
+      .select('date, quote, user_book_id')
+      .in('user_book_id', userBookIds)
+      .order('date', { ascending: true })
+      .order('created_at', { ascending: true })
+      .range(from, to)
+  );
 
   const quoteCountByUserBookId = new Map<string, number>();
   for (const entry of safeEntries) {

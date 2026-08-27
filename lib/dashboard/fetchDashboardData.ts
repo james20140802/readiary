@@ -1,5 +1,6 @@
 import { calcStreak, calcWeekActivity, countWeekEntries, weekDatesKST } from '@/lib/dashboard/streak';
 import { todayKST } from '@/lib/dates';
+import { fetchAllRows } from '@/lib/supabase/fetchAllRows';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { MyBook } from '@/types/book';
 import { Entry } from '@/types/entry';
@@ -43,7 +44,7 @@ export async function fetchDashboardData(): Promise<{
     { data: myBooks },
     { data: entries },
     { data: weekEntries },
-    { data: allEntryDates },
+    { rows: allEntryDates },
     { data: recentEntry },
   ] = await Promise.all([
       supabase
@@ -80,7 +81,16 @@ export async function fetchDashboardData(): Promise<{
         .gte('date', weekStart)
         .lte('date', weekEnd),
 
-      supabase.from('entries').select('date').in('user_book_id', bookIds),
+      // 스트릭용 전체 날짜 — 최신 날짜부터 페이지네이션해 절단 없이 읽는다(부분 실패 시에도 최근 날짜가 남는다).
+      fetchAllRows<{ date: string }>((from, to) =>
+        supabase
+          .from('entries')
+          .select('date')
+          .in('user_book_id', bookIds)
+          .order('date', { ascending: false })
+          .order('created_at', { ascending: false })
+          .range(from, to)
+      ),
 
       supabase
         .from('entries')
@@ -90,10 +100,12 @@ export async function fetchDashboardData(): Promise<{
         .limit(1),
     ]);
 
-  const recordedDatesSet = new Set((allEntryDates ?? []).map((entry) => entry.date));
+  const recordedDatesSet = new Set(allEntryDates.map((entry) => entry.date));
+  const weekDatesSet = new Set((weekEntries ?? []).map((entry) => entry.date));
 
   const streak = calcStreak(recordedDatesSet, todayKst);
-  const weekActivity = calcWeekActivity(recordedDatesSet, todayKst);
+  // 주간 리듬은 주 범위로 한정된 weekEntries에서 계산 — weeklyCount와 같은 데이터를 보게 한다.
+  const weekActivity = calcWeekActivity(weekDatesSet, todayKst);
   const weeklyCount = countWeekEntries(
     (weekEntries ?? []).map((entry) => entry.date),
     todayKst

@@ -1,6 +1,7 @@
 import { todayKST } from '@/lib/dates';
 import { hasEntryContent } from '@/lib/entries/validation';
 import { isMonthlyRecapDay, prevMonthRange, type MonthlyRecap } from '@/lib/retrospect/monthlyRecap';
+import { fetchAllRows } from '@/lib/supabase/fetchAllRows';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 export type { MonthlyRecap };
@@ -32,14 +33,24 @@ export async function fetchMonthlyRecap(): Promise<MonthlyRecap | null> {
   const bookIds = userBooks.map((b) => b.id);
   const { start, end, label } = prevMonthRange(todayKst);
 
-  const { data: entries, error: entriesError } = await supabase
-    .from('entries')
-    .select('id, quote, user_book_id')
-    .in('user_book_id', bookIds)
-    .gte('date', start)
-    .lte('date', end);
+  // 집계는 지난달 기록 전량이 필요 — 절단되면 수치가 조용히 줄어든다. 페이지네이션으로 끝까지 읽는다.
+  const { rows: entries, error: entriesError } = await fetchAllRows<{
+    id: string;
+    quote: string | null;
+    user_book_id: string;
+  }>((from, to) =>
+    supabase
+      .from('entries')
+      .select('id, quote, user_book_id')
+      .in('user_book_id', bookIds)
+      .gte('date', start)
+      .lte('date', end)
+      .order('date', { ascending: true })
+      .order('created_at', { ascending: true })
+      .range(from, to)
+  );
 
-  if (entriesError || !entries || entries.length === 0) return null;
+  if (entriesError || entries.length === 0) return null;
 
   const entryCount = entries.length;
   const quoteCount = entries.filter((e) => hasEntryContent(e.quote, null)).length;

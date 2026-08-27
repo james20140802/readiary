@@ -1,5 +1,6 @@
 import { todayKST } from '@/lib/dates';
 import { selectRecall, type RecallCandidate } from '@/lib/recall/selectRecall';
+import { fetchAllRows } from '@/lib/supabase/fetchAllRows';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 export interface RecallEntry {
@@ -35,15 +36,25 @@ export async function fetchRecallEntry(): Promise<RecallEntry | null> {
   const bookIds = userBooks.map((b) => b.id);
   const todayKst = todayKST();
 
-  const { data: entries, error: entriesError } = await supabase
-    .from('entries')
-    .select('id, date, quote, note, user_book_id')
-    .in('user_book_id', bookIds)
-    .lt('date', todayKst)
-    .order('date', { ascending: true })
-    .order('created_at', { ascending: true });
+  // 후보 전량 필요 — 절단되면 같은 월-일 우선 선택이 페이지 밖 기록을 놓친다. 페이지네이션으로 끝까지 읽는다.
+  const { rows: entries, error: entriesError } = await fetchAllRows<{
+    id: string;
+    date: string;
+    quote: string | null;
+    note: string | null;
+    user_book_id: string;
+  }>((from, to) =>
+    supabase
+      .from('entries')
+      .select('id, date, quote, note, user_book_id')
+      .in('user_book_id', bookIds)
+      .lt('date', todayKst)
+      .order('date', { ascending: true })
+      .order('created_at', { ascending: true })
+      .range(from, to)
+  );
 
-  if (entriesError || !entries || entries.length === 0) return null;
+  if (entriesError || entries.length === 0) return null;
 
   const candidates: RecallCandidate[] = entries.map((e) => ({ id: e.id, date: e.date }));
   const picked = selectRecall(candidates, todayKst, `${user.id}|${todayKst}`);
