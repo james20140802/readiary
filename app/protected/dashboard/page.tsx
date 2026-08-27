@@ -3,13 +3,12 @@ import Composer from './_components/Composer';
 import { InProgressBooksSection } from './_components/InProgressBooksSection';
 import { NoBooksSection } from './_components/NoBooksSection';
 import { WeeklyStreakSection } from './_components/WeeklyStreakSection';
-import SocialFeed from './_components/SocialFeed';
+import { RecallCard } from './_components/RecallCard';
 import GreetingHeader from './_components/GreetingHeader';
 import { fetchDashboardData } from '@/lib/dashboard/fetchDashboardData';
+import { fetchRecallEntry } from '@/lib/recall/fetchRecallEntry';
 import { notFound } from 'next/navigation';
-import { fetchSocialFeedEntries } from '@/lib/queries/fetchSocialFeedEntries';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { DASHBOARD_SOCIAL_FEED_PAGINATION_LIMIT } from '@/constants/social';
 
 export default async function DashboardPage() {
   const supabase = await createSupabaseServerClient();
@@ -19,9 +18,9 @@ export default async function DashboardPage() {
 
   if (!user) return null;
 
-  const [data, socialFeedEntries, { data: profile }] = await Promise.all([
+  const [data, recall, { data: profile }] = await Promise.all([
     fetchDashboardData(),
-    fetchSocialFeedEntries(0, DASHBOARD_SOCIAL_FEED_PAGINATION_LIMIT),
+    fetchRecallEntry(),
     supabase.from('profiles').select('name').eq('id', user?.id).single(),
   ]);
   if (!data) return notFound();
@@ -38,6 +37,7 @@ export default async function DashboardPage() {
           recentUserBookId={recentUserBookId}
           userId={user.id}
         />
+        {recall && <RecallCard recall={recall} />}
         <WeeklyStreakSection
           weeklyCount={weeklyCount}
           streak={streak}
@@ -51,8 +51,6 @@ export default async function DashboardPage() {
           <NoBooksSection />
         )}
       </AnimatedSection>
-
-      <SocialFeed feed={socialFeedEntries} />
     </main>
   );
 }
