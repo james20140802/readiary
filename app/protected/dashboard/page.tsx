@@ -4,9 +4,11 @@ import { InProgressBooksSection } from './_components/InProgressBooksSection';
 import { NoBooksSection } from './_components/NoBooksSection';
 import { WeeklyStreakSection } from './_components/WeeklyStreakSection';
 import { RecallCard } from './_components/RecallCard';
+import { MonthlyRecapCard } from './_components/MonthlyRecapCard';
 import GreetingHeader from './_components/GreetingHeader';
 import { fetchDashboardData } from '@/lib/dashboard/fetchDashboardData';
 import { fetchRecallEntry } from '@/lib/recall/fetchRecallEntry';
+import { fetchMonthlyRecap } from '@/lib/retrospect/fetchMonthlyRecap';
 import { notFound } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
@@ -18,9 +20,10 @@ export default async function DashboardPage() {
 
   if (!user) return null;
 
-  const [data, recall, { data: profile }] = await Promise.all([
+  const [data, recall, recap, { data: profile }] = await Promise.all([
     fetchDashboardData(),
     fetchRecallEntry(),
+    fetchMonthlyRecap(),
     supabase.from('profiles').select('name').eq('id', user?.id).single(),
   ]);
   if (!data) return notFound();
@@ -32,6 +35,7 @@ export default async function DashboardPage() {
       <GreetingHeader name={profile?.name ?? null} />
 
       <AnimatedSection>
+        {recap && <MonthlyRecapCard recap={recap} />}
         <Composer
           books={books ?? []}
           recentUserBookId={recentUserBookId}
