@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { isFutureKSTDate } from '@/lib/entries/validation';
 import { updateProgress } from '@/utils/sync';
 
 export async function PATCH(
@@ -30,6 +31,10 @@ export async function PATCH(
   if ('note' in body) patch.note = norm(body.note);
   if ('is_private' in body) patch.is_private = body.is_private;
   if ('date' in body && body.date) patch.date = body.date;
+
+  if (typeof patch.date === 'string' && isFutureKSTDate(patch.date)) {
+    return NextResponse.json({ error: '미래 날짜로는 기록할 수 없습니다.' }, { status: 400 });
+  }
 
   // 페이지 필드가 오면 기존 값과 합친 뒤, 한쪽만 남는 경우 양쪽에 같은 값으로 정규화한다
   // (진행률 RPC와 통계가 한쪽짜리 범위를 따로 다루지 않아도 되도록)

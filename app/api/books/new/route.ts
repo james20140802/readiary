@@ -17,14 +17,28 @@ export async function POST(req: Request) {
 
     const { title, author, total_pages, isbn, cover_url } = await req.json();
 
-    if (!title || !author || !total_pages) {
-      // isbn and cover_url are optional
+    if (!title || !author) {
+      // total_pages, isbn, cover_url are optional
       return new Response(JSON.stringify({ error: 'Missing required fields' }), { status: 400 });
+    }
+
+    // books는 ISBN으로 공유되는 행 — 페이지 수를 모른 채 등록해도
+    // 다른 사용자가 채워둔 기존 total_pages를 null로 덮어쓰지 않는다
+    let pages: number | null = total_pages ?? null;
+    if (pages == null && isbn) {
+      const { data: existing } = await supabase
+        .from('books')
+        .select('total_pages')
+        .eq('isbn', isbn)
+        .maybeSingle();
+      pages = existing?.total_pages ?? null;
     }
 
     const { data: book, error: bookError } = await supabase
       .from('books')
-      .upsert({ title, author, total_pages, isbn, cover_url } as BookInsert, { onConflict: 'isbn' })
+      .upsert({ title, author, total_pages: pages, isbn, cover_url } as BookInsert, {
+        onConflict: 'isbn',
+      })
       .select('*')
       .single();
 

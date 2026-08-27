@@ -98,18 +98,26 @@ export default function BookDetailContent({
 
             <div className="mt-8 space-y-6">
               <div className="space-y-3">
-                <div className="w-full bg-hairline rounded-full h-2 overflow-hidden">
-                  <div
-                    className="bg-accent h-full rounded-full transition-all duration-1000 ease-out"
-                    style={{ width: `${progress ?? 0}%` }}
-                  />
-                </div>
-                <div className="flex justify-between items-center text-[11px] font-bold tracking-widest text-ink-faint uppercase">
-                  <span>
-                    {last_read_page ?? 0} / {total_pages} PAGES
+                {total_pages != null ? (
+                  <>
+                    <div className="w-full bg-hairline rounded-full h-2 overflow-hidden">
+                      <div
+                        className="bg-accent h-full rounded-full transition-all duration-1000 ease-out"
+                        style={{ width: `${progress ?? 0}%` }}
+                      />
+                    </div>
+                    <div className="flex justify-between items-center text-[11px] font-bold tracking-widest text-ink-faint uppercase">
+                      <span>
+                        {last_read_page ?? 0} / {total_pages} PAGES
+                      </span>
+                      <span className="text-accent">{progress ?? 0}% COMPLETED</span>
+                    </div>
+                  </>
+                ) : (
+                  <span className="text-caption text-ink-sub">
+                    {last_read_page != null ? `${last_read_page}쪽까지 읽음` : '페이지 정보 없음'}
                   </span>
-                  <span className="text-accent">{progress ?? 0}% COMPLETED</span>
-                </div>
+                )}
               </div>
             </div>
           </div>

@@ -1,4 +1,5 @@
 import AnimatedSection from '@/components/ui/AnimatedSection';
+import Composer from './_components/Composer';
 import { InProgressBooksSection } from './_components/InProgressBooksSection';
 import { NoBooksSection } from './_components/NoBooksSection';
 import { WeeklyStreakSection } from './_components/WeeklyStreakSection';
@@ -25,13 +26,18 @@ export default async function DashboardPage() {
   ]);
   if (!data) return notFound();
 
-  const { books, entry, streak, weekActivity } = data;
+  const { books, entry, streak, weekActivity, recentUserBookId } = data;
 
   return (
     <main className="w-full">
       <GreetingHeader name={profile?.name ?? null} />
 
       <AnimatedSection>
+        <Composer
+          books={books ?? []}
+          recentUserBookId={recentUserBookId}
+          userId={user.id}
+        />
         <WeeklyStreakSection streak={streak} weekActivity={weekActivity} entry={entry} />
         {books && books.length > 0 ? (
           <InProgressBooksSection myBooks={books} />
