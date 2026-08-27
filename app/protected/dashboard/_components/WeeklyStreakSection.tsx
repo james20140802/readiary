@@ -1,44 +1,41 @@
-'use client';
-
 import Card from '@/components/ui/Card';
-import { format, startOfWeek, addDays } from 'date-fns';
+import { weekDatesKST } from '@/lib/dashboard/streak';
+import { format, parseISO } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { useState, useEffect } from 'react';
 import { Entry } from '@/types/entry';
 import Link from 'next/link';
 
 interface Props {
+  weeklyCount: number;
   streak: number;
   weekActivity: boolean[];
+  todayKst: string;
   entry: Entry | null;
 }
 
-export function WeeklyStreakSection({ streak, weekActivity, entry }: Props) {
-  const [mounted, setMounted] = useState(false);
-  const [today, setToday] = useState(new Date());
-
-  useEffect(() => {
-    setMounted(true);
-    setToday(new Date());
-  }, []);
-
-  if (!mounted) return <div className="min-h-[160px]" />;
-
-  const startDate = startOfWeek(today, { weekStartsOn: 0 });
-  const todayStr = format(today, 'yyyy-MM-dd');
+export function WeeklyStreakSection({ weeklyCount, streak, weekActivity, todayKst, entry }: Props) {
+  const weekDates = weekDatesKST(todayKst);
 
   return (
     <Card className="mb-4" hoverable={false}>
-      <h2 className="text-section-title text-ink mb-4">
-        📅 이번 주의 리듬
-      </h2>
+      <h2 className="text-section-title text-ink mb-4">이번 주의 리듬</h2>
+
+      {weeklyCount > 0 ? (
+        <p className="font-serif text-xl text-ink">
+          이번 주 문장 <span className="text-accent">{weeklyCount}</span>개
+        </p>
+      ) : (
+        <p className="font-serif text-xl text-ink">아직 이번 주의 첫 문장이 없어요</p>
+      )}
+      {streak >= 2 && <p className="mt-1 text-sm text-ink-sub">{streak}일째 이어지고 있어요</p>}
 
       {/* 요일 도트 */}
-      <div className="flex justify-between gap-1 mb-4">
+      <div className="flex justify-between gap-1 mt-4 mb-4">
         {weekActivity.map((didWrite, index) => {
-          const date = addDays(startDate, index);
-          const isToday = format(date, 'yyyy-MM-dd') === todayStr;
-          const isPast = date < new Date(new Date(today).setHours(0, 0, 0, 0));
+          const d = weekDates[index];
+          const date = parseISO(d);
+          const isToday = d === todayKst;
+          const isPast = d < todayKst;
           const dayLabel = format(date, 'EE', { locale: ko })[0];
 
           let dotClass = '';
@@ -75,26 +72,13 @@ export function WeeklyStreakSection({ streak, weekActivity, entry }: Props) {
         })}
       </div>
 
-      {/* 스트릭 배지 — 미기록시 border로 구분감 추가 */}
-      <div className="mb-4">
-        {streak > 0 ? (
-          <span className="inline-flex items-center gap-1.5 text-body-sm font-medium text-accent bg-accent-soft px-3 py-1.5 rounded-full border border-accent/20">
-            🔥 현재 {streak}일 연속 기록 중!
-          </span>
-        ) : (
-          <span className="inline-flex items-center gap-1.5 text-body-sm text-ink-sub bg-card-raised px-3 py-1.5 rounded-full border border-hairline">
-            🕓 아직 기록을 시작하지 않았어요!
-          </span>
-        )}
-      </div>
-
       {/* 구분선 */}
       <div className="border-t border-hairline mb-4" />
 
       {/* 오늘 읽은 책 */}
       {entry ? (
         <div className="flex flex-col gap-0.5">
-          <p className="text-caption text-ink-faint tracking-wide">📖 오늘 읽은 책</p>
+          <p className="text-caption text-ink-faint tracking-wide">오늘 읽은 책</p>
           <h3 className="text-body font-semibold text-ink">
             {entry.book.title}
           </h3>
@@ -107,7 +91,7 @@ export function WeeklyStreakSection({ streak, weekActivity, entry }: Props) {
       ) : (
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-caption text-ink-faint tracking-wide">🕐 오늘의 기록</p>
+            <p className="text-caption text-ink-faint tracking-wide">오늘의 기록</p>
             <p className="mt-0.5 text-body-sm font-medium text-ink">
               하루 한 줄 기록, 지금 써보는 건 어때요?
             </p>

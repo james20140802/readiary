@@ -26,7 +26,7 @@ export default async function DashboardPage() {
   ]);
   if (!data) return notFound();
 
-  const { books, entry, streak, weekActivity, recentUserBookId } = data;
+  const { books, entry, streak, weekActivity, recentUserBookId, todayKst, weeklyCount } = data;
 
   return (
     <main className="w-full">
@@ -38,7 +38,13 @@ export default async function DashboardPage() {
           recentUserBookId={recentUserBookId}
           userId={user.id}
         />
-        <WeeklyStreakSection streak={streak} weekActivity={weekActivity} entry={entry} />
+        <WeeklyStreakSection
+          weeklyCount={weeklyCount}
+          streak={streak}
+          weekActivity={weekActivity}
+          todayKst={todayKst}
+          entry={entry}
+        />
         {books && books.length > 0 ? (
           <InProgressBooksSection myBooks={books} />
         ) : (
