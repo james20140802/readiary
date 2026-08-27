@@ -55,8 +55,10 @@ export default function KakaoBookSearchForm() {
       }
       setShowModal(true);
     } catch (e) {
+      // 페이지 수 조회가 아예 실패해도 등록은 가능해야 한다 — 모달을 열고 수동 입력으로 넘긴다
       console.error(e);
-      toast.error('페이지 수 가져오기 실패');
+      setTotalPages(null);
+      setShowModal(true);
     }
   };
 

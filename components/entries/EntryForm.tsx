@@ -62,6 +62,10 @@ export default function EntryForm({ book, heading, submitLabel, initial, onSubmi
       setError('시작 페이지는 종료 페이지보다 작거나 같아야 합니다.');
       return;
     }
+    if (date === '') {
+      setError('읽은 날짜를 선택해주세요.');
+      return;
+    }
 
     setIsSubmitting(true);
     try {
