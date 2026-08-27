@@ -39,7 +39,9 @@ export async function fetchRecallEntry(): Promise<RecallEntry | null> {
     .from('entries')
     .select('id, date, quote, note, user_book_id')
     .in('user_book_id', bookIds)
-    .lt('date', todayKst);
+    .lt('date', todayKst)
+    .order('date', { ascending: true })
+    .order('created_at', { ascending: true });
 
   if (entriesError || !entries || entries.length === 0) return null;
 

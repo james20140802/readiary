@@ -12,7 +12,7 @@ export function RecallCard({ recall }: { recall: RecallEntry }) {
       <Card hoverable className="mb-4">
         <div className="mb-3 flex items-center justify-between">
           <Seal>{label}</Seal>
-          <span className="text-xs text-ink-faint">{recall.date}</span>
+          <span className="text-xs text-ink-faint">{recall.date.replaceAll('-', '.')}</span>
         </div>
         <p className={`font-serif text-ink line-clamp-3 ${recall.quote ? 'text-quote' : ''}`}>
           {recall.quote ? `“${body}”` : body}
