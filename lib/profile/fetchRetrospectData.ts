@@ -61,6 +61,7 @@ export async function fetchRetrospectData(userId: string): Promise<RetrospectDat
       .eq('user_books.user_id', userId)
       .order('date', { ascending: true })
       .order('created_at', { ascending: true })
+      .order('id', { ascending: true })
       .range(from, to)
   );
 

@@ -29,10 +29,10 @@ export async function fetchDashboardData(): Promise<{
   const weekEnd = weekDates[weekDates.length - 1];
 
   const [
-    { rows: myBooks },
+    { rows: myBooks, error: myBooksError },
     { data: entries },
-    { rows: weekEntries },
-    { rows: allEntryDates },
+    { rows: weekEntries, error: weekEntriesError },
+    { rows: allEntryDates, error: allEntryDatesError },
     { data: recentEntry },
   ] = await Promise.all([
       fetchAllRows<MyBook>((from, to) =>
@@ -77,10 +77,11 @@ export async function fetchDashboardData(): Promise<{
           .lte('date', weekEnd)
           .order('date', { ascending: true })
           .order('created_at', { ascending: true })
+          .order('id', { ascending: true })
           .range(from, to)
       ),
 
-      // 스트릭용 전체 날짜 — 최신 날짜부터 페이지네이션해 절단 없이 읽는다(부분 실패 시에도 최근 날짜가 남는다).
+      // 스트릭용 전체 날짜 — 최신 날짜부터 페이지네이션해 절단 없이 읽는다.
       fetchAllRows<{ date: string }>((from, to) =>
         supabase
           .from('entries')
@@ -88,6 +89,7 @@ export async function fetchDashboardData(): Promise<{
           .eq('user_books.user_id', user.id)
           .order('date', { ascending: false })
           .order('created_at', { ascending: false })
+          .order('id', { ascending: false })
           .range(from, to)
       ),
 
@@ -98,6 +100,15 @@ export async function fetchDashboardData(): Promise<{
         .order('created_at', { ascending: false })
         .limit(1),
     ]);
+
+  // 페이지네이션 조회의 오류는 폐기하지 않는다 — 부분 데이터로 빈 책장·틀린 스트릭을 그리는 대신 오류 경로로.
+  if (myBooksError || weekEntriesError || allEntryDatesError) {
+    console.error(
+      'Error fetching dashboard data:',
+      myBooksError ?? weekEntriesError ?? allEntryDatesError
+    );
+    return null;
+  }
 
   const recordedDatesSet = new Set(allEntryDates.map((entry) => entry.date));
   const weekDatesSet = new Set(weekEntries.map((entry) => entry.date));

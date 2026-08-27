@@ -59,6 +59,7 @@ export async function fetchRecallEntry(): Promise<RecallEntry | null> {
       .lt('date', todayKst)
       .order('date', { ascending: true })
       .order('created_at', { ascending: true })
+      .order('id', { ascending: true })
       .range(from, to)
   );
 

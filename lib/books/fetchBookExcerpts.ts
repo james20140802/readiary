@@ -45,6 +45,7 @@ export async function fetchBookExcerpts(bookId: string): Promise<BookExcerptsDat
       .eq('user_book_id', userBook.id)
       .order('date', { ascending: true })
       .order('created_at', { ascending: true })
+      .order('id', { ascending: true })
       .range(from, to)
   );
 

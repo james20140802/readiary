@@ -40,6 +40,7 @@ export async function fetchMonthlyRecap(): Promise<MonthlyRecap | null> {
       .lte('date', end)
       .order('date', { ascending: true })
       .order('created_at', { ascending: true })
+      .order('id', { ascending: true })
       .range(from, to)
   );
 
