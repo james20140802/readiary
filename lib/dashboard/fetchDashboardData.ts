@@ -1,7 +1,8 @@
+import { calcStreak, calcWeekActivity, countWeekEntries, weekDatesKST } from '@/lib/dashboard/streak';
+import { todayKST } from '@/lib/dates';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { MyBook } from '@/types/book';
 import { Entry } from '@/types/entry';
-import { addDays, format, isSameDay, parseISO, startOfWeek } from 'date-fns';
 
 export async function fetchDashboardData(): Promise<{
   books: MyBook[] | null;
@@ -9,6 +10,8 @@ export async function fetchDashboardData(): Promise<{
   streak: number;
   weekActivity: boolean[];
   recentUserBookId: string | null;
+  todayKst: string;
+  weeklyCount: number;
 } | null> {
   const supabase = await createSupabaseServerClient();
 
@@ -31,11 +34,10 @@ export async function fetchDashboardData(): Promise<{
 
   const bookIds = books.map((book) => book.id);
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const start = startOfWeek(new Date(), { weekStartsOn: 0 });
-  const end = addDays(start, 6);
+  const todayKst = todayKST();
+  const weekDates = weekDatesKST(todayKst);
+  const weekStart = weekDates[0];
+  const weekEnd = weekDates[weekDates.length - 1];
 
   const [
     { data: myBooks },
@@ -67,7 +69,7 @@ export async function fetchDashboardData(): Promise<{
               )`
         )
         .in('user_book_id', bookIds)
-        .gte('created_at', today.toISOString())
+        .eq('date', todayKst)
         .order('created_at', { ascending: false })
         .limit(1),
 
@@ -75,8 +77,8 @@ export async function fetchDashboardData(): Promise<{
         .from('entries')
         .select('date')
         .in('user_book_id', bookIds)
-        .gte('date', format(start, 'yyyy-MM-dd'))
-        .lte('date', format(end, 'yyyy-MM-dd')),
+        .gte('date', weekStart)
+        .lte('date', weekEnd),
 
       supabase.from('entries').select('date').in('user_book_id', bookIds),
 
@@ -88,27 +90,14 @@ export async function fetchDashboardData(): Promise<{
         .limit(1),
     ]);
 
-  const weekDays = [...Array(7)].map((_, i) => addDays(start, i));
-  const weekActivity = weekDays.map((day) => {
-    return weekEntries?.some((e) => isSameDay(parseISO(e.date), day)) ?? false;
-  });
+  const recordedDatesSet = new Set((allEntryDates ?? []).map((entry) => entry.date));
 
-  const recordedDatesSet = new Set(
-    (allEntryDates ?? []).map((entry) => format(parseISO(entry.date), 'yyyy-MM-dd'))
+  const streak = calcStreak(recordedDatesSet, todayKst);
+  const weekActivity = calcWeekActivity(recordedDatesSet, todayKst);
+  const weeklyCount = countWeekEntries(
+    (weekEntries ?? []).map((entry) => entry.date),
+    todayKst
   );
-
-  let streak = 0;
-  const cursor = new Date(today);
-
-  while (true) {
-    const dateKey = format(cursor, 'yyyy-MM-dd');
-    if (recordedDatesSet.has(dateKey)) {
-      streak++;
-      cursor.setDate(cursor.getDate() - 1);
-    } else {
-      break;
-    }
-  }
 
   return {
     books: myBooks,
@@ -129,5 +118,7 @@ export async function fetchDashboardData(): Promise<{
     streak,
     weekActivity,
     recentUserBookId: recentEntry?.[0]?.user_book_id ?? null,
+    todayKst,
+    weeklyCount,
   };
 }
