@@ -33,12 +33,22 @@ interface RetrospectEntryRow {
 export async function fetchRetrospectData(userId: string): Promise<RetrospectData> {
   const supabase = await createSupabaseServerClient();
 
-  const { data: userBooks, error: userBooksError } = await supabase
-    .from('user_books')
-    .select('id, book_id, is_finished, books(title)')
-    .eq('user_id', userId);
+  // 책 목록도 행 캡을 넘을 수 있어 페이지네이션 — 여기서 잘리면 이후 entries 조회가 그 책들을 복구하지 못한다.
+  const { rows: userBooks, error: userBooksError } = await fetchAllRows<{
+    id: string;
+    book_id: string;
+    is_finished: boolean | null;
+    books: { title: string } | null;
+  }>((from, to) =>
+    supabase
+      .from('user_books')
+      .select('id, book_id, is_finished, books(title)')
+      .eq('user_id', userId)
+      .order('id', { ascending: true })
+      .range(from, to)
+  );
 
-  if (userBooksError || !userBooks || userBooks.length === 0) {
+  if (userBooksError || userBooks.length === 0) {
     return { finishedBooks: [], monthly: summarizeByMonth([], todayKST(), RECENT_MONTHS) };
   }
 

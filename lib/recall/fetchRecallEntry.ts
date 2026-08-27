@@ -26,12 +26,20 @@ export async function fetchRecallEntry(): Promise<RecallEntry | null> {
 
   if (!user || userError) return null;
 
-  const { data: userBooks, error: userBooksError } = await supabase
-    .from('user_books')
-    .select('id, books(title)')
-    .eq('user_id', user.id);
+  // 책 목록도 행 캡을 넘을 수 있어 페이지네이션 — 잘리면 그 책들의 기록이 후보에서 통째로 빠진다.
+  const { rows: userBooks, error: userBooksError } = await fetchAllRows<{
+    id: string;
+    books: { title: string } | null;
+  }>((from, to) =>
+    supabase
+      .from('user_books')
+      .select('id, books(title)')
+      .eq('user_id', user.id)
+      .order('id', { ascending: true })
+      .range(from, to)
+  );
 
-  if (userBooksError || !userBooks || userBooks.length === 0) return null;
+  if (userBooksError || userBooks.length === 0) return null;
 
   const bookIds = userBooks.map((b) => b.id);
   const todayKst = todayKST();
