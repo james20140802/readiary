@@ -1,7 +1,9 @@
+import { calcStreak, calcWeekActivity, countWeekEntries, weekDatesKST } from '@/lib/dashboard/streak';
+import { todayKST } from '@/lib/dates';
+import { fetchAllRows } from '@/lib/supabase/fetchAllRows';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { MyBook } from '@/types/book';
 import { Entry } from '@/types/entry';
-import { addDays, format, isSameDay, parseISO, startOfWeek } from 'date-fns';
 
 export async function fetchDashboardData(): Promise<{
   books: MyBook[] | null;
@@ -9,6 +11,8 @@ export async function fetchDashboardData(): Promise<{
   streak: number;
   weekActivity: boolean[];
   recentUserBookId: string | null;
+  todayKst: string;
+  weeklyCount: number;
 } | null> {
   const supabase = await createSupabaseServerClient();
 
@@ -19,42 +23,35 @@ export async function fetchDashboardData(): Promise<{
 
   if (!user || userError) return null;
 
-  const { data: books, error: booksError } = await supabase
-    .from('user_books')
-    .select('id, is_finished')
-    .eq('user_id', user.id);
-
-  if (booksError || !books) {
-    console.error('Error fetching books:', booksError);
-    return null;
-  }
-
-  const bookIds = books.map((book) => book.id);
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const start = startOfWeek(new Date(), { weekStartsOn: 0 });
-  const end = addDays(start, 6);
+  const todayKst = todayKST();
+  const weekDates = weekDatesKST(todayKst);
+  const weekStart = weekDates[0];
+  const weekEnd = weekDates[weekDates.length - 1];
 
   const [
-    { data: myBooks },
+    { rows: myBooks, error: myBooksError },
     { data: entries },
-    { data: weekEntries },
-    { data: allEntryDates },
+    { rows: weekEntries, error: weekEntriesError },
+    { rows: allEntryDates, error: allEntryDatesError },
     { data: recentEntry },
   ] = await Promise.all([
-      supabase
-        .from('user_books')
-        .select('id, progress, created_at, is_finished, last_read_page, book_id, books:books(*)')
-        .eq('user_id', user.id)
-        .eq('is_finished', false)
-        .order('created_at', { ascending: false }),
+      fetchAllRows<MyBook>((from, to) =>
+        supabase
+          .from('user_books')
+          .select('id, progress, created_at, is_finished, last_read_page, book_id, books:books(*)')
+          .eq('user_id', user.id)
+          .eq('is_finished', false)
+          .order('created_at', { ascending: false })
+          .order('id', { ascending: true })
+          .range(from, to)
+      ),
 
+      // 본인 책 필터는 ID 목록 .in() 대신 user_books 조인으로 — 책이 많아도 요청 URL 크기가 일정하다.
       supabase
         .from('entries')
         .select(
-          `id, date, note, quote, from_page, to_page, is_private, created_at, user_books (
+          `id, date, note, quote, from_page, to_page, is_private, created_at, user_books!inner (
+                user_id,
                 book_id,
                 book:books (
                   id,
@@ -66,49 +63,63 @@ export async function fetchDashboardData(): Promise<{
                 )
               )`
         )
-        .in('user_book_id', bookIds)
-        .gte('created_at', today.toISOString())
+        .eq('user_books.user_id', user.id)
+        .eq('date', todayKst)
         .order('created_at', { ascending: false })
         .limit(1),
 
+      fetchAllRows<{ date: string }>((from, to) =>
+        supabase
+          .from('entries')
+          .select('date, user_books!inner(user_id)')
+          .eq('user_books.user_id', user.id)
+          .gte('date', weekStart)
+          .lte('date', weekEnd)
+          .order('date', { ascending: true })
+          .order('created_at', { ascending: true })
+          .order('id', { ascending: true })
+          .range(from, to)
+      ),
+
+      // 스트릭용 전체 날짜 — 최신 날짜부터 페이지네이션해 절단 없이 읽는다.
+      fetchAllRows<{ date: string }>((from, to) =>
+        supabase
+          .from('entries')
+          .select('date, user_books!inner(user_id)')
+          .eq('user_books.user_id', user.id)
+          .order('date', { ascending: false })
+          .order('created_at', { ascending: false })
+          .order('id', { ascending: false })
+          .range(from, to)
+      ),
+
       supabase
         .from('entries')
-        .select('date')
-        .in('user_book_id', bookIds)
-        .gte('date', format(start, 'yyyy-MM-dd'))
-        .lte('date', format(end, 'yyyy-MM-dd')),
-
-      supabase.from('entries').select('date').in('user_book_id', bookIds),
-
-      supabase
-        .from('entries')
-        .select('user_book_id')
-        .in('user_book_id', bookIds)
+        .select('user_book_id, user_books!inner(user_id)')
+        .eq('user_books.user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(1),
     ]);
 
-  const weekDays = [...Array(7)].map((_, i) => addDays(start, i));
-  const weekActivity = weekDays.map((day) => {
-    return weekEntries?.some((e) => isSameDay(parseISO(e.date), day)) ?? false;
-  });
-
-  const recordedDatesSet = new Set(
-    (allEntryDates ?? []).map((entry) => format(parseISO(entry.date), 'yyyy-MM-dd'))
-  );
-
-  let streak = 0;
-  const cursor = new Date(today);
-
-  while (true) {
-    const dateKey = format(cursor, 'yyyy-MM-dd');
-    if (recordedDatesSet.has(dateKey)) {
-      streak++;
-      cursor.setDate(cursor.getDate() - 1);
-    } else {
-      break;
-    }
+  // 페이지네이션 조회의 오류는 폐기하지 않는다 — 부분 데이터로 빈 책장·틀린 스트릭을 그리는 대신 오류 경로로.
+  if (myBooksError || weekEntriesError || allEntryDatesError) {
+    console.error(
+      'Error fetching dashboard data:',
+      myBooksError ?? weekEntriesError ?? allEntryDatesError
+    );
+    return null;
   }
+
+  const recordedDatesSet = new Set(allEntryDates.map((entry) => entry.date));
+  const weekDatesSet = new Set(weekEntries.map((entry) => entry.date));
+
+  const streak = calcStreak(recordedDatesSet, todayKst);
+  // 주간 리듬은 주 범위로 한정된 weekEntries에서 계산 — weeklyCount와 같은 데이터를 보게 한다.
+  const weekActivity = calcWeekActivity(weekDatesSet, todayKst);
+  const weeklyCount = countWeekEntries(
+    weekEntries.map((entry) => entry.date),
+    todayKst
+  );
 
   return {
     books: myBooks,
@@ -129,5 +140,7 @@ export async function fetchDashboardData(): Promise<{
     streak,
     weekActivity,
     recentUserBookId: recentEntry?.[0]?.user_book_id ?? null,
+    todayKst,
+    weeklyCount,
   };
 }

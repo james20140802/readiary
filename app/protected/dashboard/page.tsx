@@ -3,13 +3,14 @@ import Composer from './_components/Composer';
 import { InProgressBooksSection } from './_components/InProgressBooksSection';
 import { NoBooksSection } from './_components/NoBooksSection';
 import { WeeklyStreakSection } from './_components/WeeklyStreakSection';
-import SocialFeed from './_components/SocialFeed';
+import { RecallCard } from './_components/RecallCard';
+import { MonthlyRecapCard } from './_components/MonthlyRecapCard';
 import GreetingHeader from './_components/GreetingHeader';
 import { fetchDashboardData } from '@/lib/dashboard/fetchDashboardData';
+import { fetchRecallEntry } from '@/lib/recall/fetchRecallEntry';
+import { fetchMonthlyRecap } from '@/lib/retrospect/fetchMonthlyRecap';
 import { notFound } from 'next/navigation';
-import { fetchSocialFeedEntries } from '@/lib/queries/fetchSocialFeedEntries';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { DASHBOARD_SOCIAL_FEED_PAGINATION_LIMIT } from '@/constants/social';
 
 export default async function DashboardPage() {
   const supabase = await createSupabaseServerClient();
@@ -19,34 +20,41 @@ export default async function DashboardPage() {
 
   if (!user) return null;
 
-  const [data, socialFeedEntries, { data: profile }] = await Promise.all([
+  const [data, recall, recap, { data: profile }] = await Promise.all([
     fetchDashboardData(),
-    fetchSocialFeedEntries(0, DASHBOARD_SOCIAL_FEED_PAGINATION_LIMIT),
+    fetchRecallEntry(),
+    fetchMonthlyRecap(),
     supabase.from('profiles').select('name').eq('id', user?.id).single(),
   ]);
   if (!data) return notFound();
 
-  const { books, entry, streak, weekActivity, recentUserBookId } = data;
+  const { books, entry, streak, weekActivity, recentUserBookId, todayKst, weeklyCount } = data;
 
   return (
     <main className="w-full">
       <GreetingHeader name={profile?.name ?? null} />
 
       <AnimatedSection>
+        {recap && <MonthlyRecapCard recap={recap} />}
         <Composer
           books={books ?? []}
           recentUserBookId={recentUserBookId}
           userId={user.id}
         />
-        <WeeklyStreakSection streak={streak} weekActivity={weekActivity} entry={entry} />
+        {recall && <RecallCard recall={recall} />}
+        <WeeklyStreakSection
+          weeklyCount={weeklyCount}
+          streak={streak}
+          weekActivity={weekActivity}
+          todayKst={todayKst}
+          entry={entry}
+        />
         {books && books.length > 0 ? (
           <InProgressBooksSection myBooks={books} />
         ) : (
           <NoBooksSection />
         )}
       </AnimatedSection>
-
-      <SocialFeed feed={socialFeedEntries} />
     </main>
   );
 }

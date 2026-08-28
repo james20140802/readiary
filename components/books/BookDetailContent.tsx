@@ -149,12 +149,17 @@ export default function BookDetailContent({
           ) : (
             <div className="flex items-center gap-3 p-4 bg-success-soft rounded-2xl border border-success/30 text-success animate-in fade-in slide-in-from-top-2 duration-500">
               <CheckCircle2 size={24} />
-              <div>
+              <div className="flex-1">
                 <p className="text-sm font-bold">완독한 도서입니다</p>
                 <p className="text-[11px] text-success/70 font-medium">
                   축하합니다! 서재에 소중한 기록이 남았습니다.
                 </p>
               </div>
+              <Link href={`/protected/books/${book_id}/excerpts`}>
+                <Button size="sm" variant="secondary">
+                  발췌집 보기
+                </Button>
+              </Link>
             </div>
           ))}
       </div>

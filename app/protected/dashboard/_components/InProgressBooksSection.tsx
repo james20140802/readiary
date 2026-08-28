@@ -13,8 +13,17 @@ interface BookItem {
   title: string;
   author: string | null;
   cover_url: string | null;
-  progress: number;
+  progress: number | null;
+  last_read_page: number | null;
   book_id: string;
+}
+
+function NoProgressInfo({ last_read_page }: { last_read_page: number | null }) {
+  return last_read_page != null ? (
+    <span className="text-xs text-ink-sub">{last_read_page}쪽까지 읽음</span>
+  ) : (
+    <span className="text-xs text-ink-faint">페이지 기록 없음</span>
+  );
 }
 
 function ProgressBar({ progress }: { progress: number }) {
@@ -57,7 +66,11 @@ function SingleBookCard({ book }: { book: BookItem }) {
               <p className="text-body-sm text-ink-faint mt-0.5 line-clamp-1">{book.author}</p>
             )}
           </div>
-          <ProgressBar progress={book.progress} />
+          {book.progress != null ? (
+            <ProgressBar progress={book.progress} />
+          ) : (
+            <NoProgressInfo last_read_page={book.last_read_page} />
+          )}
         </div>
       </Card>
     </Link>
@@ -87,18 +100,22 @@ function MultiBookCard({ book }: { book: BookItem }) {
               <p className="text-caption text-ink-faint mt-0.5 line-clamp-1">{book.author}</p>
             )}
           </div>
-          <div className="space-y-0.5">
-            <div className="flex justify-between items-center">
-              <span className="text-[10px] text-ink-faint">진행률</span>
-              <span className="text-[10px] font-bold text-accent">{book.progress}%</span>
+          {book.progress != null ? (
+            <div className="space-y-0.5">
+              <div className="flex justify-between items-center">
+                <span className="text-[10px] text-ink-faint">진행률</span>
+                <span className="text-[10px] font-bold text-accent">{book.progress}%</span>
+              </div>
+              <div className="w-full bg-hairline rounded-full h-1 overflow-hidden">
+                <div
+                  className="bg-accent h-full rounded-full transition-all duration-500"
+                  style={{ width: `${book.progress}%` }}
+                />
+              </div>
             </div>
-            <div className="w-full bg-hairline rounded-full h-1 overflow-hidden">
-              <div
-                className="bg-accent h-full rounded-full transition-all duration-500"
-                style={{ width: `${book.progress}%` }}
-              />
-            </div>
-          </div>
+          ) : (
+            <NoProgressInfo last_read_page={book.last_read_page} />
+          )}
         </div>
       </Card>
     </Link>
@@ -110,7 +127,8 @@ export function InProgressBooksSection({ myBooks }: Props) {
     title: b.books.title ?? '(제목 없음)',
     author: b.books.author ?? null,
     cover_url: b.books.cover_url ?? null,
-    progress: b.progress ?? 0,
+    progress: b.progress,
+    last_read_page: b.last_read_page,
     book_id: b.book_id,
   }));
 
@@ -118,7 +136,7 @@ export function InProgressBooksSection({ myBooks }: Props) {
 
   return (
     <section className="mb-6">
-      <h2 className="text-section-title text-ink mb-3">📚 진행 중인 책</h2>
+      <h2 className="text-section-title text-ink mb-3">진행 중인 책</h2>
 
       {books.length === 1 ? (
         // 1권: 와이드 카드
