@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Profile } from '@/types/profile';
 import { toast } from 'sonner';
@@ -9,8 +9,12 @@ import Input from '@/components/ui/Input';
 import Modal from '@/components/ui/Modal';
 import FormGroup from '@/components/ui/FormGroup';
 
-export default function FriendRequestForm() {
-  const [nicknameAndTag, setNicknameAndTag] = useState('');
+interface Props {
+  initialQuery?: string;
+}
+
+export default function FriendRequestForm({ initialQuery }: Props) {
+  const [nicknameAndTag, setNicknameAndTag] = useState(initialQuery ?? '');
   const [loading, setLoading] = useState(false);
   const [foundUser, setFoundUser] = useState<null | {
     profile: Profile;
@@ -27,7 +31,10 @@ export default function FriendRequestForm() {
 
     setLoading(true);
 
-    const [nickname, tag] = nicknameAndTag.split('#');
+    // tag는 항상 '#' 없는 트레일링 세그먼트이므로 마지막 '#'에서 분할 (닉네임에 '#' 포함 가능)
+    const separatorIndex = nicknameAndTag.lastIndexOf('#');
+    const nickname = nicknameAndTag.slice(0, separatorIndex);
+    const tag = nicknameAndTag.slice(separatorIndex + 1);
     const res = await fetch('/api/friends/search', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -49,6 +56,14 @@ export default function FriendRequestForm() {
 
     setLoading(false);
   };
+
+  const autoSearchRan = useRef(false);
+  useEffect(() => {
+    if (!initialQuery || autoSearchRan.current) return;
+    autoSearchRan.current = true;
+    handleSearch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialQuery]);
 
   const confirmSendRequest = async () => {
     if (!foundUser) return;

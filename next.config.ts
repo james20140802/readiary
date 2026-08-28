@@ -26,6 +26,10 @@ const nextConfig: NextConfig = {
   webpack: (config) => {
     return config;
   },
+
+  outputFileTracingIncludes: {
+    '/share/e/[entry_id]/opengraph-image': ['./app/fonts/MaruBuri-Regular.woff'],
+  },
 };
 
 const pwaConfig = withPWA({

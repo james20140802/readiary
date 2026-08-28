@@ -13,36 +13,12 @@ export type Entry = {
   created_at: string;
 };
 
-export type SocialFeedEntry = {
-  profile: Profile;
-  entry: Entry;
-  initialLiked: boolean;
-};
-
 export type DetailSocialFeedEntry = {
   profile: Profile;
   entry: Entry;
   initialLikeCount: number;
   initialLiked: boolean;
   initialCommentCount: number;
-};
-
-export type RawEntry = {
-  id: string;
-  note: string | null;
-  quote: string | null;
-  date: string;
-  from_page: number | null;
-  to_page: number | null;
-  created_at: string | null;
-  user_books: {
-    user_id: string;
-    book_id: string;
-    books: Book;
-  };
-  likes: {
-    user_id: string;
-  }[];
 };
 
 export type RawDetailEntry = {
