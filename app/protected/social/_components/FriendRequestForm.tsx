@@ -31,7 +31,10 @@ export default function FriendRequestForm({ initialQuery }: Props) {
 
     setLoading(true);
 
-    const [nickname, tag] = nicknameAndTag.split('#');
+    // tag는 항상 '#' 없는 트레일링 세그먼트이므로 마지막 '#'에서 분할 (닉네임에 '#' 포함 가능)
+    const separatorIndex = nicknameAndTag.lastIndexOf('#');
+    const nickname = nicknameAndTag.slice(0, separatorIndex);
+    const tag = nicknameAndTag.slice(separatorIndex + 1);
     const res = await fetch('/api/friends/search', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
