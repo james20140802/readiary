@@ -94,7 +94,7 @@ export default function ShareEntryButton({
         <div
           ref={cardRef}
           style={{ width: 540, height: 675, ...LIGHT_PALETTE }}
-          className="bg-paper flex flex-col justify-center p-12"
+          className="bg-paper flex flex-col justify-center p-12 overflow-hidden"
         >
           <SentenceCard
             quote={quote}
@@ -103,6 +103,7 @@ export default function ShareEntryButton({
             bookAuthor={bookAuthor}
             dateLabel={formatDateLabel(date)}
             showWordmark
+            collapsed
           />
         </div>
       </div>
