@@ -1,10 +1,20 @@
 import { readFile } from 'fs/promises';
+import { join } from 'path';
 import { ImageResponse } from 'next/og';
 import { fetchPublicEntry } from '@/lib/share/fetchPublicEntry';
 
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 export const alt = 'Readiary 문장 카드';
+
+let fontDataPromise: Promise<Buffer> | null = null;
+
+function loadMaruBuri(): Promise<Buffer> {
+  fontDataPromise ??= readFile(
+    join(process.cwd(), 'app', 'fonts', 'MaruBuri-Regular.woff')
+  );
+  return fontDataPromise;
+}
 
 export default async function OgImage({
   params,
@@ -15,9 +25,7 @@ export default async function OgImage({
   const entry = await fetchPublicEntry(entry_id);
   if (!entry) return new Response('Not Found', { status: 404 });
 
-  const fontData = await readFile(
-    new URL('../../../fonts/MaruBuri-Regular.woff', import.meta.url)
-  );
+  const fontData = await loadMaruBuri();
 
   const raw = entry.quote ?? entry.note ?? '';
   const display = raw.length > 110 ? `${raw.slice(0, 110)}…` : raw;
