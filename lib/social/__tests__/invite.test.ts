@@ -8,8 +8,15 @@ describe('invite slug', () => {
   it('태그가 없으면 0000을 쓴다 (기존 ProfileHeader 관례)', () => {
     expect(buildInviteSlug('책벌레', null)).toBe('책벌레-0000');
   });
-  it('첫 번째 하이픈에서 분할한다 (기존 u/[nicknameAndTag] 관례)', () => {
+  it('마지막 하이픈에서 분할한다 (하이픈 포함 닉네임 보존)', () => {
     expect(parseInviteSlug('책벌레-1234')).toEqual({ nickname: '책벌레', tag: '1234' });
+  });
+  it('닉네임에 하이픈이 있어도 마지막 하이픈에서 분할한다', () => {
+    expect(parseInviteSlug('anne-marie-1234')).toEqual({
+      nickname: 'anne-marie',
+      tag: '1234',
+    });
+    expect(slugToSearchQuery('anne-marie-1234')).toBe('anne-marie#1234');
   });
   it('URL 인코딩된 슬러그를 디코드한다', () => {
     expect(parseInviteSlug(encodeURIComponent('책벌레-1234'))).toEqual({
