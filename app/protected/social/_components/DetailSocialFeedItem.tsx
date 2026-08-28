@@ -9,6 +9,7 @@ import { ko } from 'date-fns/locale';
 import { MoreHorizontal, User, BookOpen, Maximize2 } from 'lucide-react';
 import { DetailSocialFeedEntry } from '@/types/entry';
 import Card from '@/components/ui/Card';
+import SentenceCard from '@/components/entries/SentenceCard';
 import SocialActionBar from '@/components/social/SocialActionBar';
 import { toZonedTime } from 'date-fns-tz';
 import CommentBottomSheet from '@/components/comments/CommentBottomSheet';
@@ -57,9 +58,7 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
         ? `${entry.to_page ?? entry.from_page}p까지`
         : null;
 
-  const content = [entry.quote ? `“${entry.quote}”` : null, entry.note]
-    .filter(Boolean)
-    .join('\n\n');
+  const contentLength = (entry.quote?.length ?? 0) + (entry.note?.length ?? 0);
 
   return (
     <Card aria-label="상세 소셜 피드 항목" className="!p-0 overflow-hidden" hoverable={false}>
@@ -156,16 +155,21 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
       </Link>
 
       {/* 3. 독서 기록 본문 */}
-      {content && (
+      {contentLength > 0 && (
         <div className="px-4 pb-3">
-          <p
-            className={`text-body-sm leading-relaxed text-ink-sub whitespace-pre-wrap ${
-              !isExpanded ? 'line-clamp-4' : ''
-            }`}
-          >
-            {content}
-          </p>
-          {content.length > 120 && !isExpanded && (
+          <SentenceCard
+            quote={entry.quote}
+            note={entry.note}
+            bookTitle={book.title}
+            bookAuthor={book.author}
+            dateLabel={new Date(entry.date + 'T00:00:00').toLocaleDateString('ko-KR', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            })}
+            collapsed={!isExpanded}
+          />
+          {contentLength > 120 && !isExpanded && (
             <button
               onClick={() => setIsExpanded(true)}
               className="mt-2 text-caption font-bold text-accent hover:text-accent-hover transition-colors"
