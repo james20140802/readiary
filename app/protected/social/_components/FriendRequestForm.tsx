@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Profile } from '@/types/profile';
 import { toast } from 'sonner';
@@ -9,8 +9,12 @@ import Input from '@/components/ui/Input';
 import Modal from '@/components/ui/Modal';
 import FormGroup from '@/components/ui/FormGroup';
 
-export default function FriendRequestForm() {
-  const [nicknameAndTag, setNicknameAndTag] = useState('');
+interface Props {
+  initialQuery?: string;
+}
+
+export default function FriendRequestForm({ initialQuery }: Props) {
+  const [nicknameAndTag, setNicknameAndTag] = useState(initialQuery ?? '');
   const [loading, setLoading] = useState(false);
   const [foundUser, setFoundUser] = useState<null | {
     profile: Profile;
@@ -49,6 +53,14 @@ export default function FriendRequestForm() {
 
     setLoading(false);
   };
+
+  const autoSearchRan = useRef(false);
+  useEffect(() => {
+    if (!initialQuery || autoSearchRan.current) return;
+    autoSearchRan.current = true;
+    handleSearch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialQuery]);
 
   const confirmSendRequest = async () => {
     if (!foundUser) return;

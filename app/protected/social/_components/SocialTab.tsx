@@ -20,6 +20,7 @@ interface Props {
   acceptedFriends: Friend[];
   pendingFriends: Friend[];
   sentFriends: Friend[];
+  initialInviteQuery?: string;
 }
 
 export default function SocialTab({
@@ -28,8 +29,11 @@ export default function SocialTab({
   acceptedFriends,
   pendingFriends,
   sentFriends,
+  initialInviteQuery,
 }: Props) {
-  const [mainTab, setMainTab] = useState<'feed' | 'manage'>('feed');
+  const [mainTab, setMainTab] = useState<'feed' | 'manage'>(
+    initialInviteQuery ? 'manage' : 'feed'
+  );
   const [friendTab, setFriendTab] = useState<'friends' | 'pending' | 'sent'>('friends');
   const isMobile = useIsMobile();
 
@@ -77,7 +81,7 @@ export default function SocialTab({
           {/* 친구 검색 — accent-soft 배경으로 섹션 구분 강조 */}
           <div className="p-4 rounded-xl border border-accent/20 bg-accent-soft">
             <p className="text-body-sm font-bold mb-3 text-accent">🔍 새로운 친구 찾기</p>
-            <FriendRequestForm />
+            <FriendRequestForm initialQuery={initialInviteQuery} />
           </div>
 
           <div className="space-y-3">

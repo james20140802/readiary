@@ -40,7 +40,12 @@ export default function LoginPage() {
     } else {
       toast.success('로그인 성공!');
 
-      router.push('/protected/dashboard');
+      const redirectParam = searchParams.get('redirect');
+      const redirectTo =
+        redirectParam && redirectParam.startsWith('/') && !redirectParam.startsWith('//')
+          ? redirectParam
+          : '/protected/dashboard';
+      router.push(redirectTo);
       router.refresh();
     }
   };

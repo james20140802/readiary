@@ -1,13 +1,15 @@
 'use client';
 
-import { Pencil, LogOut, Check, Copy } from 'lucide-react';
+import { Pencil, LogOut, Check, Copy, Link2 } from 'lucide-react';
 import Image from 'next/image';
 import { Profile } from '@/types/profile';
 import { User } from '@supabase/supabase-js';
 import { createSupabaseClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { getImageUrl } from '@/utils/profile';
+import { buildInviteSlug } from '@/lib/social/invite';
 import RemoveFriendButton from '@/components/social/RemoveFriendButton';
 
 interface Props {
@@ -30,6 +32,24 @@ export default function ProfileHeader({ user, profile, isFriend = false }: Props
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error('복사 실패:', err);
+    }
+  };
+
+  const handleShareInvite = async () => {
+    const inviteUrl = `${window.location.origin}/invite/${encodeURIComponent(
+      buildInviteSlug(profile.nickname, profile.tag)
+    )}`;
+    try {
+      if (typeof navigator.share === 'function') {
+        await navigator.share({ title: 'Readiary에서 친구 맺기', url: inviteUrl });
+      } else {
+        await navigator.clipboard.writeText(inviteUrl);
+        toast.success('초대 링크를 복사했습니다.');
+      }
+    } catch (error) {
+      if ((error as DOMException)?.name !== 'AbortError') {
+        console.error('초대 링크 공유 실패:', error);
+      }
     }
   };
 
@@ -88,6 +108,13 @@ export default function ProfileHeader({ user, profile, isFriend = false }: Props
           <div className="flex items-center justify-center sm:justify-end gap-1 -mr-2">
             {isOwnProfile ? (
               <>
+                <button
+                  onClick={handleShareInvite}
+                  className="p-3 rounded-2xl hover:bg-card-raised transition-all text-ink-faint hover:text-ink active:scale-90"
+                  title="프로필 링크 공유"
+                >
+                  <Link2 size={22} strokeWidth={2.5} />
+                </button>
                 <button
                   onClick={() => router.push('/protected/profile/edit')}
                   className="p-3 rounded-2xl hover:bg-card-raised transition-all text-ink-faint hover:text-ink active:scale-90"
