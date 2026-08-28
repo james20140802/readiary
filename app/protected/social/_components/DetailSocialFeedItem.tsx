@@ -59,6 +59,9 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
         : null;
 
   const contentLength = (entry.quote?.length ?? 0) + (entry.note?.length ?? 0);
+  const quoteLines = entry.quote ? entry.quote.split('\n').length : 0;
+  const noteLines = entry.note ? entry.note.split('\n').length : 0;
+  const mayClamp = contentLength > 120 || quoteLines > 4 || noteLines > 3;
 
   return (
     <Card aria-label="상세 소셜 피드 항목" className="!p-0 overflow-hidden" hoverable={false}>
@@ -169,7 +172,7 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
             })}
             collapsed={!isExpanded}
           />
-          {contentLength > 120 && !isExpanded && (
+          {mayClamp && !isExpanded && (
             <button
               onClick={() => setIsExpanded(true)}
               className="mt-2 text-caption font-bold text-accent hover:text-accent-hover transition-colors"
