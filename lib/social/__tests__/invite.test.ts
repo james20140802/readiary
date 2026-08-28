@@ -25,4 +25,9 @@ describe('invite slug', () => {
     expect(slugToSearchQuery('책벌레-1234')).toBe('책벌레#1234');
     expect(slugToSearchQuery('잘못된슬러그')).toBeNull();
   });
+  it('잘못된 URI 인코딩이어도 던지지 않고 null을 반환한다', () => {
+    expect(parseInviteSlug('%')).toBeNull();
+    expect(parseInviteSlug('%zz-1234')).toBeNull();
+    expect(slugToSearchQuery('%')).toBeNull();
+  });
 });
