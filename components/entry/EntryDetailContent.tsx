@@ -9,6 +9,7 @@ import { Book } from '@/types/book';
 import { Profile } from '@/types/profile';
 import AnimatedSection from '@/components/ui/AnimatedSection';
 import SocialActionBar from '../social/SocialActionBar';
+import ShareEntryButton from '@/components/entries/ShareEntryButton';
 import { MoreHorizontal, Edit2, Trash2, Lock } from 'lucide-react'; // 아이콘 추가
 import Button from '../ui/Button';
 import CommentSection from '../comments/CommentSection';
@@ -200,6 +201,15 @@ export default function EntryDetailContent({
                     commentCount={commentCount}
                     onCommentClick={scrollToComments}
                     border={false}
+                  />
+                  <ShareEntryButton
+                    entryId={entry.id}
+                    quote={entry.quote}
+                    note={entry.note}
+                    date={entry.date}
+                    isPrivate={entry.is_private}
+                    bookTitle={book.title}
+                    bookAuthor={book.author}
                   />
                 </div>
               </div>
