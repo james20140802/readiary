@@ -64,8 +64,17 @@ export default function ShareEntryButton({
         anchor.href = dataUrl;
         anchor.download = 'readiary-sentence.png';
         anchor.click();
-        await navigator.clipboard.writeText(shareUrl).catch(() => {});
-        toast.success('카드 이미지를 저장하고 공유 링크를 복사했습니다.');
+        let linkCopied = true;
+        try {
+          await navigator.clipboard.writeText(shareUrl);
+        } catch {
+          linkCopied = false;
+        }
+        toast.success(
+          linkCopied
+            ? '카드 이미지를 저장하고 공유 링크를 복사했습니다.'
+            : '카드 이미지를 저장했습니다.'
+        );
       }
     } catch (error) {
       if ((error as DOMException)?.name !== 'AbortError') {
