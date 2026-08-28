@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import { toast } from 'sonner';
 import AnimatedSection from '@/components/ui/AnimatedSection';
+import { sanitizeRedirectPath } from '@/lib/auth/safeRedirect';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -40,11 +41,7 @@ export default function LoginPage() {
     } else {
       toast.success('로그인 성공!');
 
-      const redirectParam = searchParams.get('redirect');
-      const redirectTo =
-        redirectParam && redirectParam.startsWith('/') && !redirectParam.startsWith('//')
-          ? redirectParam
-          : '/protected/dashboard';
+      const redirectTo = sanitizeRedirectPath(searchParams.get('redirect'));
       router.push(redirectTo);
       router.refresh();
     }
