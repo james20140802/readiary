@@ -12,7 +12,7 @@ import DeclineFriendRequestButton from './DeclineFriendRequestButton';
 import CancelFriendRequestButton from './CancelFriendRequestButton';
 import { DetailSocialFeedEntry } from '@/types/entry';
 import { Friend } from '@/types/friends';
-import type { NotificationItem } from '@/lib/notifications/types';
+import { NOTIFICATIONS_LIMIT, type NotificationItem } from '@/lib/notifications/types';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { Users } from 'lucide-react';
 
@@ -46,11 +46,20 @@ export default function SocialTab({
     if (mainTab !== 'notifications' || hasMarkedRead.current) return;
     hasMarkedRead.current = true;
     const unreadIds = notifications.filter((n) => n.readAt === null).map((n) => n.id);
-    if (unreadIds.length === 0) return;
+    // 목록은 최신 NOTIFICATIONS_LIMIT건만 렌더되므로, 상한에 걸친 경우 화면에
+    // 나오지 못하는 더 오래된 미읽음 알림이 남아 뱃지가 영구 점등될 수 있다.
+    // 이 경우 마지막(가장 오래된) 항목의 시각 이전을 함께 읽음 처리한다.
+    const atLimit = notifications.length >= NOTIFICATIONS_LIMIT;
+    if (unreadIds.length === 0 && !atLimit) return;
+
+    const body: { ids?: string[]; clearOlderThan?: string } = {};
+    if (unreadIds.length > 0) body.ids = unreadIds;
+    if (atLimit) body.clearOlderThan = notifications[notifications.length - 1].createdAt;
+
     fetch('/api/notifications/read', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ids: unreadIds }),
+      body: JSON.stringify(body),
     }).catch(() => {});
   }, [mainTab, notifications]);
 
@@ -200,9 +209,9 @@ export default function SocialTab({
         <div className="animate-in fade-in duration-300">
           <NotificationList
             notifications={notifications}
-            onGoToFriends={() => {
+            onGoToFriends={(type) => {
               setMainTab('manage');
-              setFriendTab('pending');
+              setFriendTab(type === 'friend_accept' ? 'friends' : 'pending');
             }}
           />
         </div>

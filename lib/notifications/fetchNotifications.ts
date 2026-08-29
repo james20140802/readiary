@@ -1,7 +1,8 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { NOTIFICATIONS_LIMIT } from './types';
 import type { NotificationItem, NotificationType } from './types';
 
-const NOTIFICATIONS_LIMIT = 50;
+export { NOTIFICATIONS_LIMIT };
 
 type ActorProfile = { nickname: string; profile_image: string | null };
 
