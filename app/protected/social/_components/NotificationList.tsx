@@ -4,11 +4,11 @@ import Link from 'next/link';
 import { Bell } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { buildNotificationMessage, formatRelativeTime } from '@/lib/notifications/format';
-import type { NotificationItem } from '@/lib/notifications/types';
+import type { NotificationItem, NotificationType } from '@/lib/notifications/types';
 
 interface Props {
   notifications: NotificationItem[];
-  onGoToFriends: () => void;
+  onGoToFriends: (type: NotificationType) => void;
 }
 
 export default function NotificationList({ notifications, onGoToFriends }: Props) {
@@ -57,7 +57,11 @@ export default function NotificationList({ notifications, onGoToFriends }: Props
         }
         return (
           <li key={n.id}>
-            <button type="button" onClick={onGoToFriends} className="block w-full text-left">
+            <button
+              type="button"
+              onClick={() => onGoToFriends(n.type)}
+              className="block w-full text-left"
+            >
               {body}
             </button>
           </li>
