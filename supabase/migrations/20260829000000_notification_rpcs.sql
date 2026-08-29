@@ -54,6 +54,15 @@ begin
     return;
   end if;
 
+  -- 댓글은 정당하게 여러 건이 쌓일 수 있어 유니크 제약으로 막을 수 없다.
+  -- 동시 호출이 아래 count 상한을 동시에 통과하는 레이스를 차단하기 위해
+  -- (entry, actor) 조합으로 트랜잭션 어드바이저리 락을 걸어 직렬화한다.
+  if p_type = 'comment' then
+    perform pg_advisory_xact_lock(
+      hashtextextended('notify_comment:' || p_entry_id::text || ':' || v_actor::text, 0)
+    );
+  end if;
+
   -- 댓글 알림 상한: 실제 댓글 수를 초과해 알림이 쌓이지 않도록 제한
   if p_type = 'comment' and (
     select count(*) from notifications
@@ -64,8 +73,15 @@ begin
     return;
   end if;
 
-  insert into notifications (user_id, actor_id, type, entry_id)
-  values (v_recipient, v_actor, p_type, p_entry_id);
+  if p_type = 'like' then
+    -- 동시 호출 레이스에도 중복 삽입되지 않도록 부분 유니크 인덱스에 기대 무시
+    insert into notifications (user_id, actor_id, type, entry_id)
+    values (v_recipient, v_actor, p_type, p_entry_id)
+    on conflict (entry_id, actor_id) where type = 'like' do nothing;
+  else
+    insert into notifications (user_id, actor_id, type, entry_id)
+    values (v_recipient, v_actor, p_type, p_entry_id);
+  end if;
 end;
 $$;
 
@@ -160,6 +176,12 @@ create index if not exists notifications_entry_actor_idx
 create unique index if not exists notifications_friend_event_unique
   on public.notifications (user_id, actor_id, type)
   where type in ('friend_request', 'friend_accept');
+
+-- like 이벤트 알림 dedup을 레이스에도 보장하는 부분 유니크 인덱스.
+-- comment는 정당하게 여러 건이 쌓일 수 있어 대상에서 제외한다(어드바이저리 락으로 별도 직렬화).
+create unique index if not exists notifications_like_event_unique
+  on public.notifications (entry_id, actor_id)
+  where type = 'like';
 
 revoke all on function public.notify_entry_event(uuid, text) from public;
 revoke all on function public.retract_like_notification(uuid) from public;
