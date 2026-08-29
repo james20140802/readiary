@@ -17,6 +17,7 @@ const navItems = [
 export default function Navbar() {
   const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
+  const [hasUnread, setHasUnread] = useState(false);
   const supabase = createSupabaseClient();
   const router = useRouter();
 
@@ -43,6 +44,20 @@ export default function Navbar() {
     };
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    supabase
+      .from('notifications')
+      .select('id', { count: 'exact', head: true })
+      .is('read_at', null)
+      .then(({ count, error }) => {
+        if (!cancelled && !error) setHasUnread((count ?? 0) > 0);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname]);
+
   return (
     <>
       {/* Mobile Bottom Navbar */}
@@ -59,7 +74,14 @@ export default function Navbar() {
                 )}
                 prefetch
               >
-                {item.icon}
+                <span className="relative">
+                  {item.icon}
+                  {hasUnread && item.href === '/protected/social' && (
+                    <span className="absolute -top-0.5 -right-1 h-[7px] w-[7px] rounded-full bg-accent">
+                      <span className="sr-only">읽지 않은 알림 있음</span>
+                    </span>
+                  )}
+                </span>
                 {item.label}
               </Link>
             ))}
@@ -92,7 +114,14 @@ export default function Navbar() {
                   )}
                   prefetch
                 >
-                  {item.icon}
+                  <span className="relative">
+                    {item.icon}
+                    {hasUnread && item.href === '/protected/social' && (
+                      <span className="absolute -top-0.5 -right-1 h-[7px] w-[7px] rounded-full bg-accent">
+                        <span className="sr-only">읽지 않은 알림 있음</span>
+                      </span>
+                    )}
+                  </span>
                   {item.label}
                 </Link>
               ))}
