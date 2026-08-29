@@ -11,7 +11,7 @@ create or replace function public.notify_entry_event(
 returns void
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, pg_temp
 as $$
 declare
   v_actor uuid := auth.uid();
@@ -54,6 +54,16 @@ begin
     return;
   end if;
 
+  -- 댓글 알림 상한: 실제 댓글 수를 초과해 알림이 쌓이지 않도록 제한
+  if p_type = 'comment' and (
+    select count(*) from notifications
+    where entry_id = p_entry_id and actor_id = v_actor and type = 'comment'
+  ) >= (
+    select count(*) from comments where entry_id = p_entry_id and user_id = v_actor
+  ) then
+    return;
+  end if;
+
   insert into notifications (user_id, actor_id, type, entry_id)
   values (v_recipient, v_actor, p_type, p_entry_id);
 end;
@@ -66,7 +76,7 @@ create or replace function public.retract_like_notification(
 returns void
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, pg_temp
 as $$
 begin
   if auth.uid() is null then
@@ -75,7 +85,12 @@ begin
   delete from notifications
   where entry_id = p_entry_id
     and actor_id = auth.uid()
-    and type = 'like';
+    and type = 'like'
+    and read_at is null
+    and created_at > now() - interval '10 minutes'
+    and not exists (
+      select 1 from likes where entry_id = p_entry_id and user_id = auth.uid()
+    );
 end;
 $$;
 
@@ -88,7 +103,7 @@ create or replace function public.notify_friend_event(
 returns void
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, pg_temp
 as $$
 declare
   v_actor uuid := auth.uid();
@@ -130,6 +145,9 @@ begin
   values (p_recipient, v_actor, p_type);
 end;
 $$;
+
+create index if not exists notifications_entry_actor_idx
+  on public.notifications (entry_id, actor_id, type);
 
 revoke all on function public.notify_entry_event(uuid, text) from public;
 revoke all on function public.retract_like_notification(uuid) from public;
