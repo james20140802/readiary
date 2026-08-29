@@ -132,22 +132,34 @@ begin
     return;
   end if;
 
-  -- 재요청 스팸 방지: 같은 조합의 안 읽은 알림이 있으면 스킵
+  -- 재요청 스팸 방지: 같은 조합의 알림이 이미 있으면 스킵(읽음 여부 무관 —
+  -- 읽은 뒤 RPC를 직접 재호출해 반복 생성하는 경로를 막는다)
   if exists (
     select 1 from notifications
     where user_id = p_recipient and actor_id = v_actor
-      and type = p_type and read_at is null
+      and type = p_type
   ) then
     return;
   end if;
 
+  -- 동시 호출 레이스에도 중복 삽입되지 않도록 부분 유니크 인덱스에 기대 무시
   insert into notifications (user_id, actor_id, type)
-  values (p_recipient, v_actor, p_type);
+  values (p_recipient, v_actor, p_type)
+  on conflict (user_id, actor_id, type)
+    where type in ('friend_request', 'friend_accept')
+    do nothing;
 end;
 $$;
 
 create index if not exists notifications_entry_actor_idx
   on public.notifications (entry_id, actor_id, type);
+
+-- 친구 이벤트 알림 dedup을 레이스에도 보장하는 부분 유니크 인덱스.
+-- 언프렌드 후 재요청 시에는 재알림이 발생하지 않지만, 요청 자체는
+-- '받은 요청' 탭에서 확인 가능하므로 수용한다(Notion에 기록).
+create unique index if not exists notifications_friend_event_unique
+  on public.notifications (user_id, actor_id, type)
+  where type in ('friend_request', 'friend_accept');
 
 revoke all on function public.notify_entry_event(uuid, text) from public;
 revoke all on function public.retract_like_notification(uuid) from public;
