@@ -45,8 +45,14 @@ export default function SocialTab({
   useEffect(() => {
     if (mainTab !== 'notifications' || hasMarkedRead.current) return;
     hasMarkedRead.current = true;
-    fetch('/api/notifications/read', { method: 'POST' }).catch(() => {});
-  }, [mainTab]);
+    const unreadIds = notifications.filter((n) => n.readAt === null).map((n) => n.id);
+    if (unreadIds.length === 0) return;
+    fetch('/api/notifications/read', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: unreadIds }),
+    }).catch(() => {});
+  }, [mainTab, notifications]);
 
   const mainTabs = [
     { label: '피드', value: 'feed' },
@@ -65,7 +71,7 @@ export default function SocialTab({
       {/* 대분류 탭 — 컴팩트하게 */}
       <Tabs
         tabs={mainTabs}
-        defaultValue={mainTab}
+        value={mainTab}
         onChange={(id) => setMainTab(id as 'feed' | 'manage' | 'notifications')}
         fullWidth
       />

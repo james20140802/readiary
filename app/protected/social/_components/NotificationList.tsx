@@ -31,7 +31,7 @@ export default function NotificationList({ notifications, onGoToFriends }: Props
             <Avatar
               src={n.actorProfileImage}
               alt={n.actorNickname}
-              fallbackText={n.actorNickname}
+              fallbackText={n.actorNickname.charAt(0).toUpperCase()}
               size="sm"
             />
             <div className="min-w-0 flex-1">
