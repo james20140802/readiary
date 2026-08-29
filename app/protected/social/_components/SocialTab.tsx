@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Tabs from '@/components/ui/Tabs';
 import DetailSocailFeedList from './DetailSocialFeedList';
 import FriendRequestForm from './FriendRequestForm';
+import NotificationList from './NotificationList';
 import AnimatedListSection from '@/components/ui/AnimatedListSecion';
 import FriendListItem from './FriendListItem';
 import AcceptFriendRequestButton from './AcceptFriendRequestButton';
@@ -11,6 +12,7 @@ import DeclineFriendRequestButton from './DeclineFriendRequestButton';
 import CancelFriendRequestButton from './CancelFriendRequestButton';
 import { DetailSocialFeedEntry } from '@/types/entry';
 import { Friend } from '@/types/friends';
+import type { NotificationItem } from '@/lib/notifications/types';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { Users } from 'lucide-react';
 
@@ -20,6 +22,7 @@ interface Props {
   acceptedFriends: Friend[];
   pendingFriends: Friend[];
   sentFriends: Friend[];
+  notifications: NotificationItem[];
   initialInviteQuery?: string;
 }
 
@@ -29,23 +32,32 @@ export default function SocialTab({
   acceptedFriends,
   pendingFriends,
   sentFriends,
+  notifications,
   initialInviteQuery,
 }: Props) {
-  const [mainTab, setMainTab] = useState<'feed' | 'manage'>(
+  const [mainTab, setMainTab] = useState<'feed' | 'manage' | 'notifications'>(
     initialInviteQuery ? 'manage' : 'feed'
   );
   const [friendTab, setFriendTab] = useState<'friends' | 'pending' | 'sent'>('friends');
   const isMobile = useIsMobile();
 
+  const hasMarkedRead = useRef(false);
+  useEffect(() => {
+    if (mainTab !== 'notifications' || hasMarkedRead.current) return;
+    hasMarkedRead.current = true;
+    fetch('/api/notifications/read', { method: 'POST' }).catch(() => {});
+  }, [mainTab]);
+
   const mainTabs = [
-    { label: '✨ 피드', value: 'feed' },
-    { label: '👥 친구 관리', value: 'manage' },
+    { label: '피드', value: 'feed' },
+    { label: '친구 관리', value: 'manage' },
+    { label: '알림', value: 'notifications' },
   ];
 
   const friendTabs = [
-    { label: '📋 목록', value: 'friends' },
-    { label: '⏳ 받은 요청', value: 'pending' },
-    { label: '📤 보낸 요청', value: 'sent' },
+    { label: '목록', value: 'friends' },
+    { label: '받은 요청', value: 'pending' },
+    { label: '보낸 요청', value: 'sent' },
   ];
 
   return (
@@ -54,7 +66,7 @@ export default function SocialTab({
       <Tabs
         tabs={mainTabs}
         defaultValue={mainTab}
-        onChange={(id) => setMainTab(id as 'feed' | 'manage')}
+        onChange={(id) => setMainTab(id as 'feed' | 'manage' | 'notifications')}
         fullWidth
       />
 
@@ -174,6 +186,19 @@ export default function SocialTab({
               )}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* 알림 탭 */}
+      {mainTab === 'notifications' && (
+        <div className="animate-in fade-in duration-300">
+          <NotificationList
+            notifications={notifications}
+            onGoToFriends={() => {
+              setMainTab('manage');
+              setFriendTab('pending');
+            }}
+          />
         </div>
       )}
     </div>
