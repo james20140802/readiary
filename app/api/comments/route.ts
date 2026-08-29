@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { notifyEntryEvent } from '@/lib/notifications/notify';
 import { NextResponse } from 'next/server';
 
 // GET: 댓글 목록 조회
@@ -54,6 +55,9 @@ export async function POST(request: Request) {
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  await notifyEntryEvent(supabase, entryId, 'comment');
+
   return NextResponse.json(data);
 }
 

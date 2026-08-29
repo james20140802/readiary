@@ -1,5 +1,6 @@
 // /app/api/friends/send/route.ts
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { notifyFriendEvent } from '@/lib/notifications/notify';
 import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
@@ -38,5 +39,8 @@ export async function POST(req: Request) {
   });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  await notifyFriendEvent(supabase, friendId, 'friend_request');
+
   return NextResponse.json({ success: true });
 }
