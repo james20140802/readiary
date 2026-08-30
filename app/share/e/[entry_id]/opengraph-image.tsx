@@ -10,17 +10,11 @@ export const alt = 'Readiary 문장 카드';
 let fontDataPromise: Promise<Buffer> | null = null;
 
 function loadMaruBuri(): Promise<Buffer> {
-  fontDataPromise ??= readFile(
-    join(process.cwd(), 'app', 'fonts', 'MaruBuri-Regular.woff')
-  );
+  fontDataPromise ??= readFile(join(process.cwd(), 'app', 'fonts', 'MaruBuri-Regular.woff'));
   return fontDataPromise;
 }
 
-export default async function OgImage({
-  params,
-}: {
-  params: Promise<{ entry_id: string }>;
-}) {
+export default async function OgImage({ params }: { params: Promise<{ entry_id: string }> }) {
   const { entry_id } = await params;
   const entry = await fetchPublicEntry(entry_id);
   if (!entry) return new Response('Not Found', { status: 404 });
@@ -70,9 +64,7 @@ export default async function OgImage({
               『{entry.bookTitle}』
             </div>
             {attribution && (
-              <div style={{ display: 'flex', fontSize: 20, color: '#6E665C' }}>
-                {attribution}
-              </div>
+              <div style={{ display: 'flex', fontSize: 20, color: '#6E665C' }}>{attribution}</div>
             )}
           </div>
           <div

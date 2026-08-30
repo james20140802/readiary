@@ -1,6 +1,10 @@
 import { todayKST } from '@/lib/dates';
 import { hasEntryContent } from '@/lib/entries/validation';
-import { isMonthlyRecapDay, prevMonthRange, type MonthlyRecap } from '@/lib/retrospect/monthlyRecap';
+import {
+  isMonthlyRecapDay,
+  prevMonthRange,
+  type MonthlyRecap,
+} from '@/lib/retrospect/monthlyRecap';
 import { fetchAllRows } from '@/lib/supabase/fetchAllRows';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 

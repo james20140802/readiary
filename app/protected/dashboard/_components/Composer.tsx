@@ -33,8 +33,7 @@ const MAX_BOOK_CHIPS = 4;
 /** 홈 최상단 기록 입력창 — 문장 한 줄로 기록을 시작한다 (스펙 §4) */
 export default function Composer({ books, recentUserBookId, userId }: ComposerProps) {
   const router = useRouter();
-  const initialSelected =
-    books.find((b) => b.id === recentUserBookId)?.id ?? books[0]?.id ?? null;
+  const initialSelected = books.find((b) => b.id === recentUserBookId)?.id ?? books[0]?.id ?? null;
 
   const [selectedId, setSelectedId] = useState<string | null>(initialSelected);
   const [mode, setMode] = useState<Mode>('quote');
@@ -266,11 +265,7 @@ export default function Composer({ books, recentUserBookId, userId }: ComposerPr
             비공개
           </Chip>
         </div>
-        <Button
-          size="sm"
-          onClick={handleSave}
-          disabled={isSubmitting || text.trim() === ''}
-        >
+        <Button size="sm" onClick={handleSave} disabled={isSubmitting || text.trim() === ''}>
           {isSubmitting ? '저장 중...' : '저장'}
         </Button>
       </div>

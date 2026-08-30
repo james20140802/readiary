@@ -1,4 +1,9 @@
-import { calcStreak, calcWeekActivity, countWeekEntries, weekDatesKST } from '@/lib/dashboard/streak';
+import {
+  calcStreak,
+  calcWeekActivity,
+  countWeekEntries,
+  weekDatesKST,
+} from '@/lib/dashboard/streak';
 import { todayKST } from '@/lib/dates';
 import { fetchAllRows } from '@/lib/supabase/fetchAllRows';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
@@ -35,22 +40,22 @@ export async function fetchDashboardData(): Promise<{
     { rows: allEntryDates, error: allEntryDatesError },
     { data: recentEntry },
   ] = await Promise.all([
-      fetchAllRows<MyBook>((from, to) =>
-        supabase
-          .from('user_books')
-          .select('id, progress, created_at, is_finished, last_read_page, book_id, books:books(*)')
-          .eq('user_id', user.id)
-          .eq('is_finished', false)
-          .order('created_at', { ascending: false })
-          .order('id', { ascending: true })
-          .range(from, to)
-      ),
-
-      // 본인 책 필터는 ID 목록 .in() 대신 user_books 조인으로 — 책이 많아도 요청 URL 크기가 일정하다.
+    fetchAllRows<MyBook>((from, to) =>
       supabase
-        .from('entries')
-        .select(
-          `id, date, note, quote, from_page, to_page, is_private, created_at, user_books!inner (
+        .from('user_books')
+        .select('id, progress, created_at, is_finished, last_read_page, book_id, books:books(*)')
+        .eq('user_id', user.id)
+        .eq('is_finished', false)
+        .order('created_at', { ascending: false })
+        .order('id', { ascending: true })
+        .range(from, to)
+    ),
+
+    // 본인 책 필터는 ID 목록 .in() 대신 user_books 조인으로 — 책이 많아도 요청 URL 크기가 일정하다.
+    supabase
+      .from('entries')
+      .select(
+        `id, date, note, quote, from_page, to_page, is_private, created_at, user_books!inner (
                 user_id,
                 book_id,
                 book:books (
@@ -62,44 +67,44 @@ export async function fetchDashboardData(): Promise<{
                   isbn
                 )
               )`
-        )
-        .eq('user_books.user_id', user.id)
-        .eq('date', todayKst)
-        .order('created_at', { ascending: false })
-        .limit(1),
+      )
+      .eq('user_books.user_id', user.id)
+      .eq('date', todayKst)
+      .order('created_at', { ascending: false })
+      .limit(1),
 
-      fetchAllRows<{ date: string }>((from, to) =>
-        supabase
-          .from('entries')
-          .select('date, user_books!inner(user_id)')
-          .eq('user_books.user_id', user.id)
-          .gte('date', weekStart)
-          .lte('date', weekEnd)
-          .order('date', { ascending: true })
-          .order('created_at', { ascending: true })
-          .order('id', { ascending: true })
-          .range(from, to)
-      ),
-
-      // 스트릭용 전체 날짜 — 최신 날짜부터 페이지네이션해 절단 없이 읽는다.
-      fetchAllRows<{ date: string }>((from, to) =>
-        supabase
-          .from('entries')
-          .select('date, user_books!inner(user_id)')
-          .eq('user_books.user_id', user.id)
-          .order('date', { ascending: false })
-          .order('created_at', { ascending: false })
-          .order('id', { ascending: false })
-          .range(from, to)
-      ),
-
+    fetchAllRows<{ date: string }>((from, to) =>
       supabase
         .from('entries')
-        .select('user_book_id, user_books!inner(user_id)')
+        .select('date, user_books!inner(user_id)')
         .eq('user_books.user_id', user.id)
+        .gte('date', weekStart)
+        .lte('date', weekEnd)
+        .order('date', { ascending: true })
+        .order('created_at', { ascending: true })
+        .order('id', { ascending: true })
+        .range(from, to)
+    ),
+
+    // 스트릭용 전체 날짜 — 최신 날짜부터 페이지네이션해 절단 없이 읽는다.
+    fetchAllRows<{ date: string }>((from, to) =>
+      supabase
+        .from('entries')
+        .select('date, user_books!inner(user_id)')
+        .eq('user_books.user_id', user.id)
+        .order('date', { ascending: false })
         .order('created_at', { ascending: false })
-        .limit(1),
-    ]);
+        .order('id', { ascending: false })
+        .range(from, to)
+    ),
+
+    supabase
+      .from('entries')
+      .select('user_book_id, user_books!inner(user_id)')
+      .eq('user_books.user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(1),
+  ]);
 
   // 페이지네이션 조회의 오류는 폐기하지 않는다 — 부분 데이터로 빈 책장·틀린 스트릭을 그리는 대신 오류 경로로.
   if (myBooksError || weekEntriesError || allEntryDatesError) {

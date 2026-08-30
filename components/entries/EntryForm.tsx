@@ -40,7 +40,13 @@ interface EntryFormProps {
 }
 
 /** 신규/수정이 공유하는 기록 폼 — 문장·생각 중 하나만 있으면 저장, 날짜 백필 허용, 페이지 선택 */
-export default function EntryForm({ book, heading, submitLabel, initial, onSubmit }: EntryFormProps) {
+export default function EntryForm({
+  book,
+  heading,
+  submitLabel,
+  initial,
+  onSubmit,
+}: EntryFormProps) {
   const [quote, setQuote] = useState(initial?.quote ?? '');
   const [note, setNote] = useState(initial?.note ?? '');
   const [fromPage, setFromPage] = useState(initial?.fromPage?.toString() ?? '');

@@ -4,8 +4,7 @@ import Seal from '@/components/ui/Seal';
 import type { RecallEntry } from '@/lib/recall/fetchRecallEntry';
 
 export function RecallCard({ recall }: { recall: RecallEntry }) {
-  const label =
-    recall.yearsAgo != null ? `${recall.yearsAgo}년 전 오늘` : '다시 꺼낸 기록';
+  const label = recall.yearsAgo != null ? `${recall.yearsAgo}년 전 오늘` : '다시 꺼낸 기록';
   const body = recall.quote ?? recall.note ?? '';
   return (
     <Link href={`/protected/entry/${recall.id}`} className="block">

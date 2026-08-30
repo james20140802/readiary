@@ -3,8 +3,12 @@ import { buildNotificationMessage, formatRelativeTime } from '@/lib/notification
 
 describe('buildNotificationMessage', () => {
   it('타입별 메시지를 만든다', () => {
-    expect(buildNotificationMessage('friend_request', '상추')).toBe('상추님이 친구 신청을 보냈어요');
-    expect(buildNotificationMessage('friend_accept', '상추')).toBe('상추님이 친구 신청을 수락했어요');
+    expect(buildNotificationMessage('friend_request', '상추')).toBe(
+      '상추님이 친구 신청을 보냈어요'
+    );
+    expect(buildNotificationMessage('friend_accept', '상추')).toBe(
+      '상추님이 친구 신청을 수락했어요'
+    );
     expect(buildNotificationMessage('like', '상추')).toBe('상추님이 내 문장을 좋아해요');
     expect(buildNotificationMessage('comment', '상추')).toBe('상추님이 내 기록에 댓글을 남겼어요');
   });

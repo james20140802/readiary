@@ -48,13 +48,9 @@ export default function SentenceCard({
       <figcaption className="mt-4 flex items-end justify-between gap-3">
         <div className="min-w-0">
           <p className="text-body-sm font-semibold text-ink truncate">『{bookTitle}』</p>
-          {attribution && (
-            <p className="text-caption text-ink-faint truncate">{attribution}</p>
-          )}
+          {attribution && <p className="text-caption text-ink-faint truncate">{attribution}</p>}
         </div>
-        {showWordmark && (
-          <span className="text-seal text-ink-faint shrink-0">READIARY</span>
-        )}
+        {showWordmark && <span className="text-seal text-ink-faint shrink-0">READIARY</span>}
       </figcaption>
     </figure>
   );

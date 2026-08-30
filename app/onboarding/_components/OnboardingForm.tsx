@@ -71,9 +71,7 @@ export default function OnboardingForm() {
   return (
     <div className="flex items-center justify-center">
       <div className="w-full space-y-4">
-        <h1 className="text-xl font-semibold text-center text-ink">
-          프로필 설정
-        </h1>
+        <h1 className="text-xl font-semibold text-center text-ink">프로필 설정</h1>
         <AnimatedSection>
           <FormLabel htmlFor="name">이름</FormLabel>
           <Input

@@ -66,7 +66,9 @@ export default function BookList({ books, isFriend = false, nicknameAndTag = '' 
     if (sort === 'progress_desc') list.sort((a, b) => (b.progress ?? 0) - (a.progress ?? 0));
     else if (sort === 'progress_asc') list.sort((a, b) => (a.progress ?? 0) - (b.progress ?? 0));
     else if (sort === 'recent')
-      list.sort((a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime());
+      list.sort(
+        (a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime()
+      );
     else if (sort === 'title')
       list.sort((a, b) => (a.books.title ?? '').localeCompare(b.books.title ?? ''));
     return list;
@@ -81,9 +83,7 @@ export default function BookList({ books, isFriend = false, nicknameAndTag = '' 
     return (
       <div className="flex flex-col items-center justify-center py-16 gap-3 border-2 border-dashed border-hairline rounded-xl">
         <BookOpen size={32} className="text-ink-faint" />
-        <p className="text-body-sm font-medium text-ink">
-          아직 등록한 책이 없어요
-        </p>
+        <p className="text-body-sm font-medium text-ink">아직 등록한 책이 없어요</p>
         {!isFriend && (
           <Link
             href="/protected/books/new"
@@ -106,9 +106,7 @@ export default function BookList({ books, isFriend = false, nicknameAndTag = '' 
               key={opt.value}
               onClick={() => setFilter(opt.value)}
               className={`px-2.5 py-1 rounded-md text-caption font-semibold transition-all ${
-                filter === opt.value
-                  ? 'bg-card text-ink'
-                  : 'text-ink-faint hover:text-ink-sub'
+                filter === opt.value ? 'bg-card text-ink' : 'text-ink-faint hover:text-ink-sub'
               }`}
             >
               {opt.label}
@@ -162,9 +160,7 @@ export default function BookList({ books, isFriend = false, nicknameAndTag = '' 
             <button
               onClick={() => setViewMode('list')}
               className={`p-1.5 rounded-md transition-all ${
-                viewMode === 'list'
-                  ? 'bg-card text-ink'
-                  : 'text-ink-faint hover:text-ink-sub'
+                viewMode === 'list' ? 'bg-card text-ink' : 'text-ink-faint hover:text-ink-sub'
               }`}
               aria-label="리스트 뷰"
             >
@@ -173,9 +169,7 @@ export default function BookList({ books, isFriend = false, nicknameAndTag = '' 
             <button
               onClick={() => setViewMode('grid')}
               className={`p-1.5 rounded-md transition-all ${
-                viewMode === 'grid'
-                  ? 'bg-card text-ink'
-                  : 'text-ink-faint hover:text-ink-sub'
+                viewMode === 'grid' ? 'bg-card text-ink' : 'text-ink-faint hover:text-ink-sub'
               }`}
               aria-label="그리드 뷰"
             >

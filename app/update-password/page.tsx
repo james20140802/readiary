@@ -18,14 +18,12 @@ export default function UpdatePasswordPage() {
   const supabase = createSupabaseClient();
 
   useEffect(() => {
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      (event) => {
-        if (event === 'PASSWORD_RECOVERY') {
-          setIsRecovery(true);
-        }
-        setChecking(false);
+    const { data: listener } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsRecovery(true);
       }
-    );
+      setChecking(false);
+    });
 
     // 이미 세션이 있으면 허용 (콜백에서 리다이렉트된 경우)
     const checkSession = async () => {
@@ -86,16 +84,11 @@ export default function UpdatePasswordPage() {
       <div className="flex items-center justify-center min-h-[40vh]">
         <AnimatedSection>
           <div className="text-center space-y-3">
-            <h2 className="text-lg font-semibold text-ink">
-              접근할 수 없습니다
-            </h2>
+            <h2 className="text-lg font-semibold text-ink">접근할 수 없습니다</h2>
             <p className="text-sm text-ink-sub">
               비밀번호 재설정 이메일의 링크를 통해 접근해주세요.
             </p>
-            <a
-              href="/reset-password"
-              className="text-sm text-accent underline"
-            >
+            <a href="/reset-password" className="text-sm text-accent underline">
               비밀번호 재설정 요청하기
             </a>
           </div>
@@ -111,18 +104,14 @@ export default function UpdatePasswordPage() {
           새 비밀번호 설정
         </h1>
         <AnimatedSection>
-          <p className="text-sm text-ink-sub text-center mb-4">
-            새로운 비밀번호를 입력해주세요.
-          </p>
+          <p className="text-sm text-ink-sub text-center mb-4">새로운 비밀번호를 입력해주세요.</p>
           <Input
             type="password"
             placeholder="새 비밀번호"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          <p className="text-xs text-ink-sub mt-1">
-            비밀번호는 최소 6자 이상이어야 합니다.
-          </p>
+          <p className="text-xs text-ink-sub mt-1">비밀번호는 최소 6자 이상이어야 합니다.</p>
           <Input
             type="password"
             placeholder="새 비밀번호 확인"
@@ -131,19 +120,12 @@ export default function UpdatePasswordPage() {
             className="mt-3"
             onKeyDown={(e) => e.key === 'Enter' && handleUpdate()}
           />
-          <Button
-            onClick={handleUpdate}
-            loading={loading}
-            className="w-full mt-4"
-          >
+          <Button onClick={handleUpdate} loading={loading} className="w-full mt-4">
             비밀번호 변경하기
           </Button>
 
           <p className="text-sm text-center mt-4">
-            <a
-              href="/login"
-              className="text-ink-sub underline"
-            >
+            <a href="/login" className="text-ink-sub underline">
               로그인으로 돌아가기
             </a>
           </p>

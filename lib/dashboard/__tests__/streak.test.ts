@@ -5,8 +5,13 @@ import { weekDatesKST, calcStreak, calcWeekActivity, countWeekEntries } from '..
 describe('weekDatesKST', () => {
   it('일요일 시작 7일을 돌려준다', () => {
     expect(weekDatesKST('2026-08-27')).toEqual([
-      '2026-08-23', '2026-08-24', '2026-08-25', '2026-08-26',
-      '2026-08-27', '2026-08-28', '2026-08-29',
+      '2026-08-23',
+      '2026-08-24',
+      '2026-08-25',
+      '2026-08-26',
+      '2026-08-27',
+      '2026-08-28',
+      '2026-08-29',
     ]);
   });
   it('일요일 당일이면 그 날이 첫 칸이다', () => {
@@ -32,7 +37,13 @@ describe('calcWeekActivity', () => {
   it('이번 주 7일의 기록 여부 배열', () => {
     const rec = new Set(['2026-08-24', '2026-08-27']);
     expect(calcWeekActivity(rec, '2026-08-27')).toEqual([
-      false, true, false, false, true, false, false,
+      false,
+      true,
+      false,
+      false,
+      true,
+      false,
+      false,
     ]);
   });
 });

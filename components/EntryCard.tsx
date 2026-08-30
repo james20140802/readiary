@@ -78,9 +78,7 @@ export default function EntryCard({
             <p className="text-[11px] text-ink-faint tabular-nums">
               {new Date(date).toLocaleDateString()}
             </p>
-            {isPrivate && (
-              <Lock size={10} className="text-ink-faint/70" />
-            )}
+            {isPrivate && <Lock size={10} className="text-ink-faint/70" />}
           </div>
           <span className="text-[11px] font-bold text-ink-faint group-hover/link:text-accent transition-colors">
             상세 보기 →

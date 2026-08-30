@@ -14,7 +14,7 @@ export interface RecallCandidate {
 export function selectRecall(
   candidates: RecallCandidate[],
   todayKst: string,
-  seedKey: string,
+  seedKey: string
 ): RecallCandidate | null {
   const monthDay = todayKst.slice(5); // 'MM-dd'
   const sameDay = candidates

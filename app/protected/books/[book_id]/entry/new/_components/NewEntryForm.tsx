@@ -39,5 +39,7 @@ export default function NewEntryForm({ userBookId, userId, book, bookId }: Props
     }
   };
 
-  return <EntryForm book={book} heading="독서 기록" submitLabel="기록 저장" onSubmit={handleSubmit} />;
+  return (
+    <EntryForm book={book} heading="독서 기록" submitLabel="기록 저장" onSubmit={handleSubmit} />
+  );
 }

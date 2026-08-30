@@ -50,14 +50,10 @@ export default function LoginPage() {
   return (
     <div className="flex items-center justify-center">
       <div className="w-full">
-        <h1 className="text-section-title font-semibold mb-6 text-center">
-          로그인
-        </h1>
+        <h1 className="text-section-title font-semibold mb-6 text-center">로그인</h1>
         <AnimatedSection>
           {error && (
-            <div className="mb-4 p-2 rounded text-sm text-danger bg-danger-soft">
-              {error}
-            </div>
+            <div className="mb-4 p-2 rounded text-sm text-danger bg-danger-soft">{error}</div>
           )}
 
           <Input

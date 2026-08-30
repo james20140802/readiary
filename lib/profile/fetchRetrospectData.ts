@@ -56,15 +56,16 @@ export async function fetchRetrospectData(userId: string): Promise<RetrospectDat
 
   // 회고 집계는 전체 entries가 필요 — 절단 방지를 위해 페이지네이션으로 끝까지 읽는다.
   // 책 필터는 ID 목록 .in() 대신 user_books 조인으로 — 책이 많아도 요청 URL 크기가 일정하다.
-  const { rows: safeEntries, error: entriesError } = await fetchAllRows<RetrospectEntryRow>((from, to) =>
-    supabase
-      .from('entries')
-      .select('date, quote, user_book_id, user_books!inner(user_id)')
-      .eq('user_books.user_id', userId)
-      .order('date', { ascending: true })
-      .order('created_at', { ascending: true })
-      .order('id', { ascending: true })
-      .range(from, to)
+  const { rows: safeEntries, error: entriesError } = await fetchAllRows<RetrospectEntryRow>(
+    (from, to) =>
+      supabase
+        .from('entries')
+        .select('date, quote, user_book_id, user_books!inner(user_id)')
+        .eq('user_books.user_id', userId)
+        .order('date', { ascending: true })
+        .order('created_at', { ascending: true })
+        .order('id', { ascending: true })
+        .range(from, to)
   );
 
   // 부분 접두어로 집계하면 발췌 수·월별 수치가 조용히 줄어든다 — 오류는 불러오기 실패로 전파.

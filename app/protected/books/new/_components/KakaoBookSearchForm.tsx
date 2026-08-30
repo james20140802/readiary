@@ -156,7 +156,9 @@ export default function KakaoBookSearchForm() {
               <div className="text-sm">
                 <div className="font-medium text-ink">{book.title}</div>
                 <div className="text-ink-sub">{book.authors?.join(', ')}</div>
-                <div className="text-xs text-ink-faint">ISBN: {book.isbn.split(' ').join(', ')}</div>
+                <div className="text-xs text-ink-faint">
+                  ISBN: {book.isbn.split(' ').join(', ')}
+                </div>
               </div>
             </Card>
           );
@@ -182,12 +184,8 @@ export default function KakaoBookSearchForm() {
               className="rounded object-cover"
             />
             <div className="flex-1 text-sm">
-              <div className="font-semibold text-ink mb-1">
-                {selectedBook?.title}
-              </div>
-              <div className="text-ink-sub mb-1">
-                {selectedBook?.authors?.join(', ')}
-              </div>
+              <div className="font-semibold text-ink mb-1">{selectedBook?.title}</div>
+              <div className="text-ink-sub mb-1">{selectedBook?.authors?.join(', ')}</div>
               {selectedBook?.isbn && (
                 <div className="text-xs text-ink-sub mb-1">
                   ISBN: {selectedBook.isbn.split(' ').join(', ')}
