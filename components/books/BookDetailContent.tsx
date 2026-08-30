@@ -6,6 +6,7 @@ import { MyBook } from '@/types/book';
 import { EntryDetailData } from '@/types/entry';
 import Image from 'next/image';
 import MarkAsFinishedButton from './MarkAsFinishedButton';
+import UnfinishBookButton from './UnfinishBookButton';
 import { Profile } from '@/types/profile';
 import AnimatedListSection from '../ui/AnimatedListSecion';
 import { BookOpen, CheckCircle2, Plus, ChevronDown } from 'lucide-react';
@@ -159,6 +160,7 @@ export default function BookDetailContent({
                   발췌집 보기
                 </Button>
               </Link>
+              <UnfinishBookButton userBookId={id} onUnfinish={() => setIsFinished(false)} />
             </div>
           ))}
       </div>

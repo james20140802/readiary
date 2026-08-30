@@ -16,7 +16,7 @@ export default function MarkAsFinishedButton({ userBookId, onFinish }: MarkAsFin
   const handleMarkAsFinished = async () => {
     const { error } = await supabase
       .from('user_books')
-      .update({ is_finished: true })
+      .update({ is_finished: true, finished_at: new Date().toISOString() })
       .eq('id', userBookId);
 
     if (!error) {
@@ -28,7 +28,7 @@ export default function MarkAsFinishedButton({ userBookId, onFinish }: MarkAsFin
   };
 
   return (
-    <Button onClick={handleMarkAsFinished} size="sm" color="primary" className="mt-2">
+    <Button onClick={handleMarkAsFinished} size="sm" variant="primary" className="mt-2">
       다 읽었어요
     </Button>
   );
