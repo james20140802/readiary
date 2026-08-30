@@ -46,11 +46,19 @@ export async function updateSession(request: NextRequest) {
     profile = data;
   }
 
+  // 리다이렉트 응답에도 setAll이 실어둔 갱신 쿠키가 함께 가야 한다 — 버리면 토큰
+  // 리프레시와 겹칠 때 브라우저에 구 쿠키가 남아 세션이 끊길 수 있다.
+  const redirectWithAuthCookies = (url: URL) => {
+    const response = NextResponse.redirect(url);
+    supabaseResponse.cookies.getAll().forEach((cookie) => response.cookies.set(cookie));
+    return response;
+  };
+
   // Redirect to onboarding if profile is missing
   if (user && !profile && !request.nextUrl.pathname.startsWith('/onboarding')) {
     const url = request.nextUrl.clone();
     url.pathname = '/onboarding';
-    return NextResponse.redirect(url);
+    return redirectWithAuthCookies(url);
   }
 
   if (
@@ -67,7 +75,7 @@ export async function updateSession(request: NextRequest) {
     if (request.nextUrl.pathname.startsWith('/protected')) {
       url.searchParams.set('redirect', request.nextUrl.pathname + request.nextUrl.search);
     }
-    return NextResponse.redirect(url);
+    return redirectWithAuthCookies(url);
   }
 
   if (
@@ -78,13 +86,13 @@ export async function updateSession(request: NextRequest) {
   ) {
     const url = request.nextUrl.clone();
     url.pathname = '/protected/dashboard';
-    return NextResponse.redirect(url);
+    return redirectWithAuthCookies(url);
   }
 
   if (user && profile && request.nextUrl.pathname.startsWith('/onboarding')) {
     const url = request.nextUrl.clone();
     url.pathname = '/protected/dashboard';
-    return NextResponse.redirect(url);
+    return redirectWithAuthCookies(url);
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
