@@ -21,12 +21,13 @@ export default function UnfinishBookButton({ userBookId, onUnfinish }: UnfinishB
   const handleUnfinish = async () => {
     setIsSubmitting(true);
     setError(null);
-    const { error: updateError } = await supabase
+    const { data, error: updateError } = await supabase
       .from('user_books')
       .update({ is_finished: false, finished_at: null })
-      .eq('id', userBookId);
+      .eq('id', userBookId)
+      .select('id');
 
-    if (!updateError) {
+    if (!updateError && data && data.length > 0) {
       setIsDialogOpen(false);
       setIsSubmitting(false);
       onUnfinish();
@@ -39,7 +40,14 @@ export default function UnfinishBookButton({ userBookId, onUnfinish }: UnfinishB
 
   return (
     <>
-      <Button size="sm" variant="ghost" onClick={() => setIsDialogOpen(true)}>
+      <Button
+        size="sm"
+        variant="ghost"
+        onClick={() => {
+          setError(null);
+          setIsDialogOpen(true);
+        }}
+      >
         완독 취소
       </Button>
       <Modal
@@ -56,7 +64,12 @@ export default function UnfinishBookButton({ userBookId, onUnfinish }: UnfinishB
           </p>
           {error && <p className="text-sm text-danger">{error}</p>}
           <div className="flex justify-end gap-2 pt-2">
-            <Button size="sm" variant="secondary" onClick={() => setIsDialogOpen(false)}>
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => setIsDialogOpen(false)}
+              disabled={isSubmitting}
+            >
               돌아가기
             </Button>
             <Button size="sm" variant="primary" onClick={handleUnfinish} disabled={isSubmitting}>

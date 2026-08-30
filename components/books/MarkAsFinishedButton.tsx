@@ -14,16 +14,17 @@ export default function MarkAsFinishedButton({ userBookId, onFinish }: MarkAsFin
   const supabase = createSupabaseClient();
 
   const handleMarkAsFinished = async () => {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('user_books')
       .update({ is_finished: true, finished_at: new Date().toISOString() })
-      .eq('id', userBookId);
+      .eq('id', userBookId)
+      .select('id');
 
-    if (!error) {
+    if (!error && data && data.length > 0) {
       onFinish();
       router.refresh();
     } else {
-      console.error('Failed to mark as finished:', error.message);
+      console.error('Failed to mark as finished:', error?.message ?? 'no rows updated');
     }
   };
 
