@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { createSupabaseClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { Profile } from '@/types/profile';
@@ -16,11 +16,17 @@ export function useProfileUpdate(initialProfile: Profile | null) {
   const [imagePath, setImagePath] = useState<string | null>(initialProfile?.profile_image || null);
 
   // initialProfile이 비동기로 채워질 때 imagePath 동기화
-  useEffect(() => {
-    if (initialProfile?.profile_image !== undefined) {
-      setImagePath(initialProfile.profile_image);
-    }
-  }, [initialProfile?.profile_image]);
+  // (렌더링 중 조건부 setState로 처리해 이펙트 한 프레임 지연을 피함)
+  const [syncedProfileImage, setSyncedProfileImage] = useState(
+    initialProfile?.profile_image ?? null
+  );
+  if (
+    initialProfile?.profile_image !== undefined &&
+    initialProfile.profile_image !== syncedProfileImage
+  ) {
+    setSyncedProfileImage(initialProfile.profile_image);
+    setImagePath(initialProfile.profile_image);
+  }
 
   // 랜덤 4자리 태그 생성 함수
   const generateRandomTag = () => {
@@ -115,7 +121,10 @@ export function useProfileUpdate(initialProfile: Profile | null) {
         }
 
         if (!isUnique) {
-          return { success: false, error: '사용 가능한 닉네임 조합을 찾지 못했습니다. 다시 시도해주세요.' };
+          return {
+            success: false,
+            error: '사용 가능한 닉네임 조합을 찾지 못했습니다. 다시 시도해주세요.',
+          };
         }
       }
 

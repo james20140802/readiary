@@ -36,11 +36,7 @@ export default async function DashboardPage() {
 
       <AnimatedSection>
         {recap && <MonthlyRecapCard recap={recap} />}
-        <Composer
-          books={books ?? []}
-          recentUserBookId={recentUserBookId}
-          userId={user.id}
-        />
+        <Composer books={books ?? []} recentUserBookId={recentUserBookId} userId={user.id} />
         {recall && <RecallCard recall={recall} />}
         <WeeklyStreakSection
           weeklyCount={weeklyCount}

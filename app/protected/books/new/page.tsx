@@ -14,13 +14,13 @@ export default function NewBookPage() {
     <div className="w-full">
       <header className="flex items-center mb-6">
         <BackButton />
-        <h1 className="text-page-title text-ink ml-4">📗 책 등록</h1>
+        <h1 className="text-page-title text-ink ml-4">책 등록</h1>
       </header>
 
       <Tabs
         tabs={[
-          { value: 'search', label: '🔍 책 검색' },
-          { value: 'manual', label: '✍️ 직접 입력' },
+          { value: 'search', label: '책 검색' },
+          { value: 'manual', label: '직접 입력' },
         ]}
         defaultValue={'search'}
         onChange={(id) => setTab(id as 'manual' | 'search')}

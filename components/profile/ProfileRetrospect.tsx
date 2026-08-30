@@ -14,9 +14,7 @@ export default function ProfileRetrospect({ data }: ProfileRetrospectProps) {
       <h2 className="text-section-title font-bold text-ink mb-4">회고</h2>
 
       {finishedBooks.length === 0 ? (
-        <p className="text-body-sm text-ink-sub">
-          완독을 선언하면 그 책의 발췌집이 여기에 쌓여요.
-        </p>
+        <p className="text-body-sm text-ink-sub">완독을 선언하면 그 책의 발췌집이 여기에 쌓여요.</p>
       ) : (
         <div>
           {finishedBooks.map((book) => (
@@ -26,9 +24,7 @@ export default function ProfileRetrospect({ data }: ProfileRetrospectProps) {
               className="flex items-center justify-between py-3 border-b border-hairline last:border-b-0 hover:text-accent transition-colors"
             >
               <span className="font-serif text-ink">{book.title}</span>
-              <span className="text-caption text-ink-sub shrink-0">
-                문장 {book.quoteCount}개
-              </span>
+              <span className="text-caption text-ink-sub shrink-0">문장 {book.quoteCount}개</span>
             </Link>
           ))}
         </div>

@@ -21,7 +21,10 @@ export async function POST(request: NextRequest) {
 
   const { ids, clearOlderThan } = body as { ids?: unknown; clearOlderThan?: unknown };
   const hasIds = ids !== undefined;
-  if (hasIds && (!Array.isArray(ids) || ids.length === 0 || !ids.every((id) => typeof id === 'string'))) {
+  if (
+    hasIds &&
+    (!Array.isArray(ids) || ids.length === 0 || !ids.every((id) => typeof id === 'string'))
+  ) {
     return NextResponse.json({ error: 'ids는 문자열 배열이어야 합니다.' }, { status: 400 });
   }
 

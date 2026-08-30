@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useInView } from 'react-intersection-observer';
 import { DetailSocialFeedEntry } from '@/types/entry';
 import { fetchDetailSocialFeedEntries } from '@/lib/queries/fetchSocialFeedEntries';
@@ -20,14 +20,6 @@ export default function DetailSocailFeedList({
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
 
-  const { ref, inView } = useInView();
-
-  useEffect(() => {
-    if (inView && hasMore && !loading) {
-      loadMoreData();
-    }
-  }, [inView]);
-
   const loadMoreData = async () => {
     setLoading(true);
     const nextData = await fetchDetailSocialFeedEntries(page, FEED_PAGINATION_LIMIT);
@@ -41,6 +33,12 @@ export default function DetailSocailFeedList({
     setLoading(false);
   };
 
+  const { ref } = useInView({
+    onChange: (inView) => {
+      if (inView && hasMore && !loading) loadMoreData();
+    },
+  });
+
   return (
     <div className="flex flex-col gap-3">
       {feed.map((item) => (
@@ -52,7 +50,9 @@ export default function DetailSocailFeedList({
       {/* 바닥 감지 영역 */}
       {hasMore && (
         <div ref={ref} className="h-20 flex items-center justify-center">
-          {loading && <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-accent" />}
+          {loading && (
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-accent" />
+          )}
         </div>
       )}
     </div>

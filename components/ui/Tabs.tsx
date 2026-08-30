@@ -28,9 +28,7 @@ export default function Tabs({
   fullWidth,
 }: TabsProps) {
   const isControlled = value !== undefined;
-  const [uncontrolledSelected, setUncontrolledSelected] = useState(
-    defaultValue || tabs[0]?.value
-  );
+  const [uncontrolledSelected, setUncontrolledSelected] = useState(defaultValue || tabs[0]?.value);
   const selected = isControlled ? value : uncontrolledSelected;
 
   const handleTabClick = (value: string) => {

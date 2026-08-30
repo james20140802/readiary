@@ -49,13 +49,13 @@ export default function BookDetailContent({
 
   const sortedEntries = useMemo(() => {
     if (!entries) return null;
-    
+
     // 1. 먼저 필터링
     let processed = [...entries];
     if (filterOption === 'public') {
-      processed = processed.filter(e => !e.entry.is_private);
+      processed = processed.filter((e) => !e.entry.is_private);
     } else if (filterOption === 'private') {
-      processed = processed.filter(e => e.entry.is_private);
+      processed = processed.filter((e) => e.entry.is_private);
     }
 
     // 2. 이어서 정렬
@@ -82,9 +82,8 @@ export default function BookDetailContent({
                 alt="Book cover"
                 width={128}
                 height={192}
-                className="rounded shadow object-cover w-32 sm:w-24"
+                className="rounded object-cover w-32 sm:w-24"
               />
-              <div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-white/10" />
             </div>
           </div>
 
@@ -167,14 +166,17 @@ export default function BookDetailContent({
       <section className="space-y-4">
         {/* 전체 컨테이너: 데스크탑에서는 한 줄, 모바일에서는 여러 줄로 래핑 */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-          
           {/* 모바일 1줄: 타이틀 & 기록 추가 버튼 */}
           <div className="flex items-center justify-between gap-4 w-full sm:w-auto">
-            <h2 className="text-section-title text-ink">📓 독서 기록</h2>
+            <h2 className="text-section-title text-ink">독서 기록</h2>
             {!isFriend && (
               <span className="sm:hidden">
                 <Link href={`/protected/books/${book_id}/entry/new`}>
-                  <Button size="sm" variant="primary" className="flex items-center gap-1.5 px-3 py-1.5 text-xs">
+                  <Button
+                    size="sm"
+                    variant="primary"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs"
+                  >
                     <Plus size={14} />
                     기록 추가
                   </Button>
@@ -258,7 +260,11 @@ export default function BookDetailContent({
             {!isFriend && (
               <span className="hidden sm:inline">
                 <Link href={`/protected/books/${book_id}/entry/new`}>
-                  <Button size="sm" variant="primary" className="flex items-center gap-1.5 shrink-0">
+                  <Button
+                    size="sm"
+                    variant="primary"
+                    className="flex items-center gap-1.5 shrink-0"
+                  >
                     <Plus size={16} />
                     기록 추가하기
                   </Button>

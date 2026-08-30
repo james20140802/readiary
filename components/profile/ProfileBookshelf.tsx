@@ -27,7 +27,7 @@ export default function ProfileBookshelf({
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <h2 className="text-section-title font-bold text-ink">
-            {`📚 ${isOwnProfile ? '나' : (profile?.name ?? '') + '님'}의 책장`}
+            {`${isOwnProfile ? '나' : (profile?.name ?? '') + '님'}의 책장`}
           </h2>
           <span className="text-caption font-bold px-2 py-0.5 bg-card-raised text-ink-faint border border-hairline rounded-full">
             {userBooks.length}

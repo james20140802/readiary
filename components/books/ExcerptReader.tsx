@@ -28,7 +28,9 @@ export default function ExcerptReader({ bookTitle, author, quotes, lastDate }: E
         <div className="space-y-10 py-10">
           {quotes.map((q) => (
             <div key={q.id} className="text-center">
-              <blockquote className="font-serif text-quote text-ink whitespace-pre-wrap">“{q.quote}”</blockquote>
+              <blockquote className="font-serif text-quote text-ink whitespace-pre-wrap">
+                “{q.quote}”
+              </blockquote>
               <p className="text-xs text-ink-faint mt-3">{q.date.replaceAll('-', '.')}</p>
             </div>
           ))}

@@ -6,9 +6,7 @@ describe('sanitizeRedirectPath', () => {
     expect(sanitizeRedirectPath(null)).toBe('/protected/dashboard');
   });
   it('같은 오리진의 절대 경로는 그대로 반환', () => {
-    expect(sanitizeRedirectPath('/protected/social?invite=x')).toBe(
-      '/protected/social?invite=x'
-    );
+    expect(sanitizeRedirectPath('/protected/social?invite=x')).toBe('/protected/social?invite=x');
   });
   it('//로 시작하면 기본 경로 (프로토콜 상대 URL 방지)', () => {
     expect(sanitizeRedirectPath('//evil.com')).toBe('/protected/dashboard');

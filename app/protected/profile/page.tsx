@@ -33,7 +33,7 @@ export default async function ProfilePage() {
 
   return (
     <div>
-      <h1 className="text-page-title text-ink mb-2">👤 내 프로필</h1>
+      <h1 className="text-page-title text-ink mb-2">내 프로필</h1>
       <AnimatedSection>
         <div>
           <ProfileHeader user={user} profile={profile} />

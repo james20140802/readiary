@@ -79,9 +79,7 @@ export function WeeklyStreakSection({ weeklyCount, streak, weekActivity, todayKs
       {entry ? (
         <div className="flex flex-col gap-0.5">
           <p className="text-caption text-ink-faint tracking-wide">오늘 읽은 책</p>
-          <h3 className="text-body font-semibold text-ink">
-            {entry.book.title}
-          </h3>
+          <h3 className="text-body font-semibold text-ink">{entry.book.title}</h3>
           {(entry.note || entry.quote) && (
             <p className="mt-0.5 text-body-sm text-ink-sub italic line-clamp-2">
               &quot;{entry.note ?? entry.quote}&quot;

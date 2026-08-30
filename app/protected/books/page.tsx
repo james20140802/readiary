@@ -15,7 +15,7 @@ export default async function MyBooksPage() {
       <div className="w-full">
         <header className="flex justify-between items-center mb-6">
           <h1 className="text-page-title text-ink" aria-label="내 책장">
-            📚 내 책장
+            내 책장
           </h1>
           <Button asChild>
             <Link href="/protected/books/new">+ 책 등록</Link>
@@ -25,7 +25,7 @@ export default async function MyBooksPage() {
         {/* If MyBookList ever fetches data internally, wrap it in <Suspense> for smoother UX */}
         {books.length === 0 ? (
           <AnimatedSection>
-            <p className="text-ink-sub text-center mt-10">등록한 책이 없어요. 📭</p>
+            <p className="text-ink-sub text-center mt-10">등록한 책이 없어요.</p>
           </AnimatedSection>
         ) : (
           <BookList books={books} />

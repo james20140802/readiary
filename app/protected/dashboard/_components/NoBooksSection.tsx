@@ -10,7 +10,7 @@ export function NoBooksSection() {
       <p className="text-body text-ink-sub">아직 읽고 있는 책이 없어요.</p>
       <Button asChild>
         <Link href="/protected/books/new" className="text-button">
-          📚 새 책 등록하기
+          새 책 등록하기
         </Link>
       </Button>
     </Card>

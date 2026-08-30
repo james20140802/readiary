@@ -11,12 +11,16 @@ describe('isMonthlyRecapDay', () => {
 describe('prevMonthRange', () => {
   it('지난달 1일~말일과 라벨', () => {
     expect(prevMonthRange('2026-09-01')).toEqual({
-      start: '2026-08-01', end: '2026-08-31', label: '2026년 8월',
+      start: '2026-08-01',
+      end: '2026-08-31',
+      label: '2026년 8월',
     });
   });
   it('연 경계 — 1월 1일이면 지난해 12월', () => {
     expect(prevMonthRange('2026-01-01')).toEqual({
-      start: '2025-12-01', end: '2025-12-31', label: '2025년 12월',
+      start: '2025-12-01',
+      end: '2025-12-31',
+      label: '2025년 12월',
     });
   });
   it('말일이 짧은 달 — 3월 1일이면 2월 28일까지', () => {

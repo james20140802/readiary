@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Profile } from '@/types/profile';
 import { toast } from 'sonner';
+import { Plus } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Modal from '@/components/ui/Modal';
@@ -98,17 +99,15 @@ export default function FriendRequestForm({ initialQuery }: Props) {
             className="w-full"
           />
           <Button onClick={handleSearch} disabled={loading} aria-label="친구 추가">
-            ➕
+            <Plus size={16} />
           </Button>
         </div>
       </FormGroup>
 
       <Modal isOpen={showConfirmModal} onClose={() => setShowConfirmModal(false)}>
         <div className="space-y-4">
-          <h2 className="text-section-title font-semibold text-ink">
-            친구 요청 보내기
-          </h2>
-          <p className="text-body-text text-ink-sub">
+          <h2 className="text-section-title font-semibold text-ink">친구 요청 보내기</h2>
+          <p className="text-body text-ink-sub">
             {foundUser?.profile.name ?? ''} ({foundUser?.profile.nickname}#{foundUser?.profile.tag})
             님에게 친구 요청을 보낼까요?
           </p>

@@ -38,10 +38,15 @@ export default function NotificationList({ notifications, onGoToFriends }: Props
               <p className={`text-body-sm ${isUnread ? 'text-ink font-medium' : 'text-ink-sub'}`}>
                 {buildNotificationMessage(n.type, n.actorNickname)}
               </p>
-              <p className="text-caption text-ink-faint mt-0.5">{formatRelativeTime(n.createdAt)}</p>
+              <p className="text-caption text-ink-faint mt-0.5">
+                {formatRelativeTime(n.createdAt)}
+              </p>
             </div>
             {isUnread && (
-              <span className="h-[7px] w-[7px] shrink-0 rounded-full bg-accent" aria-label="읽지 않음" />
+              <span
+                className="h-[7px] w-[7px] shrink-0 rounded-full bg-accent"
+                aria-label="읽지 않음"
+              />
             )}
           </div>
         );

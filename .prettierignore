@@ -5,3 +5,5 @@ build
 public
 coverage
 *.lock
+docs/
+.superpowers/
