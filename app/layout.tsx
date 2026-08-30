@@ -28,10 +28,7 @@ export default function RootLayout({
   return (
     <html lang="ko" className={maruBuri.variable}>
       <head>
-        <link rel="manifest" href="/manifest.json" />
-        <link rel="icon" href="/icons/icon-192x192-v2.png" />
-        <link rel="apple-touch-icon" href="/icons/icon-512x512-v2.png" />
-        <link rel="icon" href="favicon.ico" />
+        <link rel="apple-touch-icon" href="/icons/icon-192x192-v2.png" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
