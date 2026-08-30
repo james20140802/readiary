@@ -186,6 +186,11 @@ create unique index if not exists notifications_like_event_unique
 revoke all on function public.notify_entry_event(uuid, text) from public;
 revoke all on function public.retract_like_notification(uuid) from public;
 revoke all on function public.notify_friend_event(uuid, text) from public;
+-- Supabase default privileges가 함수 생성 시 anon에 execute를 자동 부여하므로 명시적으로 회수한다.
+-- (함수 내부의 auth.uid() null 가드로 실행은 어차피 실패하지만, 권한면을 좁혀 둔다.)
+revoke all on function public.notify_entry_event(uuid, text) from anon;
+revoke all on function public.retract_like_notification(uuid) from anon;
+revoke all on function public.notify_friend_event(uuid, text) from anon;
 grant execute on function public.notify_entry_event(uuid, text) to authenticated;
 grant execute on function public.retract_like_notification(uuid) to authenticated;
 grant execute on function public.notify_friend_event(uuid, text) to authenticated;
