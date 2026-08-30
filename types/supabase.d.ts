@@ -380,6 +380,7 @@ export type Database = {
         Row: {
           book_id: string;
           created_at: string | null;
+          finished_at: string | null;
           id: string;
           is_finished: boolean | null;
           last_read_page: number | null;
@@ -390,6 +391,7 @@ export type Database = {
         Insert: {
           book_id: string;
           created_at?: string | null;
+          finished_at?: string | null;
           id?: string;
           is_finished?: boolean | null;
           last_read_page?: number | null;
@@ -400,6 +402,7 @@ export type Database = {
         Update: {
           book_id?: string;
           created_at?: string | null;
+          finished_at?: string | null;
           id?: string;
           is_finished?: boolean | null;
           last_read_page?: number | null;
