@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Tabs from '@/components/ui/Tabs';
 import DetailSocailFeedList from './DetailSocialFeedList';
 import FriendRequestForm from './FriendRequestForm';
+import NotificationList from './NotificationList';
 import AnimatedListSection from '@/components/ui/AnimatedListSecion';
 import FriendListItem from './FriendListItem';
 import AcceptFriendRequestButton from './AcceptFriendRequestButton';
@@ -11,6 +12,7 @@ import DeclineFriendRequestButton from './DeclineFriendRequestButton';
 import CancelFriendRequestButton from './CancelFriendRequestButton';
 import { DetailSocialFeedEntry } from '@/types/entry';
 import { Friend } from '@/types/friends';
+import { NOTIFICATIONS_LIMIT, type NotificationItem } from '@/lib/notifications/types';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { Users } from 'lucide-react';
 
@@ -20,6 +22,7 @@ interface Props {
   acceptedFriends: Friend[];
   pendingFriends: Friend[];
   sentFriends: Friend[];
+  notifications: NotificationItem[];
   initialInviteQuery?: string;
 }
 
@@ -29,23 +32,47 @@ export default function SocialTab({
   acceptedFriends,
   pendingFriends,
   sentFriends,
+  notifications,
   initialInviteQuery,
 }: Props) {
-  const [mainTab, setMainTab] = useState<'feed' | 'manage'>(
+  const [mainTab, setMainTab] = useState<'feed' | 'manage' | 'notifications'>(
     initialInviteQuery ? 'manage' : 'feed'
   );
   const [friendTab, setFriendTab] = useState<'friends' | 'pending' | 'sent'>('friends');
   const isMobile = useIsMobile();
 
+  const hasMarkedRead = useRef(false);
+  useEffect(() => {
+    if (mainTab !== 'notifications' || hasMarkedRead.current) return;
+    hasMarkedRead.current = true;
+    const unreadIds = notifications.filter((n) => n.readAt === null).map((n) => n.id);
+    // 목록은 최신 NOTIFICATIONS_LIMIT건만 렌더되므로, 상한에 걸친 경우 화면에
+    // 나오지 못하는 더 오래된 미읽음 알림이 남아 뱃지가 영구 점등될 수 있다.
+    // 이 경우 마지막(가장 오래된) 항목의 시각 이전을 함께 읽음 처리한다.
+    const atLimit = notifications.length >= NOTIFICATIONS_LIMIT;
+    if (unreadIds.length === 0 && !atLimit) return;
+
+    const body: { ids?: string[]; clearOlderThan?: string } = {};
+    if (unreadIds.length > 0) body.ids = unreadIds;
+    if (atLimit) body.clearOlderThan = notifications[notifications.length - 1].createdAt;
+
+    fetch('/api/notifications/read', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    }).catch(() => {});
+  }, [mainTab, notifications]);
+
   const mainTabs = [
-    { label: '✨ 피드', value: 'feed' },
-    { label: '👥 친구 관리', value: 'manage' },
+    { label: '피드', value: 'feed' },
+    { label: '친구 관리', value: 'manage' },
+    { label: '알림', value: 'notifications' },
   ];
 
   const friendTabs = [
-    { label: '📋 목록', value: 'friends' },
-    { label: '⏳ 받은 요청', value: 'pending' },
-    { label: '📤 보낸 요청', value: 'sent' },
+    { label: '목록', value: 'friends' },
+    { label: '받은 요청', value: 'pending' },
+    { label: '보낸 요청', value: 'sent' },
   ];
 
   return (
@@ -53,8 +80,8 @@ export default function SocialTab({
       {/* 대분류 탭 — 컴팩트하게 */}
       <Tabs
         tabs={mainTabs}
-        defaultValue={mainTab}
-        onChange={(id) => setMainTab(id as 'feed' | 'manage')}
+        value={mainTab}
+        onChange={(id) => setMainTab(id as 'feed' | 'manage' | 'notifications')}
         fullWidth
       />
 
@@ -174,6 +201,19 @@ export default function SocialTab({
               )}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* 알림 탭 */}
+      {mainTab === 'notifications' && (
+        <div className="animate-in fade-in duration-300">
+          <NotificationList
+            notifications={notifications}
+            onGoToFriends={(type) => {
+              setMainTab('manage');
+              setFriendTab(type === 'friend_accept' ? 'friends' : 'pending');
+            }}
+          />
         </div>
       )}
     </div>

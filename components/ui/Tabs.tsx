@@ -10,6 +10,7 @@ interface Tab {
 
 interface TabsProps {
   tabs: Tab[];
+  value?: string;
   defaultValue?: string;
   onChange?: (value: string) => void;
   className?: string;
@@ -19,16 +20,23 @@ interface TabsProps {
 
 export default function Tabs({
   tabs,
+  value,
   defaultValue,
   onChange,
   className,
   renderTabPanel,
   fullWidth,
 }: TabsProps) {
-  const [selected, setSelected] = useState(defaultValue || tabs[0]?.value);
+  const isControlled = value !== undefined;
+  const [uncontrolledSelected, setUncontrolledSelected] = useState(
+    defaultValue || tabs[0]?.value
+  );
+  const selected = isControlled ? value : uncontrolledSelected;
 
   const handleTabClick = (value: string) => {
-    setSelected(value);
+    if (!isControlled) {
+      setUncontrolledSelected(value);
+    }
     onChange?.(value);
   };
 

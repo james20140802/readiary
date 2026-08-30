@@ -426,6 +426,18 @@ export type Database = {
         Args: { p_book_id: string; p_user_id: string };
         Returns: undefined;
       };
+      notify_entry_event: {
+        Args: { p_entry_id: string; p_type: string };
+        Returns: undefined;
+      };
+      notify_friend_event: {
+        Args: { p_recipient: string; p_type: string };
+        Returns: undefined;
+      };
+      retract_like_notification: {
+        Args: { p_entry_id: string };
+        Returns: undefined;
+      };
     };
     Enums: {
       status: 'accepted' | 'pending';

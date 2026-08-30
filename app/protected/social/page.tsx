@@ -8,6 +8,7 @@ import {
 import { FEED_PAGINATION_LIMIT } from '@/constants/social';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { slugToSearchQuery } from '@/lib/social/invite';
+import { fetchNotifications } from '@/lib/notifications/fetchNotifications';
 import SocialTab from './_components/SocialTab';
 
 interface SocialPageProps {
@@ -25,11 +26,12 @@ export default async function SocialPage({ searchParams }: SocialPageProps) {
   const initialInviteQuery = invite ? (slugToSearchQuery(invite) ?? undefined) : undefined;
 
   // 피드 데이터와 친구 데이터를 병렬로 fetch
-  const [feed, acceptedFriends, pendingFriends, sentFriends] = await Promise.all([
+  const [feed, acceptedFriends, pendingFriends, sentFriends, notifications] = await Promise.all([
     fetchDetailSocialFeedEntries(0, FEED_PAGINATION_LIMIT),
     fetchFriendList(),
     fetchReceivedFriendRequests(),
     fetchSentFriendRequests(),
+    fetchNotifications(),
   ]);
 
   return (
@@ -44,6 +46,7 @@ export default async function SocialPage({ searchParams }: SocialPageProps) {
         acceptedFriends={acceptedFriends ?? []}
         pendingFriends={pendingFriends ?? []}
         sentFriends={sentFriends ?? []}
+        notifications={notifications}
         initialInviteQuery={initialInviteQuery}
       />
     </div>

@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { notifyEntryEvent, retractLikeNotification } from '@/lib/notifications/notify';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
@@ -28,6 +29,9 @@ export async function POST(request: Request) {
     const { error: deleteError } = await supabase.from('likes').delete().eq('id', existingLike.id);
 
     if (deleteError) return NextResponse.json({ error: deleteError.message }, { status: 500 });
+
+    await retractLikeNotification(supabase, entryId);
+
     return NextResponse.json({ message: 'unliked', liked: false });
   } else {
     // 4. 없다면 추가 (좋아요 실행)
@@ -37,6 +41,9 @@ export async function POST(request: Request) {
     });
 
     if (insertError) return NextResponse.json({ error: insertError.message }, { status: 500 });
+
+    await notifyEntryEvent(supabase, entryId, 'like');
+
     return NextResponse.json({ message: 'liked', liked: true });
   }
 }
