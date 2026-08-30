@@ -39,12 +39,12 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Fetch user profile from 'profiles' table
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('id')
-    .eq('id', user?.id)
-    .maybeSingle();
+  // Fetch user profile from 'profiles' table (only when logged in)
+  let profile: { id: string } | null = null;
+  if (user) {
+    const { data } = await supabase.from('profiles').select('id').eq('id', user.id).maybeSingle();
+    profile = data;
+  }
 
   // Redirect to onboarding if profile is missing
   if (user && !profile && !request.nextUrl.pathname.startsWith('/onboarding')) {
@@ -57,13 +57,16 @@ export async function updateSession(request: NextRequest) {
     !user &&
     !request.nextUrl.pathname.startsWith('/login') &&
     !request.nextUrl.pathname.startsWith('/auth') &&
-    request.nextUrl.pathname.startsWith('/protected')
+    (request.nextUrl.pathname.startsWith('/protected') ||
+      request.nextUrl.pathname.startsWith('/onboarding'))
   ) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     url.search = '';
-    url.searchParams.set('redirect', request.nextUrl.pathname + request.nextUrl.search);
+    if (request.nextUrl.pathname.startsWith('/protected')) {
+      url.searchParams.set('redirect', request.nextUrl.pathname + request.nextUrl.search);
+    }
     return NextResponse.redirect(url);
   }
 
@@ -73,6 +76,12 @@ export async function updateSession(request: NextRequest) {
       request.nextUrl.pathname.startsWith('/login') ||
       request.nextUrl.pathname.startsWith('/signup'))
   ) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/protected/dashboard';
+    return NextResponse.redirect(url);
+  }
+
+  if (user && profile && request.nextUrl.pathname.startsWith('/onboarding')) {
     const url = request.nextUrl.clone();
     url.pathname = '/protected/dashboard';
     return NextResponse.redirect(url);
@@ -95,5 +104,5 @@ export async function updateSession(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/', '/login', '/signup', '/protected/:path*'],
+  matcher: ['/', '/login', '/signup', '/onboarding', '/protected/:path*'],
 };
