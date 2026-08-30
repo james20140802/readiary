@@ -44,14 +44,18 @@ export default function OnboardingForm() {
           return;
         }
 
-        const result = await res.json();
+        const result = await res.json().catch(() => ({}));
 
-        if (res.status === 500 && result.error?.includes('duplicate key')) {
+        if (res.status === 409 && result.code === 'tag_conflict') {
           tag = generateRandomTag();
           tries++;
-        } else if (res.status === 409) {
-          toast.error(result.error || '이미 프로필이 존재합니다.');
+        } else if (res.status === 409 && result.code === 'profile_exists') {
+          toast.info(result.error || '이미 프로필이 존재합니다.');
           router.push('/protected/dashboard');
+          return;
+        } else if (res.status === 401) {
+          toast.error('세션이 만료되었습니다. 다시 로그인해주세요.');
+          router.push('/login');
           return;
         } else {
           toast.error(result.error || '프로필 등록 중 오류가 발생했습니다.');
@@ -59,7 +63,7 @@ export default function OnboardingForm() {
           return;
         }
       }
-      toast.error('중복 태그가 너무 많습니다. 닉네임을 바꿔보세요.');
+      toast.error('태그 생성이 계속 겹칩니다. 닉네임을 바꿔 다시 시도해주세요.');
     } catch (error) {
       toast.error('예기치 않은 오류가 발생했습니다. 나중에 다시 시도해주세요.');
       console.error(error);

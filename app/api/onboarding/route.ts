@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { classifyProfileInsertError } from '@/lib/onboarding/classifyProfileInsertError';
 
 export async function POST(req: Request) {
   try {
@@ -24,7 +25,7 @@ export async function POST(req: Request) {
     const { name, nickname, tag, bio } = body;
 
     if (!name || !nickname || !tag) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+      return NextResponse.json({ error: '이름과 닉네임을 입력해주세요.' }, { status: 400 });
     }
 
     const { data, error: insertError } = await supabase
@@ -39,9 +40,22 @@ export async function POST(req: Request) {
       .select('*')
       .single();
 
-    if (!data || insertError) {
-      const errorMessage = insertError.message ?? 'Insert failed';
-      return NextResponse.json({ error: errorMessage }, { status: 500 });
+    if (insertError || !data) {
+      const kind = classifyProfileInsertError(insertError);
+      if (kind === 'profile_exists') {
+        return NextResponse.json(
+          { code: 'profile_exists', error: '이미 프로필이 존재합니다.' },
+          { status: 409 }
+        );
+      }
+      if (kind === 'tag_conflict') {
+        return NextResponse.json(
+          { code: 'tag_conflict', error: '같은 닉네임과 태그 조합이 이미 있습니다.' },
+          { status: 409 }
+        );
+      }
+      console.error('[ONBOARDING INSERT ERROR]', { insertError, hasData: !!data });
+      return NextResponse.json({ error: '프로필 등록에 실패했습니다.' }, { status: 500 });
     }
     return NextResponse.json({ success: true });
   } catch (err) {
