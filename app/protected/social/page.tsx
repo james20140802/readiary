@@ -37,7 +37,7 @@ export default async function SocialPage({ searchParams }: SocialPageProps) {
   return (
     <div className="space-y-4">
       <header className="px-1">
-        <h1 className="text-page-title text-ink">🌏 소셜</h1>
+        <h1 className="text-page-title text-ink">소셜</h1>
       </header>
 
       <SocialTab

@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { BookMarked, Home, LibraryBig, Globe, UserRound } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import clsx from 'clsx';
-import type { User } from '@supabase/auth-helpers-nextjs';
+import type { User } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react';
 import { createSupabaseClient } from '@/lib/supabase/client';
 
@@ -108,9 +108,7 @@ export default function Navbar() {
                   href={item.href}
                   className={clsx(
                     'flex items-center gap-2 px-3 py-1 rounded-md transition hover:bg-card-raised',
-                    pathname === item.href
-                      ? 'text-ink font-semibold'
-                      : 'text-ink-faint'
+                    pathname === item.href ? 'text-ink font-semibold' : 'text-ink-faint'
                   )}
                   prefetch
                 >

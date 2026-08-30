@@ -143,14 +143,12 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
           </div>
           <div className="flex flex-col justify-center gap-1.5 min-w-0">
             <div>
-              <h3 className="text-body-sm font-bold text-ink line-clamp-1">
-                {book.title}
-              </h3>
+              <h3 className="text-body-sm font-bold text-ink line-clamp-1">{book.title}</h3>
               <p className="text-caption text-ink-faint line-clamp-1">{book.author}</p>
             </div>
             {readRange && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent-soft border border-accent/20 text-accent text-[11px] font-bold w-fit">
-                📖 {readRange}
+                {readRange}
               </span>
             )}
           </div>

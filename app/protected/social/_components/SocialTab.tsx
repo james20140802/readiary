@@ -91,9 +91,7 @@ export default function SocialTab({
           {initialFeed.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 gap-3 border-2 border-dashed border-hairline rounded-2xl">
               <Users size={32} className="text-ink-faint" />
-              <p className="text-body-sm font-medium text-ink">
-                친구들의 활동이 아직 없어요
-              </p>
+              <p className="text-body-sm font-medium text-ink">친구들의 활동이 아직 없어요</p>
               <p className="text-caption text-ink-faint">친구를 추가하면 피드가 채워져요</p>
             </div>
           ) : (
@@ -107,7 +105,7 @@ export default function SocialTab({
         <div className="space-y-5 animate-in fade-in duration-300">
           {/* 친구 검색 — accent-soft 배경으로 섹션 구분 강조 */}
           <div className="p-4 rounded-xl border border-accent/20 bg-accent-soft">
-            <p className="text-body-sm font-bold mb-3 text-accent">🔍 새로운 친구 찾기</p>
+            <p className="text-body-sm font-bold mb-3 text-accent">새로운 친구 찾기</p>
             <FriendRequestForm initialQuery={initialInviteQuery} />
           </div>
 

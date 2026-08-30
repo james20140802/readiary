@@ -81,7 +81,9 @@ export default function CommentSection({
       const res = await fetch(`/api/comments?id=${deleteModalCommentId}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('삭제 실패');
 
-      const updatedComments = comments.filter((c) => c.id !== deleteModalCommentId && c.parent_id !== deleteModalCommentId);
+      const updatedComments = comments.filter(
+        (c) => c.id !== deleteModalCommentId && c.parent_id !== deleteModalCommentId
+      );
 
       setComments(updatedComments);
       onCountChange?.(updatedComments.length);
@@ -137,7 +139,7 @@ export default function CommentSection({
           </div>
         ) : (
           <div className="py-12 text-center text-ink-faint text-[14px]">
-            아직 댓글이 없어요. 첫 인사를 남겨보세요! 💬
+            아직 댓글이 없어요. 첫 인사를 남겨보세요!
           </div>
         )}
       </div>
@@ -146,7 +148,7 @@ export default function CommentSection({
         {!hideInput && (
           <CommentInput
             onCommentSubmit={handleAddComment}
-            replyingTo={replyingTo} // 👈 정보 전달
+            replyingTo={replyingTo} // 정보 전달
             onCancelReply={() => setReplyingTo(null)}
           />
         )}

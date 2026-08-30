@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import { toast } from 'sonner';
 import AnimatedSection from '@/components/ui/AnimatedSection';
+import { Mail } from 'lucide-react';
 
 export default function ResetPasswordPage() {
   const [email, setEmail] = useState('');
@@ -63,20 +64,16 @@ export default function ResetPasswordPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleReset()}
               />
-              <Button
-                onClick={handleReset}
-                loading={loading}
-                className="w-full mt-4"
-              >
+              <Button onClick={handleReset} loading={loading} className="w-full mt-4">
                 재설정 링크 보내기
               </Button>
             </>
           ) : (
             <div className="text-center space-y-3">
-              <div className="text-3xl">📧</div>
-              <h2 className="text-lg font-semibold text-ink">
-                이메일을 확인해주세요
-              </h2>
+              <div className="flex justify-center text-ink">
+                <Mail size={30} />
+              </div>
+              <h2 className="text-lg font-semibold text-ink">이메일을 확인해주세요</h2>
               <p className="text-sm text-ink-sub">
                 <strong className="text-ink">{email}</strong>
                 로 비밀번호 재설정 링크를 보냈습니다.
@@ -87,10 +84,7 @@ export default function ResetPasswordPage() {
           )}
 
           <p className="text-sm text-center mt-4">
-            <a
-              href="/login"
-              className="text-ink-sub underline"
-            >
+            <a href="/login" className="text-ink-sub underline">
               로그인으로 돌아가기
             </a>
           </p>

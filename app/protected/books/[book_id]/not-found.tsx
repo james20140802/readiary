@@ -9,7 +9,7 @@ export default function NotFound() {
   return (
     <div className="flex flex-col items-center justify-center text-center px-4 py-20">
       <div className="w-full">
-        <h2 className="text-2xl font-semibold text-ink">책을 찾을 수 없어요 📚</h2>
+        <h2 className="text-2xl font-semibold text-ink">책을 찾을 수 없어요</h2>
         <p className="mt-4 text-ink-sub">존재하지 않거나 삭제된 책일 수 있어요.</p>
       </div>
       <div className="w-full flex justify-end">

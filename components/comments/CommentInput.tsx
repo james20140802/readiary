@@ -53,15 +53,12 @@ export default function CommentInput({
           </button>
         </div>
       )}
-      <form
-        onSubmit={handleSubmit}
-        className="relative flex items-center gap-3 p-2 pl-4"
-      >
+      <form onSubmit={handleSubmit} className="relative flex items-center gap-3 p-2 pl-4">
         <input
           type="text"
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder="칭찬과 응원은 큰 힘이 됩니다 ✍️"
+          placeholder="칭찬과 응원은 큰 힘이 됩니다"
           className="flex-1 bg-transparent border-none outline-none text-[14px] py-1.5 text-ink-sub placeholder:text-ink-faint"
           disabled={isSubmitting}
         />

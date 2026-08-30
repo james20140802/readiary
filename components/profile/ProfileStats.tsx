@@ -47,9 +47,7 @@ export default function ProfileStats({ stats }: ProfileStatsProps) {
     <div className="space-y-10 pb-20">
       {/* 독서 요약 */}
       <section>
-        <h2 className="text-section-title font-bold text-ink mb-4">
-          📊 독서 요약
-        </h2>
+        <h2 className="text-section-title font-bold text-ink mb-4">독서 요약</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {STAT_ITEMS(stats).map((item, i) => (
             <Card
@@ -57,7 +55,7 @@ export default function ProfileStats({ stats }: ProfileStatsProps) {
               hoverable
               className={`
                 select-none transition-all duration-150
-                ${pressedStat === i ? 'scale-95 !shadow-none !border-hairline-strong' : 'hover:-translate-y-0.5'}
+                ${pressedStat === i ? 'scale-95 !border-hairline-strong' : 'hover:-translate-y-0.5'}
               `}
               onMouseDown={() => setPressedStat(i)}
               onMouseUp={() => setPressedStat(null)}
@@ -71,9 +69,7 @@ export default function ProfileStats({ stats }: ProfileStatsProps) {
                 <item.icon className={item.color} size={20} strokeWidth={2.5} />
               </div>
               <p className="text-caption font-bold text-ink-faint mb-1">{item.label}</p>
-              <p className="text-2xl font-black text-ink tracking-tight">
-                {item.value}
-              </p>
+              <p className="text-2xl font-black text-ink tracking-tight">{item.value}</p>
             </Card>
           ))}
         </div>

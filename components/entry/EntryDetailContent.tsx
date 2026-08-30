@@ -101,12 +101,10 @@ export default function EntryDetailContent({
             alt="Book cover"
             width={48}
             height={72}
-            className="rounded shadow object-cover"
+            className="rounded object-cover"
           />
           <div className="space-y-1">
-            <h2 className="text-section-title text-ink">
-              {book.title ?? '제목 없음'}
-            </h2>
+            <h2 className="text-section-title text-ink">{book.title ?? '제목 없음'}</h2>
             <p className="text-sm text-ink-sub">{book.author ?? '저자 미상'}</p>
           </div>
         </div>
@@ -117,7 +115,7 @@ export default function EntryDetailContent({
             <div className="p-5 sm:p-6 pb-4 space-y-4">
               <div className="flex items-center justify-between relative">
                 <h1 className="text-[1.125rem] font-bold text-ink flex items-center gap-2">
-                  ✍️ 오늘의 독서 기록
+                  오늘의 독서 기록
                 </h1>
 
                 {/* 관리 메뉴 (본인 글일 때만 노출) */}
@@ -175,11 +173,11 @@ export default function EntryDetailContent({
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                   <div className="flex items-center gap-2">
                     <p className="text-[0.75rem] sm:text-[0.875rem] text-ink-faint tabular-nums">
-                      📅 {new Date(entry.date).toLocaleDateString()}
+                      {new Date(entry.date).toLocaleDateString()}
                       {(entry.from_page != null || entry.to_page != null) && (
                         <>
                           {' '}
-                          <span className="mx-1">|</span> 📖{' '}
+                          <span className="mx-1">|</span>{' '}
                           {entry.from_page != null && entry.to_page != null
                             ? `${entry.from_page}~${entry.to_page}쪽`
                             : `${entry.to_page ?? entry.from_page}쪽`}
@@ -189,7 +187,9 @@ export default function EntryDetailContent({
                     {entry.is_private && (
                       <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-card-raised border border-hairline">
                         <Lock size={10} className="text-ink-faint" />
-                        <span className="text-[10px] font-medium text-ink-faint leading-none">비공개</span>
+                        <span className="text-[10px] font-medium text-ink-faint leading-none">
+                          비공개
+                        </span>
                       </div>
                     )}
                   </div>
