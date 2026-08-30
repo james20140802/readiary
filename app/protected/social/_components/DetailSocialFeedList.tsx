@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useInView } from 'react-intersection-observer';
 import { DetailSocialFeedEntry } from '@/types/entry';
 import { fetchDetailSocialFeedEntries } from '@/lib/queries/fetchSocialFeedEntries';
@@ -20,8 +20,6 @@ export default function DetailSocailFeedList({
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
 
-  const { ref, inView } = useInView();
-
   const loadMoreData = async () => {
     setLoading(true);
     const nextData = await fetchDetailSocialFeedEntries(page, FEED_PAGINATION_LIMIT);
@@ -35,12 +33,11 @@ export default function DetailSocailFeedList({
     setLoading(false);
   };
 
-  useEffect(() => {
-    if (inView && hasMore && !loading) {
-      // 다음 tick으로 미뤄 effect 본문에서 직접 setState를 호출하지 않도록 함
-      Promise.resolve().then(loadMoreData);
-    }
-  }, [inView]);
+  const { ref } = useInView({
+    onChange: (inView) => {
+      if (inView && hasMore && !loading) loadMoreData();
+    },
+  });
 
   return (
     <div className="flex flex-col gap-3">

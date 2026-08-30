@@ -107,7 +107,7 @@ export default function FriendRequestForm({ initialQuery }: Props) {
       <Modal isOpen={showConfirmModal} onClose={() => setShowConfirmModal(false)}>
         <div className="space-y-4">
           <h2 className="text-section-title font-semibold text-ink">친구 요청 보내기</h2>
-          <p className="text-body-text text-ink-sub">
+          <p className="text-body text-ink-sub">
             {foundUser?.profile.name ?? ''} ({foundUser?.profile.nickname}#{foundUser?.profile.tag})
             님에게 친구 요청을 보낼까요?
           </p>
