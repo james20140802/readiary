@@ -50,8 +50,12 @@ export default function OnboardingForm() {
           tag = generateRandomTag();
           tries++;
         } else if (res.status === 409 && result.code === 'profile_exists') {
-          toast.error(result.error || '이미 프로필이 존재합니다.');
+          toast.info(result.error || '이미 프로필이 존재합니다.');
           router.push('/protected/dashboard');
+          return;
+        } else if (res.status === 401) {
+          toast.error('세션이 만료되었습니다. 다시 로그인해주세요.');
+          router.push('/login');
           return;
         } else {
           toast.error(result.error || '프로필 등록 중 오류가 발생했습니다.');

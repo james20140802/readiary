@@ -25,7 +25,7 @@ export async function POST(req: Request) {
     const { name, nickname, tag, bio } = body;
 
     if (!name || !nickname || !tag) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+      return NextResponse.json({ error: '이름과 닉네임을 입력해주세요.' }, { status: 400 });
     }
 
     const { data, error: insertError } = await supabase
@@ -54,7 +54,7 @@ export async function POST(req: Request) {
           { status: 409 }
         );
       }
-      console.error('[ONBOARDING INSERT ERROR]', insertError);
+      console.error('[ONBOARDING INSERT ERROR]', { insertError, hasData: !!data });
       return NextResponse.json({ error: '프로필 등록에 실패했습니다.' }, { status: 500 });
     }
     return NextResponse.json({ success: true });

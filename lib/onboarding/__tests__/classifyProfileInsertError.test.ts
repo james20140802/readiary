@@ -20,13 +20,13 @@ describe('classifyProfileInsertError', () => {
     ).toBe('tag_conflict');
   });
 
-  it('알 수 없는 제약의 23505는 unknown', () => {
+  it('pkey가 아닌 23505는 tag_conflict (제약명 비의존)', () => {
     expect(
       classifyProfileInsertError({
         code: '23505',
         message: 'duplicate key value violates unique constraint "other_key"',
       })
-    ).toBe('unknown');
+    ).toBe('tag_conflict');
   });
 
   it('23505가 아닌 에러는 메시지에 duplicate key가 있어도 unknown', () => {

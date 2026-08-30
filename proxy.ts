@@ -104,5 +104,5 @@ export async function updateSession(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/', '/login', '/signup', '/onboarding', '/protected/:path*'],
+  matcher: ['/', '/login', '/signup', '/onboarding/:path*', '/protected/:path*'],
 };
