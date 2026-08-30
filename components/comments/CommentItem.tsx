@@ -1,6 +1,5 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { Trash2 } from 'lucide-react';
 import { Comment } from '@/types/comments';
 import { formatDistanceToNow } from 'date-fns';
@@ -23,13 +22,13 @@ export default function CommentItem({
   isReply,
   onReplyClick,
 }: CommentItemProps) {
-  const [timeAgo, setTimeAgo] = useState<string>('');
   const isMyComment = currentUserId === comment.user_id;
-
-  useEffect(() => {
-    // 브라우저 타임존 기준으로 상대 시간 계산
-    setTimeAgo(formatDistanceToNow(new Date(comment.created_at), { addSuffix: true, locale: ko }));
-  }, [comment.created_at]);
+  // 브라우저 타임존 기준 상대 시간. 서버/클라이언트 렌더 시각 차이로 문구가
+  // 달라질 수 있어 해당 텍스트만 하이드레이션 경고를 억제한다.
+  const timeAgo = formatDistanceToNow(new Date(comment.created_at), {
+    addSuffix: true,
+    locale: ko,
+  });
 
   return (
     <div
@@ -51,9 +50,7 @@ export default function CommentItem({
       <div className="flex-1 min-w-0 space-y-1">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-[13.5px] font-bold text-ink">
-              {comment.profile.name}
-            </span>
+            <span className="text-[13.5px] font-bold text-ink">{comment.profile.name}</span>
             {/* 닉네임과 태그 */}
             <span className="text-[12px] text-ink-faint font-medium">
               @{comment.profile.nickname}
@@ -61,7 +58,9 @@ export default function CommentItem({
                 <span className="text-[10px] opacity-70">#{comment.profile.tag}</span>
               )}
             </span>
-            <span className="text-[11px] text-ink-faint tabular-nums">{timeAgo || '...'}</span>
+            <span className="text-[11px] text-ink-faint tabular-nums" suppressHydrationWarning>
+              {timeAgo}
+            </span>
           </div>
 
           {/* 3. 삭제 버튼 (본인일 때만, 마우스 오버 시 노출) */}

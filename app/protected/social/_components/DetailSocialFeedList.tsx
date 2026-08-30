@@ -22,12 +22,6 @@ export default function DetailSocailFeedList({
 
   const { ref, inView } = useInView();
 
-  useEffect(() => {
-    if (inView && hasMore && !loading) {
-      loadMoreData();
-    }
-  }, [inView]);
-
   const loadMoreData = async () => {
     setLoading(true);
     const nextData = await fetchDetailSocialFeedEntries(page, FEED_PAGINATION_LIMIT);
@@ -41,6 +35,13 @@ export default function DetailSocailFeedList({
     setLoading(false);
   };
 
+  useEffect(() => {
+    if (inView && hasMore && !loading) {
+      // 다음 tick으로 미뤄 effect 본문에서 직접 setState를 호출하지 않도록 함
+      Promise.resolve().then(loadMoreData);
+    }
+  }, [inView]);
+
   return (
     <div className="flex flex-col gap-3">
       {feed.map((item) => (
@@ -52,7 +53,9 @@ export default function DetailSocailFeedList({
       {/* 바닥 감지 영역 */}
       {hasMore && (
         <div ref={ref} className="h-20 flex items-center justify-center">
-          {loading && <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-accent" />}
+          {loading && (
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-accent" />
+          )}
         </div>
       )}
     </div>
