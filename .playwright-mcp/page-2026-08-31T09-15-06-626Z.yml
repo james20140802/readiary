@@ -1,0 +1,51 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - link "Readiary" [ref=e3] [cursor=pointer]:
+      - /url: /
+  - main [ref=e8]:
+    - main [ref=e9]:
+      - navigation [ref=e10]:
+        - generic [ref=e11]: 홈
+        - generic [ref=e12]: 서재
+        - generic [ref=e13]: 소셜
+        - generic [ref=e15]: 프로필
+      - generic [ref=e16] [cursor=pointer]:
+        - generic [ref=e17]:
+          - paragraph [ref=e18]: 이번 주 문장 5개
+          - generic [ref=e19]: 이번 주 돌아보기
+        - generic [ref=e20]:
+          - generic [ref=e21]: 월
+          - generic [ref=e24]: 화
+          - generic [ref=e27]: 수
+          - generic [ref=e30]: 목
+          - generic [ref=e33]: 금
+          - generic [ref=e36]: 토
+          - generic [ref=e39]: 일
+      - generic [ref=e42] [cursor=pointer]:
+        - generic [ref=e43]:
+          - paragraph [ref=e44]: 데미안
+          - generic [ref=e45]: 62%
+        - paragraph [ref=e46]: 헤르만 헤세
+      - generic [ref=e49] [cursor=pointer]:
+        - generic [ref=e50]: 1년 전 오늘
+        - blockquote [ref=e51]: 새는 알에서 나오려고 투쟁한다. 알은 세계이다. 태어나려는 자는 하나의 세계를 깨뜨려야 한다.
+        - paragraph [ref=e52]: 데미안 · 헤르만 헤세
+      - generic [ref=e53]:
+        - paragraph [ref=e54]: 완독 · 발췌집
+        - paragraph [ref=e55]: 데미안
+        - paragraph [ref=e56]: 2026. 6. 12 – 8. 30 · 문장 14개
+      - generic [ref=e57]:
+        - generic [ref=e59]:
+          - button "기록" [ref=e60] [cursor=pointer]
+          - button "발췌" [ref=e61] [cursor=pointer]
+        - generic [ref=e62]:
+          - button "데미안" [ref=e63] [cursor=pointer]
+          - button "수레바퀴 아래서" [ref=e65] [cursor=pointer]
+        - paragraph [ref=e66]: 댓글 3
+      - generic [ref=e67]:
+        - button "문장 남기기" [ref=e68] [cursor=pointer]
+        - button "모두 보기" [ref=e69] [cursor=pointer]
+        - generic [ref=e70]: 발췌집 보기 →
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e76] [cursor=pointer]
+  - alert [ref=e80]
