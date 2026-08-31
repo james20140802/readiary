@@ -77,7 +77,9 @@ export default function ExcerptBooklet({
             {readingPeriod && (
               <p className="mt-1 text-[12px] tabular-nums text-ink-faint">{readingPeriod}</p>
             )}
-            <p className="mt-8 font-sans text-seal uppercase text-ink-faint">READIARY</p>
+            <p className="mt-8 whitespace-nowrap font-sans text-seal uppercase text-ink-faint">
+              READIARY
+            </p>
           </footer>
         </>
       ) : (

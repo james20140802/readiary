@@ -94,13 +94,14 @@ export default function ExportExcerptsButton(props: ExcerptBookletProps) {
     );
 
   const handleSave = () => {
-    images.forEach((url, i) => {
+    toFiles().forEach((file, i) => {
+      const blobUrl = URL.createObjectURL(file);
       setTimeout(() => {
         const anchor = document.createElement('a');
-        anchor.href = url;
-        anchor.download =
-          images.length === 1 ? 'readiary-excerpts.png' : `readiary-excerpt-${i + 1}.png`;
+        anchor.href = blobUrl;
+        anchor.download = file.name;
         anchor.click();
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 10_000);
       }, i * 300);
     });
     toast.success(
@@ -109,6 +110,10 @@ export default function ExportExcerptsButton(props: ExcerptBookletProps) {
         : `이미지 ${images.length}장을 저장했습니다.`
     );
   };
+
+  // http dev 서버 같은 비보안 컨텍스트에는 navigator.share가 아예 없다
+  const canUseShareSheet =
+    typeof navigator !== 'undefined' && typeof navigator.share === 'function';
 
   const handleShare = async () => {
     const files = toFiles();
@@ -197,6 +202,12 @@ export default function ExportExcerptsButton(props: ExcerptBookletProps) {
                     ? '이미지가 준비됐습니다'
                     : `카드 ${images.length}장이 준비됐습니다`}
                 </p>
+                {!canUseShareSheet && (
+                  <p className="mt-1 text-[12px] leading-relaxed text-ink-faint">
+                    이 환경에서는 공유 시트를 열 수 없어요. 아이패드·아이폰에서는 이미지를 길게 눌러
+                    &lsquo;사진에 저장&rsquo;을 선택하세요.
+                  </p>
+                )}
                 <div className="mt-3 min-h-0 flex-1 space-y-3 overflow-y-auto">
                   {images.map((src, i) => (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -215,15 +226,23 @@ export default function ExportExcerptsButton(props: ExcerptBookletProps) {
                   >
                     닫기
                   </button>
-                  <button
-                    onClick={handleSave}
-                    className="text-[12.5px] text-ink-sub transition-colors hover:text-ink"
-                  >
-                    저장
-                  </button>
-                  <Button size="sm" variant="primary" onClick={handleShare}>
-                    공유하기
-                  </Button>
+                  {canUseShareSheet ? (
+                    <>
+                      <button
+                        onClick={handleSave}
+                        className="text-[12.5px] text-ink-sub transition-colors hover:text-ink"
+                      >
+                        저장
+                      </button>
+                      <Button size="sm" variant="primary" onClick={handleShare}>
+                        공유하기
+                      </Button>
+                    </>
+                  ) : (
+                    <Button size="sm" variant="primary" onClick={handleSave}>
+                      저장
+                    </Button>
+                  )}
                 </div>
               </>
             )}
@@ -289,7 +308,9 @@ export default function ExportExcerptsButton(props: ExcerptBookletProps) {
                   <p className="truncate font-serif text-[12.5px] text-ink-sub">
                     『{bookTitle}』{author ? ` — ${author}` : ''}
                   </p>
-                  <p className="mt-2 font-sans text-seal uppercase text-ink-faint">READIARY</p>
+                  <p className="mt-2 whitespace-nowrap font-sans text-seal uppercase text-ink-faint">
+                    READIARY
+                  </p>
                 </div>
               </div>
             </div>
@@ -312,7 +333,9 @@ export default function ExportExcerptsButton(props: ExcerptBookletProps) {
               {readingPeriod && (
                 <p className="mt-1.5 text-[12px] tabular-nums text-ink-faint">{readingPeriod}</p>
               )}
-              <p className="mt-10 font-sans text-seal uppercase text-ink-faint">READIARY</p>
+              <p className="mt-10 whitespace-nowrap font-sans text-seal uppercase text-ink-faint">
+                READIARY
+              </p>
             </div>
           </div>
         </div>
