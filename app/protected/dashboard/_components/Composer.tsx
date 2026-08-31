@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { Lock, Plus } from 'lucide-react';
+import { LibraryBig, Lock } from 'lucide-react';
 import { MyBook } from '@/types/book';
 import { todayKST } from '@/lib/dates';
 import Card from '@/components/ui/Card';
@@ -240,48 +240,54 @@ export default function Composer({ books, recentUserBookId, userId }: ComposerPr
         className="block w-full resize-none bg-transparent font-serif text-[17px] leading-relaxed text-ink placeholder:text-ink-faint focus:outline-none"
       />
 
-      <div className="mt-3.5 flex flex-wrap items-center gap-x-2 gap-y-2.5 border-t border-hairline pt-3.5">
-        <div className="flex flex-wrap items-center gap-2">
-          {chipBooks.map((b, i) => (
-            <Chip
-              key={b.id}
-              selected={b.id === selectedId}
-              dot={b.id === selectedId}
-              onClick={() => setSelectedId(b.id)}
-              // 좁은 폭에선 2권까지만 — 단 선택된 칩은 순서와 무관하게 항상 남긴다
-              className={i >= 2 && b.id !== selectedId ? 'hidden sm:inline-flex' : undefined}
-            >
-              <span className="max-w-[8rem] truncate">{b.books.title}</span>
+      {/* 그룹 사이 세로줄은 컨트롤 그룹의 before 가상요소로 왼쪽 여백(17px = 8+1+8)에 그린다.
+          컨트롤 그룹이 둘째 줄로 내려가면 래퍼의 음수 마진 + overflow-x-clip이 세로줄을
+          잘라내므로, 한 줄일 때만 구분선이 보인다. */}
+      <div className="mt-3.5 overflow-x-clip border-t border-hairline pt-3.5">
+        <div className="-ml-[17px] flex flex-wrap items-center gap-y-2.5">
+          <div className="ml-[17px] flex flex-wrap items-center gap-2">
+            {chipBooks.map((b, i) => (
+              <Chip
+                key={b.id}
+                selected={b.id === selectedId}
+                dot={b.id === selectedId}
+                onClick={() => setSelectedId(b.id)}
+                // 좁은 폭에선 2권까지만 — 단 선택된 칩은 순서와 무관하게 항상 남긴다
+                className={i >= 2 && b.id !== selectedId ? 'hidden sm:inline-flex' : undefined}
+              >
+                <span className="max-w-[8rem] truncate">{b.books.title}</span>
+              </Chip>
+            ))}
+            {/* 칩은 진행 중인 책 일부만 보여주므로, 전체 목록(내 책)으로 가는 문을 둔다 */}
+            <Chip onClick={() => router.push('/protected/books')} aria-label="내 책 전체 보기">
+              <LibraryBig size={12} strokeWidth={1.75} aria-hidden />내 책
             </Chip>
-          ))}
-          <Chip onClick={() => router.push('/protected/books/new')} aria-label="새 책 등록">
-            <Plus size={12} strokeWidth={1.75} aria-hidden />새 책
-          </Chip>
-        </div>
-        <div className="flex flex-1 items-center gap-2">
-          <Chip selected={mode === 'quote'} onClick={() => setMode('quote')}>
-            문장
-          </Chip>
-          <Chip selected={mode === 'note'} onClick={() => setMode('note')}>
-            생각
-          </Chip>
-          <span aria-hidden className="h-4 w-px shrink-0 bg-hairline" />
-          <Chip
-            selected={isPrivate}
-            aria-pressed={isPrivate}
-            onClick={() => setIsPrivate((v) => !v)}
-          >
-            <Lock size={12} strokeWidth={1.75} aria-hidden />
-            비공개
-          </Chip>
-          <Button
-            size="sm"
-            className="ml-auto"
-            onClick={handleSave}
-            disabled={isSubmitting || text.trim() === ''}
-          >
-            {isSubmitting ? '남기는 중...' : '남기기'}
-          </Button>
+          </div>
+          <div className="relative ml-[17px] flex flex-1 items-center gap-2 before:absolute before:-left-[9px] before:top-1/2 before:h-4 before:w-px before:-translate-y-1/2 before:bg-hairline">
+            <Chip selected={mode === 'quote'} onClick={() => setMode('quote')}>
+              문장
+            </Chip>
+            <Chip selected={mode === 'note'} onClick={() => setMode('note')}>
+              생각
+            </Chip>
+            <span aria-hidden className="h-4 w-px shrink-0 bg-hairline" />
+            <Chip
+              selected={isPrivate}
+              aria-pressed={isPrivate}
+              onClick={() => setIsPrivate((v) => !v)}
+            >
+              <Lock size={12} strokeWidth={1.75} aria-hidden />
+              비공개
+            </Chip>
+            <Button
+              size="sm"
+              className="ml-auto"
+              onClick={handleSave}
+              disabled={isSubmitting || text.trim() === ''}
+            >
+              {isSubmitting ? '남기는 중...' : '남기기'}
+            </Button>
+          </div>
         </div>
       </div>
     </Card>
