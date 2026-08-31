@@ -171,12 +171,22 @@ export default function EntryCard({
                 <span className="text-[11.5px] tabular-nums">{commentCount}</span>
               </button>
             </div>
-            <Link
-              href={targetHref}
-              className="text-[11.5px] text-ink-faint transition-colors hover:text-accent"
-            >
-              상세 →
-            </Link>
+            {/* 내 기록은 수정 직행, 친구 기록은 상세로 — 상세(공유·삭제)는 날짜 링크로도 열린다 */}
+            {href ? (
+              <Link
+                href={targetHref}
+                className="text-[11.5px] text-ink-faint transition-colors hover:text-accent"
+              >
+                상세 →
+              </Link>
+            ) : (
+              <Link
+                href={`/protected/entry/${id}/edit`}
+                className="text-[11.5px] text-ink-faint transition-colors hover:text-accent"
+              >
+                수정 →
+              </Link>
+            )}
           </div>
         </div>
 
