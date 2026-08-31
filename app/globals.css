@@ -18,16 +18,10 @@
   --ink-invert: 253 251 247; /* 먹 배경 위 글자 */
   --hairline: 227 220 208; /* #E3DCD0 */
   --hairline-strong: 207 197 180; /* #CFC5B4 */
-  --accent: 45 95 184; /* #2D5FB8 파란 잉크 (기본 후보) */
+  --accent: 45 95 184; /* #2D5FB8 파란 잉크 — 브랜드 대표색 (2026-08-31 확정, 주홍 후보 폐기) */
   --accent-hover: 36 80 158;
   --danger: 166 61 47; /* #A63D2F 가라앉힌 적갈 */
   --success: 74 124 89; /* #4A7C59 가라앉힌 초록 */
-}
-
-/* 강조색 후보 B: 주홍 — 실화면 비교용. 확정 전까지 유지(스펙 §2-6) */
-:root[data-accent='vermilion'] {
-  --accent: 193 68 30; /* #C1441E */
-  --accent-hover: 168 58 25;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -45,10 +39,6 @@
     --accent-hover: 159 188 240;
     --danger: 201 106 87;
     --success: 127 174 143;
-  }
-  :root[data-accent='vermilion'] {
-    --accent: 224 118 79;
-    --accent-hover: 232 139 105;
   }
   html {
     color-scheme: dark;

@@ -26,7 +26,7 @@ export default function Card({
       aria-disabled={disabled}
       tabIndex={disabled ? -1 : 0}
       className={clsx(
-        'rounded-md p-5',
+        'rounded-md p-6',
         variant === 'default' && 'bg-card border border-hairline',
         variant === 'raised' && 'bg-card border border-hairline-strong',
         variant === 'flat' && 'bg-card-raised border border-hairline',

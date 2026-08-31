@@ -41,8 +41,9 @@ module.exports = {
       fontSize: {
         'page-title': ['1.5rem', { lineHeight: '2rem', fontWeight: '700' }],
         'section-title': ['1.125rem', { lineHeight: '1.75rem', fontWeight: '600' }],
-        body: ['0.9375rem', { lineHeight: '1.6rem', fontWeight: '400' }],
+        body: ['0.9375rem', { lineHeight: '1.7', fontWeight: '400' }],
         'body-sm': ['0.875rem', { lineHeight: '1.5rem', fontWeight: '400' }],
+        note: ['0.84375rem', { lineHeight: '1.8', fontWeight: '400' }],
         button: ['0.875rem', { lineHeight: '1.25rem', fontWeight: '500' }],
         caption: ['0.75rem', { lineHeight: '1.25rem', fontWeight: '400' }],
         overline: ['0.6875rem', { lineHeight: '1rem', fontWeight: '700', letterSpacing: '0.05em' }],
