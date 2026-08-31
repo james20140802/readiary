@@ -2,7 +2,6 @@
 
 import { useRouter } from 'next/navigation';
 import { createSupabaseClient } from '@/lib/supabase/client';
-import Button from '@/components/ui/Button';
 
 interface MarkAsFinishedButtonProps {
   userBookId: string;
@@ -29,8 +28,11 @@ export default function MarkAsFinishedButton({ userBookId, onFinish }: MarkAsFin
   };
 
   return (
-    <Button onClick={handleMarkAsFinished} size="sm" variant="primary" className="mt-2">
-      다 읽었어요
-    </Button>
+    <button
+      onClick={handleMarkAsFinished}
+      className="font-serif text-[12.5px] text-accent transition-colors hover:underline"
+    >
+      다 읽었어요 →
+    </button>
   );
 }
