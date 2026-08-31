@@ -9,7 +9,11 @@ import { QuoteBoard, type StickyNote } from './_components/QuoteBoard';
 import { ExLibrisPanel } from './_components/ExLibrisPanel';
 import GreetingHeader from './_components/GreetingHeader';
 import { fetchDashboardData } from '@/lib/dashboard/fetchDashboardData';
-import { fetchRecentEntries, latestTextByUserBook } from '@/lib/dashboard/fetchRecentEntries';
+import {
+  fetchRecentEntries,
+  fetchLatestTextsForUserBooks,
+  latestTextByUserBook,
+} from '@/lib/dashboard/fetchRecentEntries';
 import { fetchRecallEntry } from '@/lib/recall/fetchRecallEntry';
 import { fetchMonthlyRecap } from '@/lib/retrospect/fetchMonthlyRecap';
 import { fetchDetailSocialFeedEntries } from '@/lib/queries/fetchSocialFeedEntries';
@@ -32,15 +36,18 @@ export default async function DashboardPage() {
       fetchMonthlyRecap(),
       supabase.from('profiles').select('name').eq('id', user?.id).single(),
       fetchRecentEntries(50),
-      fetchDetailSocialFeedEntries(0, 2),
+      fetchDetailSocialFeedEntries(0, 6),
       getUserStats(user.id),
     ]);
   if (!data) return notFound();
 
   const { books, weekActivity, recentUserBookId, todayKst, weeklyCount } = data;
 
-  // 책 더미: 책마다 마지막으로 남긴 문장 한 줄
+  // 책 더미: 책마다 마지막으로 남긴 문장 한 줄.
+  // 최근 목록 창에 안 잡힌 책(기록이 다른 책에 몰린 경우)은 책별로 최신 1건을 보충한다.
   const latestTexts = latestTextByUserBook(recentEntries);
+  const missingIds = (books ?? []).map((b) => b.id).filter((id) => latestTexts[id] == null);
+  Object.assign(latestTexts, await fetchLatestTextsForUserBooks(missingIds));
 
   // 문장 보드: 내 최신 기록 몇 개 + 친구의 공개 문장을 시간순으로 섞는다
   const myNotes: Omit<StickyNote, 'narrowHidden'>[] = recentEntries.slice(0, 6).map((e) => ({

@@ -67,3 +67,34 @@ export function latestTextByUserBook(entries: RecentEntry[]): Record<string, str
   }
   return map;
 }
+
+/**
+ * 최근 목록 창(fetchRecentEntries의 limit) 밖으로 밀려난 책의 마지막 문장을 보충한다.
+ * 기록이 특정 책에 몰려 있으면 다른 진행 중인 책이 창에 안 잡히므로, 그 책들만 책별로 최신 1건을 조회.
+ */
+export async function fetchLatestTextsForUserBooks(
+  userBookIds: string[]
+): Promise<Record<string, string>> {
+  if (userBookIds.length === 0) return {};
+  const supabase = await createSupabaseServerClient();
+
+  const results = await Promise.all(
+    userBookIds.map(async (id) => {
+      const { data } = await supabase
+        .from('entries')
+        .select('quote, note')
+        .eq('user_book_id', id)
+        .or('quote.not.is.null,note.not.is.null')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return [id, data?.quote ?? data?.note ?? null] as const;
+    })
+  );
+
+  const map: Record<string, string> = {};
+  for (const [id, text] of results) {
+    if (text != null) map[id] = text;
+  }
+  return map;
+}
