@@ -9,7 +9,7 @@ export function MonthlyRecapCard({ recap }: { recap: MonthlyRecap }) {
       : `${recap.label}, 기록 ${recap.entryCount}개를 남겼어요`;
 
   return (
-    <Card hoverable={false} className="mb-4">
+    <Card hoverable={false}>
       <div className="mb-3">
         <Seal>지난달의 기록</Seal>
       </div>

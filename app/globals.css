@@ -49,6 +49,9 @@ body {
   font-family: 'Pretendard', var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   background-color: rgb(var(--paper));
   color: rgb(var(--ink));
+  /* 한국어 조판: 어절 단위로만 줄바꿈 — 한 어절이 한 줄보다 길 때만 예외적으로 끊는다 */
+  word-break: keep-all;
+  overflow-wrap: break-word;
   overflow-y: scroll;
   -ms-overflow-style: none;
   -webkit-font-smoothing: antialiased;
