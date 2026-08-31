@@ -8,9 +8,6 @@ import Image from 'next/image';
 import MarkAsFinishedButton from './MarkAsFinishedButton';
 import UnfinishBookButton from './UnfinishBookButton';
 import { Profile } from '@/types/profile';
-import AnimatedListSection from '../ui/AnimatedListSecion';
-import { BookOpen, CheckCircle2, Plus, ChevronDown } from 'lucide-react';
-import Card from '@/components/ui/Card';
 import Button from '../ui/Button';
 import Link from 'next/link';
 
@@ -31,13 +28,7 @@ export default function BookDetailContent({
 }: Props) {
   const [isFinished, setIsFinished] = useState(userBook.is_finished);
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
-  const [sortOpen, setSortOpen] = useState(false);
   const [filterOption, setFilterOption] = useState<'all' | 'public' | 'private'>('all');
-
-  const SORT_OPTIONS: { value: 'desc' | 'asc'; label: string }[] = [
-    { value: 'desc', label: '최신순' },
-    { value: 'asc', label: '오래된순' },
-  ];
 
   const FILTER_OPTIONS: { value: 'all' | 'public' | 'private'; label: string }[] = [
     { value: 'all', label: '전체' },
@@ -45,7 +36,7 @@ export default function BookDetailContent({
     { value: 'private', label: '비공개' },
   ];
 
-  const { books, progress, last_read_page, book_id, id } = userBook;
+  const { books, last_read_page, book_id, id } = userBook;
   const { title, author, total_pages, cover_url } = books;
 
   const sortedEntries = useMemo(() => {
@@ -72,240 +63,153 @@ export default function BookDetailContent({
     });
   }, [entries, filterOption, sortOrder]);
 
+  // 읽기 기간 — 첫 기록과 마지막 기록의 날짜. 발췌집 표지의 통계와 같은 문법.
+  const entryDates = (entries ?? []).map((e) => e.entry.date.slice(0, 10)).sort();
+  const readingPeriod = (() => {
+    if (entryDates.length === 0) return null;
+    const [fy, fm, fd] = entryDates[0].split('-').map(Number);
+    const [ly, lm, ld] = entryDates[entryDates.length - 1].split('-').map(Number);
+    if (!fy || !fm || !fd || !ly || !lm || !ld) return null;
+    const from = `${fy}. ${fm}. ${fd}.`;
+    if (entryDates[0] === entryDates[entryDates.length - 1]) return from;
+    const to = fy === ly ? `${lm}. ${ld}.` : `${ly}. ${lm}. ${ld}.`;
+    return `${from} — ${to}`;
+  })();
+
+  // 진행 상황은 막대 대신 잉크로 쓴 분수 하나
+  const progressLine =
+    total_pages != null
+      ? `${last_read_page ?? 0} / ${total_pages}`
+      : last_read_page != null
+        ? `${last_read_page}쪽`
+        : '읽는 중';
+
   return (
     <div className="space-y-8">
-      <section className="flex flex-col sm:flex-row sm:items-start sm:gap-6 w-full">
-        <div className="flex flex-col sm:flex-row sm:items-stretch sm:gap-10 w-full">
-          <div className="flex-shrink-0 self-center sm:self-start">
-            <div className="relative group">
-              <Image
-                src={cover_url ?? '/images/default-book-cover.png'}
-                alt="Book cover"
-                width={128}
-                height={192}
-                className="rounded object-cover w-32 sm:w-24"
-              />
-            </div>
-          </div>
-
-          <div className="w-full flex flex-col mt-8 sm:mt-0 justify-between">
-            <div>
-              <h1 className="text-3xl sm:text-4xl font-bold text-ink leading-tight tracking-tight">
-                {title}
-              </h1>
-              <p className="text-ink-faint mt-2 text-lg">{author}</p>
-            </div>
-
-            <div className="mt-8 space-y-6">
-              <div className="space-y-3">
-                {total_pages != null ? (
-                  <>
-                    <div className="w-full bg-hairline rounded-full h-2 overflow-hidden">
-                      <div
-                        className="bg-accent h-full rounded-full transition-all duration-1000 ease-out"
-                        style={{ width: `${progress ?? 0}%` }}
-                      />
-                    </div>
-                    <div className="flex justify-between items-center text-[11px] font-bold tracking-widest text-ink-faint uppercase">
-                      <span>
-                        {last_read_page ?? 0} / {total_pages} PAGES
-                      </span>
-                      <span className="text-accent">{progress ?? 0}% COMPLETED</span>
-                    </div>
-                  </>
-                ) : (
-                  <span className="text-caption text-ink-sub">
-                    {last_read_page != null ? `${last_read_page}쪽까지 읽음` : '페이지 정보 없음'}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
+      {/* 속표지 — 표지와 서지 정보 */}
+      <section className="flex items-start gap-5 sm:gap-8">
+        <Image
+          src={cover_url ?? '/images/default-book-cover.png'}
+          alt={`${title} 표지`}
+          width={128}
+          height={192}
+          className="w-20 shrink-0 rounded object-cover shadow-sm sm:w-24"
+        />
+        <div className="min-w-0 pt-1">
+          <h1 className="font-serif text-[24px] font-bold leading-snug text-ink sm:text-3xl">
+            {title}
+          </h1>
+          <p className="mt-2 font-serif text-[14px] text-ink-sub">{author}</p>
+          <p className="mt-5 text-[12.5px] tabular-nums text-ink-faint">
+            {progressLine}
+            {!isFriend && !isFinished && (
+              <>
+                <span className="mx-2 text-hairline-strong">·</span>
+                <MarkAsFinishedButton onFinish={() => setIsFinished(true)} userBookId={id} />
+              </>
+            )}
+          </p>
+          {readingPeriod && (
+            <p className="mt-1 text-[12px] tabular-nums text-ink-faint">{readingPeriod}</p>
+          )}
         </div>
       </section>
 
-      <div className="pt-2">
-        {!isFriend &&
-          (!isFinished ? (
-            <Card className="flex flex-row items-center gap-4 group/action">
-              <div className="p-2 bg-card-raised rounded-xl text-ink-faint group-hover/action:text-accent transition-colors">
-                <BookOpen size={20} />
-              </div>
-              <div className="flex-1 text-left">
-                <p className="text-xs text-ink-faint font-medium leading-relaxed">
-                  {progress && progress >= 90
-                    ? '이제 마침표를 찍을 시간입니다.'
-                    : progress && progress > 60
-                      ? '완독이 눈앞에 보입니다.'
-                      : progress && progress > 40
-                        ? '어느덧 절반 정도 읽으셨어요.'
-                        : progress && progress > 10
-                          ? '조금씩 몰입하고 계시네요.'
-                          : '새로운 탐험의 시작입니다.'}
-                </p>
-              </div>
-              <MarkAsFinishedButton onFinish={() => setIsFinished(true)} userBookId={id} />
-            </Card>
-          ) : (
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 bg-success-soft rounded-2xl border border-success/30 text-success animate-in fade-in slide-in-from-top-2 duration-500">
-              <div className="flex flex-1 items-center gap-3">
-                <CheckCircle2 size={24} />
-                <div className="flex-1">
-                  <p className="text-sm font-bold">완독한 도서입니다</p>
-                  <p className="text-[11px] text-success/70 font-medium">
-                    축하합니다! 서재에 소중한 기록이 남았습니다.
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center justify-end gap-3">
-                <Link href={`/protected/books/${book_id}/excerpts`}>
-                  <Button size="sm" variant="secondary">
-                    발췌집 보기
-                  </Button>
-                </Link>
-                <UnfinishBookButton userBookId={id} onUnfinish={() => setIsFinished(false)} />
-              </div>
-            </div>
-          ))}
-      </div>
-
-      <section className="space-y-4">
-        {/* 전체 컨테이너: 데스크탑에서는 한 줄, 모바일에서는 여러 줄로 래핑 */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-          {/* 모바일 1줄: 타이틀 & 기록 추가 버튼 */}
-          <div className="flex items-center justify-between gap-4 w-full sm:w-auto">
-            <h2 className="text-section-title text-ink">독서 기록</h2>
-            {!isFriend && (
-              <span className="sm:hidden">
-                <Link href={`/protected/books/${book_id}/entry/new`}>
-                  <Button
-                    size="sm"
-                    variant="primary"
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs"
-                  >
-                    <Plus size={14} />
-                    기록 추가
-                  </Button>
-                </Link>
-              </span>
-            )}
-          </div>
-
-          {/* 데스크탑에서 필터와 추가 버튼을 하나로 묶음, 모바일에서는 아래로 */}
-          <div className="flex flex-row items-center justify-between sm:justify-end gap-2 sm:gap-4 w-full sm:w-auto pb-1 sm:pb-0">
-            {entries && entries.length > 0 && (
-              <div className="flex items-center justify-between w-full sm:w-auto gap-2">
-                <div className="flex items-center gap-2">
-                  {/* 공개 여부 필터 탭 */}
-                  {!isFriend && (
-                    <>
-                      <div className="flex items-center bg-card-raised p-1 rounded-lg border border-hairline shrink-0">
-                        {FILTER_OPTIONS.map((opt) => (
-                          <button
-                            key={opt.value}
-                            onClick={() => setFilterOption(opt.value)}
-                            className={`px-2.5 py-1 rounded-md text-caption font-semibold transition-all whitespace-nowrap ${
-                              filterOption === opt.value
-                                ? 'bg-card text-ink'
-                                : 'text-ink-faint hover:text-ink-sub'
-                            }`}
-                          >
-                            {opt.label}
-                          </button>
-                        ))}
-                      </div>
-
-                      {/* 구분을 위한 희미한 선 */}
-                      <div className="w-px h-4 bg-hairline hidden sm:block" />
-                    </>
-                  )}
-                </div>
-
-                {/* 정렬 옵션 드롭다운 (모바일에서는 오른쪽 끝으로 밀림) */}
-                <div className="relative shrink-0">
-                  <button
-                    onClick={() => setSortOpen((v) => !v)}
-                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-hairline bg-card text-caption font-medium text-ink-sub hover:border-hairline-strong transition-all"
-                  >
-                    <span className="inline">
-                      {SORT_OPTIONS.find((o) => o.value === sortOrder)?.label}
-                    </span>
-                    <ChevronDown
-                      size={13}
-                      className={`transition-transform ${sortOpen ? 'rotate-180' : ''}`}
-                    />
-                  </button>
-                  {sortOpen && (
-                    <>
-                      <div className="fixed inset-0 z-10" onClick={() => setSortOpen(false)} />
-                      <div className="absolute right-0 sm:left-0 top-full mt-1 z-20 bg-card border border-hairline rounded-xl overflow-hidden min-w-[100px]">
-                        {SORT_OPTIONS.map((opt) => (
-                          <button
-                            key={opt.value}
-                            onClick={() => {
-                              setSortOrder(opt.value);
-                              setSortOpen(false);
-                            }}
-                            className={`w-full text-left px-3 py-2 text-caption transition-colors ${
-                              sortOrder === opt.value
-                                ? 'text-accent font-semibold bg-accent-soft'
-                                : 'text-ink-sub hover:bg-card-raised'
-                            }`}
-                          >
-                            {opt.label}
-                          </button>
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* 데스크탑용 기록 추가 버튼 */}
-            {!isFriend && (
-              <span className="hidden sm:inline">
-                <Link href={`/protected/books/${book_id}/entry/new`}>
-                  <Button
-                    size="sm"
-                    variant="primary"
-                    className="flex items-center gap-1.5 shrink-0"
-                  >
-                    <Plus size={16} />
-                    기록 추가하기
-                  </Button>
-                </Link>
-              </span>
-            )}
+      {/* 완독한 책은 hairline 사이에 한 줄로 */}
+      {!isFriend && isFinished && (
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-y border-hairline py-3">
+          <p className="font-serif text-[13.5px] text-ink">
+            <span className="font-bold text-accent">완독</span>한 책입니다
+          </p>
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/protected/books/${book_id}/excerpts`}
+              className="font-serif text-[12.5px] text-accent hover:underline"
+            >
+              발췌집 보기 →
+            </Link>
+            <UnfinishBookButton userBookId={id} onUnfinish={() => setIsFinished(false)} />
           </div>
         </div>
+      )}
+
+      {/* 이 책에 남긴 문장들 */}
+      <section>
+        <div className="flex items-center justify-between gap-4">
+          <h2 className="font-serif text-[19px] font-bold text-ink">
+            독서 기록
+            {entries && entries.length > 0 && (
+              <span className="ml-2 text-[13px] font-normal tabular-nums text-ink-faint">
+                {entries.length}
+              </span>
+            )}
+          </h2>
+          {!isFriend && (
+            <Button asChild size="sm" variant="primary">
+              <Link href={`/protected/books/${book_id}/entry/new`}>기록 남기기</Link>
+            </Button>
+          )}
+        </div>
+
+        {entries && entries.length > 1 && (
+          <div className="mt-3 flex items-center justify-between text-[13.5px]">
+            {!isFriend ? (
+              <div className="flex items-center gap-3">
+                {FILTER_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setFilterOption(opt.value)}
+                    className={`transition-colors ${
+                      filterOption === opt.value
+                        ? 'text-ink underline decoration-accent underline-offset-4'
+                        : 'text-ink-faint hover:text-ink-sub'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <span />
+            )}
+            <button
+              onClick={() => setSortOrder((v) => (v === 'desc' ? 'asc' : 'desc'))}
+              className="text-ink-faint transition-colors hover:text-ink-sub"
+            >
+              {sortOrder === 'desc' ? '최신순' : '오래된순'} ↕
+            </button>
+          </div>
+        )}
 
         {sortedEntries && sortedEntries.length > 0 ? (
-          <AnimatedListSection>
+          <div className="mt-1 divide-y divide-hairline">
             {sortedEntries.map((data) => (
-              <li key={data.entry.id}>
-                <EntryCard
-                  id={data.entry.id}
-                  note={[data.entry.quote ? `“${data.entry.quote}”` : null, data.entry.note]
-                    .filter(Boolean)
-                    .join('\n\n')}
-                  date={data.entry.date}
-                  isPrivate={data.entry.is_private}
-                  userId={userId}
-                  href={
-                    isFriend && friendProfile
-                      ? `/protected/social/u/${friendProfile.nickname + '-' + friendProfile.tag}/entry/${data.entry.id}`
-                      : undefined
-                  }
-                  initialCommentCount={data.initialCommentCount}
-                  initialLikeCount={data.initialLikeCount}
-                  initialLiked={data.initialLiked}
-                />
-              </li>
+              <EntryCard
+                key={data.entry.id}
+                variant="flow"
+                id={data.entry.id}
+                quote={data.entry.quote}
+                note={data.entry.note}
+                date={data.entry.date}
+                fromPage={data.entry.from_page}
+                toPage={data.entry.to_page}
+                isPrivate={data.entry.is_private}
+                userId={userId}
+                href={
+                  isFriend && friendProfile
+                    ? `/protected/social/u/${friendProfile.nickname + '-' + friendProfile.tag}/entry/${data.entry.id}`
+                    : undefined
+                }
+                initialCommentCount={data.initialCommentCount}
+                initialLikeCount={data.initialLikeCount}
+                initialLiked={data.initialLiked}
+              />
             ))}
-          </AnimatedListSection>
+          </div>
         ) : (
-          <p className="text-sm text-ink-faint">아직 작성된 기록이 없습니다.</p>
+          <p className="mt-6 font-serif text-[13.5px] text-ink-faint">
+            아직 이 책에 남긴 문장이 없습니다.
+          </p>
         )}
       </section>
     </div>
