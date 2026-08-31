@@ -66,11 +66,20 @@ export default function EntryCard({
   const targetHref = href ?? `/protected/entry/${id}`;
   const pages = formatPages(fromPage, toPage);
 
-  // 접힌 높이보다 실제 내용이 길 때만 '계속 읽기'를 보여준다
+  // 접힌 높이(17em)보다 실제 내용이 길 때만 '계속 읽기'를 보여준다.
+  // clientHeight 대신 17em을 기준으로 재는 이유: 펼친 상태에서 리사이즈가 와도
+  // '접기' 버튼이 사라지지 않아야 하므로. 회전·리사이즈·폰트 지연 로드에도 재측정.
   useLayoutEffect(() => {
     const el = bodyRef.current;
     if (!el) return;
-    setIsClamped(el.scrollHeight > el.clientHeight + 1);
+    const measure = () => {
+      const collapsedMax = parseFloat(getComputedStyle(el).fontSize) * 17;
+      setIsClamped(el.scrollHeight > collapsedMax + 1);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
   }, [quote, note]);
 
   const handleLikeToggle = async () => {
