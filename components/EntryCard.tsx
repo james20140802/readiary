@@ -152,23 +152,31 @@ export default function EntryCard({
             </button>
           )}
 
-          <div className="mt-3 flex items-center gap-4">
-            <button
-              onClick={handleLikeToggle}
-              className={`flex items-center gap-1 transition-colors active:scale-90 ${
-                isLiked ? 'text-rose-500' : 'text-ink-faint hover:text-rose-500'
-              } ${isLikeLoading ? 'cursor-progress' : ''}`}
+          <div className="mt-3 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={handleLikeToggle}
+                className={`flex items-center gap-1 transition-colors active:scale-90 ${
+                  isLiked ? 'text-rose-500' : 'text-ink-faint hover:text-rose-500'
+                } ${isLikeLoading ? 'cursor-progress' : ''}`}
+              >
+                <Heart size={12} fill={isLiked ? 'currentColor' : 'none'} strokeWidth={2} />
+                <span className="text-[11.5px] tabular-nums">{likeCount}</span>
+              </button>
+              <button
+                onClick={() => setIsCommentOpen(true)}
+                className="flex items-center gap-1 text-ink-faint transition-colors hover:text-accent active:scale-95"
+              >
+                <MessageCircle size={12} strokeWidth={2} />
+                <span className="text-[11.5px] tabular-nums">{commentCount}</span>
+              </button>
+            </div>
+            <Link
+              href={targetHref}
+              className="text-[11.5px] text-ink-faint transition-colors hover:text-accent"
             >
-              <Heart size={12} fill={isLiked ? 'currentColor' : 'none'} strokeWidth={2} />
-              <span className="text-[11.5px] tabular-nums">{likeCount}</span>
-            </button>
-            <button
-              onClick={() => setIsCommentOpen(true)}
-              className="flex items-center gap-1 text-ink-faint transition-colors hover:text-accent active:scale-95"
-            >
-              <MessageCircle size={12} strokeWidth={2} />
-              <span className="text-[11.5px] tabular-nums">{commentCount}</span>
-            </button>
+              상세 →
+            </Link>
           </div>
         </div>
 
