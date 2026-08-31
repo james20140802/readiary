@@ -23,7 +23,7 @@
 | `bg-accent-soft` | 잉크 7% | 잉크 7% | 강조 연한 배경 |
 | `*-danger` / `*-success` | 가라앉힌 적갈/초록 | 밝힌 톤 | 상태 |
 
-- 강조색 후보 B(주홍 `#C1441E`)는 `<html data-accent="vermilion">`으로 전환해 볼 수 있다. 확정 전까지 유지.
+- 강조색은 파란 잉크(`#2D5FB8`, 다크 `#85A9EC`)로 확정(2026-08-31, 브랜드 대표색 포함). 주홍 후보와 `data-accent` 전환 스위치는 제거됨.
 - 원색 Tailwind 팔레트(`blue-500`, `red-500` 등)와 하드코딩 hex 금지.
 
 ## 서체 (Typography)
@@ -36,6 +36,7 @@
 크기 토큰: `text-page-title`(24) `text-section-title`(18) `text-body`(15) `text-body-sm`(14) `text-button`(14) `text-caption`(12) `text-overline`(11) 그리고:
 
 - `text-quote` — 20px/1.85. 인용 문장 전용(`font-serif`와 함께).
+- `text-note` — 13.5px/1.8. 인용에 딸린 짧은 단상·주석(시안 .note).
 - `text-seal` — 10.5px/굵게/자간 0.16em. 날짜·상태 표식 전용.
 
 ## 표면 규칙 (Surfaces)
