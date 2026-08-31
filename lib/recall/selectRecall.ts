@@ -8,7 +8,8 @@ export interface RecallCandidate {
 /**
  * 회상 카드 선택 규칙 (스펙 §5):
  * 1) 같은 월-일의 과거 기록 우선 — 여러 해가 있으면 가장 오래된 해.
- * 2) 없으면 30일 이상 지난 기록 중 시드 기반 결정적 무작위(같은 날엔 같은 카드).
+ * 2) 없으면 7일 이상 지난 기록 중 시드 기반 결정적 무작위(같은 날엔 같은 카드).
+ *    (원래 30일 — 초기 사용자에게 너무 오래 숨겨져 2026-08-31 사용자 결정으로 완화)
  * 3) 그것도 없으면 null — 기록이 적은 신규 사용자에게는 카드를 숨긴다.
  */
 export function selectRecall(
@@ -22,7 +23,7 @@ export function selectRecall(
     .sort((a, b) => a.date.localeCompare(b.date));
   if (sameDay.length > 0) return sameDay[0];
 
-  const cutoff = format(subDays(parseISO(todayKst), 30), 'yyyy-MM-dd');
+  const cutoff = format(subDays(parseISO(todayKst), 7), 'yyyy-MM-dd');
   const old = candidates.filter((c) => c.date <= cutoff);
   if (old.length === 0) return null;
 

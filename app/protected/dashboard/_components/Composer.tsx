@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Lock, Plus } from 'lucide-react';
@@ -28,7 +28,8 @@ interface SavedEntry {
   bookTitle: string;
 }
 
-const MAX_BOOK_CHIPS = 4;
+/** 칩으로 노출하는 책 수 상한 — 진행 중인 책이 많아도 옵션 줄이 무한정 길어지지 않게 (좁은 폭에선 2권) */
+const MAX_BOOK_CHIPS = 3;
 
 /** 홈 최상단 기록 입력창 — 문장 한 줄로 기록을 시작한다 (스펙 §4) */
 export default function Composer({ books, recentUserBookId, userId }: ComposerProps) {
@@ -47,14 +48,17 @@ export default function Composer({ books, recentUserBookId, userId }: ComposerPr
   const [fromPage, setFromPage] = useState('');
   const [toPage, setToPage] = useState('');
 
+  // 초기 선택 책을 맨 앞에 두고 상한만큼 자른다 — 선택은 보이는 칩에서만 일어나므로
+  // 선택된 책이 잘려나가는 일은 없다. (selectedId 기준 재정렬은 탭마다 칩이 튀어 금지)
+  const chipBooks = useMemo(() => {
+    const first = books.find((b) => b.id === initialSelected);
+    const ordered = first ? [first, ...books.filter((b) => b.id !== first.id)] : books;
+    return ordered.slice(0, MAX_BOOK_CHIPS);
+  }, [books, initialSelected]);
+
   if (books.length === 0) return null;
 
   const selectedBook = books.find((b) => b.id === selectedId) ?? null;
-  const head = books.slice(0, MAX_BOOK_CHIPS);
-  const chipBooks =
-    selectedBook && !head.some((b) => b.id === selectedBook.id)
-      ? [selectedBook, ...head.slice(0, MAX_BOOK_CHIPS - 1)]
-      : head;
 
   const handleSave = async () => {
     if (!selectedBook || text.trim() === '' || isSubmitting) return;
@@ -146,7 +150,7 @@ export default function Composer({ books, recentUserBookId, userId }: ComposerPr
 
   if (savedEntry) {
     return (
-      <Card hoverable={false} className="mb-8">
+      <Card hoverable={false}>
         <Seal>오늘의 기록</Seal>
         <p className="mt-2 font-serif text-quote text-ink">{savedEntry.text}</p>
         <p className="mt-1 text-caption text-ink-sub">{savedEntry.bookTitle}</p>
@@ -221,41 +225,47 @@ export default function Composer({ books, recentUserBookId, userId }: ComposerPr
     );
   }
 
+  // 시안 .composer — 카드 안 텍스트 영역은 박스 없이, 아래 헤어라인 한 줄로만 구분.
+  // 옵션은 "들어가면 한 줄, 모자라면 역할별 두 줄": 컨트롤 그룹(문장/생각·비공개·남기기)을
+  // 내부 줄바꿈 없는 한 덩어리로 묶어, 폭이 부족하면 덩어리째 둘째 줄로 내려가게 한다.
+  // (칩 사이 임의 지점에서 끊기는 랩·가로 스크롤은 2026-08-31 사용자 결정으로 배제)
   return (
-    <Card hoverable={false} className="mb-8">
-      <div className="flex flex-wrap items-center gap-2">
-        {chipBooks.map((b) => (
-          <Chip
-            key={b.id}
-            selected={b.id === selectedId}
-            dot={b.id === selectedId}
-            onClick={() => setSelectedId(b.id)}
-          >
-            <span className="max-w-[8rem] truncate">{b.books.title}</span>
-          </Chip>
-        ))}
-        <Chip onClick={() => router.push('/protected/books/new')} aria-label="새 책 등록">
-          <Plus size={12} strokeWidth={1.75} aria-hidden />새 책
-        </Chip>
-      </div>
-
-      <Textarea
+    <Card hoverable={false}>
+      <textarea
         value={text}
         onChange={(e) => setText(e.target.value)}
         placeholder="오늘 마음에 남은 문장을 남겨보세요"
         rows={3}
-        fullWidth
-        className="mt-4 resize-none font-serif"
+        aria-label="기록 입력"
+        className="block w-full resize-none bg-transparent font-serif text-[17px] leading-relaxed text-ink placeholder:text-ink-faint focus:outline-none"
       />
 
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
+      <div className="mt-3.5 flex flex-wrap items-center gap-x-2 gap-y-2.5 border-t border-hairline pt-3.5">
+        <div className="flex flex-wrap items-center gap-2">
+          {chipBooks.map((b, i) => (
+            <Chip
+              key={b.id}
+              selected={b.id === selectedId}
+              dot={b.id === selectedId}
+              onClick={() => setSelectedId(b.id)}
+              // 좁은 폭에선 2권까지만 — 단 선택된 칩은 순서와 무관하게 항상 남긴다
+              className={i >= 2 && b.id !== selectedId ? 'hidden sm:inline-flex' : undefined}
+            >
+              <span className="max-w-[8rem] truncate">{b.books.title}</span>
+            </Chip>
+          ))}
+          <Chip onClick={() => router.push('/protected/books/new')} aria-label="새 책 등록">
+            <Plus size={12} strokeWidth={1.75} aria-hidden />새 책
+          </Chip>
+        </div>
+        <div className="flex flex-1 items-center gap-2">
           <Chip selected={mode === 'quote'} onClick={() => setMode('quote')}>
             문장
           </Chip>
           <Chip selected={mode === 'note'} onClick={() => setMode('note')}>
             생각
           </Chip>
+          <span aria-hidden className="h-4 w-px shrink-0 bg-hairline" />
           <Chip
             selected={isPrivate}
             aria-pressed={isPrivate}
@@ -264,10 +274,15 @@ export default function Composer({ books, recentUserBookId, userId }: ComposerPr
             <Lock size={12} strokeWidth={1.75} aria-hidden />
             비공개
           </Chip>
+          <Button
+            size="sm"
+            className="ml-auto"
+            onClick={handleSave}
+            disabled={isSubmitting || text.trim() === ''}
+          >
+            {isSubmitting ? '남기는 중...' : '남기기'}
+          </Button>
         </div>
-        <Button size="sm" onClick={handleSave} disabled={isSubmitting || text.trim() === ''}>
-          {isSubmitting ? '저장 중...' : '저장'}
-        </Button>
       </div>
     </Card>
   );

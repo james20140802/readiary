@@ -28,7 +28,7 @@ export default async function DashboardPage() {
   ]);
   if (!data) return notFound();
 
-  const { books, entry, streak, weekActivity, recentUserBookId, todayKst, weeklyCount } = data;
+  const { books, weekActivity, recentUserBookId, todayKst, weeklyCount } = data;
 
   return (
     <main className="w-full">
@@ -40,10 +40,8 @@ export default async function DashboardPage() {
         {recall && <RecallCard recall={recall} />}
         <WeeklyStreakSection
           weeklyCount={weeklyCount}
-          streak={streak}
           weekActivity={weekActivity}
           todayKst={todayKst}
-          entry={entry}
         />
         {books && books.length > 0 ? (
           <InProgressBooksSection myBooks={books} />

@@ -6,15 +6,16 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
 export interface RecallEntry {
   id: string;
   date: string;
-  quote: string | null;
-  note: string | null;
+  quote: string;
   bookTitle: string;
+  bookAuthor: string | null;
   yearsAgo: number | null;
 }
 
 /**
  * 홈 회상 카드용 기록 선택 — 실패·미로그인·후보 없음은 전부 null (홈이 조용히 숨김).
  * 본인 데이터 전용(비공개 포함) — RLS 하 로그인 사용자 소유 entries만 조회.
+ * 문장(quote)이 있는 기록만 후보 — 생각(note)만 적은 기록은 회상에 부르지 않는다.
  */
 export async function fetchRecallEntry(): Promise<RecallEntry | null> {
   const supabase = await createSupabaseServerClient();
@@ -29,11 +30,11 @@ export async function fetchRecallEntry(): Promise<RecallEntry | null> {
   // 책 목록도 행 캡을 넘을 수 있어 페이지네이션 — 잘리면 그 책들의 기록이 후보에서 통째로 빠진다.
   const { rows: userBooks, error: userBooksError } = await fetchAllRows<{
     id: string;
-    books: { title: string } | null;
+    books: { title: string; author: string | null } | null;
   }>((from, to) =>
     supabase
       .from('user_books')
-      .select('id, books(title)')
+      .select('id, books(title, author)')
       .eq('user_id', user.id)
       .order('id', { ascending: true })
       .range(from, to)
@@ -49,13 +50,13 @@ export async function fetchRecallEntry(): Promise<RecallEntry | null> {
     id: string;
     date: string;
     quote: string | null;
-    note: string | null;
     user_book_id: string;
   }>((from, to) =>
     supabase
       .from('entries')
-      .select('id, date, quote, note, user_book_id, user_books!inner(user_id)')
+      .select('id, date, quote, user_book_id, user_books!inner(user_id)')
       .eq('user_books.user_id', user.id)
+      .not('quote', 'is', null)
       .lt('date', todayKst)
       .order('date', { ascending: true })
       .order('created_at', { ascending: true })
@@ -70,7 +71,7 @@ export async function fetchRecallEntry(): Promise<RecallEntry | null> {
   if (!picked) return null;
 
   const entry = entries.find((e) => e.id === picked.id);
-  if (!entry) return null;
+  if (!entry || !entry.quote) return null;
 
   const userBook = userBooks.find((b) => b.id === entry.user_book_id);
   const bookTitle = userBook?.books?.title;
@@ -85,8 +86,8 @@ export async function fetchRecallEntry(): Promise<RecallEntry | null> {
     id: entry.id,
     date: entry.date,
     quote: entry.quote,
-    note: entry.note,
     bookTitle,
+    bookAuthor: userBook?.books?.author ?? null,
     yearsAgo,
   };
 }
