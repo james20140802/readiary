@@ -30,14 +30,14 @@ export default async function BookExcerptsPage({ params }: Props) {
       quote: e.quote as string,
     }));
 
-  const lastDate = data.entries.length > 0 ? data.entries[data.entries.length - 1].date : null;
+  const entryDates = data.entries.map((e) => e.date);
 
   return (
     <ExcerptReader
       bookTitle={data.bookTitle}
       author={data.author}
       quotes={quotes}
-      lastDate={lastDate}
+      entryDates={entryDates}
     />
   );
 }

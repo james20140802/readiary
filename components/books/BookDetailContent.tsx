@@ -10,6 +10,7 @@ import UnfinishBookButton from './UnfinishBookButton';
 import { Profile } from '@/types/profile';
 import Button from '../ui/Button';
 import Link from 'next/link';
+import { formatReadingPeriod } from '@/lib/dates';
 
 interface Props {
   userBook: MyBook;
@@ -64,17 +65,7 @@ export default function BookDetailContent({
   }, [entries, filterOption, sortOrder]);
 
   // 읽기 기간 — 첫 기록과 마지막 기록의 날짜. 발췌집 표지의 통계와 같은 문법.
-  const entryDates = (entries ?? []).map((e) => e.entry.date.slice(0, 10)).sort();
-  const readingPeriod = (() => {
-    if (entryDates.length === 0) return null;
-    const [fy, fm, fd] = entryDates[0].split('-').map(Number);
-    const [ly, lm, ld] = entryDates[entryDates.length - 1].split('-').map(Number);
-    if (!fy || !fm || !fd || !ly || !lm || !ld) return null;
-    const from = `${fy}. ${fm}. ${fd}.`;
-    if (entryDates[0] === entryDates[entryDates.length - 1]) return from;
-    const to = fy === ly ? `${lm}. ${ld}.` : `${ly}. ${lm}. ${ld}.`;
-    return `${from} — ${to}`;
-  })();
+  const readingPeriod = formatReadingPeriod((entries ?? []).map((e) => e.entry.date));
 
   // 진행 상황은 막대 대신 잉크로 쓴 분수 하나
   const progressLine =
