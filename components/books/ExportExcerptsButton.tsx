@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { toPng } from 'html-to-image';
+import { toBlob } from 'html-to-image';
 import { toast } from 'sonner';
 import Seal from '@/components/ui/Seal';
 import Button from '@/components/ui/Button';
@@ -11,14 +11,6 @@ import { formatReadingPeriod } from '@/lib/dates';
 
 type ExportMode = 'long' | 'cards';
 type Stage = 'choose' | 'generating' | 'preview';
-
-function dataUrlToFile(dataUrl: string, name: string): File {
-  const base64 = dataUrl.split(',')[1];
-  const binary = atob(base64);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-  return new File([bytes], name, { type: 'image/png' });
-}
 
 // iOS Safari의 캔버스 픽셀 상한(약 16.7M px) — 넘으면 캡처가 빈/잘린 이미지가 된다.
 // 문장이 많은 발췌집의 '한 장으로' 내보내기는 이 상한 아래로 배율을 낮춰 찍는다.
@@ -59,14 +51,19 @@ export default function ExportExcerptsButton(props: ExcerptBookletProps) {
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [stage, setStage] = useState<Stage | null>(null);
   const [mode, setMode] = useState<ExportMode | null>(null);
-  const [images, setImages] = useState<string[]>([]);
+  // 카드가 수십 장이어도 탭 메모리가 버티도록 base64 data URL 대신
+  // Blob(File) + object URL만 쥔다 — 미리보기 디코드는 lazy 로딩에 맡긴다.
+  const [files, setFiles] = useState<File[]>([]);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
 
   const readingPeriod = formatReadingPeriod(entryDates);
 
   const close = () => {
+    previewUrls.forEach((url) => URL.revokeObjectURL(url));
     setStage(null);
     setMode(null);
-    setImages([]);
+    setFiles([]);
+    setPreviewUrls([]);
   };
 
   useEffect(() => {
@@ -89,14 +86,26 @@ export default function ExportExcerptsButton(props: ExcerptBookletProps) {
           }
         }
         // Safari는 첫 캡처에서 웹폰트가 빠지는 일이 있어 한 번 버리고 시작한다
-        await toPng(targets[0], { pixelRatio: pixelRatioFor(targets[0]), cacheBust: true });
-        const urls: string[] = [];
-        for (const el of targets) {
-          urls.push(await toPng(el, { pixelRatio: pixelRatioFor(el), cacheBust: true }));
+        await toBlob(targets[0], { pixelRatio: pixelRatioFor(targets[0]), cacheBust: true });
+        const nextFiles: File[] = [];
+        const nextUrls: string[] = [];
+        for (let i = 0; i < targets.length; i++) {
+          const blob = await toBlob(targets[i], {
+            pixelRatio: pixelRatioFor(targets[i]),
+            cacheBust: true,
+          });
+          if (!blob) throw new Error('캡처 실패');
+          const name =
+            targets.length === 1 ? 'readiary-excerpts.png' : `readiary-excerpt-${i + 1}.png`;
+          nextFiles.push(new File([blob], name, { type: 'image/png' }));
+          nextUrls.push(URL.createObjectURL(blob));
         }
         if (!cancelled) {
-          setImages(urls);
+          setFiles(nextFiles);
+          setPreviewUrls(nextUrls);
           setStage('preview');
+        } else {
+          nextUrls.forEach((url) => URL.revokeObjectURL(url));
         }
       } catch (error) {
         console.error('발췌집 이미지 생성 실패:', error);
@@ -111,29 +120,20 @@ export default function ExportExcerptsButton(props: ExcerptBookletProps) {
     };
   }, [stage, mode]);
 
-  const toFiles = () =>
-    images.map((url, i) =>
-      dataUrlToFile(
-        url,
-        images.length === 1 ? 'readiary-excerpts.png' : `readiary-excerpt-${i + 1}.png`
-      )
-    );
-
   const handleSave = () => {
-    toFiles().forEach((file, i) => {
-      const blobUrl = URL.createObjectURL(file);
+    files.forEach((file, i) => {
+      const blobUrl = previewUrls[i];
       setTimeout(() => {
         const anchor = document.createElement('a');
         anchor.href = blobUrl;
         anchor.download = file.name;
         anchor.click();
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 10_000);
       }, i * 300);
     });
     toast.success(
-      images.length === 1
+      files.length === 1
         ? '발췌집 이미지를 저장했습니다.'
-        : `이미지 ${images.length}장을 저장했습니다.`
+        : `이미지 ${files.length}장을 저장했습니다.`
     );
   };
 
@@ -142,7 +142,6 @@ export default function ExportExcerptsButton(props: ExcerptBookletProps) {
     typeof navigator !== 'undefined' && typeof navigator.share === 'function';
 
   const handleShare = async () => {
-    const files = toFiles();
     if (typeof navigator.share === 'function' && navigator.canShare?.({ files })) {
       try {
         await navigator.share({ files, title: `발췌집 — ${bookTitle}` });
@@ -224,9 +223,9 @@ export default function ExportExcerptsButton(props: ExcerptBookletProps) {
             {stage === 'preview' && (
               <>
                 <p className="font-serif text-[14px] text-ink">
-                  {images.length === 1
+                  {previewUrls.length === 1
                     ? '이미지가 준비됐습니다'
-                    : `카드 ${images.length}장이 준비됐습니다`}
+                    : `카드 ${previewUrls.length}장이 준비됐습니다`}
                 </p>
                 {!canUseShareSheet && (
                   <p className="mt-1 text-[12px] leading-relaxed text-ink-faint">
@@ -235,12 +234,14 @@ export default function ExportExcerptsButton(props: ExcerptBookletProps) {
                   </p>
                 )}
                 <div className="mt-3 min-h-0 flex-1 space-y-3 overflow-y-auto">
-                  {images.map((src, i) => (
+                  {previewUrls.map((src, i) => (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       key={i}
                       src={src}
                       alt={`발췌집 이미지 ${i + 1}`}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full border border-hairline"
                     />
                   ))}
