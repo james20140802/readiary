@@ -83,7 +83,7 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
             src={getImageUrl(profile.profile_image) || undefined}
             size="sm"
           />
-          <span className="text-body-sm font-medium text-ink group-hover:underline truncate">
+          <span className="text-body-sm font-semibold text-ink group-hover:underline truncate">
             {profile.name}
           </span>
           <span className="text-caption text-ink-faint shrink-0">
@@ -145,6 +145,7 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
         bookTitle={book.title}
         bookAuthor={book.author}
         dateLabel={dateLabel}
+        coverUrl={book.cover_url ?? null}
         collapsed={!isExpanded}
       />
       {mayClamp && !isExpanded && (
