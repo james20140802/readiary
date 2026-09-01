@@ -11,6 +11,8 @@ interface Liker {
   nickname: string;
   tag: string;
   liked_at: string;
+  /** 본인 또는 수락된 친구만 프로필 열람 가능 — false면 링크를 걸지 않는다 */
+  is_accessible: boolean;
 }
 
 interface Props {
@@ -83,13 +85,14 @@ export default function LikersBottomSheet({ entryId, isOpen, onClose }: Props) {
                 </p>
               ) : (
                 <ul className="divide-y divide-hairline">
-                  {likerRows.map((liker) => (
-                    <li key={liker.id}>
-                      <Link
-                        href={`/protected/social/u/${liker.nickname}-${liker.tag}`}
-                        className="flex items-center justify-between py-3 group"
-                      >
-                        <span className="text-body-sm font-medium text-ink group-hover:text-accent transition-colors">
+                  {likerRows.map((liker) => {
+                    const row = (
+                      <>
+                        <span
+                          className={`text-body-sm font-medium text-ink ${
+                            liker.is_accessible ? 'group-hover:text-accent transition-colors' : ''
+                          }`}
+                        >
                           {liker.name}
                         </span>
                         <span className="text-caption text-ink-faint">
@@ -98,9 +101,23 @@ export default function LikersBottomSheet({ entryId, isOpen, onClose }: Props) {
                             day: 'numeric',
                           })}
                         </span>
-                      </Link>
-                    </li>
-                  ))}
+                      </>
+                    );
+                    return (
+                      <li key={liker.id}>
+                        {liker.is_accessible ? (
+                          <Link
+                            href={`/protected/social/u/${liker.nickname}-${liker.tag}`}
+                            className="flex items-center justify-between py-3 group"
+                          >
+                            {row}
+                          </Link>
+                        ) : (
+                          <div className="flex items-center justify-between py-3">{row}</div>
+                        )}
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </div>

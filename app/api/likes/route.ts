@@ -44,10 +44,34 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: profilesError.message }, { status: 500 });
   }
 
+  // 프로필 페이지는 본인·수락된 친구만 열람 가능 — 그 외의 좋아요 명단
+  // 행에는 링크를 걸지 않도록 열람 가능 여부를 함께 내려준다
+  const { data: friendRows, error: friendsError } = await supabase
+    .from('friends')
+    .select('user_id, friend_id')
+    .or(`user_id.eq.${user.id},friend_id.eq.${user.id}`)
+    .eq('status', 'accepted');
+
+  if (friendsError) {
+    return NextResponse.json({ error: friendsError.message }, { status: 500 });
+  }
+
+  const friendIds = new Set(
+    (friendRows ?? []).map((row) => (row.user_id === user.id ? row.friend_id : row.user_id))
+  );
+
   const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
   const likers = likes.flatMap((like) => {
     const profile = profileMap.get(like.user_id);
-    return profile ? [{ ...profile, liked_at: like.created_at }] : [];
+    return profile
+      ? [
+          {
+            ...profile,
+            liked_at: like.created_at,
+            is_accessible: profile.id === user.id || friendIds.has(profile.id),
+          },
+        ]
+      : [];
   });
 
   return NextResponse.json(likers);
