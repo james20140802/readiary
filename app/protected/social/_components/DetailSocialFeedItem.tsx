@@ -67,9 +67,20 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
   const bookDetailPath = `/protected/social/u/${profile.nickname}-${profile.tag}/books/${book.id}`;
   const entryDetailPath = `/protected/social/u/${profile.nickname}-${profile.tag}/entry/${entry.id}`;
 
-  // "더 보기"는 추측이 아니라 실제 잘림 여부로 — FitText가 맞춤 결과를 알려준다
+  // "더 보기"는 추측이 아니라 실제 잘림 여부로 — 인용구는 FitText가, 감상은 실측이 알려준다
   const [isFrontClamped, setIsFrontClamped] = useState(false);
   const [isBackClamped, setIsBackClamped] = useState(false);
+
+  // 감상은 글자 크기를 고정하고 line-clamp로만 자른다 — 잘렸는지만 재서 "더 보기"를 띄운다
+  const noteRef = useRef<HTMLParagraphElement>(null);
+  useEffect(() => {
+    const el = noteRef.current;
+    if (!el || isBackExpanded) return;
+    const measure = () => setIsBackClamped(el.scrollHeight > el.clientHeight + 1);
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [entry.note, isBackExpanded]);
 
   // 시작·끝이 같으면(한쪽만 입력해도 같은 값이 채워진다) 한 번만 적는다
   const readRange =
@@ -206,22 +217,16 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
       <div className="mt-3 flex-1 sm:flex sm:gap-5">
         {/* 사연 칸 */}
         <div className="flex min-w-0 flex-1 flex-col">
-          {entry.note &&
-            (isBackExpanded ? (
-              <p className="text-body-sm text-pretty text-ink-sub whitespace-pre-wrap">
-                {entry.note}
-              </p>
-            ) : (
-              <FitText
-                text={entry.note}
-                maxPx={15}
-                minPx={13}
-                capPx={96}
-                capPxSm={130}
-                className="text-pretty text-ink-sub whitespace-pre-wrap"
-                onClampedChange={setIsBackClamped}
-              />
-            ))}
+          {entry.note && (
+            <p
+              ref={noteRef}
+              className={`text-body-sm text-pretty text-ink-sub whitespace-pre-wrap ${
+                isBackExpanded ? '' : 'line-clamp-4 sm:line-clamp-5'
+              }`}
+            >
+              {entry.note}
+            </p>
+          )}
           {expandControls(isBackClamped, isBackExpanded, setIsBackExpanded)}
         </div>
 
@@ -283,23 +288,18 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
       <span aria-hidden className="font-serif text-[40px] leading-none text-accent">
         “
       </span>
-      {isFrontExpanded ? (
-        <blockquote className="mt-1 font-serif text-[17px] leading-[1.6] text-pretty text-ink whitespace-pre-wrap">
-          {entry.quote}
-        </blockquote>
-      ) : (
-        <blockquote className="mt-1">
-          <FitText
-            text={entry.quote ?? ''}
-            maxPx={24}
-            minPx={15}
-            capPx={170}
-            capPxSm={220}
-            className="font-serif text-pretty text-ink whitespace-pre-wrap"
-            onClampedChange={setIsFrontClamped}
-          />
-        </blockquote>
-      )}
+      <blockquote className="mt-1">
+        <FitText
+          text={entry.quote ?? ''}
+          maxPx={24}
+          minPx={14}
+          capPx={170}
+          capPxSm={220}
+          expanded={isFrontExpanded}
+          className="font-serif text-pretty text-ink whitespace-pre-wrap"
+          onClampedChange={setIsFrontClamped}
+        />
+      </blockquote>
       {expandControls(isFrontClamped, isFrontExpanded, setIsFrontExpanded)}
       <div className="mt-auto flex items-end justify-between gap-3 pt-5">
         <div className="min-w-0">
@@ -399,16 +399,28 @@ interface FitTextProps {
   capPx: number;
   /** 본문 상한 높이 px (sm 이상) */
   capPxSm: number;
+  /** 펼친 상태 — 접힌 채 맞춘 글자 크기는 그대로 두고 높이 상한만 푼다 */
+  expanded?: boolean;
   className?: string;
   onClampedChange: (clamped: boolean) => void;
 }
 
 /**
  * 정해진 상한 높이에 들어갈 때까지 글자를 줄여 가며 맞춘다.
- * 상한은 줄 높이의 배수로 스냅해 반쯤 잘린 줄이 생기지 않고,
- * 최소 크기로도 넘치는 글만 잘라내며 onClampedChange(true)로 알린다.
+ * 상한에는 10% 여유를 두고, 줄 높이의 배수로 스냅해 반쯤 잘린 줄이 생기지 않으며,
+ * 최소 크기로도 넘치는 글만 잘라내고 onClampedChange(true)로 알린다.
+ * 펼치면(expanded) 크기는 유지한 채 잘라내지만 않는다 — 크기가 튀지 않게.
  */
-function FitText({ text, maxPx, minPx, capPx, capPxSm, className, onClampedChange }: FitTextProps) {
+function FitText({
+  text,
+  maxPx,
+  minPx,
+  capPx,
+  capPxSm,
+  expanded = false,
+  className,
+  onClampedChange,
+}: FitTextProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
@@ -417,7 +429,7 @@ function FitText({ text, maxPx, minPx, capPx, capPxSm, className, onClampedChang
     const lineHeightFor = (px: number) => (px >= 20 ? 1.7 : 1.6);
 
     const fit = () => {
-      const cap = window.innerWidth >= 640 ? capPxSm : capPx;
+      const cap = (window.innerWidth >= 640 ? capPxSm : capPx) * 1.1;
       el.style.maxHeight = 'none';
       let size = maxPx;
       for (; size > minPx; size -= 1) {
@@ -430,14 +442,14 @@ function FitText({ text, maxPx, minPx, capPx, capPxSm, className, onClampedChang
       el.style.lineHeight = `${lh}`;
       const linePx = size * lh;
       const snappedCap = Math.max(1, Math.floor(cap / linePx)) * linePx;
-      el.style.maxHeight = `${snappedCap}px`;
       onClampedChange(el.scrollHeight > snappedCap + 1);
+      el.style.maxHeight = expanded ? 'none' : `${snappedCap}px`;
     };
 
     fit();
     window.addEventListener('resize', fit);
     return () => window.removeEventListener('resize', fit);
-  }, [text, maxPx, minPx, capPx, capPxSm, onClampedChange]);
+  }, [text, maxPx, minPx, capPx, capPxSm, expanded, onClampedChange]);
 
   return (
     <div
