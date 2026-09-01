@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -67,26 +67,9 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
   const bookDetailPath = `/protected/social/u/${profile.nickname}-${profile.tag}/books/${book.id}`;
   const entryDetailPath = `/protected/social/u/${profile.nickname}-${profile.tag}/entry/${entry.id}`;
 
-  // "더 보기"는 추측이 아니라 실제 잘림 여부로, 앞면·뒷면 각각 판단한다
-  const frontRef = useRef<HTMLDivElement>(null);
-  const backRef = useRef<HTMLDivElement>(null);
+  // "더 보기"는 추측이 아니라 실제 잘림 여부로 — FitText가 맞춤 결과를 알려준다
   const [isFrontClamped, setIsFrontClamped] = useState(false);
   const [isBackClamped, setIsBackClamped] = useState(false);
-
-  useEffect(() => {
-    const measure = (el: HTMLElement | null) =>
-      !!el &&
-      Array.from(el.querySelectorAll('.line-clamp-4, .line-clamp-3')).some(
-        (node) => node.scrollHeight > node.clientHeight + 1
-      );
-    const check = () => {
-      setIsFrontClamped(measure(frontRef.current));
-      setIsBackClamped(measure(backRef.current));
-    };
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, [isFrontExpanded, isBackExpanded, entry.quote, entry.note]);
 
   // 시작·끝이 같으면(한쪽만 입력해도 같은 값이 채워진다) 한 번만 적는다
   const readRange =
@@ -110,16 +93,6 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
     .join(' · ');
 
   const addressLine = [book.author, dateLabel].filter(Boolean).join(' · ');
-
-  // 글이 길수록 판형에 맞춰 글자를 줄인다 — 짧은 문장은 엽서 그림처럼 큼직하게
-  const quoteLen = entry.quote?.length ?? 0;
-  const quoteSizeClass =
-    quoteLen <= 60
-      ? 'text-[24px] leading-[1.7]'
-      : quoteLen <= 160
-        ? 'text-quote'
-        : 'text-[17px] leading-[1.6]';
-  const noteSizeClass = (entry.note?.length ?? 0) <= 80 ? 'text-body' : 'text-body-sm';
 
   // 아날로그 낱장 느낌 — 기록 id에서 뽑은 결정적 기울기·어긋남
   const seed = Array.from(entry.id).reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
@@ -182,7 +155,7 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
 
   // 뒷면 — 감상(사연) · 세로 구분선 · 우표(표지)와 괘선 주소칸 · 서명 줄
   const backFace = (
-    <div ref={backRef} className="flex flex-1 flex-col px-5 pt-4 pb-4 sm:px-6">
+    <div className="flex flex-1 flex-col px-5 pt-4 pb-4 sm:px-6">
       <div className="flex items-start justify-between">
         <span className="text-seal text-ink-faint pt-1.5">POST CARD</span>
         <div className="relative shrink-0" ref={menuRef}>
@@ -233,15 +206,22 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
       <div className="mt-3 flex-1 sm:flex sm:gap-5">
         {/* 사연 칸 */}
         <div className="flex min-w-0 flex-1 flex-col">
-          {entry.note && (
-            <p
-              className={`${noteSizeClass} text-pretty text-ink-sub whitespace-pre-wrap ${
-                !isBackExpanded ? 'line-clamp-3 sm:line-clamp-4' : ''
-              }`}
-            >
-              {entry.note}
-            </p>
-          )}
+          {entry.note &&
+            (isBackExpanded ? (
+              <p className="text-body-sm text-pretty text-ink-sub whitespace-pre-wrap">
+                {entry.note}
+              </p>
+            ) : (
+              <FitText
+                text={entry.note}
+                maxPx={15}
+                minPx={13}
+                capPx={96}
+                capPxSm={130}
+                className="text-pretty text-ink-sub whitespace-pre-wrap"
+                onClampedChange={setIsBackClamped}
+              />
+            ))}
           {expandControls(isBackClamped, isBackExpanded, setIsBackExpanded)}
         </div>
 
@@ -299,17 +279,27 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
 
   // 앞면 — 그림 대신 문장이 실린 면
   const frontFace = hasQuote ? (
-    <div ref={frontRef} className="flex flex-1 flex-col px-6 pt-5 pb-4">
+    <div className="flex flex-1 flex-col px-6 pt-5 pb-4">
       <span aria-hidden className="font-serif text-[40px] leading-none text-accent">
         “
       </span>
-      <blockquote
-        className={`mt-1 font-serif ${quoteSizeClass} text-pretty text-ink whitespace-pre-wrap ${
-          !isFrontExpanded ? 'line-clamp-4 sm:line-clamp-6' : ''
-        }`}
-      >
-        {entry.quote}
-      </blockquote>
+      {isFrontExpanded ? (
+        <blockquote className="mt-1 font-serif text-[17px] leading-[1.6] text-pretty text-ink whitespace-pre-wrap">
+          {entry.quote}
+        </blockquote>
+      ) : (
+        <blockquote className="mt-1">
+          <FitText
+            text={entry.quote ?? ''}
+            maxPx={24}
+            minPx={15}
+            capPx={170}
+            capPxSm={220}
+            className="font-serif text-pretty text-ink whitespace-pre-wrap"
+            onClampedChange={setIsFrontClamped}
+          />
+        </blockquote>
+      )}
       {expandControls(isFrontClamped, isFrontExpanded, setIsFrontExpanded)}
       <div className="mt-auto flex items-end justify-between gap-3 pt-5">
         <div className="min-w-0">
@@ -396,5 +386,66 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
         onCountChange={setCommentCount}
       />
     </article>
+  );
+}
+
+interface FitTextProps {
+  text: string;
+  /** 시작(최대) 글자 크기 px */
+  maxPx: number;
+  /** 이 크기까지 줄여도 안 들어가면 잘라내고 "더 보기"에 맡긴다 */
+  minPx: number;
+  /** 본문 상한 높이 px (모바일) */
+  capPx: number;
+  /** 본문 상한 높이 px (sm 이상) */
+  capPxSm: number;
+  className?: string;
+  onClampedChange: (clamped: boolean) => void;
+}
+
+/**
+ * 정해진 상한 높이에 들어갈 때까지 글자를 줄여 가며 맞춘다.
+ * 상한은 줄 높이의 배수로 스냅해 반쯤 잘린 줄이 생기지 않고,
+ * 최소 크기로도 넘치는 글만 잘라내며 onClampedChange(true)로 알린다.
+ */
+function FitText({ text, maxPx, minPx, capPx, capPxSm, className, onClampedChange }: FitTextProps) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const lineHeightFor = (px: number) => (px >= 20 ? 1.7 : 1.6);
+
+    const fit = () => {
+      const cap = window.innerWidth >= 640 ? capPxSm : capPx;
+      el.style.maxHeight = 'none';
+      let size = maxPx;
+      for (; size > minPx; size -= 1) {
+        el.style.fontSize = `${size}px`;
+        el.style.lineHeight = `${lineHeightFor(size)}`;
+        if (el.scrollHeight <= cap + 1) break;
+      }
+      const lh = lineHeightFor(size);
+      el.style.fontSize = `${size}px`;
+      el.style.lineHeight = `${lh}`;
+      const linePx = size * lh;
+      const snappedCap = Math.max(1, Math.floor(cap / linePx)) * linePx;
+      el.style.maxHeight = `${snappedCap}px`;
+      onClampedChange(el.scrollHeight > snappedCap + 1);
+    };
+
+    fit();
+    window.addEventListener('resize', fit);
+    return () => window.removeEventListener('resize', fit);
+  }, [text, maxPx, minPx, capPx, capPxSm, onClampedChange]);
+
+  return (
+    <div
+      ref={ref}
+      className={`overflow-hidden ${className ?? ''}`}
+      style={{ fontSize: maxPx, lineHeight: 1.7 }}
+    >
+      {text}
+    </div>
   );
 }
