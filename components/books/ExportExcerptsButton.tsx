@@ -111,6 +111,11 @@ export default function ExportExcerptsButton(props: ExcerptBookletProps) {
         await toBlob(targets[0], { pixelRatio: pixelRatioFor(targets[0]), cacheBust: true });
         const nextFiles: File[] = [];
         for (let i = 0; i < targets.length; i++) {
+          // 시트를 닫거나 페이지를 떠나면 남은 카드 캡처를 즉시 중단한다
+          if (cancelled) {
+            nextUrls.forEach((url) => URL.revokeObjectURL(url));
+            return;
+          }
           const blob = await toBlob(targets[i], {
             pixelRatio: pixelRatioFor(targets[i]),
             cacheBust: true,
