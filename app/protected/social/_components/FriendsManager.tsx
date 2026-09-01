@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import Tabs from '@/components/ui/Tabs';
 import FriendRequestForm from './FriendRequestForm';
-import AnimatedListSection from '@/components/ui/AnimatedListSecion';
 import FriendListItem from './FriendListItem';
 import AcceptFriendRequestButton from './AcceptFriendRequestButton';
 import DeclineFriendRequestButton from './DeclineFriendRequestButton';
@@ -39,14 +38,10 @@ export default function FriendsManager({
   ];
 
   return (
-    <div className="space-y-5">
-      {/* 친구 검색 — accent-soft 배경으로 섹션 구분 강조 */}
-      <div className="p-4 rounded-xl border border-accent/20 bg-accent-soft">
-        <p className="text-body-sm font-bold mb-3 text-accent">새로운 친구 찾기</p>
-        <FriendRequestForm initialQuery={initialInviteQuery} />
-      </div>
+    <div className="space-y-6">
+      <FriendRequestForm initialQuery={initialInviteQuery} />
 
-      <div className="space-y-3">
+      <div className="space-y-1">
         <Tabs
           tabs={friendTabs}
           defaultValue={friendTab}
@@ -64,21 +59,16 @@ export default function FriendsManager({
                   <p className="text-body-sm text-ink-faint">아직 친구가 없어요</p>
                 </div>
               ) : (
-                <AnimatedListSection>
+                <ul className="divide-y divide-hairline">
                   {acceptedFriends.map((friend) => (
                     <li key={friend.profile.id}>
                       <FriendListItem
                         profile={friend.profile}
                         href={`/protected/social/u/${friend.profile.nickname}-${friend.profile.tag}`}
-                        action={
-                          <span className="text-caption font-semibold text-accent bg-accent-soft px-2.5 py-1 rounded-full border border-accent/20 ml-auto shrink-0">
-                            프로필 →
-                          </span>
-                        }
                       />
                     </li>
                   ))}
-                </AnimatedListSection>
+                </ul>
               )}
             </section>
           )}
@@ -91,14 +81,14 @@ export default function FriendsManager({
                   <p className="text-body-sm text-ink-faint">받은 친구 요청이 없어요</p>
                 </div>
               ) : (
-                <AnimatedListSection>
+                <ul className="divide-y divide-hairline">
                   {pendingFriends.map((friend) => (
                     <li key={friend.profile.id}>
                       <FriendListItem
                         profile={friend.profile}
                         href={undefined}
                         action={
-                          <div className="flex gap-2 ml-auto">
+                          <div className="flex gap-1">
                             <AcceptFriendRequestButton friendUserId={friend.profile.id} />
                             <DeclineFriendRequestButton friendUserId={friend.profile.id} />
                           </div>
@@ -106,7 +96,7 @@ export default function FriendsManager({
                       />
                     </li>
                   ))}
-                </AnimatedListSection>
+                </ul>
               )}
             </section>
           )}
@@ -119,7 +109,7 @@ export default function FriendsManager({
                   <p className="text-body-sm text-ink-faint">보낸 친구 요청이 없어요</p>
                 </div>
               ) : (
-                <AnimatedListSection>
+                <ul className="divide-y divide-hairline">
                   {sentFriends.map((friend) => (
                     <li key={friend.profile.id}>
                       <FriendListItem
@@ -129,7 +119,7 @@ export default function FriendsManager({
                       />
                     </li>
                   ))}
-                </AnimatedListSection>
+                </ul>
               )}
             </section>
           )}

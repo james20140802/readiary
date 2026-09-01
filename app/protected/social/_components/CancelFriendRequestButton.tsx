@@ -3,7 +3,6 @@
 import { useRouter } from 'next/navigation';
 import { useTransition } from 'react';
 import { toast } from 'sonner';
-import Button from '@/components/ui/Button';
 
 interface Props {
   friendUserId: string;
@@ -33,8 +32,12 @@ export default function CancelFriendRequestButton({ friendUserId, onSuccess }: P
   };
 
   return (
-    <Button onClick={handleCancel} disabled={isPending} variant="secondary" size="sm">
+    <button
+      onClick={handleCancel}
+      disabled={isPending}
+      className="px-2 py-1 text-caption font-medium text-ink-faint hover:text-ink-sub disabled:opacity-40 transition-colors"
+    >
       요청 취소
-    </Button>
+    </button>
   );
 }

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import React from 'react';
+import { ChevronRight } from 'lucide-react';
 
-import Card from '@/components/ui/Card';
 import { Avatar } from '@/components/ui/Avatar';
 import { getImageUrl } from '@/utils/profile';
 
@@ -17,37 +17,41 @@ interface FriendListItemProps {
   href?: string;
 }
 
+/** 조용한 리스트의 한 행 — 테두리 없이 괘선(divide-y)으로만 구분한다 */
 export default function FriendListItem({ profile, action, href }: FriendListItemProps) {
   const profileInfo = (
-    <div className="flex items-center gap-4">
+    <div className="flex min-w-0 items-center gap-3">
       <Avatar
         src={getImageUrl(profile.profile_image || null) ?? undefined}
         alt={profile.nickname}
         fallbackText={profile.nickname[0].toUpperCase()}
         size="md"
       />
-      <div className="text-sm">
-        <div className="font-medium text-ink">{profile.name}</div>
-        <div className="text-xs text-ink-sub">
+      <div className="min-w-0">
+        <p className="truncate text-body-sm font-medium text-ink">{profile.name}</p>
+        <p className="truncate text-caption text-ink-faint">
           {profile.nickname}#{profile.tag}
-        </div>
+        </p>
       </div>
     </div>
   );
 
+  if (href) {
+    return (
+      <Link href={href} className="group flex items-center justify-between gap-3 py-3">
+        {profileInfo}
+        <ChevronRight
+          size={16}
+          className="shrink-0 text-ink-faint transition-colors group-hover:text-ink-sub"
+        />
+      </Link>
+    );
+  }
+
   return (
-    <Card className="flex items-center justify-between p-4">
-      {href ? (
-        <Link href={href} className="flex items-center justify-between w-full">
-          {profileInfo}
-          {action && <div className="ml-auto">{action}</div>}
-        </Link>
-      ) : (
-        <>
-          {profileInfo}
-          {action && <div className="ml-auto">{action}</div>}
-        </>
-      )}
-    </Card>
+    <div className="flex items-center justify-between gap-3 py-3">
+      {profileInfo}
+      {action && <div className="shrink-0">{action}</div>}
+    </div>
   );
 }
