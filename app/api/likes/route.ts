@@ -2,6 +2,57 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { notifyEntryEvent, retractLikeNotification } from '@/lib/notifications/notify';
 import { NextResponse } from 'next/server';
 
+// 한 기록에 좋아요를 남긴 사람들 — 대출카드 명단
+export async function GET(request: Request) {
+  const supabase = await createSupabaseServerClient();
+  const { searchParams } = new URL(request.url);
+  const entryId = searchParams.get('entry_id');
+
+  if (!entryId) {
+    return NextResponse.json({ error: 'entry_id가 필요합니다.' }, { status: 400 });
+  }
+
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return NextResponse.json({ error: '인증되지 않은 사용자입니다.' }, { status: 401 });
+  }
+
+  const { data: likes, error: likesError } = await supabase
+    .from('likes')
+    .select('user_id, created_at')
+    .eq('entry_id', entryId)
+    .order('created_at', { ascending: true });
+
+  if (likesError) {
+    return NextResponse.json({ error: likesError.message }, { status: 500 });
+  }
+  if (!likes || likes.length === 0) return NextResponse.json([]);
+
+  const { data: profiles, error: profilesError } = await supabase
+    .from('profiles')
+    .select('id, name, nickname, tag')
+    .in(
+      'id',
+      likes.map((like) => like.user_id)
+    );
+
+  if (profilesError) {
+    return NextResponse.json({ error: profilesError.message }, { status: 500 });
+  }
+
+  const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
+  const likers = likes.flatMap((like) => {
+    const profile = profileMap.get(like.user_id);
+    return profile ? [{ ...profile, liked_at: like.created_at }] : [];
+  });
+
+  return NextResponse.json(likers);
+}
+
 export async function POST(request: Request) {
   const supabase = await createSupabaseServerClient();
   const { entryId } = await request.json();

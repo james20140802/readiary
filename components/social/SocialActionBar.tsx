@@ -9,6 +9,8 @@ interface SocialActionBarProps {
   initialLiked: boolean;
   commentCount?: number;
   onCommentClick?: () => void;
+  /** 전달하면 좋아요 숫자가 별도 버튼이 되어 명단(대출카드)을 연다 */
+  onLikeCountClick?: () => void;
   showCommentCount?: boolean;
   border?: boolean;
 }
@@ -19,6 +21,7 @@ export default function SocialActionBar({
   initialLiked,
   commentCount: initialCommentCount = 0,
   onCommentClick = () => {},
+  onLikeCountClick,
   showCommentCount = true,
   border = true,
 }: SocialActionBarProps) {
@@ -73,16 +76,38 @@ export default function SocialActionBar({
       className={`${border && 'flex items-center px-5 py-2.5 border-t border-hairline bg-card-raised/30'}`}
     >
       <div className="flex items-center gap-4">
-        {/* 좋아요 버튼 */}
-        <button
-          onClick={handleLikeToggle}
-          className={`flex items-center gap-1.5 transition-all active:scale-90 ${
-            isLiked ? 'text-accent' : 'text-ink-faint hover:text-accent'
-          } ${isLoading ? 'cursor-progress' : ''}`}
-        >
-          <Heart size={18} fill={isLiked ? 'currentColor' : 'none'} strokeWidth={1.75} />
-          <span className="text-caption font-medium tabular-nums">{formatCount(likeCount)}</span>
-        </button>
+        {/* 좋아요 버튼 — 하트는 토글, 숫자는(콜백이 있으면) 명단 열기 */}
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={handleLikeToggle}
+            aria-label={isLiked ? '좋아요 취소' : '좋아요'}
+            className={`flex items-center gap-1.5 transition-all active:scale-90 ${
+              isLiked ? 'text-accent' : 'text-ink-faint hover:text-accent'
+            } ${isLoading ? 'cursor-progress' : ''}`}
+          >
+            <Heart size={18} fill={isLiked ? 'currentColor' : 'none'} strokeWidth={1.75} />
+            {!onLikeCountClick && (
+              <span className="text-caption font-medium tabular-nums">
+                {formatCount(likeCount)}
+              </span>
+            )}
+          </button>
+          {onLikeCountClick && (
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onLikeCountClick();
+              }}
+              aria-label="좋아요 명단 보기"
+              className={`text-caption font-medium tabular-nums transition-colors ${
+                isLiked ? 'text-accent' : 'text-ink-faint hover:text-ink-sub'
+              }`}
+            >
+              {formatCount(likeCount)}
+            </button>
+          )}
+        </div>
 
         {/* 댓글 버튼 (나중에 여기서 댓글 리스트 토글 로직을 추가하면 됩니다) */}
         <button

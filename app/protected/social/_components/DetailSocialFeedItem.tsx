@@ -11,6 +11,7 @@ import SentenceCard from '@/components/entries/SentenceCard';
 import SocialActionBar from '@/components/social/SocialActionBar';
 import { toZonedTime } from 'date-fns-tz';
 import CommentBottomSheet from '@/components/comments/CommentBottomSheet';
+import LikersBottomSheet from '@/components/social/LikersBottomSheet';
 import { getImageUrl } from '@/utils/profile';
 import { Avatar } from '@/components/ui/Avatar';
 
@@ -30,6 +31,7 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [isCommentOpen, setIsCommentOpen] = useState(false);
+  const [isLikersOpen, setIsLikersOpen] = useState(false);
   const [commentCount, setCommentCount] = useState(initialCommentCount);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -188,9 +190,17 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
           initialLiked={initialLiked}
           commentCount={commentCount}
           onCommentClick={() => setIsCommentOpen(true)}
+          onLikeCountClick={() => setIsLikersOpen(true)}
           border={false}
         />
       </div>
+
+      <LikersBottomSheet
+        entryId={entry.id}
+        bookTitle={book.title}
+        isOpen={isLikersOpen}
+        onClose={() => setIsLikersOpen(false)}
+      />
 
       <CommentBottomSheet
         entryId={entry.id}
