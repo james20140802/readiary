@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import NotificationList from './NotificationList';
 import { NOTIFICATIONS_LIMIT, type NotificationItem } from '@/lib/notifications/types';
+import { NOTIFICATIONS_READ_EVENT } from '@/hooks/useUnreadNotifications';
 
 interface Props {
   notifications: NotificationItem[];
@@ -28,7 +29,13 @@ export default function NotificationsView({ notifications }: Props) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
-    }).catch(() => {});
+    })
+      .then((res) => {
+        // 헤더·내브바의 뱃지는 이 페이지 진입과 동시에 세어져 읽음 처리 전
+        // 값을 물고 있을 수 있다 — 성공하면 즉시 다시 세라고 신호를 보낸다
+        if (res.ok) window.dispatchEvent(new Event(NOTIFICATIONS_READ_EVENT));
+      })
+      .catch(() => {});
   }, [notifications]);
 
   return <NotificationList notifications={notifications} />;
