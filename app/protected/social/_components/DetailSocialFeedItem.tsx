@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { formatDistance } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { MoreHorizontal, User, BookOpen, Maximize2 } from 'lucide-react';
+import { MoreHorizontal, User, BookOpen, Maximize2, Repeat } from 'lucide-react';
 import { DetailSocialFeedEntry } from '@/types/entry';
 import SocialActionBar from '@/components/social/SocialActionBar';
 import { toZonedTime } from 'date-fns-tz';
@@ -22,7 +22,8 @@ interface Props {
 
 /**
  * 피드 카드 — 친구가 부쳐 온 엽서.
- * 위쪽은 사연(문장·감상), 아래쪽은 괘선 주소칸(책·날짜)과 표지, "from." 서명 줄.
+ * 문장이 있으면 앞면(그림 대신 문장), 뒤집으면 뒷면(감상·주소칸·우표 표지·서명).
+ * 문장이 없는 기록은 뒷면 한 장으로만 온다.
  */
 export default function DetailSocialFeedItem({ item, userId }: Props) {
   const router = useRouter();
@@ -32,8 +33,12 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
   const timeZone = 'Asia/Seoul';
   const now = toZonedTime(new Date(), timeZone);
   const targetDate = toZonedTime(new Date(entry.created_at), timeZone);
+  const timeLabel = formatDistance(targetDate, now, { addSuffix: true, locale: ko });
 
-  const [isExpanded, setIsExpanded] = useState(false);
+  const hasQuote = Boolean(entry.quote);
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [isFrontExpanded, setIsFrontExpanded] = useState(false);
+  const [isBackExpanded, setIsBackExpanded] = useState(false);
   const [isCommentOpen, setIsCommentOpen] = useState(false);
   const [isLikersOpen, setIsLikersOpen] = useState(false);
   const [commentCount, setCommentCount] = useState(initialCommentCount);
@@ -55,29 +60,32 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
   const bookDetailPath = `/protected/social/u/${profile.nickname}-${profile.tag}/books/${book.id}`;
   const entryDetailPath = `/protected/social/u/${profile.nickname}-${profile.tag}/entry/${entry.id}`;
 
-  // "더 보기"는 추측이 아니라 실제 잘림 여부로 판단한다
-  const contentRef = useRef<HTMLDivElement>(null);
-  const [isClamped, setIsClamped] = useState(false);
+  // "더 보기"는 추측이 아니라 실제 잘림 여부로, 앞면·뒷면 각각 판단한다
+  const frontRef = useRef<HTMLDivElement>(null);
+  const backRef = useRef<HTMLDivElement>(null);
+  const [isFrontClamped, setIsFrontClamped] = useState(false);
+  const [isBackClamped, setIsBackClamped] = useState(false);
 
   useEffect(() => {
-    const check = () => {
-      const el = contentRef.current;
-      if (!el) return;
-      const clamped = Array.from(el.querySelectorAll('.line-clamp-4, .line-clamp-3')).some(
+    const measure = (el: HTMLElement | null) =>
+      !!el &&
+      Array.from(el.querySelectorAll('.line-clamp-6, .line-clamp-4')).some(
         (node) => node.scrollHeight > node.clientHeight + 1
       );
-      setIsClamped(clamped);
+    const check = () => {
+      setIsFrontClamped(measure(frontRef.current));
+      setIsBackClamped(measure(backRef.current));
     };
     check();
     window.addEventListener('resize', check);
     return () => window.removeEventListener('resize', check);
-  }, [isExpanded, entry.quote, entry.note]);
+  }, [isFrontExpanded, isBackExpanded, entry.quote, entry.note]);
 
   const readRange =
     entry.from_page != null && entry.to_page != null
-      ? `${entry.from_page}→${entry.to_page}p`
+      ? `${entry.from_page}-${entry.to_page}p`
       : entry.from_page != null || entry.to_page != null
-        ? `${entry.to_page ?? entry.from_page}p까지`
+        ? `${entry.to_page ?? entry.from_page}p`
         : null;
 
   const dateLabel = [
@@ -93,107 +101,122 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
 
   const addressLine = [book.author, dateLabel].filter(Boolean).join(' · ');
 
-  return (
-    <article aria-label="상세 소셜 피드 항목">
-      <div className="overflow-hidden rounded-[6px] border border-hairline-strong bg-card">
-        <div className="px-5 pt-4 pb-5 sm:px-6">
-          {/* 엽서 상단 — 인쇄된 표제와 메뉴 */}
-          <div className="flex items-center justify-between">
-            <span className="text-seal text-ink-faint">POST CARD</span>
-            <div className="relative shrink-0" ref={menuRef}>
-              <button
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="text-ink-faint hover:text-ink-sub p-2 -my-2 -mr-2 hover:bg-card-raised rounded-full transition-colors"
-                aria-label="더 보기 메뉴"
-              >
-                <MoreHorizontal size={18} />
-              </button>
-              {isMenuOpen && (
-                <>
-                  <div className="fixed inset-0 z-10" onClick={() => setIsMenuOpen(false)} />
-                  <div className="absolute right-0 mt-1 w-36 bg-card border border-hairline rounded-xl z-20 py-1 overflow-hidden animate-in fade-in zoom-in-95 duration-100 origin-top-right">
-                    <button
-                      onClick={() => {
-                        router.push(userProfilePath);
-                        setIsMenuOpen(false);
-                      }}
-                      className="flex items-center gap-2 w-full px-3 py-2 text-caption font-medium text-ink-sub hover:bg-card-raised transition-colors"
-                    >
-                      <User size={13} className="text-ink-faint" /> 프로필 방문
-                    </button>
-                    <button
-                      onClick={() => {
-                        router.push(bookDetailPath);
-                        setIsMenuOpen(false);
-                      }}
-                      className="flex items-center gap-2 w-full px-3 py-2 text-caption font-medium text-ink-sub hover:bg-card-raised transition-colors"
-                    >
-                      <BookOpen size={13} className="text-ink-faint" /> 도서 정보
-                    </button>
-                    <button
-                      onClick={() => {
-                        router.push(entryDetailPath);
-                        setIsMenuOpen(false);
-                      }}
-                      className="flex items-center gap-2 w-full px-3 py-2 text-caption font-semibold text-accent hover:bg-accent-soft border-t border-hairline transition-colors"
-                    >
-                      <Maximize2 size={13} /> 상세 보기
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
+  // 아날로그 낱장 느낌 — 기록 id에서 뽑은 결정적 기울기·어긋남
+  const seed = Array.from(entry.id).reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+  const tilt = ((seed % 5) - 2) * 0.35; // -0.7° ~ 0.7°
+  const shift = ((seed % 3) - 1) * 4; // -4px, 0, 4px
+  const stampTilt = ((seed % 7) - 3) * 1.2; // 우표는 조금 더 비뚤게
 
-          {/* 사연 — 문장과 감상 */}
-          <div ref={contentRef} className="mt-4">
-            {entry.quote && (
-              <blockquote
-                className={`font-serif text-quote text-ink whitespace-pre-wrap ${
-                  !isExpanded ? 'line-clamp-4' : ''
-                }`}
-              >
-                “{entry.quote}”
-              </blockquote>
-            )}
-            {entry.note && (
-              <p
-                className={`text-body-sm text-ink-sub whitespace-pre-wrap ${
-                  entry.quote ? 'mt-3' : ''
-                } ${!isExpanded ? 'line-clamp-3' : ''}`}
-              >
-                {entry.note}
-              </p>
-            )}
-          </div>
-          {isClamped && !isExpanded && (
-            <button
-              onClick={() => setIsExpanded(true)}
-              className="mt-2 text-caption font-bold text-accent hover:text-accent-hover transition-colors"
-            >
-              ...더 보기
-            </button>
-          )}
-          {isExpanded && (
-            <button
-              onClick={() => setIsExpanded(false)}
-              className="mt-2 text-caption font-medium text-ink-faint hover:text-ink-sub transition-colors"
-            >
-              접기
-            </button>
-          )}
+  const expandControls = (
+    clamped: boolean,
+    expanded: boolean,
+    setExpanded: (next: boolean) => void
+  ) => (
+    <>
+      {clamped && !expanded && (
+        <button
+          onClick={() => setExpanded(true)}
+          className="mt-2 self-start text-caption font-bold text-accent hover:text-accent-hover transition-colors"
+        >
+          ...더 보기
+        </button>
+      )}
+      {expanded && (
+        <button
+          onClick={() => setExpanded(false)}
+          className="mt-2 self-start text-caption font-medium text-ink-faint hover:text-ink-sub transition-colors"
+        >
+          접기
+        </button>
+      )}
+    </>
+  );
 
-          {/* 주소칸 — 괘선 위에 책의 주소, 옆에는 표지 */}
-          <div className="mt-6 flex items-end gap-4">
-            <div className="min-w-0 flex-1">
-              <p className="truncate border-b border-hairline-strong pb-1.5 font-serif text-body-sm font-semibold text-ink">
-                『{book.title}』
-              </p>
-              <p className="truncate border-b border-hairline-strong pb-1.5 pt-2 text-caption text-ink-faint">
-                {addressLine}
-              </p>
-            </div>
-            <div className="relative h-14 w-10 shrink-0 overflow-hidden rounded-[3px] border border-hairline">
+  const flipButton = (label: string) => (
+    <button
+      onClick={() => setIsFlipped((prev) => !prev)}
+      aria-label={label}
+      className="flex shrink-0 items-center gap-1 text-caption font-medium text-ink-faint hover:text-accent transition-colors"
+    >
+      <Repeat size={13} /> 뒤집기
+    </button>
+  );
+
+  // 뒷면 — 감상(사연) · 세로 구분선 · 우표(표지)와 괘선 주소칸 · 서명 줄
+  const backFace = (
+    <div ref={backRef} className="flex h-full flex-col px-5 pt-4 pb-4 sm:px-6">
+      <div className="flex items-start justify-between">
+        <span className="text-seal text-ink-faint pt-1.5">POST CARD</span>
+        <div className="relative shrink-0" ref={menuRef}>
+          <button
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="text-ink-faint hover:text-ink-sub p-2 -my-1 -mr-2 hover:bg-card-raised rounded-full transition-colors"
+            aria-label="더 보기 메뉴"
+          >
+            <MoreHorizontal size={18} />
+          </button>
+          {isMenuOpen && (
+            <>
+              <div className="fixed inset-0 z-10" onClick={() => setIsMenuOpen(false)} />
+              <div className="absolute right-0 mt-1 w-36 bg-card border border-hairline rounded-xl z-20 py-1 overflow-hidden animate-in fade-in zoom-in-95 duration-100 origin-top-right">
+                <button
+                  onClick={() => {
+                    router.push(userProfilePath);
+                    setIsMenuOpen(false);
+                  }}
+                  className="flex items-center gap-2 w-full px-3 py-2 text-caption font-medium text-ink-sub hover:bg-card-raised transition-colors"
+                >
+                  <User size={13} className="text-ink-faint" /> 프로필 방문
+                </button>
+                <button
+                  onClick={() => {
+                    router.push(bookDetailPath);
+                    setIsMenuOpen(false);
+                  }}
+                  className="flex items-center gap-2 w-full px-3 py-2 text-caption font-medium text-ink-sub hover:bg-card-raised transition-colors"
+                >
+                  <BookOpen size={13} className="text-ink-faint" /> 도서 정보
+                </button>
+                <button
+                  onClick={() => {
+                    router.push(entryDetailPath);
+                    setIsMenuOpen(false);
+                  }}
+                  className="flex items-center gap-2 w-full px-3 py-2 text-caption font-semibold text-accent hover:bg-accent-soft border-t border-hairline transition-colors"
+                >
+                  <Maximize2 size={13} /> 상세 보기
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-3 flex-1 sm:flex sm:gap-5">
+        {/* 사연 칸 */}
+        <div className="flex min-w-0 flex-1 flex-col">
+          {entry.note && (
+            <p
+              className={`text-body-sm text-ink-sub whitespace-pre-wrap ${
+                !isBackExpanded ? 'line-clamp-4' : ''
+              }`}
+            >
+              {entry.note}
+            </p>
+          )}
+          {expandControls(isBackClamped, isBackExpanded, setIsBackExpanded)}
+        </div>
+
+        {/* 세로 구분선 — 엽서 뒷면의 사연|주소 경계 */}
+        <div className="hidden sm:block w-px self-stretch bg-hairline" />
+
+        {/* 주소 칸 — 우표 자리의 표지, 괘선 위의 책 */}
+        <div className="mt-5 flex flex-col sm:mt-0 sm:w-44">
+          <div
+            className="perforated-stamp self-end"
+            style={{ transform: `rotate(${stampTilt}deg)` }}
+          >
+            <div className="relative h-14 w-10 overflow-hidden bg-card">
               <Image
                 src={book.cover_url ?? '/images/default-book-cover.png'}
                 alt={`『${book.title}』 표지`}
@@ -201,44 +224,118 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
                 className="object-cover"
                 sizes="40px"
               />
-              {/* 가름끈 — 표지에 끼워 둔 책갈피 리본 */}
-              <span
-                aria-hidden
-                className="absolute -top-px right-1.5 h-[15px] w-[5px] bg-accent/90"
-                style={{ clipPath: 'polygon(0 0, 100% 0, 100% 100%, 50% 70%, 0 100%)' }}
-              />
             </div>
           </div>
-
-          {/* 서명 줄 — 보낸 사람 */}
-          <div className="mt-4 flex items-center justify-between gap-3">
-            <Link href={userProfilePath} className="flex items-center gap-2 group min-w-0">
-              <Avatar
-                alt={`${profile.nickname}의 프로필 이미지`}
-                fallbackText={profile.nickname.charAt(0).toUpperCase()}
-                src={getImageUrl(profile.profile_image) || undefined}
-                size="sm"
-              />
-              <span className="text-caption text-ink-faint shrink-0">from.</span>
-              <span className="text-body-sm font-semibold text-ink group-hover:underline truncate">
-                {profile.name}
-              </span>
-            </Link>
-            <span className="text-caption text-ink-faint shrink-0">
-              {formatDistance(targetDate, now, { addSuffix: true, locale: ko })}
-            </span>
+          <div className="mt-4 sm:mt-auto sm:pt-5">
+            <p className="truncate border-b border-hairline-strong pb-1.5 font-serif text-body-sm font-semibold text-ink">
+              『{book.title}』
+            </p>
+            <p className="truncate border-b border-hairline-strong pb-1.5 pt-2 text-caption text-ink-faint">
+              {addressLine}
+            </p>
           </div>
         </div>
+      </div>
 
-        {/* 액션 바 — 엽서 하단 경계 스트립 */}
-        <SocialActionBar
-          entryId={entry.id}
-          initialLikeCount={initialLikeCount}
-          initialLiked={initialLiked}
-          commentCount={commentCount}
-          onCommentClick={() => setIsCommentOpen(true)}
-          onLikeCountClick={() => setIsLikersOpen(true)}
-        />
+      {/* 서명 줄 */}
+      <div className="mt-4 flex items-center justify-between gap-3">
+        <Link href={userProfilePath} className="flex items-center gap-2 group min-w-0">
+          <Avatar
+            alt={`${profile.nickname}의 프로필 이미지`}
+            fallbackText={profile.nickname.charAt(0).toUpperCase()}
+            src={getImageUrl(profile.profile_image) || undefined}
+            size="sm"
+          />
+          <span className="text-caption text-ink-faint shrink-0">from.</span>
+          <span className="text-body-sm font-semibold text-ink group-hover:underline truncate">
+            {profile.name}
+          </span>
+        </Link>
+        <div className="flex shrink-0 items-center gap-3">
+          <span className="text-caption text-ink-faint">{timeLabel}</span>
+          {hasQuote && flipButton('앞면의 문장 보기')}
+        </div>
+      </div>
+    </div>
+  );
+
+  // 앞면 — 그림 대신 문장이 실린 면
+  const frontFace = hasQuote ? (
+    <div ref={frontRef} className="flex h-full flex-col px-6 pt-5 pb-4">
+      <span aria-hidden className="font-serif text-[2rem] leading-none text-accent">
+        “
+      </span>
+      <blockquote
+        className={`mt-1 font-serif text-quote text-ink whitespace-pre-wrap ${
+          !isFrontExpanded ? 'line-clamp-6' : ''
+        }`}
+      >
+        {entry.quote}
+        <span className="text-accent">”</span>
+      </blockquote>
+      {expandControls(isFrontClamped, isFrontExpanded, setIsFrontExpanded)}
+      <div className="mt-auto flex items-end justify-between gap-3 pt-5">
+        <div className="min-w-0">
+          <p className="truncate text-caption font-medium text-ink-sub">
+            『{book.title}』{book.author ? ` · ${book.author}` : ''}
+          </p>
+          <Link href={userProfilePath} className="mt-1.5 flex items-center gap-1.5 group min-w-0">
+            <Avatar
+              alt={`${profile.nickname}의 프로필 이미지`}
+              fallbackText={profile.nickname.charAt(0).toUpperCase()}
+              src={getImageUrl(profile.profile_image) || undefined}
+              size="sm"
+            />
+            <span className="truncate text-caption text-ink-faint group-hover:underline">
+              {profile.name} · {timeLabel}
+            </span>
+          </Link>
+        </div>
+        {flipButton('뒷면의 감상 보기')}
+      </div>
+    </div>
+  ) : null;
+
+  return (
+    <article
+      aria-label="상세 소셜 피드 항목"
+      style={{ transform: `rotate(${tilt}deg) translateX(${shift}px)` }}
+    >
+      {/* 타공 가장자리의 엽서 낱장 */}
+      <div className="perforated">
+        <div className="bg-card">
+          {hasQuote ? (
+            <div className="[perspective:1200px]">
+              <div
+                className={`grid transition-transform duration-500 motion-reduce:duration-0 [transform-style:preserve-3d] ${
+                  isFlipped ? '[transform:rotateY(180deg)]' : ''
+                }`}
+              >
+                <div inert={isFlipped} className="[grid-area:1/1] [backface-visibility:hidden]">
+                  {frontFace}
+                </div>
+                <div
+                  inert={!isFlipped}
+                  className="[grid-area:1/1] [backface-visibility:hidden] [transform:rotateY(180deg)]"
+                >
+                  {backFace}
+                </div>
+              </div>
+            </div>
+          ) : (
+            backFace
+          )}
+
+          {/* 액션 바 — 엽서 하단 경계 스트립 */}
+          <SocialActionBar
+            entryId={entry.id}
+            initialLikeCount={initialLikeCount}
+            initialLiked={initialLiked}
+            commentCount={commentCount}
+            onCommentClick={() => setIsCommentOpen(true)}
+            onLikeCountClick={() => setIsLikersOpen(true)}
+          />
+        </div>
       </div>
 
       <LikersBottomSheet

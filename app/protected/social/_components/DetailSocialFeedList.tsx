@@ -42,7 +42,7 @@ export default function DetailSocailFeedList({
   return (
     <>
       {/* 엽서는 한 장씩 — 괘선 대신 간격으로 구분 */}
-      <div className="flex flex-col gap-4 py-5">
+      <div className="flex flex-col gap-6 py-6">
         {feed.map((item) => (
           <AnimatedSection key={item.entry.id}>
             <DetailSocailFeedItem item={item} userId={userId} />
