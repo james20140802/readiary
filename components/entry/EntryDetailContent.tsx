@@ -79,120 +79,108 @@ export default function EntryDetailContent({
 
   return (
     <Fragment>
-      <div className="relative">
-        {/* 끈갈피 — 페이지 위에서 드리워진 가름끈. 표지 썸네일의 리본과 같은 문법으로,
-            '갈무리해 둔 자리'라는 표식이다. 장식이므로 클릭을 가로채지 않는다 */}
-        <span
-          aria-hidden
-          className="pointer-events-none absolute -top-10 right-6 z-10 h-32 w-[7px] bg-accent/90 sm:right-10"
-          style={{ clipPath: 'polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 9px), 0 100%)' }}
-        />
-        <section className="space-y-8">
-          {/* 출처 — 이 문장이 어느 책에서 왔는지 */}
-          <Link href={bookUrl} className="group flex items-center gap-4">
-            <Image
-              src={book.cover_url ?? '/images/default-book-cover.png'}
-              alt={`『${book.title ?? '제목 없음'}』 표지`}
-              width={48}
-              height={72}
-              className="rounded border border-hairline object-cover"
-            />
-            <div>
-              <h2 className="font-serif text-xl leading-tight text-ink transition-colors group-hover:text-accent">
-                {book.title ?? '제목 없음'}
-              </h2>
-              <p className="mt-1 text-sm text-ink-sub">{book.author ?? '저자 미상'}</p>
-            </div>
-          </Link>
-
-          <AnimatedSection>
-            <article>
-              {entry.quote && (
-                <div>
-                  <span
-                    aria-hidden
-                    className="block font-serif text-[40px] leading-none text-accent"
-                  >
-                    &ldquo;
-                  </span>
-                  <blockquote className="mt-1 whitespace-pre-wrap font-serif text-[19px] leading-[1.9] text-ink sm:text-[21px]">
-                    {entry.quote}
-                  </blockquote>
-                </div>
-              )}
-              {entry.note && (
-                <p
-                  className={`whitespace-pre-wrap font-serif leading-[1.9] ${
-                    entry.quote ? 'mt-6 text-[15px] text-ink-sub' : 'text-[17px] text-ink'
-                  }`}
-                >
-                  {entry.note}
-                </p>
-              )}
-
-              {/* 여백의 기록 — 날짜·쪽수·공개 여부와 조용한 행동들 */}
-              <footer className="mt-8 flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-t border-hairline pt-4">
-                <div className="flex items-center gap-3 text-[11.5px] tabular-nums text-ink-faint">
-                  <time>{formatKoreanDate(entry.date) ?? entry.date}</time>
-                  {pages && <span>{pages}</span>}
-                  {entry.is_private && (
-                    <span className="flex items-center gap-1">
-                      <Lock size={10} aria-hidden />
-                      비공개
-                    </span>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-4">
-                  <SocialActionBar
-                    entryId={entry.id}
-                    initialLikeCount={initialLikeCount}
-                    initialLiked={initialLiked}
-                    commentCount={commentCount}
-                    onCommentClick={scrollToComments}
-                    border={false}
-                  />
-                  <ShareEntryButton
-                    entryId={entry.id}
-                    quote={entry.quote}
-                    note={entry.note}
-                    date={entry.date}
-                    isPrivate={entry.is_private}
-                    bookTitle={book.title}
-                    bookAuthor={book.author}
-                  />
-                  {!isFriend && (
-                    <>
-                      <span aria-hidden className="h-4 w-px bg-hairline" />
-                      <Link
-                        href={`/protected/entry/${entry.id}/edit`}
-                        className="text-[11.5px] text-ink-faint transition-colors hover:text-accent"
-                      >
-                        수정
-                      </Link>
-                      <button
-                        onClick={() => setIsDeleteDialogOpen(true)}
-                        className="text-[11.5px] text-ink-faint transition-colors hover:text-danger"
-                      >
-                        삭제
-                      </button>
-                    </>
-                  )}
-                </div>
-              </footer>
-            </article>
-          </AnimatedSection>
-
-          {/* 푸터 위 헤어라인이 이미 본문을 닫는다 — 여기 선을 또 그으면 허공에 뜬다 */}
-          <div ref={commentRef}>
-            <CommentSection
-              entryId={entry.id}
-              currentUserId={currentUserId}
-              onCountChange={setCommentCount}
-            />
+      <section className="space-y-8">
+        {/* 출처 — 이 문장이 어느 책에서 왔는지 */}
+        <Link href={bookUrl} className="group flex items-center gap-4">
+          <Image
+            src={book.cover_url ?? '/images/default-book-cover.png'}
+            alt={`『${book.title ?? '제목 없음'}』 표지`}
+            width={48}
+            height={72}
+            className="rounded border border-hairline object-cover"
+          />
+          <div>
+            <h2 className="font-serif text-xl leading-tight text-ink transition-colors group-hover:text-accent">
+              {book.title ?? '제목 없음'}
+            </h2>
+            <p className="mt-1 text-sm text-ink-sub">{book.author ?? '저자 미상'}</p>
           </div>
-        </section>
-      </div>
+        </Link>
+
+        <AnimatedSection>
+          <article>
+            {entry.quote && (
+              <div>
+                <span aria-hidden className="block font-serif text-[40px] leading-none text-accent">
+                  &ldquo;
+                </span>
+                <blockquote className="mt-1 whitespace-pre-wrap font-serif text-[19px] leading-[1.9] text-ink sm:text-[21px]">
+                  {entry.quote}
+                </blockquote>
+              </div>
+            )}
+            {entry.note && (
+              <p
+                className={`whitespace-pre-wrap font-serif leading-[1.9] ${
+                  entry.quote ? 'mt-6 text-[15px] text-ink-sub' : 'text-[17px] text-ink'
+                }`}
+              >
+                {entry.note}
+              </p>
+            )}
+
+            {/* 여백의 기록 — 날짜·쪽수·공개 여부와 조용한 행동들 */}
+            <footer className="mt-8 flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-t border-hairline pt-4">
+              <div className="flex items-center gap-3 text-[11.5px] tabular-nums text-ink-faint">
+                <time>{formatKoreanDate(entry.date) ?? entry.date}</time>
+                {pages && <span>{pages}</span>}
+                {entry.is_private && (
+                  <span className="flex items-center gap-1">
+                    <Lock size={10} aria-hidden />
+                    비공개
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-center gap-4">
+                <SocialActionBar
+                  entryId={entry.id}
+                  initialLikeCount={initialLikeCount}
+                  initialLiked={initialLiked}
+                  commentCount={commentCount}
+                  onCommentClick={scrollToComments}
+                  border={false}
+                />
+                <ShareEntryButton
+                  entryId={entry.id}
+                  quote={entry.quote}
+                  note={entry.note}
+                  date={entry.date}
+                  isPrivate={entry.is_private}
+                  bookTitle={book.title}
+                  bookAuthor={book.author}
+                />
+                {!isFriend && (
+                  <>
+                    <span aria-hidden className="h-4 w-px bg-hairline" />
+                    <Link
+                      href={`/protected/entry/${entry.id}/edit`}
+                      className="text-[11.5px] text-ink-faint transition-colors hover:text-accent"
+                    >
+                      수정
+                    </Link>
+                    <button
+                      onClick={() => setIsDeleteDialogOpen(true)}
+                      className="text-[11.5px] text-ink-faint transition-colors hover:text-danger"
+                    >
+                      삭제
+                    </button>
+                  </>
+                )}
+              </div>
+            </footer>
+          </article>
+        </AnimatedSection>
+
+        {/* 푸터 위 헤어라인이 이미 본문을 닫는다 — 여기 선을 또 그으면 허공에 뜬다 */}
+        <div ref={commentRef}>
+          <CommentSection
+            entryId={entry.id}
+            currentUserId={currentUserId}
+            onCountChange={setCommentCount}
+          />
+        </div>
+      </section>
 
       {/* 삭제 확인 모달 */}
       <Modal isOpen={isDeleteDialogOpen} onClose={() => setIsDeleteDialogOpen(false)}>
