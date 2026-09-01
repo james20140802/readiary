@@ -31,12 +31,19 @@ function pixelRatioFor(el: HTMLElement): number {
   return Math.min(2, Math.max(1, Math.floor(maxRatio * 10) / 10));
 }
 
-/** 카드 한 장(4:5)에 들어갈 인용의 글자 크기 — 길수록 작게, 아주 길면 잘라낸다 */
-function quoteSizeClass(length: number): string {
-  if (length <= 80) return 'text-[21px] leading-[1.9]';
-  if (length <= 200) return 'text-[18px] leading-[1.85]';
-  if (length <= 420) return 'text-[15.5px] leading-[1.8]';
-  return 'text-[13.5px] leading-[1.75] line-clamp-[18]';
+/**
+ * 카드 한 장(4:5)에 들어갈 인용의 글자 크기 — 길수록 작게, 넘치면 잘라낸다.
+ * whitespace-pre-wrap이라 명시적 줄바꿈이 그대로 살아나므로, 글자 수만으로는
+ * 짧은 시(줄 많음)의 렌더 높이를 놓친다 — 줄 수도 티어 결정에 넣고,
+ * 각 티어의 line-clamp는 카드의 인용 영역 높이(약 520px)에 맞춘 상한이다.
+ */
+function quoteSizeClass(quote: string): string {
+  const length = quote.length;
+  const lines = quote.split('\n').length;
+  if (length <= 80 && lines <= 4) return 'text-[21px] leading-[1.9] line-clamp-[10]';
+  if (length <= 200 && lines <= 9) return 'text-[18px] leading-[1.85] line-clamp-[13]';
+  if (length <= 420 && lines <= 14) return 'text-[15.5px] leading-[1.8] line-clamp-[16]';
+  return 'text-[13.5px] leading-[1.75] line-clamp-[20]';
 }
 
 /**
@@ -317,7 +324,7 @@ export default function ExportExcerptsButton(props: ExcerptBookletProps) {
                 <div className="flex min-h-0 flex-1 items-center justify-center">
                   <blockquote
                     className={`whitespace-pre-wrap text-center font-serif text-ink ${quoteSizeClass(
-                      q.quote.length
+                      q.quote
                     )}`}
                   >
                     {q.quote}
