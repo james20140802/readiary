@@ -177,7 +177,6 @@ export default function BookDetailContent({
             {sortedEntries.map((data) => (
               <EntryCard
                 key={data.entry.id}
-                variant="flow"
                 id={data.entry.id}
                 quote={data.entry.quote}
                 note={data.entry.note}
