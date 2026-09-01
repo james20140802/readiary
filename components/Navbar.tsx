@@ -76,14 +76,7 @@ export default function Navbar() {
                 )}
                 prefetch
               >
-                <span className="relative">
-                  {item.icon}
-                  {hasUnread && item.href === '/protected/social' && (
-                    <span className="absolute -top-0.5 -right-1 h-[7px] w-[7px] rounded-full bg-accent">
-                      <span className="sr-only">읽지 않은 알림 있음</span>
-                    </span>
-                  )}
-                </span>
+                {item.icon}
                 {item.label}
               </Link>
             ))}
