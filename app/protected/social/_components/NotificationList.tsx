@@ -13,9 +13,9 @@ interface Props {
 export default function NotificationList({ notifications }: Props) {
   if (notifications.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 gap-3 border-2 border-dashed border-hairline rounded-2xl">
-        <Bell size={32} className="text-ink-faint" />
-        <p className="text-body-sm font-medium text-ink">아직 알림이 없어요</p>
+      <div className="flex flex-col items-center justify-center py-20 gap-2">
+        <Bell size={28} className="text-ink-faint" />
+        <p className="text-body-sm text-ink-faint">아직 알림이 없어요</p>
         <p className="text-caption text-ink-faint">친구들의 반응이 여기에 모여요</p>
       </div>
     );
