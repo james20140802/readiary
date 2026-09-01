@@ -20,6 +20,17 @@ function dataUrlToFile(dataUrl: string, name: string): File {
   return new File([bytes], name, { type: 'image/png' });
 }
 
+// iOS Safari의 캔버스 픽셀 상한(약 16.7M px) — 넘으면 캡처가 빈/잘린 이미지가 된다.
+// 문장이 많은 발췌집의 '한 장으로' 내보내기는 이 상한 아래로 배율을 낮춰 찍는다.
+const SAFE_CANVAS_AREA = 16_000_000;
+
+function pixelRatioFor(el: HTMLElement): number {
+  const { width, height } = el.getBoundingClientRect();
+  if (width <= 0 || height <= 0) return 2;
+  const maxRatio = Math.sqrt(SAFE_CANVAS_AREA / (width * height));
+  return Math.min(2, Math.max(1, Math.floor(maxRatio * 10) / 10));
+}
+
 /** 카드 한 장(4:5)에 들어갈 인용의 글자 크기 — 길수록 작게, 아주 길면 잘라낸다 */
 function quoteSizeClass(length: number): string {
   if (length <= 80) return 'text-[21px] leading-[1.9]';
@@ -62,11 +73,19 @@ export default function ExportExcerptsButton(props: ExcerptBookletProps) {
           (el): el is HTMLDivElement => el != null
         );
         if (targets.length === 0) throw new Error('캡처 대상 없음');
+        if (mode === 'long') {
+          const { width, height } = targets[0].getBoundingClientRect();
+          if (width * height > SAFE_CANVAS_AREA) {
+            toast.error('문장이 많아 한 장으로는 내보낼 수 없어요. 카드로 나누어를 이용해 주세요.');
+            if (!cancelled) setStage('choose');
+            return;
+          }
+        }
         // Safari는 첫 캡처에서 웹폰트가 빠지는 일이 있어 한 번 버리고 시작한다
-        await toPng(targets[0], { pixelRatio: 2, cacheBust: true });
+        await toPng(targets[0], { pixelRatio: pixelRatioFor(targets[0]), cacheBust: true });
         const urls: string[] = [];
         for (const el of targets) {
-          urls.push(await toPng(el, { pixelRatio: 2, cacheBust: true }));
+          urls.push(await toPng(el, { pixelRatio: pixelRatioFor(el), cacheBust: true }));
         }
         if (!cancelled) {
           setImages(urls);
