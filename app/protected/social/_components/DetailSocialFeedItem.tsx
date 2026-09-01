@@ -118,7 +118,7 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
       ? 'text-[24px] leading-[1.7]'
       : quoteLen <= 160
         ? 'text-quote'
-        : 'text-[17px] leading-[1.8]';
+        : 'text-[17px] leading-[1.6]';
   const noteSizeClass = (entry.note?.length ?? 0) <= 80 ? 'text-body' : 'text-body-sm';
 
   // 아날로그 낱장 느낌 — 기록 id에서 뽑은 결정적 기울기·어긋남
@@ -235,7 +235,7 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
         <div className="flex min-w-0 flex-1 flex-col">
           {entry.note && (
             <p
-              className={`${noteSizeClass} text-ink-sub whitespace-pre-wrap ${
+              className={`${noteSizeClass} text-pretty text-ink-sub whitespace-pre-wrap ${
                 !isBackExpanded ? 'line-clamp-3 sm:line-clamp-4' : ''
               }`}
             >
@@ -304,7 +304,7 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
         “
       </span>
       <blockquote
-        className={`mt-1 font-serif ${quoteSizeClass} text-ink whitespace-pre-wrap ${
+        className={`mt-1 font-serif ${quoteSizeClass} text-pretty text-ink whitespace-pre-wrap ${
           !isFrontExpanded ? 'line-clamp-4 sm:line-clamp-6' : ''
         }`}
       >
