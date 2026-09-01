@@ -9,6 +9,7 @@ import DeclineFriendRequestButton from './DeclineFriendRequestButton';
 import CancelFriendRequestButton from './CancelFriendRequestButton';
 import { Friend } from '@/types/friends';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { useLiveRefresh } from '@/hooks/useLiveRefresh';
 import { Users } from 'lucide-react';
 
 export type FriendsTabValue = 'friends' | 'pending' | 'sent';
@@ -30,6 +31,8 @@ export default function FriendsManager({
 }: Props) {
   const [friendTab, setFriendTab] = useState<FriendsTabValue>(initialTab);
   const isMobile = useIsMobile();
+  // 열어 둔 채 써도 새 친구 요청이 새로고침 없이 도착하도록
+  useLiveRefresh();
 
   const friendTabs = [
     { label: '목록', value: 'friends' },

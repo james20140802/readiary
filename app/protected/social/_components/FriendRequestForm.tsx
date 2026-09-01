@@ -103,7 +103,7 @@ export default function FriendRequestForm({ initialQuery }: Props) {
         <button
           onClick={handleSearch}
           disabled={loading || !nicknameAndTag.trim()}
-          className="shrink-0 text-caption font-semibold text-accent hover:text-accent-hover disabled:opacity-40 transition-colors"
+          className="shrink-0 px-2 py-1.5 text-body-sm font-semibold text-accent hover:text-accent-hover disabled:opacity-40 transition-colors"
         >
           요청
         </button>

@@ -6,6 +6,7 @@ import clsx from 'clsx';
 import type { User } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react';
 import { createSupabaseClient } from '@/lib/supabase/client';
+import { useUnreadNotifications } from '@/hooks/useUnreadNotifications';
 
 const navItems = [
   { href: '/protected/dashboard', label: '홈', icon: <Home size={20} strokeWidth={1.75} /> },
@@ -17,7 +18,7 @@ const navItems = [
 export default function Navbar() {
   const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
-  const [hasUnread, setHasUnread] = useState(false);
+  const hasUnread = useUnreadNotifications(!!user);
   const supabase = createSupabaseClient();
   const router = useRouter();
 
@@ -43,20 +44,6 @@ export default function Navbar() {
       listener?.subscription.unsubscribe();
     };
   }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-    supabase
-      .from('notifications')
-      .select('id', { count: 'exact', head: true })
-      .is('read_at', null)
-      .then(({ count, error }) => {
-        if (!cancelled && !error) setHasUnread((count ?? 0) > 0);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [pathname]);
 
   return (
     <>

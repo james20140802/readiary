@@ -5,13 +5,13 @@ import { useEffect, useState } from 'react';
 import { createSupabaseClient } from '@/lib/supabase/client';
 import { Bell, BookMarked } from 'lucide-react';
 import { useIsMobile } from '@/hooks/useIsMobile';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import { useUnreadNotifications } from '@/hooks/useUnreadNotifications';
 
 export default function Header() {
   const isMobile = useIsMobile();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [hasUnread, setHasUnread] = useState(false);
-  const pathname = usePathname();
+  const hasUnread = useUnreadNotifications(isLoggedIn);
 
   const router = useRouter();
 
@@ -29,22 +29,6 @@ export default function Header() {
     };
     checkAuth();
   }, []);
-
-  useEffect(() => {
-    if (!isLoggedIn) return;
-    const supabase = createSupabaseClient();
-    let cancelled = false;
-    supabase
-      .from('notifications')
-      .select('id', { count: 'exact', head: true })
-      .is('read_at', null)
-      .then(({ count, error }) => {
-        if (!cancelled && !error) setHasUnread((count ?? 0) > 0);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [pathname, isLoggedIn]);
 
   if (!isMobile) return null;
 
