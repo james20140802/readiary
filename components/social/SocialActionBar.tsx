@@ -76,14 +76,12 @@ export default function SocialActionBar({
         {/* 좋아요 버튼 */}
         <button
           onClick={handleLikeToggle}
-          className={`flex items-center gap-1.5 transition-all active:scale-90 hover:text-rose-500 ${
-            isLiked ? 'text-rose-500' : 'text-ink-faint hover:text-rose-500'
+          className={`flex items-center gap-1.5 transition-all active:scale-90 ${
+            isLiked ? 'text-accent' : 'text-ink-faint hover:text-accent'
           } ${isLoading ? 'cursor-progress' : ''}`}
         >
-          <Heart size={18} fill={isLiked ? 'currentColor' : 'none'} strokeWidth={2} />
-          <span className="text-[12.5px] font-extrabold tabular-nums">
-            {formatCount(likeCount)}
-          </span>
+          <Heart size={18} fill={isLiked ? 'currentColor' : 'none'} strokeWidth={1.75} />
+          <span className="text-caption font-medium tabular-nums">{formatCount(likeCount)}</span>
         </button>
 
         {/* 댓글 버튼 (나중에 여기서 댓글 리스트 토글 로직을 추가하면 됩니다) */}
@@ -95,9 +93,9 @@ export default function SocialActionBar({
             onCommentClick();
           }}
         >
-          <MessageCircle size={18} strokeWidth={2} />
+          <MessageCircle size={18} strokeWidth={1.75} />
           {showCommentCount && (
-            <span className="text-[12.5px] font-extrabold tabular-nums">
+            <span className="text-caption font-medium tabular-nums">
               {formatCount(initialCommentCount)}
             </span>
           )}

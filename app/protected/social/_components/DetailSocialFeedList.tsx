@@ -40,12 +40,14 @@ export default function DetailSocailFeedList({
   });
 
   return (
-    <div className="flex flex-col gap-3">
-      {feed.map((item) => (
-        <AnimatedSection key={item.entry.id}>
-          <DetailSocailFeedItem item={item} userId={userId} />
-        </AnimatedSection>
-      ))}
+    <>
+      <div className="divide-y divide-hairline">
+        {feed.map((item) => (
+          <AnimatedSection key={item.entry.id}>
+            <DetailSocailFeedItem item={item} userId={userId} />
+          </AnimatedSection>
+        ))}
+      </div>
 
       {/* 바닥 감지 영역 */}
       {hasMore && (
@@ -55,6 +57,6 @@ export default function DetailSocailFeedList({
           )}
         </div>
       )}
-    </div>
+    </>
   );
 }

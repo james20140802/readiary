@@ -1,14 +1,12 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { formatDistance } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { MoreHorizontal, User, BookOpen, Maximize2 } from 'lucide-react';
 import { DetailSocialFeedEntry } from '@/types/entry';
-import Card from '@/components/ui/Card';
 import SentenceCard from '@/components/entries/SentenceCard';
 import SocialActionBar from '@/components/social/SocialActionBar';
 import { toZonedTime } from 'date-fns-tz';
@@ -63,32 +61,42 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
   const noteLines = entry.note ? entry.note.split('\n').length : 0;
   const mayClamp = contentLength > 120 || quoteLines > 4 || noteLines > 3;
 
+  const dateLabel = [
+    new Date(entry.date + 'T00:00:00').toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    }),
+    readRange,
+  ]
+    .filter(Boolean)
+    .join(' · ');
+
   return (
-    <Card aria-label="상세 소셜 피드 항목" className="!p-0 overflow-hidden" hoverable={false}>
-      {/* 1. 헤더 */}
-      <div className="flex items-center justify-between px-4 pt-4 pb-3">
-        <Link href={userProfilePath} className="flex items-center gap-3 group">
+    <article aria-label="상세 소셜 피드 항목" className="py-5">
+      {/* 1. 헤더 — 아바타·이름·시간 한 줄 */}
+      <div className="flex items-center justify-between mb-3">
+        <Link href={userProfilePath} className="flex items-center gap-2.5 group min-w-0">
           <Avatar
             alt={`${profile.nickname}의 프로필 이미지`}
             fallbackText={profile.nickname.charAt(0).toUpperCase()}
             src={getImageUrl(profile.profile_image) || undefined}
-            size="md"
+            size="sm"
           />
-          <div>
-            <span className="text-body-sm font-bold text-ink group-hover:underline">
-              {profile.name}
-            </span>
-            <p className="text-caption text-ink-faint">
-              {formatDistance(targetDate, now, { addSuffix: true, locale: ko })}
-            </p>
-          </div>
+          <span className="text-body-sm font-medium text-ink group-hover:underline truncate">
+            {profile.name}
+          </span>
+          <span className="text-caption text-ink-faint shrink-0">
+            {formatDistance(targetDate, now, { addSuffix: true, locale: ko })}
+          </span>
         </Link>
 
         {/* 드롭다운 */}
-        <div className="relative" ref={menuRef}>
+        <div className="relative shrink-0" ref={menuRef}>
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="text-ink-faint hover:text-ink-sub p-2 hover:bg-card-raised rounded-full transition-colors"
+            className="text-ink-faint hover:text-ink-sub p-2 -mr-2 hover:bg-card-raised rounded-full transition-colors"
+            aria-label="더 보기 메뉴"
           >
             <MoreHorizontal size={18} />
           </button>
@@ -129,74 +137,44 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
         </div>
       </div>
 
-      {/* 2. 도서 정보 — 테두리만, 배경 없음 */}
-      <Link href={bookDetailPath}>
-        <div className="mx-4 mb-3 flex gap-4 rounded-xl p-3 border border-hairline hover:border-hairline-strong transition-colors">
-          <div className="relative w-[52px] h-[72px] shrink-0 rounded-lg overflow-hidden">
-            <Image
-              src={book.cover_url || '/images/default-book-cover.png'}
-              alt={book.title}
-              fill
-              className="object-cover"
-              sizes="52px"
-            />
-          </div>
-          <div className="flex flex-col justify-center gap-1.5 min-w-0">
-            <div>
-              <h3 className="text-body-sm font-bold text-ink line-clamp-1">{book.title}</h3>
-              <p className="text-caption text-ink-faint line-clamp-1">{book.author}</p>
-            </div>
-            {readRange && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent-soft border border-accent/20 text-accent text-[11px] font-bold w-fit">
-                {readRange}
-              </span>
-            )}
-          </div>
-        </div>
-      </Link>
-
-      {/* 3. 독서 기록 본문 */}
-      {contentLength > 0 && (
-        <div className="px-4 pb-3">
-          <SentenceCard
-            quote={entry.quote}
-            note={entry.note}
-            bookTitle={book.title}
-            bookAuthor={book.author}
-            dateLabel={new Date(entry.date + 'T00:00:00').toLocaleDateString('ko-KR', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-            })}
-            collapsed={!isExpanded}
-          />
-          {mayClamp && !isExpanded && (
-            <button
-              onClick={() => setIsExpanded(true)}
-              className="mt-2 text-caption font-bold text-accent hover:text-accent-hover transition-colors"
-            >
-              ...더 보기
-            </button>
-          )}
-          {isExpanded && (
-            <button
-              onClick={() => setIsExpanded(false)}
-              className="mt-2 text-caption font-medium text-ink-faint hover:text-ink-sub transition-colors"
-            >
-              접기
-            </button>
-          )}
-        </div>
+      {/* 2. 본문 — 발췌집과 같은 문장 카드로 수렴. 내용이 없어도
+          『책』 저자 · 날짜 · 페이지 한 줄이 조용한 독서 기록이 된다 */}
+      <SentenceCard
+        quote={entry.quote}
+        note={entry.note}
+        bookTitle={book.title}
+        bookAuthor={book.author}
+        dateLabel={dateLabel}
+        collapsed={!isExpanded}
+      />
+      {mayClamp && !isExpanded && (
+        <button
+          onClick={() => setIsExpanded(true)}
+          className="mt-2 text-caption font-bold text-accent hover:text-accent-hover transition-colors"
+        >
+          ...더 보기
+        </button>
+      )}
+      {isExpanded && (
+        <button
+          onClick={() => setIsExpanded(false)}
+          className="mt-2 text-caption font-medium text-ink-faint hover:text-ink-sub transition-colors"
+        >
+          접기
+        </button>
       )}
 
-      {/* 4. 소셜 액션 바 */}
-      <SocialActionBar
-        entryId={entry.id}
-        initialLikeCount={initialLikeCount}
-        initialLiked={initialLiked}
-        commentCount={commentCount}
-        onCommentClick={() => setIsCommentOpen(true)}
-      />
+      {/* 3. 소셜 액션 */}
+      <div className="mt-3">
+        <SocialActionBar
+          entryId={entry.id}
+          initialLikeCount={initialLikeCount}
+          initialLiked={initialLiked}
+          commentCount={commentCount}
+          onCommentClick={() => setIsCommentOpen(true)}
+          border={false}
+        />
+      </div>
 
       <CommentBottomSheet
         entryId={entry.id}
@@ -205,6 +183,6 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
         onClose={() => setIsCommentOpen(false)}
         onCountChange={setCommentCount}
       />
-    </Card>
+    </article>
   );
 }
