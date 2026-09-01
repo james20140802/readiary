@@ -13,13 +13,22 @@ type ExportMode = 'long' | 'cards';
 type Stage = 'choose' | 'generating' | 'preview';
 
 // iOS Safari의 캔버스 픽셀 상한(약 16.7M px) — 넘으면 캡처가 빈/잘린 이미지가 된다.
-// 문장이 많은 발췌집의 '한 장으로' 내보내기는 이 상한 아래로 배율을 낮춰 찍는다.
+// 면적과 별개로 한 변의 길이에도 브라우저별 상한이 있다(낮은 쪽 기준 보수적으로).
+// 문장이 많은 발췌집의 '한 장으로' 내보내기는 두 상한 아래로 배율을 낮춰 찍는다.
 const SAFE_CANVAS_AREA = 16_000_000;
+const SAFE_CANVAS_DIM = 16_000;
+
+function exceedsCanvasLimits(width: number, height: number): boolean {
+  return width * height > SAFE_CANVAS_AREA || Math.max(width, height) > SAFE_CANVAS_DIM;
+}
 
 function pixelRatioFor(el: HTMLElement): number {
   const { width, height } = el.getBoundingClientRect();
   if (width <= 0 || height <= 0) return 2;
-  const maxRatio = Math.sqrt(SAFE_CANVAS_AREA / (width * height));
+  const maxRatio = Math.min(
+    Math.sqrt(SAFE_CANVAS_AREA / (width * height)),
+    SAFE_CANVAS_DIM / Math.max(width, height)
+  );
   return Math.min(2, Math.max(1, Math.floor(maxRatio * 10) / 10));
 }
 
@@ -70,6 +79,8 @@ export default function ExportExcerptsButton(props: ExcerptBookletProps) {
     if (stage !== 'generating' || !mode) return;
     let cancelled = false;
     (async () => {
+      // 중간에 실패하면 이미 만든 object URL을 catch에서 되짚어 revoke한다
+      const nextUrls: string[] = [];
       try {
         await document.fonts.ready;
         await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
@@ -79,7 +90,7 @@ export default function ExportExcerptsButton(props: ExcerptBookletProps) {
         if (targets.length === 0) throw new Error('캡처 대상 없음');
         if (mode === 'long') {
           const { width, height } = targets[0].getBoundingClientRect();
-          if (width * height > SAFE_CANVAS_AREA) {
+          if (exceedsCanvasLimits(width, height)) {
             toast.error('문장이 많아 한 장으로는 내보낼 수 없어요. 카드로 나누어를 이용해 주세요.');
             if (!cancelled) setStage('choose');
             return;
@@ -88,7 +99,6 @@ export default function ExportExcerptsButton(props: ExcerptBookletProps) {
         // Safari는 첫 캡처에서 웹폰트가 빠지는 일이 있어 한 번 버리고 시작한다
         await toBlob(targets[0], { pixelRatio: pixelRatioFor(targets[0]), cacheBust: true });
         const nextFiles: File[] = [];
-        const nextUrls: string[] = [];
         for (let i = 0; i < targets.length; i++) {
           const blob = await toBlob(targets[i], {
             pixelRatio: pixelRatioFor(targets[i]),
@@ -108,6 +118,7 @@ export default function ExportExcerptsButton(props: ExcerptBookletProps) {
           nextUrls.forEach((url) => URL.revokeObjectURL(url));
         }
       } catch (error) {
+        nextUrls.forEach((url) => URL.revokeObjectURL(url));
         console.error('발췌집 이미지 생성 실패:', error);
         if (!cancelled) {
           toast.error('이미지 생성에 실패했습니다.');
@@ -122,12 +133,15 @@ export default function ExportExcerptsButton(props: ExcerptBookletProps) {
 
   const handleSave = () => {
     files.forEach((file, i) => {
-      const blobUrl = previewUrls[i];
+      // 저장 전용 URL을 따로 만든다 — 스태거 도중 시트를 닫아
+      // 미리보기 URL이 revoke돼도 예약된 다운로드가 살아남도록
+      const blobUrl = URL.createObjectURL(file);
       setTimeout(() => {
         const anchor = document.createElement('a');
         anchor.href = blobUrl;
         anchor.download = file.name;
         anchor.click();
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 10_000);
       }, i * 300);
     });
     toast.success(
