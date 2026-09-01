@@ -49,17 +49,30 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
   const bookDetailPath = `/protected/social/u/${profile.nickname}-${profile.tag}/books/${book.id}`;
   const entryDetailPath = `/protected/social/u/${profile.nickname}-${profile.tag}/entry/${entry.id}`;
 
+  // "더 보기"는 추측이 아니라 실제 잘림 여부로 판단한다
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [isClamped, setIsClamped] = useState(false);
+
+  useEffect(() => {
+    const check = () => {
+      const el = contentRef.current;
+      if (!el) return;
+      const clamped = Array.from(el.querySelectorAll('.line-clamp-4, .line-clamp-3')).some(
+        (node) => node.scrollHeight > node.clientHeight + 1
+      );
+      setIsClamped(clamped);
+    };
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, [isExpanded, entry.quote, entry.note]);
+
   const readRange =
     entry.from_page != null && entry.to_page != null
       ? `${entry.from_page}→${entry.to_page}p`
       : entry.from_page != null || entry.to_page != null
         ? `${entry.to_page ?? entry.from_page}p까지`
         : null;
-
-  const contentLength = (entry.quote?.length ?? 0) + (entry.note?.length ?? 0);
-  const quoteLines = entry.quote ? entry.quote.split('\n').length : 0;
-  const noteLines = entry.note ? entry.note.split('\n').length : 0;
-  const mayClamp = contentLength > 120 || quoteLines > 4 || noteLines > 3;
 
   const dateLabel = [
     new Date(entry.date + 'T00:00:00').toLocaleDateString('ko-KR', {
@@ -139,16 +152,18 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
 
       {/* 2. 본문 — 발췌집과 같은 문장 카드로 수렴. 내용이 없어도
           『책』 저자 · 날짜 · 페이지 한 줄이 조용한 독서 기록이 된다 */}
-      <SentenceCard
-        quote={entry.quote}
-        note={entry.note}
-        bookTitle={book.title}
-        bookAuthor={book.author}
-        dateLabel={dateLabel}
-        coverUrl={book.cover_url ?? null}
-        collapsed={!isExpanded}
-      />
-      {mayClamp && !isExpanded && (
+      <div ref={contentRef}>
+        <SentenceCard
+          quote={entry.quote}
+          note={entry.note}
+          bookTitle={book.title}
+          bookAuthor={book.author}
+          dateLabel={dateLabel}
+          coverUrl={book.cover_url ?? null}
+          collapsed={!isExpanded}
+        />
+      </div>
+      {isClamped && !isExpanded && (
         <button
           onClick={() => setIsExpanded(true)}
           className="mt-2 text-caption font-bold text-accent hover:text-accent-hover transition-colors"
