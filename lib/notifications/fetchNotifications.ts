@@ -11,6 +11,22 @@ function resolveActor(actor: ActorProfile | ActorProfile[] | null): ActorProfile
   return Array.isArray(actor) ? (actor[0] ?? null) : actor;
 }
 
+export async function fetchUnreadNotificationCount(): Promise<number> {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return 0;
+
+  const { count, error } = await supabase
+    .from('notifications')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+    .is('read_at', null);
+
+  return error ? 0 : (count ?? 0);
+}
+
 export async function fetchNotifications(): Promise<NotificationItem[]> {
   const supabase = await createSupabaseServerClient();
   const {

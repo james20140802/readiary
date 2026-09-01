@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { BookMarked, Home, LibraryBig, Globe, UserRound } from 'lucide-react';
+import { Bell, BookMarked, Home, LibraryBig, Globe, UserRound } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import clsx from 'clsx';
 import type { User } from '@supabase/supabase-js';
@@ -70,7 +70,9 @@ export default function Navbar() {
                 href={item.href}
                 className={clsx(
                   'flex flex-col items-center gap-1 py-1 px-2 transition',
-                  pathname === item.href ? 'text-accent font-semibold' : 'text-ink-faint'
+                  pathname === item.href || pathname.startsWith(`${item.href}/`)
+                    ? 'text-accent font-semibold'
+                    : 'text-ink-faint'
                 )}
                 prefetch
               >
@@ -101,28 +103,40 @@ export default function Navbar() {
             Readiary
           </Link>
           {user && (
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
               {navItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
                   className={clsx(
                     'flex items-center gap-2 px-3 py-1 rounded-md transition hover:bg-card-raised',
-                    pathname === item.href ? 'text-ink font-semibold' : 'text-ink-faint'
+                    pathname === item.href || pathname.startsWith(`${item.href}/`)
+                      ? 'text-ink font-semibold'
+                      : 'text-ink-faint'
                   )}
                   prefetch
                 >
-                  <span className="relative">
-                    {item.icon}
-                    {hasUnread && item.href === '/protected/social' && (
-                      <span className="absolute -top-0.5 -right-1 h-[7px] w-[7px] rounded-full bg-accent">
-                        <span className="sr-only">읽지 않은 알림 있음</span>
-                      </span>
-                    )}
-                  </span>
+                  {item.icon}
                   {item.label}
                 </Link>
               ))}
+
+              {/* 알림 종 — 데스크톱에서는 전역 크롬에 상주 (모바일은 소셜 페이지 헤더가 담당) */}
+              <Link
+                href="/protected/social/notifications"
+                className={clsx(
+                  'relative flex items-center px-2.5 py-1.5 rounded-md transition hover:bg-card-raised',
+                  pathname === '/protected/social/notifications' ? 'text-ink' : 'text-ink-faint'
+                )}
+                aria-label="알림"
+              >
+                <Bell size={20} strokeWidth={1.75} />
+                {hasUnread && (
+                  <span className="absolute top-1 right-1.5 h-[7px] w-[7px] rounded-full bg-accent">
+                    <span className="sr-only">읽지 않은 알림 있음</span>
+                  </span>
+                )}
+              </Link>
             </div>
           )}
         </div>
