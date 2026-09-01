@@ -97,33 +97,61 @@ export default function EntryDetailContent({
           </div>
         </Link>
 
+        {/* 문진 — 원고 첫머리를 눌러 둔 돌막대. 잉크 토큰이라 라이트/다크 모두 지면과 반대 톤 */}
+        <div
+          aria-hidden
+          className="h-2 rounded-full bg-ink shadow-[inset_0_1px_1px_rgba(255,255,255,0.35),0_2px_5px_rgba(0,0,0,0.35)]"
+        />
+
         <AnimatedSection>
           <article>
-            {entry.quote && (
-              <div>
-                <span aria-hidden className="block font-serif text-[40px] leading-none text-accent">
-                  &ldquo;
-                </span>
-                <blockquote className="mt-1 whitespace-pre-wrap font-serif text-[19px] leading-[1.9] text-ink sm:text-[21px]">
-                  {entry.quote}
-                </blockquote>
+            {/* 북라이트 — 원고 첫머리에 드리운 따뜻한 빛 웅덩이. 다크모드에서 특히 살아난다 */}
+            <div className="relative">
+              <div
+                aria-hidden
+                className="pointer-events-none absolute left-1/2 top-[-3.5rem] h-72 w-[34rem] max-w-[130%] -translate-x-1/2 bg-[radial-gradient(ellipse_at_center,rgba(255,196,110,0.13),transparent_68%)]"
+              />
+              <div className="relative">
+                {entry.quote && (
+                  <div>
+                    <span
+                      aria-hidden
+                      className="block font-serif text-[40px] leading-none text-accent"
+                    >
+                      &ldquo;
+                    </span>
+                    <blockquote className="mt-1 whitespace-pre-wrap font-serif text-[19px] leading-[1.9] text-ink sm:text-[21px]">
+                      {entry.quote}
+                    </blockquote>
+                  </div>
+                )}
+                {entry.note && (
+                  <p
+                    className={`whitespace-pre-wrap font-serif leading-[1.9] ${
+                      entry.quote ? 'mt-6 text-[15px] text-ink-sub' : 'text-[17px] text-ink'
+                    }`}
+                  >
+                    {entry.note}
+                  </p>
+                )}
               </div>
-            )}
-            {entry.note && (
-              <p
-                className={`whitespace-pre-wrap font-serif leading-[1.9] ${
-                  entry.quote ? 'mt-6 text-[15px] text-ink-sub' : 'text-[17px] text-ink'
-                }`}
-              >
-                {entry.note}
-              </p>
-            )}
+            </div>
 
             {/* 여백의 기록 — 날짜·쪽수·공개 여부와 조용한 행동들 */}
             <footer className="mt-8 flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-t border-hairline pt-4">
               <div className="flex items-center gap-3 text-[11.5px] tabular-nums text-ink-faint">
                 <time>{formatKoreanDate(entry.date) ?? entry.date}</time>
-                {pages && <span>{pages}</span>}
+                {pages && (
+                  <span className="flex items-center gap-1">
+                    {/* 북다트 — 쪽수를 물고 있는 놋쇠 클립 */}
+                    <span
+                      aria-hidden
+                      className="inline-block h-[10px] w-[7px] bg-gradient-to-b from-amber-200 via-amber-400 to-amber-600"
+                      style={{ clipPath: 'polygon(0 0, 100% 50%, 0 100%)' }}
+                    />
+                    {pages}
+                  </span>
+                )}
                 {entry.is_private && (
                   <span className="flex items-center gap-1">
                     <Lock size={10} aria-hidden />
