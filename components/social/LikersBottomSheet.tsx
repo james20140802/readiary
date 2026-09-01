@@ -15,19 +15,12 @@ interface Liker {
 
 interface Props {
   entryId: string;
-  bookTitle: string;
   isOpen: boolean;
   onClose: () => void;
 }
 
-/** 카드가 늘 갖춰 두는 최소 괘선 수 — 빈 줄이 다음 이름을 기다린다 */
-const MIN_ROWS = 5;
-
-/**
- * 좋아요 명단 — 도서관 대출카드.
- * 한 책(기록)을 거쳐간 사람들의 이름과 날짜가 괘선 위에 쌓인다.
- */
-export default function LikersBottomSheet({ entryId, bookTitle, isOpen, onClose }: Props) {
+/** 좋아요 명단 — 이름을 누르면 프로필로 이동한다 */
+export default function LikersBottomSheet({ entryId, isOpen, onClose }: Props) {
   // null = 아직 한 번도 못 불러옴(로딩). 재오픈 시엔 이전 명단을 보여주며 조용히 갱신한다
   const [likers, setLikers] = useState<Liker[] | null>(null);
   const isLoading = likers === null;
@@ -49,7 +42,6 @@ export default function LikersBottomSheet({ entryId, bookTitle, isOpen, onClose 
   }, [entryId, isOpen]);
 
   const likerRows = likers ?? [];
-  const emptyRowCount = Math.max(MIN_ROWS - likerRows.length, 1);
 
   return (
     <AnimatePresence>
@@ -82,68 +74,34 @@ export default function LikersBottomSheet({ entryId, bookTitle, isOpen, onClose 
               </button>
             </div>
 
-            {/* 대출카드 */}
-            <div className="px-5 pb-6 pt-2">
-              <div className="rounded-[3px] border border-hairline-strong bg-card-raised/40 px-5 pb-5 pt-4">
-                <p className="text-center text-seal text-ink-faint">대출 카드</p>
-                <p className="mt-1 truncate text-center font-serif text-body-sm font-bold text-ink">
-                  『{bookTitle}』
-                </p>
-
-                <table className="mt-3 w-full border-collapse">
-                  <thead>
-                    <tr className="border-b border-hairline-strong">
-                      <th className="w-24 py-1.5 text-left text-caption font-medium text-ink-faint">
-                        날짜
-                      </th>
-                      <th className="py-1.5 text-left text-caption font-medium text-ink-faint">
-                        이름
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {isLoading ? (
-                      <tr className="border-b border-hairline">
-                        <td colSpan={2} className="py-2.5 text-center text-caption text-ink-faint">
-                          명단을 펼치는 중...
-                        </td>
-                      </tr>
-                    ) : (
-                      <>
-                        {likerRows.map((liker) => (
-                          <tr key={liker.id} className="border-b border-hairline">
-                            <td className="py-2.5 font-serif text-caption text-ink-faint">
-                              {new Date(liker.liked_at).toLocaleDateString('ko-KR', {
-                                month: 'long',
-                                day: 'numeric',
-                              })}
-                            </td>
-                            <td className="py-2.5">
-                              <Link
-                                href={`/protected/social/u/${liker.nickname}-${liker.tag}`}
-                                className="font-serif text-body-sm text-ink hover:text-accent transition-colors"
-                              >
-                                {liker.name}
-                              </Link>
-                            </td>
-                          </tr>
-                        ))}
-                        {Array.from({ length: emptyRowCount }).map((_, i) => (
-                          <tr key={`empty-${i}`} className="border-b border-hairline">
-                            <td className="py-2.5">&nbsp;</td>
-                            <td />
-                          </tr>
-                        ))}
-                      </>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-
-              {!isLoading && likerRows.length === 0 && (
-                <p className="mt-3 text-center text-caption text-ink-faint">
+            <div className="px-5 pb-6 pt-1">
+              {isLoading ? (
+                <p className="py-8 text-center text-caption text-ink-faint">불러오는 중...</p>
+              ) : likerRows.length === 0 ? (
+                <p className="py-8 text-center text-caption text-ink-faint">
                   아직 이 기록을 좋아한 사람이 없어요
                 </p>
+              ) : (
+                <ul className="divide-y divide-hairline">
+                  {likerRows.map((liker) => (
+                    <li key={liker.id}>
+                      <Link
+                        href={`/protected/social/u/${liker.nickname}-${liker.tag}`}
+                        className="flex items-center justify-between py-3 group"
+                      >
+                        <span className="text-body-sm font-medium text-ink group-hover:text-accent transition-colors">
+                          {liker.name}
+                        </span>
+                        <span className="text-caption text-ink-faint">
+                          {new Date(liker.liked_at).toLocaleDateString('ko-KR', {
+                            month: 'long',
+                            day: 'numeric',
+                          })}
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
               )}
             </div>
           </motion.div>
