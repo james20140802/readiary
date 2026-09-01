@@ -343,34 +343,35 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
   );
 
   return (
-    <article
-      aria-label="상세 소셜 피드 항목"
-      style={{ transform: `rotate(${tilt}deg) translateX(${shift}px)` }}
-    >
-      {hasQuote ? (
-        <div
-          className="[perspective:1200px] [touch-action:pan-y]"
-          onPointerDown={handlePointerDown}
-          onPointerUp={handlePointerUp}
-        >
+    <article aria-label="상세 소셜 피드 항목">
+      {/* transform이 걸린 요소는 fixed 자손의 containing block이 된다 —
+          기울기는 바텀시트를 포함하지 않는 래퍼에만 건다 */}
+      <div style={{ transform: `rotate(${tilt}deg) translateX(${shift}px)` }}>
+        {hasQuote ? (
           <div
-            className="grid transition-transform duration-500 motion-reduce:duration-0 [transform-style:preserve-3d]"
-            style={{ transform: `rotateY(${flipAngle}deg)` }}
+            className="[perspective:1200px] [touch-action:pan-y]"
+            onPointerDown={handlePointerDown}
+            onPointerUp={handlePointerUp}
           >
-            <div inert={isFlipped} className="[grid-area:1/1] [backface-visibility:hidden]">
-              {postcard(frontFace)}
-            </div>
             <div
-              inert={!isFlipped}
-              className="[grid-area:1/1] [backface-visibility:hidden] [transform:rotateY(180deg)]"
+              className="grid transition-transform duration-500 motion-reduce:duration-0 [transform-style:preserve-3d]"
+              style={{ transform: `rotateY(${flipAngle}deg)` }}
             >
-              {postcard(backFace)}
+              <div inert={isFlipped} className="[grid-area:1/1] [backface-visibility:hidden]">
+                {postcard(frontFace)}
+              </div>
+              <div
+                inert={!isFlipped}
+                className="[grid-area:1/1] [backface-visibility:hidden] [transform:rotateY(180deg)]"
+              >
+                {postcard(backFace)}
+              </div>
             </div>
           </div>
-        </div>
-      ) : (
-        postcard(backFace)
-      )}
+        ) : (
+          postcard(backFace)
+        )}
+      </div>
 
       <LikersBottomSheet
         entryId={entry.id}
