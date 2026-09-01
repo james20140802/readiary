@@ -50,3 +50,6 @@ public/sw.js.map
 
 # Agent
 .agent
+# 로컬 전용 — 커밋 금지
+app/dev-preview/
+.playwright-mcp/

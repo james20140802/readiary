@@ -4,9 +4,9 @@ import { useRef, useState } from 'react';
 import { Share2 } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import { toast } from 'sonner';
-import type { CSSProperties } from 'react';
 import SentenceCard from '@/components/entries/SentenceCard';
 import { formatDateLabel } from '@/lib/share/format';
+import { LIGHT_PALETTE } from '@/lib/share/palette';
 
 interface Props {
   entryId: string;
@@ -17,18 +17,6 @@ interface Props {
   bookTitle: string;
   bookAuthor?: string | null;
 }
-
-/* 캡처 컨테이너는 뷰어의 다크모드와 무관하게 항상 라이트 팔레트로 찍는다.
-   토큰 클래스가 CSS 변수를 읽으므로, 컨테이너에서 변수를 라이트 값으로 재정의. */
-const LIGHT_PALETTE: CSSProperties = {
-  '--paper': '247 243 236',
-  '--card': '253 251 247',
-  '--card-raised': '242 236 225',
-  '--ink': '34 30 26',
-  '--ink-sub': '110 102 92',
-  '--ink-faint': '163 154 141',
-  '--hairline': '227 220 208',
-} as CSSProperties;
 
 export default function ShareEntryButton({
   entryId,
