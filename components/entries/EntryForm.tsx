@@ -194,7 +194,13 @@ export default function EntryForm({
                 비공개
               </Chip>
 
-              <Button type="submit" size="sm" className="ml-auto" disabled={isSubmitting}>
+              {/* 좁은 화면에선 전폭으로 내려앉고, 넓어지면 컨트롤 행 오른끝에 붙는다 */}
+              <Button
+                type="submit"
+                size="md"
+                className="mt-1 w-full sm:mt-0 sm:ml-auto sm:h-8 sm:w-auto sm:px-4 sm:text-caption"
+                disabled={isSubmitting}
+              >
                 {isSubmitting ? '남기는 중...' : submitLabel}
               </Button>
             </div>
