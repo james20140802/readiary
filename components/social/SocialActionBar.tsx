@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
 import { Heart, MessageCircle } from 'lucide-react';
+import { LikeState, useLike } from './useLike';
 
 interface SocialActionBarProps {
   entryId: string;
@@ -13,6 +13,8 @@ interface SocialActionBarProps {
   onLikeCountClick?: () => void;
   showCommentCount?: boolean;
   border?: boolean;
+  /** 액션 바가 한 기록의 여러 면(엽서 앞·뒷면)에 놓일 때 부모의 상태를 공유한다 */
+  like?: LikeState;
 }
 
 export default function SocialActionBar({
@@ -24,46 +26,15 @@ export default function SocialActionBar({
   onLikeCountClick,
   showCommentCount = true,
   border = true,
+  like,
 }: SocialActionBarProps) {
-  const [isLiked, setIsLiked] = useState(initialLiked);
-  const [likeCount, setLikeCount] = useState(initialLikeCount);
-  const [isLoading, setIsLoading] = useState(false);
+  const internalLike = useLike(entryId, initialLiked, initialLikeCount);
+  const { isLiked, likeCount, isLoading, toggle } = like ?? internalLike;
 
-  // 좋아요 로직 (공통 사용)
-  const handleLikeToggle = async (e: React.MouseEvent) => {
+  const handleLikeToggle = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (isLoading) return; // 연속 클릭 방지
-
-    // [Step 1] 이전 상태 저장 (롤백용)
-    const prevLiked = isLiked;
-    const prevCount = likeCount;
-
-    // [Step 2] UI 즉시 업데이트 (낙관적)
-    setIsLiked(!prevLiked);
-    setLikeCount(prevLiked ? prevCount - 1 : prevCount + 1);
-    setIsLoading(true);
-
-    try {
-      const response = await fetch('/api/likes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ entryId }),
-      });
-
-      if (!response.ok) throw new Error('Network response was not ok');
-
-      // 성공 시 서버에서 최종 상태를 확인하고 싶다면 아래 주석 해제
-      const result = await response.json();
-      setIsLiked(result.liked);
-    } catch (error) {
-      // [Step 3] 에러 발생 시 롤백
-      console.error('Like failed:', error);
-      setIsLiked(prevLiked);
-      setLikeCount(prevCount);
-    } finally {
-      setIsLoading(false);
-    }
+    void toggle();
   };
 
   const formatCount = (count: number) => {

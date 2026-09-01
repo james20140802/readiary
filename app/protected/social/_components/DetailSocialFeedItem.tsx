@@ -12,6 +12,7 @@ import SocialActionBar from '@/components/social/SocialActionBar';
 import { toZonedTime } from 'date-fns-tz';
 import CommentBottomSheet from '@/components/comments/CommentBottomSheet';
 import LikersBottomSheet from '@/components/social/LikersBottomSheet';
+import { useLike } from '@/components/social/useLike';
 import { getImageUrl } from '@/utils/profile';
 import { Avatar } from '@/components/ui/Avatar';
 
@@ -43,6 +44,9 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
   const [isLikersOpen, setIsLikersOpen] = useState(false);
   const [commentCount, setCommentCount] = useState(initialCommentCount);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  // 액션 바가 앞·뒷면에 하나씩 있으므로 좋아요 상태는 한 벌을 공유한다
+  const like = useLike(entry.id, initialLiked, initialLikeCount);
 
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -81,9 +85,12 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
     return () => window.removeEventListener('resize', check);
   }, [isFrontExpanded, isBackExpanded, entry.quote, entry.note]);
 
+  // 시작·끝이 같으면(한쪽만 입력해도 같은 값이 채워진다) 한 번만 적는다
   const readRange =
     entry.from_page != null && entry.to_page != null
-      ? `${entry.from_page}-${entry.to_page}p`
+      ? entry.from_page === entry.to_page
+        ? `${entry.from_page}p`
+        : `${entry.from_page}-${entry.to_page}p`
       : entry.from_page != null || entry.to_page != null
         ? `${entry.to_page ?? entry.from_page}p`
         : null;
@@ -132,6 +139,24 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
     </>
   );
 
+  // 좌우로 문지르면 뒤집힌다 — 세로 스크롤·텍스트 선택·버튼 클릭과는 겹치지 않게
+  const swipeStart = useRef<{ x: number; y: number } | null>(null);
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    if ((e.target as HTMLElement).closest('button, a')) return;
+    swipeStart.current = { x: e.clientX, y: e.clientY };
+  };
+  const handlePointerUp = (e: React.PointerEvent) => {
+    const start = swipeStart.current;
+    swipeStart.current = null;
+    if (!start) return;
+    const dx = e.clientX - start.x;
+    const dy = e.clientY - start.y;
+    if (Math.abs(dx) < 48 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    if (!window.getSelection()?.isCollapsed) return; // 문장을 긁는 중이면 뒤집지 않는다
+    setIsFlipped((prev) => !prev);
+  };
+
   const flipButton = (label: string) => (
     <button
       onClick={() => setIsFlipped((prev) => !prev)}
@@ -144,7 +169,7 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
 
   // 뒷면 — 감상(사연) · 세로 구분선 · 우표(표지)와 괘선 주소칸 · 서명 줄
   const backFace = (
-    <div ref={backRef} className="flex h-full flex-col px-5 pt-4 pb-4 sm:px-6">
+    <div ref={backRef} className="flex flex-1 flex-col px-5 pt-4 pb-4 sm:px-6">
       <div className="flex items-start justify-between">
         <span className="text-seal text-ink-faint pt-1.5">POST CARD</span>
         <div className="relative shrink-0" ref={menuRef}>
@@ -261,8 +286,8 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
 
   // 앞면 — 그림 대신 문장이 실린 면
   const frontFace = hasQuote ? (
-    <div ref={frontRef} className="flex h-full flex-col px-6 pt-5 pb-4">
-      <span aria-hidden className="font-serif text-[2rem] leading-none text-accent">
+    <div ref={frontRef} className="flex flex-1 flex-col px-6 pt-5 pb-4">
+      <span aria-hidden className="font-serif text-[40px] leading-none text-accent">
         “
       </span>
       <blockquote
@@ -271,7 +296,6 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
         }`}
       >
         {entry.quote}
-        <span className="text-accent">”</span>
       </blockquote>
       {expandControls(isFrontClamped, isFrontExpanded, setIsFrontExpanded)}
       <div className="mt-auto flex items-end justify-between gap-3 pt-5">
@@ -296,47 +320,55 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
     </div>
   ) : null;
 
+  // 타공 테두리·액션 바까지 포함한 엽서 낱장 — 앞·뒷면이 각각 온전한 한 장이라
+  // 뒤집을 때 카드 전체가 돌아간다
+  const postcard = (face: React.ReactNode) => (
+    <div className="perforated h-full">
+      <div className="flex h-full flex-col bg-card">
+        {face}
+        <SocialActionBar
+          entryId={entry.id}
+          initialLikeCount={initialLikeCount}
+          initialLiked={initialLiked}
+          like={like}
+          commentCount={commentCount}
+          onCommentClick={() => setIsCommentOpen(true)}
+          onLikeCountClick={() => setIsLikersOpen(true)}
+        />
+      </div>
+    </div>
+  );
+
   return (
     <article
       aria-label="상세 소셜 피드 항목"
       style={{ transform: `rotate(${tilt}deg) translateX(${shift}px)` }}
     >
-      {/* 타공 가장자리의 엽서 낱장 */}
-      <div className="perforated">
-        <div className="bg-card">
-          {hasQuote ? (
-            <div className="[perspective:1200px]">
-              <div
-                className={`grid transition-transform duration-500 motion-reduce:duration-0 [transform-style:preserve-3d] ${
-                  isFlipped ? '[transform:rotateY(180deg)]' : ''
-                }`}
-              >
-                <div inert={isFlipped} className="[grid-area:1/1] [backface-visibility:hidden]">
-                  {frontFace}
-                </div>
-                <div
-                  inert={!isFlipped}
-                  className="[grid-area:1/1] [backface-visibility:hidden] [transform:rotateY(180deg)]"
-                >
-                  {backFace}
-                </div>
-              </div>
+      {hasQuote ? (
+        <div
+          className="[perspective:1200px] [touch-action:pan-y]"
+          onPointerDown={handlePointerDown}
+          onPointerUp={handlePointerUp}
+        >
+          <div
+            className={`grid transition-transform duration-500 motion-reduce:duration-0 [transform-style:preserve-3d] ${
+              isFlipped ? '[transform:rotateY(180deg)]' : ''
+            }`}
+          >
+            <div inert={isFlipped} className="[grid-area:1/1] [backface-visibility:hidden]">
+              {postcard(frontFace)}
             </div>
-          ) : (
-            backFace
-          )}
-
-          {/* 액션 바 — 엽서 하단 경계 스트립 */}
-          <SocialActionBar
-            entryId={entry.id}
-            initialLikeCount={initialLikeCount}
-            initialLiked={initialLiked}
-            commentCount={commentCount}
-            onCommentClick={() => setIsCommentOpen(true)}
-            onLikeCountClick={() => setIsLikersOpen(true)}
-          />
+            <div
+              inert={!isFlipped}
+              className="[grid-area:1/1] [backface-visibility:hidden] [transform:rotateY(180deg)]"
+            >
+              {postcard(backFace)}
+            </div>
+          </div>
         </div>
-      </div>
+      ) : (
+        postcard(backFace)
+      )}
 
       <LikersBottomSheet
         entryId={entry.id}
