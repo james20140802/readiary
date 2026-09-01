@@ -8,10 +8,6 @@ import { todayKST } from '@/lib/dates';
 import { hasEntryContent } from '@/lib/entries/validation';
 import Button from '@/components/ui/Button';
 import Chip from '@/components/ui/Chip';
-import Input from '@/components/ui/Input';
-import { Textarea } from '@/components/ui/Textarea';
-import FormGroup from '@/components/ui/FormGroup';
-import FormLabel from '@/components/ui/FormLabel';
 import AnimatedSection from '@/components/ui/AnimatedSection';
 import BackButton from '@/components/ui/BackButton';
 
@@ -89,109 +85,121 @@ export default function EntryForm({
     }
   };
 
+  // 홈 Composer와 같은 문법 — 입력은 박스 없이 종이 위에 바로, 옵션은
+  // 헤어라인 아래 컨트롤 한 줄로. 라벨은 잉크색 작은 산세리프.
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit}>
       <header className="mb-6 flex items-center">
         <BackButton />
         <h1 className="text-page-title ml-4">{heading}</h1>
       </header>
 
       <AnimatedSection>
-        <div className="mx-auto max-w-2xl space-y-8 py-4 sm:py-6">
-          <div className="flex flex-col items-start justify-between gap-6 border-b border-hairline pb-6 sm:flex-row">
-            <div className="flex items-center gap-4">
-              <Image
-                src={book.cover_url ?? '/images/default-book-cover.png'}
-                alt="책 표지"
-                width={48}
-                height={72}
-                className="rounded object-cover"
-              />
-              <div className="flex flex-col">
-                <strong className="font-serif text-xl leading-tight text-ink">
-                  {book.title ?? '제목 없음'}
-                </strong>
-                <span className="mt-1 text-sm font-medium text-ink-sub">
-                  {book.author ?? '저자 미상'}
-                </span>
-              </div>
+        <div className="mx-auto max-w-2xl py-4 sm:py-6">
+          {/* 출처 — 어느 책에 남기는지 */}
+          <div className="flex items-center gap-4 border-b border-hairline pb-5">
+            <Image
+              src={book.cover_url ?? '/images/default-book-cover.png'}
+              alt={`『${book.title ?? '제목 없음'}』 표지`}
+              width={44}
+              height={66}
+              className="rounded border border-hairline object-cover"
+            />
+            <div className="min-w-0">
+              <strong className="block truncate font-serif text-lg leading-tight text-ink">
+                {book.title ?? '제목 없음'}
+              </strong>
+              <span className="mt-1 block text-caption text-ink-sub">
+                {book.author ?? '저자 미상'}
+              </span>
             </div>
-            <Chip
-              selected={isPrivate}
-              aria-pressed={isPrivate}
-              onClick={() => setIsPrivate((v) => !v)}
-              className="self-end sm:self-auto"
-            >
-              <Lock size={12} strokeWidth={1.75} aria-hidden />
-              비공개
-            </Chip>
           </div>
 
-          <FormGroup>
-            <FormLabel>문장</FormLabel>
-            <Textarea
-              value={quote}
-              onChange={(e) => setQuote(e.target.value)}
-              placeholder="책에서 마음에 남은 문장을 옮겨 적어보세요"
-              rows={3}
-              fullWidth
-              className="resize-none font-serif"
-            />
-          </FormGroup>
-
-          <FormGroup>
-            <FormLabel>생각</FormLabel>
-            <Textarea
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="이 문장에 대한 생각, 혹은 오늘의 감상"
-              rows={5}
-              fullWidth
-              className="resize-none"
-            />
-          </FormGroup>
-
-          <div className="flex flex-col gap-4 sm:flex-row">
-            <FormGroup className="min-w-0 flex-1">
-              <FormLabel>시작 페이지 (선택)</FormLabel>
-              <Input
-                type="number"
-                placeholder="ex. 10"
-                value={fromPage}
-                onChange={(e) => setFromPage(e.target.value)}
-                className="w-full"
+          {/* 원고 — 투명 텍스트 영역 두 장, 사이는 헤어라인 한 줄 */}
+          <div className="divide-y divide-hairline">
+            <div className="py-5">
+              <label htmlFor="entry-quote" className="text-[11.5px] font-medium text-ink-faint">
+                문장
+              </label>
+              <textarea
+                id="entry-quote"
+                value={quote}
+                onChange={(e) => setQuote(e.target.value)}
+                placeholder="책에서 마음에 남은 문장을 옮겨 적어보세요"
+                rows={4}
+                className="mt-2 block w-full resize-none bg-transparent font-serif text-[17px] leading-relaxed text-ink placeholder:text-ink-faint focus:outline-none"
               />
-            </FormGroup>
-            <FormGroup className="min-w-0 flex-1">
-              <FormLabel>종료 페이지 (선택)</FormLabel>
-              <Input
-                type="number"
-                placeholder="ex. 25"
-                value={toPage}
-                max={book.total_pages ?? undefined}
-                onChange={(e) => setToPage(e.target.value)}
-                className="w-full"
+            </div>
+            <div className="py-5">
+              <label htmlFor="entry-note" className="text-[11.5px] font-medium text-ink-faint">
+                생각
+              </label>
+              <textarea
+                id="entry-note"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="이 문장에 대한 생각, 혹은 오늘의 감상"
+                rows={4}
+                className="mt-2 block w-full resize-none bg-transparent font-serif text-[15px] leading-relaxed text-ink placeholder:text-ink-faint focus:outline-none"
               />
-            </FormGroup>
+            </div>
           </div>
 
-          <FormGroup className="w-full min-w-0">
-            <FormLabel>읽은 날짜</FormLabel>
-            <Input
-              type="date"
-              value={date}
-              max={todayKST()}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full"
-            />
-          </FormGroup>
+          {/* 컨트롤 행 — 쪽수·날짜는 조용한 인라인 입력, 공개 여부는 칩 */}
+          <div className="border-t border-hairline pt-4">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+              <div className="flex items-center gap-1 text-[13px] tabular-nums text-ink-sub">
+                <span className="text-ink-faint">p.</span>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  aria-label="시작 페이지"
+                  placeholder="10"
+                  value={fromPage}
+                  onChange={(e) => setFromPage(e.target.value)}
+                  className="w-11 border-b border-transparent bg-transparent text-center text-ink placeholder:text-ink-faint focus:border-hairline-strong focus:outline-none"
+                />
+                <span className="text-ink-faint">–</span>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  aria-label="종료 페이지"
+                  placeholder="25"
+                  value={toPage}
+                  max={book.total_pages ?? undefined}
+                  onChange={(e) => setToPage(e.target.value)}
+                  className="w-11 border-b border-transparent bg-transparent text-center text-ink placeholder:text-ink-faint focus:border-hairline-strong focus:outline-none"
+                />
+              </div>
 
-          {error && <p className="text-sm font-medium text-danger">{error}</p>}
+              <span aria-hidden className="h-4 w-px bg-hairline" />
 
-          <div className="flex justify-end pt-4">
-            <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
-              {isSubmitting ? '저장 중...' : submitLabel}
-            </Button>
+              <input
+                type="date"
+                aria-label="읽은 날짜"
+                value={date}
+                max={todayKST()}
+                onChange={(e) => setDate(e.target.value)}
+                className="bg-transparent text-[13px] tabular-nums text-ink-sub focus:outline-none"
+              />
+
+              <span aria-hidden className="h-4 w-px bg-hairline" />
+
+              <Chip
+                selected={isPrivate}
+                aria-pressed={isPrivate}
+                onClick={() => setIsPrivate((v) => !v)}
+              >
+                <Lock size={12} strokeWidth={1.75} aria-hidden />
+                비공개
+              </Chip>
+
+              <Button type="submit" size="sm" className="ml-auto" disabled={isSubmitting}>
+                {isSubmitting ? '남기는 중...' : submitLabel}
+              </Button>
+            </div>
+
+            {error && <p className="mt-3 text-caption font-medium text-danger">{error}</p>}
           </div>
         </div>
       </AnimatedSection>

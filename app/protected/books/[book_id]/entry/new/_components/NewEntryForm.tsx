@@ -31,7 +31,7 @@ export default function NewEntryForm({ userBookId, userId, book, bookId }: Props
         const data = await res.json().catch(() => null);
         return data?.error ?? '기록 저장 중 오류가 발생했습니다.';
       }
-      toast.success('기록이 저장되었습니다.');
+      toast.success('기록을 남겼어요.');
       router.push(`/protected/books/${bookId}`);
       return null;
     } catch {
@@ -40,6 +40,6 @@ export default function NewEntryForm({ userBookId, userId, book, bookId }: Props
   };
 
   return (
-    <EntryForm book={book} heading="독서 기록" submitLabel="기록 저장" onSubmit={handleSubmit} />
+    <EntryForm book={book} heading="기록 남기기" submitLabel="남기기" onSubmit={handleSubmit} />
   );
 }
