@@ -76,7 +76,7 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
   useEffect(() => {
     const measure = (el: HTMLElement | null) =>
       !!el &&
-      Array.from(el.querySelectorAll('.line-clamp-6, .line-clamp-4')).some(
+      Array.from(el.querySelectorAll('.line-clamp-4, .line-clamp-3')).some(
         (node) => node.scrollHeight > node.clientHeight + 1
       );
     const check = () => {
@@ -230,14 +230,13 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
         </div>
       </div>
 
-      {/* 모바일에서도 사연|주소 2단 유지 — 세로로 쌓으면 엽서 판형이 무너진다 */}
-      <div className="mt-3 flex flex-1 gap-4 sm:gap-5">
+      <div className="mt-3 flex-1 sm:flex sm:gap-5">
         {/* 사연 칸 */}
         <div className="flex min-w-0 flex-1 flex-col">
           {entry.note && (
             <p
               className={`${noteSizeClass} text-ink-sub whitespace-pre-wrap ${
-                !isBackExpanded ? 'line-clamp-4' : ''
+                !isBackExpanded ? 'line-clamp-3 sm:line-clamp-4' : ''
               }`}
             >
               {entry.note}
@@ -247,10 +246,10 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
         </div>
 
         {/* 세로 구분선 — 엽서 뒷면의 사연|주소 경계 */}
-        <div className="w-px self-stretch bg-hairline" />
+        <div className="hidden sm:block w-px self-stretch bg-hairline" />
 
         {/* 주소 칸 — 우표 자리의 표지, 괘선 위의 책 */}
-        <div className="flex w-28 shrink-0 flex-col sm:w-44">
+        <div className="mt-5 flex flex-col sm:mt-0 sm:w-44">
           <div
             className="perforated-stamp self-end"
             style={{ transform: `rotate(${stampTilt}deg)` }}
@@ -265,7 +264,7 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
               />
             </div>
           </div>
-          <div className="mt-auto pt-5">
+          <div className="mt-4 sm:mt-auto sm:pt-5">
             <p className="truncate border-b border-hairline-strong pb-1.5 font-serif text-body-sm font-semibold text-ink">
               『{book.title}』
             </p>
@@ -306,7 +305,7 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
       </span>
       <blockquote
         className={`mt-1 font-serif ${quoteSizeClass} text-ink whitespace-pre-wrap ${
-          !isFrontExpanded ? 'line-clamp-6' : ''
+          !isFrontExpanded ? 'line-clamp-4 sm:line-clamp-6' : ''
         }`}
       >
         {entry.quote}
