@@ -1,54 +1,68 @@
 // app/protected/social/page.tsx
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
+import { Users } from 'lucide-react';
 import { fetchDetailSocialFeedEntries } from '@/lib/queries/fetchSocialFeedEntries';
-import {
-  fetchFriendList,
-  fetchReceivedFriendRequests,
-  fetchSentFriendRequests,
-} from '@/lib/friends/fetchFriendList';
+import { fetchFriendList, fetchReceivedFriendRequests } from '@/lib/friends/fetchFriendList';
 import { FEED_PAGINATION_LIMIT } from '@/constants/social';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { slugToSearchQuery } from '@/lib/social/invite';
-import { fetchNotifications } from '@/lib/notifications/fetchNotifications';
-import SocialTab from './_components/SocialTab';
+import DetailSocailFeedList from './_components/DetailSocialFeedList';
 
 interface SocialPageProps {
   searchParams: Promise<{ invite?: string }>;
 }
 
 export default async function SocialPage({ searchParams }: SocialPageProps) {
+  const { invite } = await searchParams;
+  // 초대 링크는 친구 페이지가 담당한다
+  if (invite) redirect(`/protected/social/friends?invite=${encodeURIComponent(invite)}`);
+
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const { invite } = await searchParams;
-  const initialInviteQuery = invite ? (slugToSearchQuery(invite) ?? undefined) : undefined;
-
-  // 피드 데이터와 친구 데이터를 병렬로 fetch
-  const [feed, acceptedFriends, pendingFriends, sentFriends, notifications] = await Promise.all([
+  const [feed, acceptedFriends, pendingFriends] = await Promise.all([
     fetchDetailSocialFeedEntries(0, FEED_PAGINATION_LIMIT),
     fetchFriendList(),
     fetchReceivedFriendRequests(),
-    fetchSentFriendRequests(),
-    fetchNotifications(),
   ]);
+
+  const friendCount = acceptedFriends?.length ?? 0;
+  const pendingCount = pendingFriends?.length ?? 0;
 
   return (
     <div className="space-y-4">
-      <header className="px-1">
+      <header className="px-1 flex items-baseline justify-between">
         <h1 className="text-page-title text-ink">소셜</h1>
+        <Link
+          href="/protected/social/friends"
+          className="text-caption text-ink-faint hover:text-ink transition-colors"
+        >
+          친구 {friendCount}명
+          {pendingCount > 0 && (
+            <span className="text-accent font-medium"> · 받은 요청 {pendingCount}</span>
+          )}
+          {' →'}
+        </Link>
       </header>
 
-      <SocialTab
-        userId={user.id}
-        initialFeed={feed}
-        acceptedFriends={acceptedFriends ?? []}
-        pendingFriends={pendingFriends ?? []}
-        sentFriends={sentFriends ?? []}
-        notifications={notifications}
-        initialInviteQuery={initialInviteQuery}
-      />
+      {feed.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 gap-3 border-2 border-dashed border-hairline rounded-2xl">
+          <Users size={32} className="text-ink-faint" />
+          <p className="text-body-sm font-medium text-ink">친구들의 활동이 아직 없어요</p>
+          <p className="text-caption text-ink-faint">친구를 추가하면 피드가 채워져요</p>
+          <Link
+            href="/protected/social/friends"
+            className="mt-1 text-caption font-semibold text-accent bg-accent-soft px-3 py-1.5 rounded-full border border-accent/20"
+          >
+            친구 찾기
+          </Link>
+        </div>
+      ) : (
+        <DetailSocailFeedList initialFeed={feed} userId={user.id} />
+      )}
     </div>
   );
 }

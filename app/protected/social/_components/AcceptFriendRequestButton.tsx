@@ -3,7 +3,6 @@
 import { useRouter } from 'next/navigation';
 import { useTransition } from 'react';
 import { toast } from 'sonner';
-import Button from '@/components/ui/Button';
 
 interface Props {
   friendUserId: string;
@@ -33,8 +32,12 @@ export default function AcceptFriendRequestButton({ friendUserId, onSuccess }: P
   };
 
   return (
-    <Button onClick={handleAccept} disabled={isPending} size="sm" variant="success">
+    <button
+      onClick={handleAccept}
+      disabled={isPending}
+      className="px-3 py-2 text-body-sm font-semibold text-accent hover:text-accent-hover disabled:opacity-40 transition-colors"
+    >
       수락
-    </Button>
+    </button>
   );
 }

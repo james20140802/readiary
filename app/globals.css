@@ -80,3 +80,24 @@ li {
 ::selection {
   background: rgb(var(--accent) / 0.18);
 }
+
+/* ── 타공 가장자리(우표·엽서) ─────────────────────
+   격자점마다 투명 원을 뚫은 배경 위에, 내용부가 bg-card로
+   안쪽 구멍을 덮어 가장자리 물결(타공)만 남긴다.
+   그림자는 box-shadow 대신 drop-shadow — 물결 모양을 따라간다 */
+.perforated {
+  padding: 5px;
+  background-image: radial-gradient(circle, transparent 3px, rgb(var(--card)) 3.5px);
+  background-size: 11px 11px;
+  background-position: -5.5px -5.5px;
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.05)) drop-shadow(0 5px 10px rgb(0 0 0 / 0.07));
+}
+
+.perforated-stamp {
+  padding: 3px;
+  /* 카드 위에 얹히므로 카드보다 한 단계 눌린 종이색으로 구분한다 */
+  background-image: radial-gradient(circle, transparent 1.8px, rgb(var(--card-raised)) 2.2px);
+  background-size: 7px 7px;
+  background-position: -3.5px -3.5px;
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.12));
+}

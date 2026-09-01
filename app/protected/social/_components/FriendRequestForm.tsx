@@ -4,11 +4,9 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Profile } from '@/types/profile';
 import { toast } from 'sonner';
-import { Plus } from 'lucide-react';
+import { UserPlus } from 'lucide-react';
 import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
 import Modal from '@/components/ui/Modal';
-import FormGroup from '@/components/ui/FormGroup';
 
 interface Props {
   initialQuery?: string;
@@ -90,19 +88,26 @@ export default function FriendRequestForm({ initialQuery }: Props) {
 
   return (
     <>
-      <FormGroup>
-        <div className="flex items-center gap-3">
-          <Input
-            placeholder="닉네임#태그"
-            value={nicknameAndTag}
-            onChange={(e) => setNicknameAndTag(e.target.value)}
-            className="w-full"
-          />
-          <Button onClick={handleSearch} disabled={loading} aria-label="친구 추가">
-            <Plus size={16} />
-          </Button>
-        </div>
-      </FormGroup>
+      {/* 종이 위 한 줄 — 박스 대신 hairline 밑줄로 (컴포저 입력줄과 같은 문법) */}
+      <div className="flex items-center gap-3 border-b border-hairline pb-2 transition-colors focus-within:border-hairline-strong">
+        <UserPlus size={15} className="shrink-0 text-ink-faint" />
+        <input
+          placeholder="닉네임#태그로 친구 찾기"
+          value={nicknameAndTag}
+          onChange={(e) => setNicknameAndTag(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.nativeEvent.isComposing) handleSearch();
+          }}
+          className="w-full bg-transparent text-body-sm text-ink placeholder:text-ink-faint focus:outline-none"
+        />
+        <button
+          onClick={handleSearch}
+          disabled={loading || !nicknameAndTag.trim()}
+          className="shrink-0 px-2 py-1.5 text-body-sm font-semibold text-accent hover:text-accent-hover disabled:opacity-40 transition-colors"
+        >
+          요청
+        </button>
+      </div>
 
       <Modal isOpen={showConfirmModal} onClose={() => setShowConfirmModal(false)}>
         <div className="space-y-4">
