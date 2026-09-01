@@ -1,16 +1,18 @@
 'use client';
 
-import { Fragment, useEffect, useRef, useState } from 'react';
+import { Fragment, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import Link from 'next/link';
+import { Lock } from 'lucide-react';
 import Modal from '@/components/ui/Modal';
 import { Entry } from '@/types/entry';
 import { Book } from '@/types/book';
 import { Profile } from '@/types/profile';
+import { formatKoreanDate } from '@/lib/dates';
 import AnimatedSection from '@/components/ui/AnimatedSection';
 import SocialActionBar from '../social/SocialActionBar';
 import ShareEntryButton from '@/components/entries/ShareEntryButton';
-import { MoreHorizontal, Edit2, Trash2, Lock } from 'lucide-react'; // 아이콘 추가
 import Button from '../ui/Button';
 import CommentSection from '../comments/CommentSection';
 
@@ -25,6 +27,13 @@ interface Props {
   currentUserId?: string;
 }
 
+function formatPages(fromPage?: number | null, toPage?: number | null) {
+  if (fromPage != null && toPage != null && fromPage !== toPage) return `p.${fromPage}–${toPage}`;
+  const page = fromPage ?? toPage;
+  return page != null ? `p.${page}` : null;
+}
+
+/** 기록 상세 — 카드 박스 없이 원고 흐름 문법으로, 문장이 지면의 주인공이 된다 */
 export default function EntryDetailContent({
   entry,
   book,
@@ -36,33 +45,11 @@ export default function EntryDetailContent({
   currentUserId,
 }: Props) {
   const router = useRouter();
-  const [isMenuOpen, setIsMenuOpen] = useState(false); // 메뉴 토글 상태
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
   const commentRef = useRef<HTMLDivElement>(null);
   const [commentCount, setCommentCount] = useState(initialCommentCount);
-
-  // 1. 메뉴 영역을 참조하기 위한 Ref 생성
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  // 2. 바깥 클릭 감지 로직
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      // 메뉴가 열려있고, 클릭한 대상이 메뉴 영역(menuRef) 외부라면 닫기
-      if (isMenuOpen && menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsMenuOpen(false);
-      }
-    };
-
-    // 마우스 다운 이벤트 등록
-    document.addEventListener('mousedown', handleClickOutside);
-
-    // 컴포넌트 언마운트 시 이벤트 제거 (메모리 누수 방지)
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isMenuOpen]); // 상태가 바뀔 때마다 리스너 최신화
 
   const scrollToComments = () => {
     commentRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -88,136 +75,104 @@ export default function EntryDetailContent({
       ? `/protected/social/u/${friendProfile.nickname + '-' + friendProfile.tag}/books/${book.id}`
       : `/protected/books/${book.id}`;
 
+  const pages = formatPages(entry.from_page, entry.to_page);
+
   return (
     <Fragment>
-      <section className="space-y-6">
-        {/* 상단 책 정보 영역 */}
-        <div
-          className="flex items-center gap-4 cursor-pointer hover:opacity-80 transition"
-          onClick={() => router.push(bookUrl)}
-        >
+      <section className="space-y-8">
+        {/* 출처 — 이 문장이 어느 책에서 왔는지 */}
+        <Link href={bookUrl} className="group flex items-center gap-4">
           <Image
             src={book.cover_url ?? '/images/default-book-cover.png'}
-            alt="Book cover"
+            alt={`『${book.title ?? '제목 없음'}』 표지`}
             width={48}
             height={72}
-            className="rounded object-cover"
+            className="rounded border border-hairline object-cover"
           />
-          <div className="space-y-1">
-            <h2 className="text-section-title text-ink">{book.title ?? '제목 없음'}</h2>
-            <p className="text-sm text-ink-sub">{book.author ?? '저자 미상'}</p>
+          <div>
+            <h2 className="font-serif text-xl leading-tight text-ink transition-colors group-hover:text-accent">
+              {book.title ?? '제목 없음'}
+            </h2>
+            <p className="mt-1 text-sm text-ink-sub">{book.author ?? '저자 미상'}</p>
           </div>
-        </div>
+        </Link>
 
         <AnimatedSection>
-          <div className="bg-card rounded-xl border border-hairline overflow-hidden flex flex-col">
-            {/* 1. 본문 영역 */}
-            <div className="p-5 sm:p-6 pb-4 space-y-4">
-              <div className="flex items-center justify-between relative">
-                <h1 className="text-[1.125rem] font-bold text-ink flex items-center gap-2">
-                  오늘의 독서 기록
-                </h1>
+          <article>
+            {entry.quote && (
+              <div>
+                <span aria-hidden className="block font-serif text-[40px] leading-none text-accent">
+                  &ldquo;
+                </span>
+                <blockquote className="mt-1 whitespace-pre-wrap font-serif text-[19px] leading-[1.9] text-ink">
+                  {entry.quote}
+                </blockquote>
+              </div>
+            )}
+            {entry.note && (
+              <p
+                className={`whitespace-pre-wrap font-serif leading-[1.9] ${
+                  entry.quote ? 'mt-6 text-[15px] text-ink-sub' : 'text-[17px] text-ink'
+                }`}
+              >
+                {entry.note}
+              </p>
+            )}
 
-                {/* 관리 메뉴 (본인 글일 때만 노출) */}
-                {!isFriend && (
-                  <div className="relative" ref={menuRef}>
-                    <button
-                      onClick={() => setIsMenuOpen(!isMenuOpen)}
-                      className="p-1.5 rounded-full hover:bg-card-raised text-ink-faint transition-colors"
-                    >
-                      <MoreHorizontal size={20} />
-                    </button>
-
-                    {/* 드롭다운 메뉴 */}
-                    {isMenuOpen && (
-                      <div className="absolute right-0 mt-2 w-32 bg-card border border-hairline rounded-xl z-10 py-1.5">
-                        <button
-                          onClick={() => {
-                            router.push(`/protected/entry/${entry.id}/edit`);
-                            setIsMenuOpen(false);
-                          }}
-                          className="w-full px-4 py-2 text-left text-[13px] font-medium flex items-center gap-2 hover:bg-card-raised text-ink-sub"
-                        >
-                          <Edit2 size={14} /> 수정하기
-                        </button>
-                        <button
-                          onClick={() => {
-                            setIsDeleteDialogOpen(true);
-                            setIsMenuOpen(false);
-                          }}
-                          className="w-full px-4 py-2 text-left text-[13px] font-medium flex items-center gap-2 hover:bg-card-raised text-danger"
-                        >
-                          <Trash2 size={14} /> 삭제하기
-                        </button>
-                      </div>
-                    )}
-                  </div>
+            {/* 여백의 기록 — 날짜·쪽수·공개 여부와 조용한 행동들 */}
+            <footer className="mt-8 flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-t border-hairline pt-4">
+              <div className="flex items-center gap-3 text-[11.5px] tabular-nums text-ink-faint">
+                <time>{formatKoreanDate(entry.date) ?? entry.date}</time>
+                {pages && <span>{pages}</span>}
+                {entry.is_private && (
+                  <span className="flex items-center gap-1">
+                    <Lock size={10} aria-hidden />
+                    비공개
+                  </span>
                 )}
               </div>
 
-              {entry.quote && (
-                <p className="mb-3 text-[0.9375rem] leading-relaxed text-ink whitespace-pre-wrap">
-                  “{entry.quote}”
-                </p>
-              )}
-              {entry.note && (
-                <p className="text-[0.9375rem] leading-relaxed text-ink-sub whitespace-pre-wrap">
-                  {entry.note}
-                </p>
-              )}
-            </div>
-
-            {/* 2. 하단 액션 통합 바 (정보 + 소셜) */}
-            <div className="px-5 sm:px-6 py-4 border-t border-hairline">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-                  <div className="flex items-center gap-2">
-                    <p className="text-[0.75rem] sm:text-[0.875rem] text-ink-faint tabular-nums">
-                      {new Date(entry.date).toLocaleDateString()}
-                      {(entry.from_page != null || entry.to_page != null) && (
-                        <>
-                          {' '}
-                          <span className="mx-1">|</span>{' '}
-                          {entry.from_page != null && entry.to_page != null
-                            ? `${entry.from_page}~${entry.to_page}쪽`
-                            : `${entry.to_page ?? entry.from_page}쪽`}
-                        </>
-                      )}
-                    </p>
-                    {entry.is_private && (
-                      <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-card-raised border border-hairline">
-                        <Lock size={10} className="text-ink-faint" />
-                        <span className="text-[10px] font-medium text-ink-faint leading-none">
-                          비공개
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  <SocialActionBar
-                    entryId={entry.id}
-                    initialLikeCount={initialLikeCount}
-                    initialLiked={initialLiked}
-                    commentCount={commentCount}
-                    onCommentClick={scrollToComments}
-                    border={false}
-                  />
-                  <ShareEntryButton
-                    entryId={entry.id}
-                    quote={entry.quote}
-                    note={entry.note}
-                    date={entry.date}
-                    isPrivate={entry.is_private}
-                    bookTitle={book.title}
-                    bookAuthor={book.author}
-                  />
-                </div>
+              <div className="flex items-center gap-4">
+                <SocialActionBar
+                  entryId={entry.id}
+                  initialLikeCount={initialLikeCount}
+                  initialLiked={initialLiked}
+                  commentCount={commentCount}
+                  onCommentClick={scrollToComments}
+                  border={false}
+                />
+                <ShareEntryButton
+                  entryId={entry.id}
+                  quote={entry.quote}
+                  note={entry.note}
+                  date={entry.date}
+                  isPrivate={entry.is_private}
+                  bookTitle={book.title}
+                  bookAuthor={book.author}
+                />
+                {!isFriend && (
+                  <>
+                    <span aria-hidden className="h-4 w-px bg-hairline" />
+                    <Link
+                      href={`/protected/entry/${entry.id}/edit`}
+                      className="text-[11.5px] text-ink-faint transition-colors hover:text-accent"
+                    >
+                      수정
+                    </Link>
+                    <button
+                      onClick={() => setIsDeleteDialogOpen(true)}
+                      className="text-[11.5px] text-ink-faint transition-colors hover:text-danger"
+                    >
+                      삭제
+                    </button>
+                  </>
+                )}
               </div>
-            </div>
-          </div>
+            </footer>
+          </article>
         </AnimatedSection>
-        {/* 3. 댓글 섹션 배치 (블로그 스타일) */}
-        <div ref={commentRef} className="pt-4 border-t border-hairline">
+
+        <div ref={commentRef} className="border-t border-hairline pt-4">
           <CommentSection
             entryId={entry.id}
             currentUserId={currentUserId}
@@ -233,7 +188,7 @@ export default function EntryDetailContent({
           <p className="text-sm text-ink-sub">이 작업은 되돌릴 수 없습니다.</p>
           {deleteError && <p className="text-sm text-danger">{deleteError}</p>}
           <div className="flex justify-end gap-2 pt-2">
-            <Button size="sm" onClick={() => setIsDeleteDialogOpen(false)}>
+            <Button size="sm" variant="ghost" onClick={() => setIsDeleteDialogOpen(false)}>
               취소
             </Button>
             <Button size="sm" variant="danger" onClick={handleDelete} disabled={isDeleting}>
