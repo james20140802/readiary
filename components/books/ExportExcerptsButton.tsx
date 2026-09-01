@@ -67,8 +67,19 @@ export default function ExportExcerptsButton(props: ExcerptBookletProps) {
 
   const readingPeriod = formatReadingPeriod(entryDates);
 
+  // 뒤로가기 등 close() 없이 언마운트되는 경로에서도 미리보기 URL이 revoke되도록
+  // 살아 있는 목록을 ref로 함께 들고 다닌다 (revoke는 중복 호출해도 무해).
+  const previewUrlsRef = useRef<string[]>([]);
+  useEffect(
+    () => () => {
+      previewUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+    },
+    []
+  );
+
   const close = () => {
     previewUrls.forEach((url) => URL.revokeObjectURL(url));
+    previewUrlsRef.current = [];
     setStage(null);
     setMode(null);
     setFiles([]);
@@ -111,6 +122,8 @@ export default function ExportExcerptsButton(props: ExcerptBookletProps) {
           nextUrls.push(URL.createObjectURL(blob));
         }
         if (!cancelled) {
+          // setPreviewUrls 커밋 전에 언마운트돼도 cleanup이 이 목록을 보도록 즉시 미러링
+          previewUrlsRef.current = nextUrls;
           setFiles(nextFiles);
           setPreviewUrls(nextUrls);
           setStage('preview');
