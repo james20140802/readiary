@@ -37,7 +37,10 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
   const timeLabel = formatDistance(targetDate, now, { addSuffix: true, locale: ko });
 
   const hasQuote = Boolean(entry.quote);
-  const [isFlipped, setIsFlipped] = useState(false);
+  // 회전 각도를 누적해 스와이프 방향 그대로 돌게 한다 (홀수 배 180° = 뒷면)
+  const [flipAngle, setFlipAngle] = useState(0);
+  const isFlipped = (Math.abs(flipAngle) / 180) % 2 === 1;
+  const flip = (dir: 1 | -1) => setFlipAngle((prev) => prev + dir * 180);
   const [isFrontExpanded, setIsFrontExpanded] = useState(false);
   const [isBackExpanded, setIsBackExpanded] = useState(false);
   const [isCommentOpen, setIsCommentOpen] = useState(false);
@@ -108,6 +111,16 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
 
   const addressLine = [book.author, dateLabel].filter(Boolean).join(' · ');
 
+  // 글이 길수록 판형에 맞춰 글자를 줄인다 — 짧은 문장은 엽서 그림처럼 큼직하게
+  const quoteLen = entry.quote?.length ?? 0;
+  const quoteSizeClass =
+    quoteLen <= 60
+      ? 'text-[24px] leading-[1.7]'
+      : quoteLen <= 160
+        ? 'text-quote'
+        : 'text-[17px] leading-[1.8]';
+  const noteSizeClass = (entry.note?.length ?? 0) <= 80 ? 'text-body' : 'text-body-sm';
+
   // 아날로그 낱장 느낌 — 기록 id에서 뽑은 결정적 기울기·어긋남
   const seed = Array.from(entry.id).reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
   const tilt = ((seed % 5) - 2) * 0.35; // -0.7° ~ 0.7°
@@ -154,12 +167,12 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
     const dy = e.clientY - start.y;
     if (Math.abs(dx) < 48 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
     if (!window.getSelection()?.isCollapsed) return; // 문장을 긁는 중이면 뒤집지 않는다
-    setIsFlipped((prev) => !prev);
+    flip(dx > 0 ? 1 : -1); // 문지른 방향으로 돈다
   };
 
   const flipButton = (label: string) => (
     <button
-      onClick={() => setIsFlipped((prev) => !prev)}
+      onClick={() => flip(1)}
       aria-label={label}
       className="flex shrink-0 items-center gap-1 text-caption font-medium text-ink-faint hover:text-accent transition-colors"
     >
@@ -217,12 +230,13 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
         </div>
       </div>
 
-      <div className="mt-3 flex-1 sm:flex sm:gap-5">
+      {/* 모바일에서도 사연|주소 2단 유지 — 세로로 쌓으면 엽서 판형이 무너진다 */}
+      <div className="mt-3 flex flex-1 gap-4 sm:gap-5">
         {/* 사연 칸 */}
         <div className="flex min-w-0 flex-1 flex-col">
           {entry.note && (
             <p
-              className={`text-body-sm text-ink-sub whitespace-pre-wrap ${
+              className={`${noteSizeClass} text-ink-sub whitespace-pre-wrap ${
                 !isBackExpanded ? 'line-clamp-4' : ''
               }`}
             >
@@ -233,10 +247,10 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
         </div>
 
         {/* 세로 구분선 — 엽서 뒷면의 사연|주소 경계 */}
-        <div className="hidden sm:block w-px self-stretch bg-hairline" />
+        <div className="w-px self-stretch bg-hairline" />
 
         {/* 주소 칸 — 우표 자리의 표지, 괘선 위의 책 */}
-        <div className="mt-5 flex flex-col sm:mt-0 sm:w-44">
+        <div className="flex w-28 shrink-0 flex-col sm:w-44">
           <div
             className="perforated-stamp self-end"
             style={{ transform: `rotate(${stampTilt}deg)` }}
@@ -251,11 +265,11 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
               />
             </div>
           </div>
-          <div className="mt-4 sm:mt-auto sm:pt-5">
+          <div className="mt-auto pt-5">
             <p className="truncate border-b border-hairline-strong pb-1.5 font-serif text-body-sm font-semibold text-ink">
               『{book.title}』
             </p>
-            <p className="truncate border-b border-hairline-strong pb-1.5 pt-2 text-caption text-ink-faint">
+            <p className="line-clamp-2 border-b border-hairline-strong pb-1.5 pt-2 text-caption text-ink-faint">
               {addressLine}
             </p>
           </div>
@@ -291,7 +305,7 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
         “
       </span>
       <blockquote
-        className={`mt-1 font-serif text-quote text-ink whitespace-pre-wrap ${
+        className={`mt-1 font-serif ${quoteSizeClass} text-ink whitespace-pre-wrap ${
           !isFrontExpanded ? 'line-clamp-6' : ''
         }`}
       >
@@ -351,9 +365,8 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
           onPointerUp={handlePointerUp}
         >
           <div
-            className={`grid transition-transform duration-500 motion-reduce:duration-0 [transform-style:preserve-3d] ${
-              isFlipped ? '[transform:rotateY(180deg)]' : ''
-            }`}
+            className="grid transition-transform duration-500 motion-reduce:duration-0 [transform-style:preserve-3d]"
+            style={{ transform: `rotateY(${flipAngle}deg)` }}
           >
             <div inert={isFlipped} className="[grid-area:1/1] [backface-visibility:hidden]">
               {postcard(frontFace)}
