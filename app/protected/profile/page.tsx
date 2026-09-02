@@ -1,12 +1,14 @@
+import { notFound } from 'next/navigation';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { fetchProfileData } from '@/lib/profile/fetchProfileData';
 import { fetchRetrospectData } from '@/lib/profile/fetchRetrospectData';
-import ProfileBookshelf from '@/components/profile/ProfileBookshelf';
-import ProfileStats from '@/components/profile/ProfileStats';
-import ProfileRetrospect from '@/components/profile/ProfileRetrospect';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { fetchBookReadingStats } from '@/lib/queries/fetchBookReadingStats';
 import { getUserStats } from '@/lib/stats/getUserStats';
-import ProfileHeader from '@/components/profile/ProfileHeader';
-import { notFound } from 'next/navigation';
+import { toShelfBook } from '@/lib/books/shelfBook';
+import ProfileCover from '@/components/profile/ProfileCover';
+import ProfileShelf, { PROFILE_SHELF_LIMIT } from '@/components/profile/ProfileShelf';
+import ProfileColophon from '@/components/profile/ProfileColophon';
+import ProfileRetrospect from '@/components/profile/ProfileRetrospect';
 import AnimatedSection from '@/components/ui/AnimatedSection';
 
 export default async function ProfilePage() {
@@ -21,34 +23,41 @@ export default async function ProfilePage() {
     return <p className="text-center mt-10 text-danger">로그인이 필요합니다.</p>;
   }
 
-  const [{ profile, userBooks }, stats, retrospect] = await Promise.all([
+  const [{ profile, userBooks }, stats, retrospect, readingStats] = await Promise.all([
     fetchProfileData(user.id),
     getUserStats(user.id),
     fetchRetrospectData(user.id),
+    fetchBookReadingStats(),
   ]);
 
   if (!profile || !userBooks) {
     return notFound();
   }
 
+  const shelfBooks = userBooks
+    .slice(0, PROFILE_SHELF_LIMIT)
+    .map((ub) => toShelfBook(ub, readingStats, `/protected/books/${ub.book_id}`));
+
   return (
-    <div>
-      <h1 className="text-page-title text-ink mb-2">내 프로필</h1>
+    <div className="pb-16">
       <AnimatedSection>
-        <div>
-          <ProfileHeader user={user} profile={profile} />
-          <ProfileBookshelf userBooks={userBooks} isOwnProfile />
-          {stats ? (
-            <ProfileStats stats={stats} />
-          ) : (
-            <p className="text-body-sm text-ink-faint">통계 정보를 불러올 수 없습니다.</p>
-          )}
-          {retrospect ? (
-            <ProfileRetrospect data={retrospect} />
-          ) : (
-            <p className="text-body-sm text-ink-faint">회고 정보를 불러올 수 없습니다.</p>
-          )}
-        </div>
+        <ProfileCover user={user} profile={profile} />
+        <ProfileShelf
+          books={shelfBooks}
+          total={userBooks.length}
+          shelfHref="/protected/books"
+          isOwnProfile
+        />
+        {stats ? (
+          <ProfileColophon stats={stats} />
+        ) : (
+          <p className="mt-12 text-body-sm text-ink-faint">통계 정보를 불러올 수 없습니다.</p>
+        )}
+        {retrospect ? (
+          <ProfileRetrospect data={retrospect} />
+        ) : (
+          <p className="mt-12 text-body-sm text-ink-faint">회고 정보를 불러올 수 없습니다.</p>
+        )}
       </AnimatedSection>
     </div>
   );

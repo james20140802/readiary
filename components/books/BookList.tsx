@@ -2,12 +2,13 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { MyBook } from '@/types/book';
-import { formatReadingPeriod } from '@/lib/dates';
 import type { BookReadingStat } from '@/lib/queries/fetchBookReadingStats';
 import BookSpineShelf, { type ShelfBook } from './BookSpineShelf';
 import OpenBook from './OpenBook';
+import { useOpenBook } from './useOpenBook';
+import { toShelfBook } from '@/lib/books/shelfBook';
 
 interface Props {
   books: MyBook[];
@@ -78,65 +79,24 @@ export default function BookList({ books, stats, isFriend = false, nicknameAndTa
   const [viewMode, setViewMode] = useState<ViewMode>('shelf');
   const [filter, setFilter] = useState<FilterMode>('all');
   const [sort, setSort] = useState<SortMode>('recent');
-  // 꺼낸 책 — 열린 채로 다른 책을 누르면 먼저 덮어 꽂고(pending에 담아 두고) 그 다음 책을 꺼낸다.
-  // 그동안 책장 위 자리는 열린 채로 둬 책장이 오르내리지 않는다. 진행 중 판단은 ref로 — 갱신 함수에 부작용을 두지 않는다.
-  const [openBook, setOpenBook] = useState<ShelfBook | null>(null);
-  const [slotOpen, setSlotOpen] = useState(false);
-  // 책장에서 감출 책등 — 꺼낼 때 같이 감추고, 표지가 돌아가기 시작하는 커밋에서 다시 보인다
-  const [hiddenId, setHiddenId] = useState<string | null>(null);
-  const openRef = useRef<ShelfBook | null>(null);
-  const pendingRef = useRef<ShelfBook | null>(null);
-  const closingRef = useRef(false);
+  const {
+    openBook,
+    slotOpen,
+    hiddenId,
+    handleOpen,
+    closeBook,
+    handleReturn,
+    handleClosed,
+    resetOpen,
+  } = useOpenBook();
 
-  const setOpen = useCallback((b: ShelfBook | null) => {
-    openRef.current = b;
-    setOpenBook(b);
-    if (b) setHiddenId(b.id);
-  }, []);
-  const handleReturn = useCallback(() => setHiddenId(null), []);
-  const closeBook = useCallback(() => {
-    if (!openRef.current) return;
-    closingRef.current = true;
-    setOpen(null);
-  }, [setOpen]);
-  const handleOpen = useCallback(
-    (book: ShelfBook) => {
-      setSlotOpen(true);
-      if (closingRef.current) {
-        pendingRef.current = book;
-        return;
-      }
-      const cur = openRef.current;
-      if (!cur) {
-        setOpen(book);
-        return;
-      }
-      if (cur.id === book.id) return;
-      pendingRef.current = book;
-      closingRef.current = true;
-      setOpen(null);
-    },
-    [setOpen]
+  const getDetailHref = useCallback(
+    (userBook: MyBook) =>
+      isFriend && nicknameAndTag !== ''
+        ? `/protected/social/u/${nicknameAndTag}/books/${userBook.book_id}`
+        : `/protected/books/${userBook.book_id}`,
+    [isFriend, nicknameAndTag]
   );
-  const handleClosed = useCallback(() => {
-    closingRef.current = false;
-    const next = pendingRef.current;
-    pendingRef.current = null;
-    if (next) setOpen(next);
-    else setSlotOpen(false);
-  }, [setOpen]);
-  const resetOpen = useCallback(() => {
-    closingRef.current = false;
-    pendingRef.current = null;
-    setOpen(null);
-    setHiddenId(null);
-    setSlotOpen(false);
-  }, [setOpen]);
-
-  const getDetailHref = (userBook: MyBook) =>
-    isFriend && nicknameAndTag !== ''
-      ? `/protected/social/u/${nicknameAndTag}/books/${userBook.book_id}`
-      : `/protected/books/${userBook.book_id}`;
 
   const processed = useMemo(() => {
     let list = [...books];
@@ -154,27 +114,8 @@ export default function BookList({ books, stats, isFriend = false, nicknameAndTa
 
   // 책장에 넘길 목록은 고정해 둔다 — 꺼내고 덮는 동안 책장이 리렌더되지 않도록(BookSpineShelf memo)
   const shelfBooks = useMemo<ShelfBook[]>(
-    () =>
-      processed.map((ub) => {
-        const stat = stats?.[ub.id];
-        return {
-          id: ub.id,
-          title: ub.books.title ?? '(제목 없음)',
-          author: ub.books.author,
-          coverUrl: ub.books.cover_url ?? null,
-          totalPages: ub.books.total_pages,
-          lastReadPage: ub.last_read_page,
-          isFinished: ub.is_finished ?? false,
-          href:
-            isFriend && nicknameAndTag !== ''
-              ? `/protected/social/u/${nicknameAndTag}/books/${ub.book_id}`
-              : `/protected/books/${ub.book_id}`,
-          readingPeriod: stat ? formatReadingPeriod([stat.firstDate, stat.lastDate]) : null,
-          // 통계가 있는데 항목이 없으면 진짜 0, 통계 자체가 없으면 모름(null)
-          entryCount: stats ? (stat?.entryCount ?? 0) : null,
-        };
-      }),
-    [processed, stats, isFriend, nicknameAndTag]
+    () => processed.map((ub) => toShelfBook(ub, stats, getDetailHref(ub))),
+    [processed, stats, getDetailHref]
   );
 
   // 빈 책장 — 선반 한 칸만 비워 두고 한 줄

@@ -3,7 +3,6 @@
 import { useRouter } from 'next/navigation';
 import { useTransition, useState } from 'react';
 import { toast } from 'sonner';
-import { UserMinus } from 'lucide-react';
 
 interface Props {
   friendId: string;
@@ -35,11 +34,11 @@ export default function RemoveFriendButton({ friendId }: Props) {
   return (
     <>
       <button
+        type="button"
         onClick={() => setShowConfirm(true)}
-        className="p-3 rounded-2xl hover:bg-danger-soft transition-all text-ink-faint hover:text-danger active:scale-90"
-        title="친구 삭제"
+        className="transition-colors hover:text-danger"
       >
-        <UserMinus size={22} strokeWidth={2.5} />
+        친구 삭제
       </button>
 
       {/* 확인 다이얼로그 */}
