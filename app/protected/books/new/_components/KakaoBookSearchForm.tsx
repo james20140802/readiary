@@ -105,7 +105,9 @@ export default function KakaoBookSearchForm() {
 
       if (registerRes.ok && result?.success) {
         toast.success('책이 등록되었습니다');
-        router.push(`/protected/books/`);
+        // push만으로는 라우터 캐시의 이전 목록이 보일 수 있어 서버 트리를 다시 받는다
+        router.push('/protected/books');
+        router.refresh();
       } else {
         toast.error(result?.message ?? '등록에 실패했습니다');
       }

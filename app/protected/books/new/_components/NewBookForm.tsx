@@ -42,6 +42,7 @@ export default function NewBookForm() {
       }
 
       router.push('/protected/books');
+      router.refresh();
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);

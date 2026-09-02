@@ -2,12 +2,17 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { MyBook } from '@/types/book';
-import BookSpineShelf from './BookSpineShelf';
+import { formatReadingPeriod } from '@/lib/dates';
+import type { BookReadingStat } from '@/lib/queries/fetchBookReadingStats';
+import BookSpineShelf, { type ShelfBook } from './BookSpineShelf';
+import OpenBook from './OpenBook';
 
 interface Props {
   books: MyBook[];
+  /** user_book id → 읽기 통계. 없으면 펼친 책에 기간·문장 수를 비워 둔다 */
+  stats?: Record<string, BookReadingStat>;
   isFriend?: boolean;
   nicknameAndTag?: string;
 }
@@ -69,10 +74,17 @@ function TextToggle<T extends string>({
   );
 }
 
-export default function BookList({ books, isFriend = false, nicknameAndTag = '' }: Props) {
+export default function BookList({
+  books,
+  stats = {},
+  isFriend = false,
+  nicknameAndTag = '',
+}: Props) {
   const [viewMode, setViewMode] = useState<ViewMode>('shelf');
   const [filter, setFilter] = useState<FilterMode>('all');
   const [sort, setSort] = useState<SortMode>('recent');
+  const [openBook, setOpenBook] = useState<ShelfBook | null>(null);
+  const closeBook = useCallback(() => setOpenBook(null), []);
 
   const getDetailHref = (userBook: MyBook) =>
     isFriend && nicknameAndTag !== ''
@@ -138,15 +150,28 @@ export default function BookList({ books, isFriend = false, nicknameAndTag = '' 
           {filter === 'finished' ? '아직 완독한 책이 없습니다.' : '읽는 중인 책이 없습니다.'}
         </p>
       ) : viewMode === 'shelf' ? (
-        <BookSpineShelf
-          books={processed.map((ub) => ({
-            id: ub.id,
-            title: ub.books.title ?? '(제목 없음)',
-            totalPages: ub.books.total_pages,
-            isFinished: ub.is_finished ?? false,
-            href: getDetailHref(ub),
-          }))}
-        />
+        <>
+          <BookSpineShelf
+            books={processed.map((ub) => {
+              const stat = stats[ub.id];
+              return {
+                id: ub.id,
+                title: ub.books.title ?? '(제목 없음)',
+                author: ub.books.author,
+                coverUrl: ub.books.cover_url ?? null,
+                totalPages: ub.books.total_pages,
+                lastReadPage: ub.last_read_page,
+                isFinished: ub.is_finished ?? false,
+                href: getDetailHref(ub),
+                readingPeriod: stat ? formatReadingPeriod([stat.firstDate, stat.lastDate]) : null,
+                entryCount: stat?.entryCount ?? 0,
+              };
+            })}
+            onOpen={setOpenBook}
+            openId={openBook?.id ?? null}
+          />
+          <OpenBook book={openBook} onClose={closeBook} />
+        </>
       ) : (
         /* 목록 — 조용한 리스트. 표지 작게, 서지는 부리 서체, 진행은 잉크 분수 */
         <ul className="divide-y divide-hairline">

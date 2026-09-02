@@ -1,11 +1,12 @@
 import Link from 'next/link';
 import { fetchMyBooksData } from '@/lib/queries/fetchBooks';
+import { fetchBookReadingStats } from '@/lib/queries/fetchBookReadingStats';
 import { redirect } from 'next/navigation';
 import Button from '@/components/ui/Button';
 import BookList from '@/components/books/BookList';
 
 export default async function MyBooksPage() {
-  const books = await fetchMyBooksData();
+  const [books, stats] = await Promise.all([fetchMyBooksData(), fetchBookReadingStats()]);
 
   if (!books) return redirect('/');
 
@@ -30,7 +31,7 @@ export default async function MyBooksPage() {
         </Button>
       </header>
 
-      <BookList books={books} />
+      <BookList books={books} stats={stats} />
     </div>
   );
 }
