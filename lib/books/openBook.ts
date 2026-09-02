@@ -4,15 +4,15 @@
  */
 
 /** 한쪽에 쌓이는 종이 두께의 상한(px) */
-export const STACK_MAX = 14;
+export const STACK_MAX = 28;
 /** 쪽수를 모를 때 양쪽 합친 두께 */
-export const STACK_DEFAULT = 6;
+export const STACK_DEFAULT = 12;
 
 const clamp = (min: number, max: number, v: number) => Math.min(max, Math.max(min, v));
 
 /**
  * 읽은 만큼 왼쪽에, 남은 만큼 오른쪽에 종이가 쌓인다.
- * 전체 두께는 총 쪽수 비례(3 + 쪽수/70, 4–14px), 완독이면 전부 왼쪽.
+ * 전체 두께는 총 쪽수 비례(6 + 쪽수/40, 8–28px — 1px이 종이 한 장), 완독이면 전부 왼쪽.
  */
 export function pageStacks(
   totalPages: number | null,
@@ -22,7 +22,7 @@ export function pageStacks(
   const total =
     totalPages == null || !Number.isFinite(totalPages) || totalPages <= 0
       ? STACK_DEFAULT
-      : clamp(4, STACK_MAX, Math.round(3 + totalPages / 70));
+      : clamp(8, STACK_MAX, Math.round(6 + totalPages / 40));
   let ratio: number;
   if (isFinished) ratio = 1;
   else if (totalPages != null && totalPages > 0)
@@ -41,7 +41,7 @@ export function pageStackShadow(px: number, dir: -1 | 1): string {
   const lines: string[] = [];
   for (let i = 1; i <= px; i += 1) {
     const color = i % 2 === 1 ? 'rgb(var(--ink) / 0.2)' : 'rgb(var(--card))';
-    lines.push(`${dir * i}px ${Math.round(i * 0.35 * 10) / 10}px 0 0 ${color}`);
+    lines.push(`${dir * i}px ${Math.round(i * 0.3 * 10) / 10}px 0 0 ${color}`);
   }
   return lines.join(', ');
 }

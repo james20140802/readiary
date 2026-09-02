@@ -1,6 +1,6 @@
 'use client';
 
-import { memo } from 'react';
+import { memo, useRef } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { SHELF_SLOT_HEIGHT, spineHeight, spineWidth } from '@/lib/books/spine';
@@ -84,63 +84,83 @@ function BookSpineShelf({ books, onOpen, hiddenId, className }: Props) {
         backgroundImage: `repeating-linear-gradient(to bottom, transparent 0 ${SHELF_SLOT_HEIGHT}px, rgb(var(--hairline-strong)) ${SHELF_SLOT_HEIGHT}px ${SHELF_SLOT_HEIGHT + BOARD}px, transparent ${SHELF_SLOT_HEIGHT + BOARD}px ${pitch}px)`,
       }}
     >
-      {books.map((book) => {
-        const width = spineWidth(book.totalPages);
-        const height = spineHeight(book.title);
-        const hidden = book.id === hiddenId;
-        const spineClass = `group flex h-full w-full flex-col items-center rounded-t-[3px] border border-b-0 border-hairline-strong pt-4 pb-3 transition-transform hover:-translate-y-1 focus-visible:-translate-y-1 focus-visible:border-accent focus-visible:outline-none ${
-          book.isFinished ? 'bg-card-raised' : 'bg-card'
-        }`;
-        const inner = (
-          <>
-            <span
-              className="min-h-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap font-serif text-[12px] tracking-[0.06em] text-ink"
-              style={{ writingMode: 'vertical-rl' }}
-            >
-              <SpineTitle title={book.title} />
-            </span>
-            {book.isFinished && (
-              <span
-                aria-hidden
-                className="mt-1.5 h-[5px] w-[5px] shrink-0 rounded-full bg-accent"
-              />
-            )}
-          </>
-        );
-        const label = book.isFinished ? `${book.title} (완독)` : book.title;
-
-        return (
-          <li key={book.id} className="flex items-end" style={{ height: SHELF_SLOT_HEIGHT, width }}>
-            {/* layoutId를 펼친 책과 나눠 갖는다 — 꺼내지면 framer가 이 자리를 비워 두고,
-                덮이면 표지 자리에서 이 transition으로 되돌아온다 */}
-            <motion.div
-              layoutId={spineLayoutId(book.id)}
-              transition={{ layout: { duration: 0.45, ease: [0.22, 1, 0.36, 1] } }}
-              className={`flex items-end ${hidden ? 'invisible' : ''}`}
-              style={{ height, width }}
-            >
-              {onOpen ? (
-                <button
-                  type="button"
-                  onClick={() => onOpen(book)}
-                  title={book.title}
-                  aria-label={`${label} 꺼내기`}
-                  aria-expanded={hidden}
-                  tabIndex={hidden ? -1 : undefined}
-                  className={spineClass}
-                >
-                  {inner}
-                </button>
-              ) : (
-                <Link href={book.href} title={book.title} aria-label={label} className={spineClass}>
-                  {inner}
-                </Link>
-              )}
-            </motion.div>
-          </li>
-        );
-      })}
+      {books.map((book) => (
+        <SpineItem key={book.id} book={book} onOpen={onOpen} hidden={book.id === hiddenId} />
+      ))}
     </ul>
+  );
+}
+
+/**
+ * 책등 하나. 표지 자리에서 되돌아오는 layout 애니메이션 동안은 글을 감춘다 —
+ * framer가 상자를 스케일하므로 글이 커 보인다. 리렌더 없이 DOM으로만 다룬다.
+ */
+function SpineItem({
+  book,
+  onOpen,
+  hidden,
+}: {
+  book: ShelfBook;
+  onOpen?: (book: ShelfBook) => void;
+  hidden: boolean;
+}) {
+  const innerRef = useRef<HTMLSpanElement>(null);
+  const width = spineWidth(book.totalPages);
+  const height = spineHeight(book.title);
+  const spineClass = `group flex h-full w-full flex-col items-center rounded-t-[3px] border border-b-0 border-hairline-strong pt-4 pb-3 transition-transform hover:-translate-y-1 focus-visible:-translate-y-1 focus-visible:border-accent focus-visible:outline-none ${
+    book.isFinished ? 'bg-card-raised' : 'bg-card'
+  }`;
+  const inner = (
+    <span ref={innerRef} className="contents">
+      <span
+        className="min-h-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap font-serif text-[12px] tracking-[0.06em] text-ink transition-opacity duration-150"
+        style={{ writingMode: 'vertical-rl' }}
+      >
+        <SpineTitle title={book.title} />
+      </span>
+      {book.isFinished && (
+        <span aria-hidden className="mt-1.5 h-[5px] w-[5px] shrink-0 rounded-full bg-accent" />
+      )}
+    </span>
+  );
+  const label = book.isFinished ? `${book.title} (완독)` : book.title;
+  const setTextOpacity = (value: string) => {
+    const el = innerRef.current;
+    if (!el) return;
+    for (const child of Array.from(el.children)) (child as HTMLElement).style.opacity = value;
+  };
+
+  return (
+    <li className="flex items-end" style={{ height: SHELF_SLOT_HEIGHT, width }}>
+      {/* layoutId를 펼친 책과 나눠 갖는다 — 꺼내지면 그 자리를 비워 두고,
+          덮이면 표지 자리에서 이 transition으로 되돌아온다 */}
+      <motion.div
+        layoutId={spineLayoutId(book.id)}
+        transition={{ layout: { duration: 0.45, ease: [0.22, 1, 0.36, 1] } }}
+        onLayoutAnimationStart={() => setTextOpacity('0')}
+        onLayoutAnimationComplete={() => setTextOpacity('1')}
+        className={`flex items-end ${hidden ? 'invisible' : ''}`}
+        style={{ height, width }}
+      >
+        {onOpen ? (
+          <button
+            type="button"
+            onClick={() => onOpen(book)}
+            title={book.title}
+            aria-label={`${label} 꺼내기`}
+            aria-expanded={hidden}
+            tabIndex={hidden ? -1 : undefined}
+            className={spineClass}
+          >
+            {inner}
+          </button>
+        ) : (
+          <Link href={book.href} title={book.title} aria-label={label} className={spineClass}>
+            {inner}
+          </Link>
+        )}
+      </motion.div>
+    </li>
   );
 }
 

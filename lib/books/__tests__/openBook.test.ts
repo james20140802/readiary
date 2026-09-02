@@ -10,7 +10,7 @@ import {
 describe('pageStacks', () => {
   it('읽은 비율만큼 왼쪽에 쌓이고 나머지는 오른쪽', () => {
     const { left, right } = pageStacks(344, 120, false);
-    expect(left + right).toBe(Math.round(3 + 344 / 70));
+    expect(left + right).toBe(Math.round(6 + 344 / 40));
     expect(left).toBe(Math.round((120 / 344) * (left + right)));
   });
 
@@ -19,8 +19,8 @@ describe('pageStacks', () => {
     expect(pageStacks(300, null, false).left).toBe(0);
   });
 
-  it('두께는 4–14px 사이', () => {
-    expect(pageStacks(40, 0, false).right).toBe(4);
+  it('두께는 8–28px 사이', () => {
+    expect(pageStacks(40, 0, false).right).toBe(8);
     expect(pageStacks(5000, 0, false).right).toBe(STACK_MAX);
   });
 

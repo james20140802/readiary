@@ -25,7 +25,7 @@ export const FLIP = 0.6;
 const EASE_OUT: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
 const BOARD = 3; // 판이 종이보다 넓게 나오는 여백
-const PAGE_BOTTOM = BOARD + Math.ceil(STACK_MAX * 0.35); // 부채꼴로 내려오는 단면 자리
+const PAGE_BOTTOM = BOARD + Math.ceil(STACK_MAX * 0.3); // 부채꼴로 내려오는 단면 자리
 
 type Stage = 'idle' | 'pull' | 'open' | 'fold' | 'return';
 
@@ -246,16 +246,16 @@ export default function OpenBook({ book, slotOpen, onClose, onReturn, onClosed }
                       className="absolute inset-y-0 left-[5px] w-px bg-hairline-strong"
                     />
                     <span aria-hidden className="absolute inset-y-0 left-[9px] w-px bg-hairline" />
+                    {/* layout — 부모가 책등에서 자라나는 동안 framer가 스케일을 되돌려 글이 늘어나지 않는다.
+                        그래서 표지 글을 처음부터 보일 수 있다: 상자가 커지며 드러난다 */}
                     <motion.div
+                      layout
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      transition={{ duration: 0.2, delay: PULL * 0.9 }}
+                      transition={{ opacity: { duration: 0.2, delay: 0.05 } }}
                       className="flex h-full flex-col items-center justify-center px-5 text-center"
                     >
-                      <span className="font-sans text-[10px] tracking-[0.22em] text-ink-faint">
-                        내 책장
-                      </span>
-                      <p className="mt-3 line-clamp-3 font-serif text-[15px] font-bold leading-snug text-ink sm:text-[17px]">
+                      <p className="line-clamp-3 font-serif text-[15px] font-bold leading-snug text-ink sm:text-[17px]">
                         {shown.title}
                       </p>
                       {shown.author && (
