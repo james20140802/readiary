@@ -98,8 +98,12 @@ export default function CommentSection({
   return (
     <div className="mt-10 space-y-6">
       <div className="flex items-center justify-between px-1">
-        <h3 className="text-[16px] font-extrabold text-ink">
-          댓글 <span className="text-accent ml-1">{comments.length}</span>
+        {/* 책 상세의 '독서 기록' 헤딩과 같은 문법 */}
+        <h3 className="font-serif text-[17px] font-bold text-ink">
+          댓글{' '}
+          <span className="ml-1 text-[13px] font-normal tabular-nums text-ink-faint">
+            {comments.length}
+          </span>
         </h3>
       </div>
 

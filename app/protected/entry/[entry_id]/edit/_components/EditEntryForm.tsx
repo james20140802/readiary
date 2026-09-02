@@ -48,8 +48,8 @@ export default function EditEntryForm({
   return (
     <EntryForm
       book={book}
-      heading="기록 수정"
-      submitLabel="수정 저장"
+      heading="기록 고치기"
+      submitLabel="고쳐 남기기"
       initial={{
         quote: initialQuote,
         note: initialNote,
