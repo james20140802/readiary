@@ -35,11 +35,12 @@ export default function CommentInput({
     }
   };
 
+  // 박스 대신 괘선 하나 — 종이의 줄 위에 쓰는 문법. 포커스하면 줄이 살짝 진해진다
   return (
-    <div className="relative flex flex-col bg-card-raised rounded-2xl border border-hairline focus-within:border-accent/50 transition-all overflow-hidden">
+    <div className="border-b border-hairline transition-colors focus-within:border-hairline-strong">
       {/* 답글 모드일 때 상단에 표시되는 바 */}
       {replyingTo && (
-        <div className="flex items-center justify-between px-4 py-2 bg-card-raised/50 border-b border-hairline animate-in fade-in slide-in-from-top-1">
+        <div className="flex items-center justify-between pb-1 animate-in fade-in slide-in-from-top-1">
           <p className="text-[12px] text-ink-sub">
             <span className="font-bold text-accent">@{replyingTo.profile.nickname}</span>님에게 답글
             남기는 중
@@ -53,26 +54,25 @@ export default function CommentInput({
           </button>
         </div>
       )}
-      <form onSubmit={handleSubmit} className="relative flex items-center gap-3 p-2 pl-4">
+      <form onSubmit={handleSubmit} className="flex items-center gap-3">
         <input
           type="text"
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="칭찬과 응원은 큰 힘이 됩니다"
-          className="flex-1 bg-transparent border-none outline-none text-[14px] py-1.5 text-ink-sub placeholder:text-ink-faint"
+          className="flex-1 bg-transparent border-none outline-none text-[14px] py-2.5 text-ink placeholder:text-ink-faint"
           disabled={isSubmitting}
         />
 
         <button
           type="submit"
           disabled={!content.trim() || isSubmitting}
-          className={`p-2 rounded-xl transition-all ${
-            content.trim() && !isSubmitting
-              ? 'text-accent bg-accent/10'
-              : 'text-ink-faint bg-transparent'
+          aria-label="댓글 남기기"
+          className={`p-1.5 transition-colors ${
+            content.trim() && !isSubmitting ? 'text-accent' : 'text-ink-faint'
           }`}
         >
-          <Send size={18} className={isSubmitting ? 'animate-pulse' : ''} />
+          <Send size={17} className={isSubmitting ? 'animate-pulse' : ''} />
         </button>
       </form>
     </div>
