@@ -4,9 +4,11 @@ import { getUserStats } from '@/lib/stats/getUserStats';
 import { fetchProfileData } from '@/lib/profile/fetchProfileData';
 import { fetchRetrospectData } from '@/lib/profile/fetchRetrospectData';
 import { fetchFeaturedQuote } from '@/lib/profile/fetchFeaturedQuote';
+import { fetchFeaturedBookmark } from '@/lib/profile/fetchFeaturedBookmark';
 import { PROFILE_SHELF_LIMIT, toShelfBook } from '@/lib/books/shelfBook';
 import ProfileBook from '@/components/profile/ProfileBook';
 import ProfileShelf from '@/components/profile/ProfileShelf';
+import ProfileExcerpts from '@/components/profile/ProfileExcerpts';
 import AnimatedSection from '@/components/ui/AnimatedSection';
 import BackButton from '@/components/ui/BackButton';
 
@@ -43,17 +45,21 @@ export default async function FriendProfilePage({ params }: FriendProfilePagePro
   if (!isFriend && user.id !== profile.id) return notFound();
 
   // 친구 책의 책갈피·인덱스·뒷표지는 RLS가 보여주는 기록(공개)만으로 만들어진다
-  const [stats, retrospect, featuredQuote] = await Promise.all([
+  const [stats, retrospect, featuredQuote, bookmark] = await Promise.all([
     getUserStats(profile.id),
     fetchRetrospectData(profile.id),
     fetchFeaturedQuote(profile.featured_entry_id),
+    fetchFeaturedBookmark(profile.bookmark_user_book_id),
   ]);
 
   // 친구의 읽기 통계(기간·문장 수)는 본인 것만 조회 가능해 비워 둔다 — 펼친 책이 그 행을 생략한다
   const shelfHref = `/protected/social/u/${slug}/books`;
+  const bookHref = (bookId: string) => `${shelfHref}/${bookId}`;
   const shelfBooks = userBooks
     .slice(0, PROFILE_SHELF_LIMIT)
-    .map((ub) => toShelfBook(ub, null, `${shelfHref}/${ub.book_id}`));
+    .map((ub) => toShelfBook(ub, null, bookHref(ub.book_id)));
+  const finishedBooks = retrospect?.finishedBooks ?? [];
+  const otherExcerpts = finishedBooks.filter((b) => b.bookId !== bookmark?.bookId);
 
   return (
     <div className="pb-16">
@@ -66,8 +72,10 @@ export default async function FriendProfilePage({ params }: FriendProfilePagePro
           user={user}
           profile={profile}
           stats={stats}
-          retrospect={retrospect}
+          monthly={retrospect?.monthly ?? []}
           featuredQuote={featuredQuote}
+          bookmark={bookmark}
+          bookmarkHref={bookmark ? bookHref(bookmark.bookId) : null}
           isFriend
         />
         <ProfileShelf
@@ -76,6 +84,7 @@ export default async function FriendProfilePage({ params }: FriendProfilePagePro
           shelfHref={shelfHref}
           isOwnProfile={false}
         />
+        <ProfileExcerpts books={otherExcerpts} hrefFor={bookHref} />
       </AnimatedSection>
     </div>
   );

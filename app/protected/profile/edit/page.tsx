@@ -22,6 +22,11 @@ interface QuoteOption {
   bookTitle: string | null;
 }
 
+interface FinishedOption {
+  id: string;
+  title: string;
+}
+
 /** 뒷표지 후보로 보여 주는 최근 인용 수 */
 const FEATURED_CANDIDATES = 40;
 
@@ -36,6 +41,10 @@ export default function EditProfilePage() {
   const [featuredEntryId, setFeaturedEntryId] = useState<string | null>(null);
   const [featuredDirty, setFeaturedDirty] = useState(false);
   const [quotes, setQuotes] = useState<QuoteOption[]>([]);
+  // 책갈피 — 완독한 책 중 하나. 바꾼 적이 있을 때만 저장에 실린다
+  const [bookmarkId, setBookmarkId] = useState<string | null>(null);
+  const [bookmarkDirty, setBookmarkDirty] = useState(false);
+  const [finishedBooks, setFinishedBooks] = useState<FinishedOption[]>([]);
 
   useEffect(() => {
     async function loadData() {
@@ -51,7 +60,20 @@ export default function EditProfilePage() {
         setName(data.name || '');
         setBio(data.bio || '');
         setFeaturedEntryId(data.featured_entry_id ?? null);
+        setBookmarkId(data.bookmark_user_book_id ?? null);
       }
+
+      const { data: finished } = await supabase
+        .from('user_books')
+        .select('id, books(title)')
+        .eq('user_id', user.id)
+        .eq('is_finished', true)
+        .order('created_at', { ascending: false });
+      setFinishedBooks(
+        (finished ?? []).flatMap((r) =>
+          r.books?.title ? [{ id: r.id, title: r.books.title }] : []
+        )
+      );
 
       const { data: rows } = await supabase
         .from('entries')
@@ -97,7 +119,8 @@ export default function EditProfilePage() {
       nickname,
       name,
       bio,
-      featuredDirty ? featuredEntryId : undefined
+      featuredDirty ? featuredEntryId : undefined,
+      bookmarkDirty ? bookmarkId : undefined
     );
     if (res?.success) {
       toast.success('프로필 정보가 저장되었습니다.');
@@ -206,6 +229,73 @@ export default function EditProfilePage() {
             />
           </FormGroup>
         </div>
+
+        {/* 책갈피 — 프로필 책 윗면에 꽂히는 발췌집 하나 */}
+        <section id="bookmark" className="scroll-mt-6">
+          <h3 className="font-bold text-ink">책갈피</h3>
+          <p className="mt-1 text-caption font-medium text-ink-faint">
+            프로필 책에 끼워 두는 책갈피입니다. 완독한 책 중 하나를 고르면 누를 때 그 발췌집으로
+            펼쳐집니다.
+          </p>
+          {finishedBooks.length === 0 ? (
+            <p className="mt-4 font-serif text-[14px] text-ink-sub">
+              아직 완독한 책이 없습니다. 완독을 선언하면 여기서 고를 수 있어요.
+            </p>
+          ) : (
+            <ul className="mt-4 divide-y divide-hairline border-y border-hairline">
+              <li>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setBookmarkId(null);
+                    setBookmarkDirty(true);
+                  }}
+                  aria-pressed={bookmarkId === null}
+                  className={`flex w-full items-center gap-3 px-1 py-3 text-left text-[13.5px] transition-colors ${
+                    bookmarkId === null ? 'text-accent' : 'text-ink-faint hover:text-ink-sub'
+                  }`}
+                >
+                  <span aria-hidden className="w-3 shrink-0 text-center">
+                    {bookmarkId === null ? '●' : '○'}
+                  </span>
+                  책갈피를 꽂지 않습니다
+                </button>
+              </li>
+              {finishedBooks.map((b) => {
+                const selected = bookmarkId === b.id;
+                return (
+                  <li key={b.id}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setBookmarkId(b.id);
+                        setBookmarkDirty(true);
+                      }}
+                      aria-pressed={selected}
+                      className="flex w-full items-center gap-3 px-1 py-3 text-left transition-colors"
+                    >
+                      <span
+                        aria-hidden
+                        className={`w-3 shrink-0 text-center text-[13px] ${
+                          selected ? 'text-accent' : 'text-ink-faint'
+                        }`}
+                      >
+                        {selected ? '●' : '○'}
+                      </span>
+                      <span
+                        className={`break-keep font-serif text-[14.5px] ${
+                          selected ? 'text-ink' : 'text-ink-sub'
+                        }`}
+                      >
+                        {b.title}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
 
         {/* 뒷표지 문장 — 프로필 책을 뒤집으면 보이는 인용 하나 */}
         <section id="featured-quote" className="scroll-mt-6">

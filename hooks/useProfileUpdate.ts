@@ -94,7 +94,8 @@ export function useProfileUpdate(initialProfile: Profile | null) {
     nickname: string,
     name: string,
     bio: string,
-    featuredEntryId?: string | null
+    featuredEntryId?: string | null,
+    bookmarkUserBookId?: string | null
   ) => {
     try {
       setUpdating(true);
@@ -144,6 +145,7 @@ export function useProfileUpdate(initialProfile: Profile | null) {
         bio,
         profile_image: imagePath, // 예: "userid/timestamp.jpg"
         ...(featuredEntryId !== undefined ? { featured_entry_id: featuredEntryId } : {}),
+        ...(bookmarkUserBookId !== undefined ? { bookmark_user_book_id: bookmarkUserBookId } : {}),
       });
 
       if (error) throw error;
