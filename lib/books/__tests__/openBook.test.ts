@@ -5,6 +5,7 @@ import {
   pageStackShadow,
   pageStacks,
   photoTilt,
+  spansYears,
 } from '@/lib/books/openBook';
 
 describe('pageStacks', () => {
@@ -50,5 +51,13 @@ describe('photoTilt', () => {
       expect(t).not.toBe(0);
       expect(Math.abs(t)).toBeLessThanOrEqual(2.7);
     }
+  });
+});
+
+describe('spansYears', () => {
+  it('대시 뒤에 연도가 다시 나오면 해를 넘긴 기간', () => {
+    expect(spansYears('2025. 12. 1. — 2026. 2. 10.')).toBe(true);
+    expect(spansYears('2026. 6. 3. — 8. 12.')).toBe(false);
+    expect(spansYears('2026. 6. 3.')).toBe(false);
   });
 });

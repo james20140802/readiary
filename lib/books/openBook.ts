@@ -53,3 +53,11 @@ export function photoTilt(id: string): number {
   const step = (Math.abs(hash) % 7) - 3; // -3..3
   return step === 0 ? 1.2 : step * 0.9;
 }
+
+/**
+ * 읽은 기간이 해를 넘겼는가 — formatReadingPeriod는 같은 해면 뒤쪽 연도를 생략하므로
+ * '— 2026.'처럼 대시 뒤에 연도가 다시 나오면 두 해에 걸친 기간이다.
+ */
+export function spansYears(period: string): boolean {
+  return /—\s*\d{4}\./.test(period);
+}

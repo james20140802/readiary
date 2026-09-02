@@ -5,7 +5,13 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { AnimatePresence, motion } from 'framer-motion';
 import Seal from '@/components/ui/Seal';
-import { STACK_MAX, pageStackShadow, pageStacks, photoTilt } from '@/lib/books/openBook';
+import {
+  STACK_MAX,
+  pageStackShadow,
+  pageStacks,
+  photoTilt,
+  spansYears,
+} from '@/lib/books/openBook';
 import { spineLayoutId, type ShelfBook } from './BookSpineShelf';
 
 interface Props {
@@ -28,6 +34,17 @@ const BOARD = 3; // 판이 종이보다 넓게 나오는 여백
 const PAGE_BOTTOM = BOARD + Math.ceil(STACK_MAX * 0.3); // 부채꼴로 내려오는 단면 자리
 
 type Stage = 'idle' | 'pull' | 'open' | 'fold' | 'return';
+
+/** 기간이 좁은 면에서 접힐 때 날짜 안에서 끊기지 않게 — 대시 뒤에서만 줄이 바뀐다 */
+function PeriodText({ period }: { period: string }) {
+  const [from, to] = period.split(' — ');
+  if (!to) return <>{period}</>;
+  return (
+    <>
+      <span className="inline-block">{from} —</span> <span className="inline-block">{to}</span>
+    </>
+  );
+}
 
 function progressText(b: ShelfBook): string {
   if (b.isFinished) return '완독';
@@ -178,7 +195,12 @@ export default function OpenBook({ book, slotOpen, onClose, onReturn, onClosed }
                     {shown.readingPeriod && (
                       <div>
                         <dt className="sr-only">읽은 기간</dt>
-                        <dd>{shown.readingPeriod}</dd>
+                        {/* 해를 넘긴 기간은 연도가 두 번 들어가 길다 — 그때만 반 단계 줄인다 */}
+                        <dd
+                          className={spansYears(shown.readingPeriod) ? 'text-[11.5px]' : undefined}
+                        >
+                          <PeriodText period={shown.readingPeriod} />
+                        </dd>
                       </div>
                     )}
                     <div>
@@ -224,7 +246,9 @@ export default function OpenBook({ book, slotOpen, onClose, onReturn, onClosed }
                   layout: { duration: PULL, ease: EASE_OUT },
                   opacity: { duration: PULL * 0.5, delay: PULL * 0.4 },
                 }}
-                className="absolute inset-y-0 left-1/2 w-1/2"
+                // pointer-events-none — 넘어간 표지의 회전 안 된 부모 상자가 오른쪽 면 위에 남아
+                // "덮기"·"책 상세"를 가린다. 표지엔 누를 것이 없으니 포인터를 통과시킨다
+                className="pointer-events-none absolute inset-y-0 left-1/2 w-1/2"
                 style={{ transformStyle: 'preserve-3d' }}
               >
                 <motion.div
@@ -269,7 +293,7 @@ export default function OpenBook({ book, slotOpen, onClose, onReturn, onClosed }
                       </p>
                       {shown.readingPeriod && (
                         <p className="mt-0.5 font-serif text-[11px] tabular-nums text-ink-sub sm:text-[12px]">
-                          {shown.readingPeriod}
+                          <PeriodText period={shown.readingPeriod} />
                         </p>
                       )}
                       <Seal className="mt-4">{shown.isFinished ? '완독' : '읽는 중'}</Seal>
