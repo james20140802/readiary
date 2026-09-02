@@ -4,9 +4,9 @@ import { fetchProfileData } from '@/lib/profile/fetchProfileData';
 import { fetchRetrospectData } from '@/lib/profile/fetchRetrospectData';
 import { fetchBookReadingStats } from '@/lib/queries/fetchBookReadingStats';
 import { getUserStats } from '@/lib/stats/getUserStats';
-import { toShelfBook } from '@/lib/books/shelfBook';
+import { PROFILE_SHELF_LIMIT, toShelfBook } from '@/lib/books/shelfBook';
 import ProfileCover from '@/components/profile/ProfileCover';
-import ProfileShelf, { PROFILE_SHELF_LIMIT } from '@/components/profile/ProfileShelf';
+import ProfileShelf from '@/components/profile/ProfileShelf';
 import ProfileColophon from '@/components/profile/ProfileColophon';
 import ProfileRetrospect from '@/components/profile/ProfileRetrospect';
 import AnimatedSection from '@/components/ui/AnimatedSection';
@@ -41,18 +41,19 @@ export default async function ProfilePage() {
   return (
     <div className="pb-16">
       <AnimatedSection>
-        <ProfileCover user={user} profile={profile} />
+        <ProfileCover user={user} profile={profile}>
+          {stats ? (
+            <ProfileColophon stats={stats} />
+          ) : (
+            <p className="text-body-sm text-ink-faint">통계 정보를 불러올 수 없습니다.</p>
+          )}
+        </ProfileCover>
         <ProfileShelf
           books={shelfBooks}
           total={userBooks.length}
           shelfHref="/protected/books"
           isOwnProfile
         />
-        {stats ? (
-          <ProfileColophon stats={stats} />
-        ) : (
-          <p className="mt-12 text-body-sm text-ink-faint">통계 정보를 불러올 수 없습니다.</p>
-        )}
         {retrospect ? (
           <ProfileRetrospect data={retrospect} />
         ) : (

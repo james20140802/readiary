@@ -5,9 +5,6 @@ import BookSpineShelf, { type ShelfBook } from '@/components/books/BookSpineShel
 import OpenBook from '@/components/books/OpenBook';
 import { useOpenBook } from '@/components/books/useOpenBook';
 
-/** 프로필에 꽂는 최대 권수 — 그 이상은 "책장 전체 →" */
-export const PROFILE_SHELF_LIMIT = 12;
-
 interface Props {
   books: ShelfBook[];
   /** 책장에 다 꽂지 못한 책까지 센 전체 권수 */

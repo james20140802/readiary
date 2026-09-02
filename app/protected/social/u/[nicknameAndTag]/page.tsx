@@ -2,9 +2,9 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import { getUserStats } from '@/lib/stats/getUserStats';
 import { fetchProfileData } from '@/lib/profile/fetchProfileData';
-import { toShelfBook } from '@/lib/books/shelfBook';
+import { PROFILE_SHELF_LIMIT, toShelfBook } from '@/lib/books/shelfBook';
 import ProfileCover from '@/components/profile/ProfileCover';
-import ProfileShelf, { PROFILE_SHELF_LIMIT } from '@/components/profile/ProfileShelf';
+import ProfileShelf from '@/components/profile/ProfileShelf';
 import ProfileColophon from '@/components/profile/ProfileColophon';
 import AnimatedSection from '@/components/ui/AnimatedSection';
 import BackButton from '@/components/ui/BackButton';
@@ -56,18 +56,19 @@ export default async function FriendProfilePage({ params }: FriendProfilePagePro
         <h1 className="ml-4 text-page-title text-ink">친구 프로필</h1>
       </header>
       <AnimatedSection>
-        <ProfileCover user={user} profile={profile} isFriend />
+        <ProfileCover user={user} profile={profile} isFriend>
+          {stats ? (
+            <ProfileColophon stats={stats} />
+          ) : (
+            <p className="text-body-sm text-ink-faint">통계 정보를 불러올 수 없습니다.</p>
+          )}
+        </ProfileCover>
         <ProfileShelf
           books={shelfBooks}
           total={userBooks.length}
           shelfHref={shelfHref}
           isOwnProfile={false}
         />
-        {stats ? (
-          <ProfileColophon stats={stats} />
-        ) : (
-          <p className="mt-12 text-body-sm text-ink-faint">통계 정보를 불러올 수 없습니다.</p>
-        )}
       </AnimatedSection>
     </div>
   );
