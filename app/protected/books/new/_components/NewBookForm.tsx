@@ -2,11 +2,9 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
-import FormGroup from '@/components/ui/FormGroup';
-import FormLabel from '@/components/ui/FormLabel';
 
+/** 직접 입력 — 기록 폼과 같은 종이 문법. 입력은 박스 없이 괘선 위에. */
 export default function NewBookForm() {
   const router = useRouter();
   const [title, setTitle] = useState('');
@@ -44,6 +42,7 @@ export default function NewBookForm() {
       }
 
       router.push('/protected/books');
+      router.refresh();
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
@@ -56,45 +55,71 @@ export default function NewBookForm() {
     }
   };
 
+  const fieldClass =
+    'mt-1.5 block w-full border-b border-hairline bg-transparent py-1.5 text-ink transition-colors placeholder:text-ink-faint focus:border-hairline-strong focus:outline-none';
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto">
-      <FormGroup>
-        <FormLabel>책 제목</FormLabel>
-        <Input
-          type="text"
-          placeholder="책 제목"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-        />
-      </FormGroup>
+    <form onSubmit={handleSubmit}>
+      <div className="space-y-6">
+        <div>
+          <label htmlFor="new-book-title" className="text-[11.5px] font-medium text-ink-faint">
+            제목
+          </label>
+          <input
+            id="new-book-title"
+            type="text"
+            placeholder="책 제목"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+            className={`${fieldClass} font-serif text-[17px]`}
+          />
+        </div>
 
-      <FormGroup>
-        <FormLabel>저자</FormLabel>
-        <Input
-          type="text"
-          placeholder="저자"
-          value={author}
-          onChange={(e) => setAuthor(e.target.value)}
-          required
-        />
-      </FormGroup>
+        <div>
+          <label htmlFor="new-book-author" className="text-[11.5px] font-medium text-ink-faint">
+            저자
+          </label>
+          <input
+            id="new-book-author"
+            type="text"
+            placeholder="지은이"
+            value={author}
+            onChange={(e) => setAuthor(e.target.value)}
+            required
+            className={`${fieldClass} font-serif text-[15px]`}
+          />
+        </div>
 
-      <FormGroup>
-        <FormLabel>총 페이지 수 (선택)</FormLabel>
-        <Input
-          type="number"
-          placeholder="총 페이지 수"
-          value={totalPages}
-          onChange={(e) => setTotalPages(e.target.value)}
-        />
-      </FormGroup>
+        <div>
+          <label htmlFor="new-book-pages" className="text-[11.5px] font-medium text-ink-faint">
+            총 쪽수 <span className="font-normal">(선택)</span>
+          </label>
+          <div className="mt-1.5 flex items-center gap-1 text-[13px] tabular-nums text-ink-sub">
+            <span className="text-ink-faint">총</span>
+            <input
+              id="new-book-pages"
+              type="number"
+              inputMode="numeric"
+              min={1}
+              placeholder="?"
+              value={totalPages}
+              onChange={(e) => setTotalPages(e.target.value)}
+              className="w-14 border-b border-hairline bg-transparent py-1 text-center text-ink transition-colors placeholder:text-ink-faint focus:border-hairline-strong focus:outline-none"
+            />
+            <span className="text-ink-faint">쪽</span>
+          </div>
+        </div>
+      </div>
 
-      {error && <p className="text-danger text-sm">{error}</p>}
-
-      <div className="flex justify-end">
-        <Button type="submit" disabled={loading}>
-          {loading ? '등록 중...' : '책 등록하기'}
+      <div className="mt-8 flex items-center justify-between gap-4 border-t border-hairline pt-4">
+        {error ? (
+          <p className="text-caption font-medium text-danger">{error}</p>
+        ) : (
+          <span className="text-[11.5px] text-ink-faint">쪽수는 나중에 채워도 됩니다.</span>
+        )}
+        <Button type="submit" size="sm" disabled={loading}>
+          {loading ? '꽂는 중...' : '책장에 꽂기'}
         </Button>
       </div>
     </form>

@@ -2,22 +2,29 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-import { useState, useMemo } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { MyBook } from '@/types/book';
-import Card from '@/components/ui/Card';
-import AnimatedListSection from '../ui/AnimatedListSecion';
-import { BookOpen, LayoutList, LayoutGrid, ChevronDown } from 'lucide-react';
+import { formatReadingPeriod } from '@/lib/dates';
+import type { BookReadingStat } from '@/lib/queries/fetchBookReadingStats';
+import BookSpineShelf, { type ShelfBook } from './BookSpineShelf';
+import OpenBook from './OpenBook';
 
 interface Props {
   books: MyBook[];
+  /** user_book id → 읽기 통계. 없거나 null이면(친구 책장·조회 실패) 펼친 책에 기간·문장 수를 비워 둔다 */
+  stats?: Record<string, BookReadingStat> | null;
   isFriend?: boolean;
   nicknameAndTag?: string;
 }
 
-type ViewMode = 'list' | 'grid';
+type ViewMode = 'shelf' | 'list';
 type FilterMode = 'all' | 'reading' | 'finished';
-type SortMode = 'recent' | 'progress_asc' | 'progress_desc' | 'title';
+type SortMode = 'recent' | 'title';
+
+const VIEW_OPTIONS: { value: ViewMode; label: string }[] = [
+  { value: 'shelf', label: '책장' },
+  { value: 'list', label: '목록' },
+];
 
 const FILTER_OPTIONS: { value: FilterMode; label: string }[] = [
   { value: 'all', label: '전체' },
@@ -25,276 +32,266 @@ const FILTER_OPTIONS: { value: FilterMode; label: string }[] = [
   { value: 'finished', label: '완독' },
 ];
 
-const SORT_OPTIONS: { value: SortMode; label: string }[] = [
-  { value: 'recent', label: '최근 등록순' },
-  { value: 'progress_desc', label: '진행률 높은순' },
-  { value: 'progress_asc', label: '진행률 낮은순' },
-  { value: 'title', label: '제목순' },
-];
+/** 책 상세 헤더와 같은 문법 — 막대 대신 잉크로 쓴 분수 하나 */
+function progressLine(b: MyBook): string {
+  if (b.is_finished) return '완독';
+  const total = b.books.total_pages;
+  if (total != null) return `${b.last_read_page ?? 0} / ${total}`;
+  if (b.last_read_page != null) return `${b.last_read_page}쪽`;
+  return '읽는 중';
+}
 
-function ProgressBar({ progress, isFinished }: { progress: number; isFinished: boolean }) {
-  const pct = isFinished ? 100 : progress;
+/** 밑줄 텍스트 토글 — 책 상세의 필터와 같은 문법 */
+function TextToggle<T extends string>({
+  options,
+  value,
+  onChange,
+  label,
+}: {
+  options: { value: T; label: string }[];
+  value: T;
+  onChange: (v: T) => void;
+  label: string;
+}) {
   return (
-    <div className="space-y-1 w-full">
-      <div className="flex justify-between items-center">
-        <span className="text-caption text-ink-faint">{isFinished ? '완독' : '진행률'}</span>
-        <span className={`text-caption font-bold ${isFinished ? 'text-success' : 'text-accent'}`}>
-          {pct}%
-        </span>
-      </div>
-      <div className="w-full bg-hairline rounded-full h-1.5 overflow-hidden">
-        <div
-          className={`h-full rounded-full transition-all duration-500 ${isFinished ? 'bg-success' : 'bg-accent'}`}
-          style={{ width: `${pct}%` }}
-        />
-      </div>
+    <div role="group" aria-label={label} className="flex items-center gap-3">
+      {options.map((opt) => (
+        <button
+          key={opt.value}
+          type="button"
+          onClick={() => onChange(opt.value)}
+          aria-pressed={value === opt.value}
+          className={`transition-colors ${
+            value === opt.value
+              ? 'text-ink underline decoration-accent underline-offset-4'
+              : 'text-ink-faint hover:text-ink-sub'
+          }`}
+        >
+          {opt.label}
+        </button>
+      ))}
     </div>
   );
 }
 
-export default function BookList({ books, isFriend = false, nicknameAndTag = '' }: Props) {
-  const router = useRouter();
-  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+export default function BookList({ books, stats, isFriend = false, nicknameAndTag = '' }: Props) {
+  const [viewMode, setViewMode] = useState<ViewMode>('shelf');
   const [filter, setFilter] = useState<FilterMode>('all');
   const [sort, setSort] = useState<SortMode>('recent');
-  const [sortOpen, setSortOpen] = useState(false);
+  // 꺼낸 책 — 열린 채로 다른 책을 누르면 먼저 덮어 꽂고(pending에 담아 두고) 그 다음 책을 꺼낸다.
+  // 그동안 책장 위 자리는 열린 채로 둬 책장이 오르내리지 않는다. 진행 중 판단은 ref로 — 갱신 함수에 부작용을 두지 않는다.
+  const [openBook, setOpenBook] = useState<ShelfBook | null>(null);
+  const [slotOpen, setSlotOpen] = useState(false);
+  // 책장에서 감출 책등 — 꺼낼 때 같이 감추고, 표지가 돌아가기 시작하는 커밋에서 다시 보인다
+  const [hiddenId, setHiddenId] = useState<string | null>(null);
+  const openRef = useRef<ShelfBook | null>(null);
+  const pendingRef = useRef<ShelfBook | null>(null);
+  const closingRef = useRef(false);
 
-  const processed = useMemo(() => {
-    let list = [...books];
-    if (filter === 'reading') list = list.filter((b) => !b.is_finished);
-    else if (filter === 'finished') list = list.filter((b) => b.is_finished);
-    if (sort === 'progress_desc') list.sort((a, b) => (b.progress ?? 0) - (a.progress ?? 0));
-    else if (sort === 'progress_asc') list.sort((a, b) => (a.progress ?? 0) - (b.progress ?? 0));
-    else if (sort === 'recent')
-      list.sort(
-        (a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime()
-      );
-    else if (sort === 'title')
-      list.sort((a, b) => (a.books.title ?? '').localeCompare(b.books.title ?? ''));
-    return list;
-  }, [books, filter, sort]);
+  const setOpen = useCallback((b: ShelfBook | null) => {
+    openRef.current = b;
+    setOpenBook(b);
+    if (b) setHiddenId(b.id);
+  }, []);
+  const handleReturn = useCallback(() => setHiddenId(null), []);
+  const closeBook = useCallback(() => {
+    if (!openRef.current) return;
+    closingRef.current = true;
+    setOpen(null);
+  }, [setOpen]);
+  const handleOpen = useCallback(
+    (book: ShelfBook) => {
+      setSlotOpen(true);
+      if (closingRef.current) {
+        pendingRef.current = book;
+        return;
+      }
+      const cur = openRef.current;
+      if (!cur) {
+        setOpen(book);
+        return;
+      }
+      if (cur.id === book.id) return;
+      pendingRef.current = book;
+      closingRef.current = true;
+      setOpen(null);
+    },
+    [setOpen]
+  );
+  const handleClosed = useCallback(() => {
+    closingRef.current = false;
+    const next = pendingRef.current;
+    pendingRef.current = null;
+    if (next) setOpen(next);
+    else setSlotOpen(false);
+  }, [setOpen]);
+  const resetOpen = useCallback(() => {
+    closingRef.current = false;
+    pendingRef.current = null;
+    setOpen(null);
+    setHiddenId(null);
+    setSlotOpen(false);
+  }, [setOpen]);
 
   const getDetailHref = (userBook: MyBook) =>
     isFriend && nicknameAndTag !== ''
       ? `/protected/social/u/${nicknameAndTag}/books/${userBook.book_id}`
       : `/protected/books/${userBook.book_id}`;
 
-  if (!books || books.length === 0)
+  const processed = useMemo(() => {
+    let list = [...books];
+    if (filter === 'reading') list = list.filter((b) => !b.is_finished);
+    else if (filter === 'finished') list = list.filter((b) => b.is_finished);
+    if (sort === 'title') {
+      list.sort((a, b) => (a.books.title ?? '').localeCompare(b.books.title ?? '', 'ko'));
+    } else {
+      list.sort(
+        (a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime()
+      );
+    }
+    return list;
+  }, [books, filter, sort]);
+
+  // 책장에 넘길 목록은 고정해 둔다 — 꺼내고 덮는 동안 책장이 리렌더되지 않도록(BookSpineShelf memo)
+  const shelfBooks = useMemo<ShelfBook[]>(
+    () =>
+      processed.map((ub) => {
+        const stat = stats?.[ub.id];
+        return {
+          id: ub.id,
+          title: ub.books.title ?? '(제목 없음)',
+          author: ub.books.author,
+          coverUrl: ub.books.cover_url ?? null,
+          totalPages: ub.books.total_pages,
+          lastReadPage: ub.last_read_page,
+          isFinished: ub.is_finished ?? false,
+          href:
+            isFriend && nicknameAndTag !== ''
+              ? `/protected/social/u/${nicknameAndTag}/books/${ub.book_id}`
+              : `/protected/books/${ub.book_id}`,
+          readingPeriod: stat ? formatReadingPeriod([stat.firstDate, stat.lastDate]) : null,
+          // 통계가 있는데 항목이 없으면 진짜 0, 통계 자체가 없으면 모름(null)
+          entryCount: stats ? (stat?.entryCount ?? 0) : null,
+        };
+      }),
+    [processed, stats, isFriend, nicknameAndTag]
+  );
+
+  // 빈 책장 — 선반 한 칸만 비워 두고 한 줄
+  if (books.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 gap-3 border-2 border-dashed border-hairline rounded-xl">
-        <BookOpen size={32} className="text-ink-faint" />
-        <p className="text-body-sm font-medium text-ink">아직 등록한 책이 없어요</p>
+      <div className="border-b-4 border-hairline-strong px-3 pb-6 pt-16 text-center">
+        <p className="font-serif text-[15px] text-ink-sub">아직 빈 책장입니다.</p>
         {!isFriend && (
           <Link
             href="/protected/books/new"
-            className="text-caption font-semibold text-accent hover:text-accent-hover"
+            className="mt-2 inline-block font-serif text-[13.5px] text-accent hover:underline"
           >
-            첫 번째 책 등록하기 →
+            첫 책 꽂기 →
           </Link>
         )}
       </div>
     );
+  }
 
   return (
     <div>
-      {/* ── 툴바 ── */}
-      <div className="flex items-center justify-between gap-2 mb-4">
-        {/* 필터 탭 */}
-        <div className="flex items-center gap-1 bg-card-raised p-1 rounded-lg border border-hairline">
-          {FILTER_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => setFilter(opt.value)}
-              className={`px-2.5 py-1 rounded-md text-caption font-semibold transition-all ${
-                filter === opt.value ? 'bg-card text-ink' : 'text-ink-faint hover:text-ink-sub'
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-
-        {/* 우측: 정렬 + 뷰 토글 */}
-        <div className="flex items-center gap-2">
-          {/* 정렬 드롭다운 */}
-          <div className="relative">
-            <button
-              onClick={() => setSortOpen((v) => !v)}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-hairline bg-card text-caption font-medium text-ink-sub hover:border-hairline-strong transition-all"
-            >
-              <span className="hidden sm:inline">
-                {SORT_OPTIONS.find((o) => o.value === sort)?.label}
-              </span>
-              <ChevronDown
-                size={13}
-                className={`transition-transform ${sortOpen ? 'rotate-180' : ''}`}
-              />
-            </button>
-            {sortOpen && (
-              <>
-                <div className="fixed inset-0 z-10" onClick={() => setSortOpen(false)} />
-                <div className="absolute right-0 top-full mt-1 z-20 bg-card border border-hairline rounded-xl overflow-hidden min-w-[130px]">
-                  {SORT_OPTIONS.map((opt) => (
-                    <button
-                      key={opt.value}
-                      onClick={() => {
-                        setSort(opt.value);
-                        setSortOpen(false);
-                      }}
-                      className={`w-full text-left px-3 py-2 text-caption transition-colors ${
-                        sort === opt.value
-                          ? 'text-accent font-semibold bg-accent-soft'
-                          : 'text-ink-sub hover:bg-card-raised'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* 뷰 토글 */}
-          <div className="flex items-center gap-0.5 bg-card-raised p-1 rounded-lg border border-hairline">
-            <button
-              onClick={() => setViewMode('list')}
-              className={`p-1.5 rounded-md transition-all ${
-                viewMode === 'list' ? 'bg-card text-ink' : 'text-ink-faint hover:text-ink-sub'
-              }`}
-              aria-label="리스트 뷰"
-            >
-              <LayoutList size={15} />
-            </button>
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`p-1.5 rounded-md transition-all ${
-                viewMode === 'grid' ? 'bg-card text-ink' : 'text-ink-faint hover:text-ink-sub'
-              }`}
-              aria-label="그리드 뷰"
-            >
-              <LayoutGrid size={15} />
-            </button>
-          </div>
+      {/* 컨트롤 행 — pill·드롭다운 대신 밑줄 텍스트 */}
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-[13.5px]">
+        <TextToggle
+          label="책 상태"
+          options={FILTER_OPTIONS}
+          value={filter}
+          onChange={(v) => {
+            resetOpen();
+            setFilter(v);
+          }}
+        />
+        <div className="flex items-center gap-4">
+          <button
+            type="button"
+            onClick={() => {
+              resetOpen();
+              setSort((v) => (v === 'recent' ? 'title' : 'recent'));
+            }}
+            className="text-ink-faint transition-colors hover:text-ink-sub"
+          >
+            {sort === 'recent' ? '최근 등록순' : '제목순'} ↕
+          </button>
+          <span aria-hidden className="h-3.5 w-px bg-hairline" />
+          <TextToggle
+            label="보기 방식"
+            options={VIEW_OPTIONS}
+            value={viewMode}
+            onChange={(v) => {
+              resetOpen();
+              setViewMode(v);
+            }}
+          />
         </div>
       </div>
 
-      {/* 필터 결과 없음 */}
-      {processed.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-12 gap-2">
-          <BookOpen size={28} className="text-ink-faint" />
-          <p className="text-body-sm text-ink-faint">
-            {filter === 'reading' ? '읽는 중인 책이 없어요' : '완독한 책이 없어요'}
-          </p>
-        </div>
-      )}
-
-      {/* ── 리스트 뷰 ── */}
-      {viewMode === 'list' && processed.length > 0 && (
-        <AnimatedListSection>
-          {processed.map((userBook) => {
-            const book = userBook.books;
-            const progress = userBook.progress ?? 0;
-            const isFinished = userBook.is_finished;
-
+      {processed.length === 0 ? (
+        <p className="py-12 text-center font-serif text-[14px] text-ink-faint">
+          {filter === 'finished' ? '아직 완독한 책이 없습니다.' : '읽는 중인 책이 없습니다.'}
+        </p>
+      ) : viewMode === 'shelf' ? (
+        <>
+          {/* 꺼낸 책의 자리 — 열리면 책장이 그만큼 내려앉는다 */}
+          <OpenBook
+            book={openBook}
+            slotOpen={slotOpen}
+            onClose={closeBook}
+            onReturn={handleReturn}
+            onClosed={handleClosed}
+          />
+          <BookSpineShelf books={shelfBooks} onOpen={handleOpen} hiddenId={hiddenId} />
+        </>
+      ) : (
+        /* 목록 — 조용한 리스트. 표지 작게, 서지는 부리 서체, 진행은 잉크 분수 */
+        <ul className="divide-y divide-hairline">
+          {processed.map((ub) => {
+            const book = ub.books;
+            const isFinished = ub.is_finished ?? false;
             return (
-              <li key={userBook.id}>
-                <Link href={getDetailHref(userBook)}>
-                  <Card hoverable className="p-3">
-                    <div className="flex gap-4 items-center">
-                      {/* 표지 */}
-                      <div className="relative w-[72px] h-[100px] shrink-0 rounded-lg overflow-hidden">
-                        <Image
-                          src={book.cover_url ?? '/images/default-book-cover.png'}
-                          alt={book.title}
-                          fill
-                          className="object-cover"
-                          sizes="72px"
-                        />
-                        {isFinished && (
-                          <div className="absolute top-1.5 right-1.5 bg-accent/90 text-white text-[9px] font-black px-1 py-0.5 rounded">
-                            DONE
-                          </div>
-                        )}
-                      </div>
-
-                      {/* 정보 */}
-                      <div className="flex-1 min-w-0 flex flex-col justify-between h-[100px] py-1">
-                        {/* 상단: 제목 + 기록하기 버튼 (같은 행) */}
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0">
-                            <h2 className="text-body font-semibold text-ink line-clamp-2 leading-snug">
-                              {book.title}
-                            </h2>
-                            <p className="text-body-sm text-ink-faint mt-0.5 truncate">
-                              {book.author}
-                            </p>
-                          </div>
-                          {/* 기록하기: 오른쪽 상단 고정, 완독이면 invisible로 공간 유지 */}
-                          {!isFriend && (
-                            <div className="shrink-0 mt-0.5">
-                              {!isFinished ? (
-                                <button
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    router.push(`/protected/books/${userBook.book_id}/entry/new`);
-                                  }}
-                                  className="text-caption font-semibold text-accent bg-accent-soft hover:bg-accent/20 px-2.5 py-1 rounded-full border border-accent/20 transition-colors whitespace-nowrap"
-                                >
-                                  + 기록
-                                </button>
-                              ) : (
-                                <span className="invisible text-caption px-2.5 py-1 whitespace-nowrap">
-                                  + 기록
-                                </span>
-                              )}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* 하단: 진행률 바 (항상 동일 위치) */}
-                        <ProgressBar progress={progress} isFinished={isFinished || false} />
-                      </div>
-                    </div>
-                  </Card>
+              <li key={ub.id} className="flex items-center gap-4 py-3.5">
+                <Link
+                  href={getDetailHref(ub)}
+                  className="group flex min-w-0 flex-1 items-center gap-4"
+                >
+                  <Image
+                    src={book.cover_url ?? '/images/default-book-cover.png'}
+                    alt=""
+                    width={40}
+                    height={56}
+                    className="h-14 w-10 shrink-0 rounded-sm border border-hairline object-cover"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-serif text-[15px] leading-snug text-ink group-hover:underline group-hover:decoration-hairline-strong group-hover:underline-offset-4">
+                      {book.title}
+                    </p>
+                    <p className="mt-0.5 truncate text-caption text-ink-faint">{book.author}</p>
+                  </div>
+                  <span
+                    className={`shrink-0 text-[12.5px] tabular-nums ${
+                      isFinished ? 'font-serif text-accent' : 'text-ink-faint'
+                    }`}
+                  >
+                    {progressLine(ub)}
+                  </span>
                 </Link>
+                {!isFriend && !isFinished && (
+                  <Link
+                    href={`/protected/books/${ub.book_id}/entry/new`}
+                    className="shrink-0 text-[12.5px] text-ink-faint transition-colors hover:text-accent"
+                  >
+                    기록 →
+                  </Link>
+                )}
               </li>
             );
           })}
-        </AnimatedListSection>
-      )}
-
-      {/* ── 그리드 뷰 ── */}
-      {viewMode === 'grid' && processed.length > 0 && (
-        <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-          {processed.map((userBook) => {
-            const book = userBook.books;
-            const isFinished = userBook.is_finished;
-
-            return (
-              <Link key={userBook.id} href={getDetailHref(userBook)} className="group block">
-                <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl border border-hairline group-hover:-translate-y-1 transition-all duration-200">
-                  <Image
-                    src={book.cover_url ?? '/images/default-book-cover.png'}
-                    alt={book.title}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 640px) 33vw, 25vw"
-                  />
-                  {isFinished && (
-                    <div className="absolute top-2 right-2 bg-accent/90 backdrop-blur-sm text-white px-1.5 py-0.5 rounded-lg">
-                      <span className="text-[9px] font-black tracking-tighter">DONE</span>
-                    </div>
-                  )}
-                </div>
-                <p className="mt-1.5 text-caption font-medium text-ink-sub truncate px-0.5 group-hover:text-ink transition-colors">
-                  {book.title}
-                </p>
-              </Link>
-            );
-          })}
-        </div>
+        </ul>
       )}
     </div>
   );

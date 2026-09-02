@@ -1,36 +1,37 @@
 import Link from 'next/link';
 import { fetchMyBooksData } from '@/lib/queries/fetchBooks';
+import { fetchBookReadingStats } from '@/lib/queries/fetchBookReadingStats';
 import { redirect } from 'next/navigation';
 import Button from '@/components/ui/Button';
 import BookList from '@/components/books/BookList';
-import AnimatedSection from '@/components/ui/AnimatedSection';
 
 export default async function MyBooksPage() {
-  const books = await fetchMyBooksData();
+  const [books, stats] = await Promise.all([fetchMyBooksData(), fetchBookReadingStats()]);
 
   if (!books) return redirect('/');
 
-  return (
-    <div className="flex justify-center">
-      <div className="w-full">
-        <header className="flex justify-between items-center mb-6">
-          <h1 className="text-page-title text-ink" aria-label="내 책장">
-            내 책장
-          </h1>
-          <Button asChild>
-            <Link href="/protected/books/new">+ 책 등록</Link>
-          </Button>
-        </header>
+  const finishedCount = books.filter((b) => b.is_finished).length;
+  const readingCount = books.length - finishedCount;
 
-        {/* If MyBookList ever fetches data internally, wrap it in <Suspense> for smoother UX */}
-        {books.length === 0 ? (
-          <AnimatedSection>
-            <p className="text-ink-sub text-center mt-10">등록한 책이 없어요.</p>
-          </AnimatedSection>
-        ) : (
-          <BookList books={books} />
-        )}
-      </div>
+  return (
+    <div className="w-full">
+      <header className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-page-title text-ink">내 책장</h1>
+          {books.length > 0 && (
+            <p className="mt-1 text-[12.5px] tabular-nums text-ink-faint">
+              읽는 중 {readingCount}
+              <span className="mx-2 text-hairline-strong">·</span>
+              완독 {finishedCount}
+            </p>
+          )}
+        </div>
+        <Button asChild size="sm" variant="primary">
+          <Link href="/protected/books/new">책 등록</Link>
+        </Button>
+      </header>
+
+      <BookList books={books} stats={stats} />
     </div>
   );
 }
