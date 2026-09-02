@@ -176,8 +176,15 @@ export default function OpenBook({ book, slotOpen, onClose, onReturn, onClosed }
                   className="relative flex h-full flex-col px-4 py-4 sm:px-5 sm:py-5"
                 >
                   <Seal>{shown.isFinished ? '완독' : '읽는 중'}</Seal>
+                  {/* 제목도 상세로 가는 문 — 아래 "책 상세 →"와 같은 곳 */}
                   <p className="mt-2 line-clamp-3 font-serif text-[15px] font-bold leading-snug text-ink sm:text-[18px]">
-                    {shown.title}
+                    <Link
+                      href={shown.href}
+                      tabIndex={isOpen ? undefined : -1}
+                      className="hover:underline hover:decoration-hairline-strong hover:underline-offset-4 focus-visible:underline focus-visible:outline-none"
+                    >
+                      {shown.title}
+                    </Link>
                   </p>
                   {shown.author && (
                     <p className="mt-1 truncate font-serif text-[12px] text-ink-sub sm:text-[13px]">
