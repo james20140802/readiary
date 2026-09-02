@@ -127,7 +127,7 @@ export default function EntryForm({
                 onChange={(e) => setQuote(e.target.value)}
                 placeholder="책에서 마음에 남은 문장을 옮겨 적어보세요"
                 rows={4}
-                className="mt-2 block w-full resize-none bg-transparent font-serif text-[17px] leading-relaxed text-ink placeholder:text-ink-faint focus:outline-none"
+                className="mt-2 block w-full resize-none border-b border-transparent bg-transparent font-serif text-[17px] leading-relaxed text-ink transition-colors placeholder:text-ink-faint focus:border-hairline-strong focus:outline-none"
               />
             </div>
             <div className="py-5">
@@ -140,7 +140,7 @@ export default function EntryForm({
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="이 문장에 대한 생각, 혹은 오늘의 감상"
                 rows={4}
-                className="mt-2 block w-full resize-none bg-transparent font-serif text-[15px] leading-relaxed text-ink placeholder:text-ink-faint focus:outline-none"
+                className="mt-2 block w-full resize-none border-b border-transparent bg-transparent font-serif text-[15px] leading-relaxed text-ink transition-colors placeholder:text-ink-faint focus:border-hairline-strong focus:outline-none"
               />
             </div>
           </div>
@@ -180,7 +180,7 @@ export default function EntryForm({
                 value={date}
                 max={todayKST()}
                 onChange={(e) => setDate(e.target.value)}
-                className="bg-transparent text-[13px] tabular-nums text-ink-sub focus:outline-none"
+                className="border-b border-transparent bg-transparent text-[13px] tabular-nums text-ink-sub transition-colors focus:border-hairline-strong focus:outline-none"
               />
 
               <span aria-hidden className="h-4 w-px bg-hairline" />
