@@ -97,19 +97,14 @@ export default function EntryDetailContent({
           </div>
         </Link>
 
-        {/* 문진 — 원고 첫머리를 눌러 둔 돌막대. 잉크 토큰이라 라이트/다크 모두 지면과 반대 톤 */}
-        <div
-          aria-hidden
-          className="h-2 rounded-full bg-ink shadow-[inset_0_1px_1px_rgba(255,255,255,0.35),0_2px_5px_rgba(0,0,0,0.35)]"
-        />
-
         <AnimatedSection>
           <article>
-            {/* 북라이트 — 원고 첫머리에 드리운 따뜻한 빛 웅덩이. 다크모드에서 특히 살아난다 */}
+            {/* 북라이트 — 왼쪽 위 어딘가에 달린 등이 원고 첫머리를 비스듬히 비춘다.
+                다크모드에서 특히 살아난다. 램프 자체는 그리지 않는다 — 빛만이 정직한 입체다 */}
             <div className="relative">
               <div
                 aria-hidden
-                className="pointer-events-none absolute left-1/2 top-[-3.5rem] h-72 w-[34rem] max-w-[130%] -translate-x-1/2 bg-[radial-gradient(ellipse_at_center,rgba(255,196,110,0.13),transparent_68%)]"
+                className="pointer-events-none absolute left-[32%] top-[-4rem] h-72 w-[34rem] max-w-[130%] -translate-x-1/2 bg-[radial-gradient(ellipse_at_center,rgba(255,196,110,0.14),transparent_68%)]"
               />
               <div className="relative">
                 {entry.quote && (
@@ -141,17 +136,7 @@ export default function EntryDetailContent({
             <footer className="mt-8 flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-t border-hairline pt-4">
               <div className="flex items-center gap-3 text-[11.5px] tabular-nums text-ink-faint">
                 <time>{formatKoreanDate(entry.date) ?? entry.date}</time>
-                {pages && (
-                  <span className="flex items-center gap-1">
-                    {/* 북다트 — 쪽수를 물고 있는 놋쇠 클립 */}
-                    <span
-                      aria-hidden
-                      className="inline-block h-[10px] w-[7px] bg-gradient-to-b from-amber-200 via-amber-400 to-amber-600"
-                      style={{ clipPath: 'polygon(0 0, 100% 50%, 0 100%)' }}
-                    />
-                    {pages}
-                  </span>
-                )}
+                {pages && <span>{pages}</span>}
                 {entry.is_private && (
                   <span className="flex items-center gap-1">
                     <Lock size={10} aria-hidden />
