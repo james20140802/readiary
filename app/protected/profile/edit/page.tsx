@@ -16,6 +16,15 @@ import FormLabel from '@/components/ui/FormLabel';
 import { toast } from 'sonner';
 import { getImageUrl } from '@/utils/profile';
 
+interface QuoteOption {
+  id: string;
+  quote: string;
+  bookTitle: string | null;
+}
+
+/** 뒷표지 후보로 보여 주는 최근 인용 수 */
+const FEATURED_CANDIDATES = 40;
+
 export default function EditProfilePage() {
   const router = useRouter();
   const supabase = createSupabaseClient();
@@ -23,6 +32,10 @@ export default function EditProfilePage() {
   const [nickname, setNickname] = useState('');
   const [name, setName] = useState('');
   const [bio, setBio] = useState('');
+  // 뒷표지 문장 — 내가 남긴 인용 중 하나. 바꾼 적이 있을 때만 저장에 실린다
+  const [featuredEntryId, setFeaturedEntryId] = useState<string | null>(null);
+  const [featuredDirty, setFeaturedDirty] = useState(false);
+  const [quotes, setQuotes] = useState<QuoteOption[]>([]);
 
   useEffect(() => {
     async function loadData() {
@@ -37,7 +50,23 @@ export default function EditProfilePage() {
         setNickname(data.nickname || '');
         setName(data.name || '');
         setBio(data.bio || '');
+        setFeaturedEntryId(data.featured_entry_id ?? null);
       }
+
+      const { data: rows } = await supabase
+        .from('entries')
+        .select('id, quote, date, user_books!inner(user_id, books(title))')
+        .eq('user_books.user_id', user.id)
+        .not('quote', 'is', null)
+        .order('date', { ascending: false })
+        .limit(FEATURED_CANDIDATES);
+      setQuotes(
+        (rows ?? []).flatMap((r) =>
+          r.quote && r.quote.trim() !== ''
+            ? [{ id: r.id, quote: r.quote, bookTitle: r.user_books?.books?.title ?? null }]
+            : []
+        )
+      );
     }
     loadData();
   }, [supabase, router]);
@@ -64,7 +93,12 @@ export default function EditProfilePage() {
   };
 
   const handleUpdateProfile = async () => {
-    const res = await updateProfile(nickname, name, bio);
+    const res = await updateProfile(
+      nickname,
+      name,
+      bio,
+      featuredDirty ? featuredEntryId : undefined
+    );
     if (res?.success) {
       toast.success('프로필 정보가 저장되었습니다.');
     } else if (res?.error) {
@@ -172,6 +206,79 @@ export default function EditProfilePage() {
             />
           </FormGroup>
         </div>
+
+        {/* 뒷표지 문장 — 프로필 책을 뒤집으면 보이는 인용 하나 */}
+        <section id="featured-quote" className="scroll-mt-6">
+          <h3 className="font-bold text-ink">뒷표지 문장</h3>
+          <p className="mt-1 text-caption font-medium text-ink-faint">
+            프로필 책을 뒤집으면 보이는 문장입니다. 내가 남긴 인용 중에서 하나를 고릅니다.
+          </p>
+          {quotes.length === 0 ? (
+            <p className="mt-4 font-serif text-[14px] text-ink-sub">
+              아직 인용을 남긴 기록이 없습니다. 문장을 남기면 여기서 고를 수 있어요.
+            </p>
+          ) : (
+            <ul className="mt-4 divide-y divide-hairline border-y border-hairline">
+              <li>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFeaturedEntryId(null);
+                    setFeaturedDirty(true);
+                  }}
+                  aria-pressed={featuredEntryId === null}
+                  className={`flex w-full items-center gap-3 px-1 py-3 text-left text-[13.5px] transition-colors ${
+                    featuredEntryId === null ? 'text-accent' : 'text-ink-faint hover:text-ink-sub'
+                  }`}
+                >
+                  <span aria-hidden className="w-3 shrink-0 text-center">
+                    {featuredEntryId === null ? '●' : '○'}
+                  </span>
+                  뒷표지를 비워 둡니다
+                </button>
+              </li>
+              {quotes.map((q) => {
+                const selected = featuredEntryId === q.id;
+                return (
+                  <li key={q.id}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFeaturedEntryId(q.id);
+                        setFeaturedDirty(true);
+                      }}
+                      aria-pressed={selected}
+                      className="flex w-full items-start gap-3 px-1 py-3 text-left transition-colors"
+                    >
+                      <span
+                        aria-hidden
+                        className={`w-3 shrink-0 pt-0.5 text-center text-[13px] ${
+                          selected ? 'text-accent' : 'text-ink-faint'
+                        }`}
+                      >
+                        {selected ? '●' : '○'}
+                      </span>
+                      <span className="min-w-0">
+                        <span
+                          className={`line-clamp-2 break-keep font-serif text-[14.5px] leading-relaxed ${
+                            selected ? 'text-ink' : 'text-ink-sub'
+                          }`}
+                        >
+                          {q.quote}
+                        </span>
+                        {q.bookTitle && (
+                          <span className="mt-1 block text-[12px] text-ink-faint">
+                            『{q.bookTitle}』
+                          </span>
+                        )}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
 
         <div className="flex flex-col space-y-4 pt-2">
           <Button onClick={handleUpdateProfile} disabled={updating || uploading} fullWidth>

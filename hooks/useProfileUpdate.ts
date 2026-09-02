@@ -88,7 +88,14 @@ export function useProfileUpdate(initialProfile: Profile | null) {
   };
 
   // 프로필 정보 업데이트 (중복 체크 포함)
-  const updateProfile = async (nickname: string, name: string, bio: string) => {
+  // featuredEntryId(뒷표지 인용)는 바꿨을 때만 넘긴다 — undefined면 컬럼을 건드리지 않아
+  // 마이그레이션 전 DB에서도 나머지 저장이 깨지지 않는다
+  const updateProfile = async (
+    nickname: string,
+    name: string,
+    bio: string,
+    featuredEntryId?: string | null
+  ) => {
     try {
       setUpdating(true);
       if (!initialProfile) return { success: false, error: '프로필 정보가 없습니다.' };
@@ -136,6 +143,7 @@ export function useProfileUpdate(initialProfile: Profile | null) {
         name: name,
         bio,
         profile_image: imagePath, // 예: "userid/timestamp.jpg"
+        ...(featuredEntryId !== undefined ? { featured_entry_id: featuredEntryId } : {}),
       });
 
       if (error) throw error;

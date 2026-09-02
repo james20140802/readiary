@@ -10,6 +10,7 @@ export type { MonthlySummary };
 export interface FinishedBookExcerpt {
   bookId: string;
   title: string;
+  coverUrl: string | null;
   quoteCount: number;
 }
 
@@ -28,7 +29,7 @@ interface RetrospectEntryRow {
 
 /**
  * 프로필 회고 섹션 데이터 — 완독 책의 발췌집 목록 + 최근 6개월 월별 기록 수.
- * 본인 데이터 전용(비공개 포함) — RLS 하 로그인 사용자 소유 entries만 조회.
+ * 본인이면 비공개 포함 전부, 친구 프로필이면 RLS가 보여주는 기록(공개)만 집계된다.
  * 조회 실패 시 부분 집계를 내보내는 대신 null — 호출부가 불러오기 실패 상태로 표시.
  */
 export async function fetchRetrospectData(userId: string): Promise<RetrospectData | null> {
@@ -39,11 +40,11 @@ export async function fetchRetrospectData(userId: string): Promise<RetrospectDat
     id: string;
     book_id: string;
     is_finished: boolean | null;
-    books: { title: string } | null;
+    books: { title: string; cover_url: string | null } | null;
   }>((from, to) =>
     supabase
       .from('user_books')
-      .select('id, book_id, is_finished, books(title)')
+      .select('id, book_id, is_finished, books(title, cover_url)')
       .eq('user_id', userId)
       .order('id', { ascending: true })
       .range(from, to)
@@ -87,6 +88,7 @@ export async function fetchRetrospectData(userId: string): Promise<RetrospectDat
       {
         bookId: b.book_id,
         title: b.books.title,
+        coverUrl: b.books.cover_url ?? null,
         quoteCount: quoteCountByUserBookId.get(b.id) ?? 0,
       },
     ];

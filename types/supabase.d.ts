@@ -314,6 +314,7 @@ export type Database = {
         Row: {
           bio: string | null;
           created_at: string | null;
+          featured_entry_id: string | null;
           id: string;
           name: string;
           nickname: string;
@@ -323,6 +324,7 @@ export type Database = {
         Insert: {
           bio?: string | null;
           created_at?: string | null;
+          featured_entry_id?: string | null;
           id: string;
           name: string;
           nickname: string;
@@ -332,13 +334,22 @@ export type Database = {
         Update: {
           bio?: string | null;
           created_at?: string | null;
+          featured_entry_id?: string | null;
           id?: string;
           name?: string;
           nickname?: string;
           profile_image?: string | null;
           tag?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: 'profiles_featured_entry_id_fkey';
+            columns: ['featured_entry_id'];
+            isOneToOne: false;
+            referencedRelation: 'entries';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       user_badges: {
         Row: {

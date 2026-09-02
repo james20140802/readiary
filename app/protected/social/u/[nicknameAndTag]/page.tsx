@@ -2,10 +2,11 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import { getUserStats } from '@/lib/stats/getUserStats';
 import { fetchProfileData } from '@/lib/profile/fetchProfileData';
+import { fetchRetrospectData } from '@/lib/profile/fetchRetrospectData';
+import { fetchFeaturedQuote } from '@/lib/profile/fetchFeaturedQuote';
 import { PROFILE_SHELF_LIMIT, toShelfBook } from '@/lib/books/shelfBook';
-import ProfileCover from '@/components/profile/ProfileCover';
+import ProfileBook from '@/components/profile/ProfileBook';
 import ProfileShelf from '@/components/profile/ProfileShelf';
-import ProfileColophon from '@/components/profile/ProfileColophon';
 import AnimatedSection from '@/components/ui/AnimatedSection';
 import BackButton from '@/components/ui/BackButton';
 
@@ -41,7 +42,12 @@ export default async function FriendProfilePage({ params }: FriendProfilePagePro
   const isFriend = !!friendRecord;
   if (!isFriend && user.id !== profile.id) return notFound();
 
-  const stats = await getUserStats(profile.id);
+  // 친구 책의 책갈피·인덱스·뒷표지는 RLS가 보여주는 기록(공개)만으로 만들어진다
+  const [stats, retrospect, featuredQuote] = await Promise.all([
+    getUserStats(profile.id),
+    fetchRetrospectData(profile.id),
+    fetchFeaturedQuote(profile.featured_entry_id),
+  ]);
 
   // 친구의 읽기 통계(기간·문장 수)는 본인 것만 조회 가능해 비워 둔다 — 펼친 책이 그 행을 생략한다
   const shelfHref = `/protected/social/u/${slug}/books`;
@@ -56,13 +62,14 @@ export default async function FriendProfilePage({ params }: FriendProfilePagePro
         <h1 className="ml-4 text-page-title text-ink">친구 프로필</h1>
       </header>
       <AnimatedSection>
-        <ProfileCover user={user} profile={profile} isFriend>
-          {stats ? (
-            <ProfileColophon stats={stats} />
-          ) : (
-            <p className="text-body-sm text-ink-faint">통계 정보를 불러올 수 없습니다.</p>
-          )}
-        </ProfileCover>
+        <ProfileBook
+          user={user}
+          profile={profile}
+          stats={stats}
+          retrospect={retrospect}
+          featuredQuote={featuredQuote}
+          isFriend
+        />
         <ProfileShelf
           books={shelfBooks}
           total={userBooks.length}
