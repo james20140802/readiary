@@ -5,207 +5,349 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { AnimatePresence, motion } from 'framer-motion';
 import Seal from '@/components/ui/Seal';
+import { STACK_MAX, pageStackShadow, pageStacks, photoTilt } from '@/lib/books/openBook';
 import { spineLayoutId, type ShelfBook } from './BookSpineShelf';
 
 interface Props {
   book: ShelfBook | null;
+  /** 책장 위 공간을 열어 둘지 — 책을 바꿔 열 때는 열린 채로 다음 책을 꺼낸다 */
+  slotOpen: boolean;
   onClose: () => void;
+  /** 표지가 책등 자리로 돌아가기 시작할 때 — 책장이 그 자리의 책등을 다시 보여야 한다 */
+  onReturn: () => void;
+  /** 표지가 책등 자리로 돌아간 뒤 */
+  onClosed: () => void;
 }
 
-const FLIP = 0.55; // 표지가 넘어가는 시간
-const PULL = 0.45; // 책등에서 표지 크기로 자라는 시간
+/** 꺼내기(책등→표지) · 넘기기(표지) 시간, 초 */
+export const PULL = 0.45;
+export const FLIP = 0.6;
+const EASE_OUT: [number, number, number, number] = [0.22, 1, 0.36, 1];
+
+const BOARD = 3; // 판이 종이보다 넓게 나오는 여백
+const PAGE_BOTTOM = BOARD + Math.ceil(STACK_MAX * 0.35); // 부채꼴로 내려오는 단면 자리
+
+type Stage = 'idle' | 'pull' | 'open' | 'fold' | 'return';
+
+function progressText(b: ShelfBook): string {
+  if (b.isFinished) return '완독';
+  if (b.totalPages != null) return `${b.lastReadPage ?? 0} / ${b.totalPages}`;
+  if (b.lastReadPage != null) return `${b.lastReadPage}쪽`;
+  return '읽는 중';
+}
 
 /**
- * 책장에서 꺼낸 책 — 책등이 표지 크기로 자라난 뒤(shared layout) 표지가 왼쪽으로 넘어가며
- * 오른쪽 면이 드러난다. 왼쪽 면은 표지, 오른쪽 면은 서지와 읽기 기록.
- * 덮으면 표지가 다시 닫히고 책등 자리로 돌아간다.
+ * 책장에서 꺼낸 책 — 책장 위에 자리가 열리고(책장은 그만큼 내려앉는다), 책등이 표지 크기로
+ * 자라나 그 자리에 놓인 뒤 표지가 왼쪽으로 넘어간다. 왼쪽 면에는 표지 사진을 붙인 종이,
+ * 오른쪽 면에는 서지와 읽기 기록. 읽은 만큼은 왼쪽에, 남은 만큼은 오른쪽에 종이가 쌓인다.
+ * 덮으면 표지가 닫히고 책등 자리로 돌아간 뒤에야 자리가 닫힌다.
  */
-export default function OpenBook({ book, onClose }: Props) {
-  // 책은 닫힌 채 잠깐 머물다 넘어간다 — 열림/닫힘 단계를 따로 든다.
-  // 덮을 때는 book이 먼저 null이 되고, 표지가 닫힌 뒤에야 visible을 비운다.
-  const [phase, setPhase] = useState<'closed' | 'open'>('closed');
-  const [visible, setVisible] = useState<ShelfBook | null>(book);
-  const [prevBook, setPrevBook] = useState<ShelfBook | null>(book);
+export default function OpenBook({ book, slotOpen, onClose, onReturn, onClosed }: Props) {
+  const [stage, setStage] = useState<Stage>('idle');
+  const [visible, setVisible] = useState<ShelfBook | null>(null);
+  const [prevBook, setPrevBook] = useState<ShelfBook | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const bookRef = useRef<HTMLDivElement>(null);
+  const onClosedRef = useRef(onClosed);
+  const onReturnRef = useRef(onReturn);
+  useEffect(() => {
+    onClosedRef.current = onClosed;
+    onReturnRef.current = onReturn;
+  }, [onClosed, onReturn]);
 
   if (book !== prevBook) {
     // 렌더 중 파생 상태 조정 — props 변화에 즉시 반응하되 effect의 setState는 피한다
     setPrevBook(book);
-    setPhase('closed');
-    if (book) setVisible(book);
+    if (book) {
+      setVisible(book);
+      setStage('pull');
+    } else if (stage === 'pull' || stage === 'open') {
+      setStage('fold');
+    }
   }
 
+  // 단계 진행은 전부 타이머로 — pull → open, fold → return → idle
   useEffect(() => {
-    if (book) {
-      const t = setTimeout(() => setPhase('open'), PULL * 1000 * 0.8);
-      return () => clearTimeout(t);
-    }
-    if (visible) {
-      const t = setTimeout(() => setVisible(null), FLIP * 1000 * 0.8);
-      return () => clearTimeout(t);
-    }
-  }, [book, visible]);
+    let t: ReturnType<typeof setTimeout> | undefined;
+    if (stage === 'pull') t = setTimeout(() => setStage('open'), PULL * 800);
+    else if (stage === 'fold')
+      t = setTimeout(() => {
+        // 같은 커밋에서 표지가 빠지고 책등이 드러나야 그 자리로 morph한다
+        setVisible(null);
+        setStage('return');
+        onReturnRef.current();
+      }, FLIP * 850);
+    else if (stage === 'return')
+      t = setTimeout(() => {
+        setStage('idle');
+        onClosedRef.current();
+      }, PULL * 1000);
+    return () => clearTimeout(t);
+  }, [stage]);
 
   useEffect(() => {
-    if (!visible) return;
+    if (stage !== 'open') return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
+    // 책 바깥을 누르면 덮는다 — 책장 위 한 지면이라 백드롭 대신 문서 전체를 듣는다
+    const onPointerDown = (e: PointerEvent) => {
+      if (bookRef.current && !bookRef.current.contains(e.target as Node)) onClose();
+    };
     window.addEventListener('keydown', onKey);
-    const t = setTimeout(() => closeButtonRef.current?.focus(), (PULL + FLIP) * 1000);
+    window.addEventListener('pointerdown', onPointerDown);
+    const t = setTimeout(() => closeButtonRef.current?.focus({ preventScroll: true }), FLIP * 1000);
     return () => {
       window.removeEventListener('keydown', onKey);
+      window.removeEventListener('pointerdown', onPointerDown);
       clearTimeout(t);
     };
-  }, [visible, onClose]);
+  }, [stage, onClose]);
 
   const shown = visible;
-  const progress = !shown
-    ? ''
-    : shown.isFinished
-      ? '완독'
-      : shown.totalPages != null
-        ? `${shown.lastReadPage ?? 0} / ${shown.totalPages}`
-        : shown.lastReadPage != null
-          ? `${shown.lastReadPage}쪽`
-          : '읽는 중';
+  const stacks = shown ? pageStacks(shown.totalPages, shown.lastReadPage, shown.isFinished) : null;
+  const isOpen = stage === 'open';
 
   return (
-    <AnimatePresence>
-      {shown && (
-        <motion.div
-          key="open-book"
-          role="dialog"
-          aria-modal="true"
-          aria-label={`${shown.title} 펼침`}
-          className="fixed inset-0 z-[90]"
-        >
-          {/* 바깥 — 먹을 옅게 풀어 책장을 뒤로 물린다. 누르면 덮힌다 */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="absolute inset-0 bg-ink/30"
-            onClick={onClose}
-          />
-
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-4">
-            <div
-              className="pointer-events-auto relative aspect-[4/3] w-[min(92vw,520px)]"
-              style={{ perspective: 1600 }}
+    <motion.section
+      aria-label="꺼낸 책"
+      initial={false}
+      animate={{ height: slotOpen ? 'auto' : 0 }}
+      transition={{ duration: PULL, ease: EASE_OUT }}
+      onAnimationComplete={() => {
+        if (slotOpen) stageRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }}
+      className={slotOpen ? 'overflow-visible' : 'pointer-events-none overflow-hidden'}
+    >
+      <div ref={stageRef} className="mx-auto w-[min(100%,480px)] py-6">
+        {/* 책 한 권의 자리 — 왼쪽 절반은 넘어간 표지, 오른쪽 절반은 남은 종이 */}
+        <div ref={bookRef} className="relative aspect-[10/7]" style={{ perspective: 1600 }}>
+          {shown && stacks && (
+            <motion.div
+              key={`right-${shown.id}`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: stage === 'return' ? 0 : 1 }}
+              transition={{ duration: PULL * 0.6, delay: stage === 'pull' ? PULL * 0.4 : 0 }}
+              className="absolute inset-y-0 left-1/2 w-1/2"
             >
-              {/* 오른쪽 면 — 서지와 읽기 기록. 표지가 넘어간 뒤에 드러난다 */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: phase === 'open' ? 1 : 0 }}
-                transition={{ duration: 0.3, delay: phase === 'open' ? FLIP * 0.5 : 0 }}
-                className="absolute inset-y-0 right-0 flex w-1/2 flex-col rounded-r-[4px] border border-l-0 border-hairline-strong bg-card px-5 py-5 sm:px-6"
+              {/* 뒤표지 판 */}
+              <div className="absolute inset-0 rounded-r-[5px] border border-l-0 border-hairline-strong bg-card-raised" />
+              {/* 남은 종이 — 오른쪽으로 쌓인 단면 위에 오른쪽 면 */}
+              <div
+                className="absolute left-0 rounded-r-[2px] bg-card"
                 style={{
-                  // 제본 안쪽 그늘 — 빛의 언어로만 입체감
-                  backgroundImage:
-                    'linear-gradient(to right, rgb(var(--ink) / 0.07), rgb(var(--ink) / 0) 14%)',
+                  top: BOARD,
+                  bottom: PAGE_BOTTOM,
+                  right: BOARD + stacks.right,
+                  boxShadow: pageStackShadow(stacks.right, 1),
                 }}
               >
-                <Seal>{shown.isFinished ? '완독' : '읽는 중'}</Seal>
-                <p className="mt-2 line-clamp-3 font-serif text-[17px] font-bold leading-snug text-ink sm:text-[19px]">
-                  {shown.title}
-                </p>
-                {shown.author && (
-                  <p className="mt-1 truncate font-serif text-[13px] text-ink-sub">
-                    {shown.author}
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0"
+                  style={{
+                    // 제본 안쪽 그늘 — 빛의 언어로만 입체감
+                    backgroundImage:
+                      'linear-gradient(to right, rgb(var(--ink) / 0.09), rgb(var(--ink) / 0) 16%)',
+                  }}
+                />
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: isOpen ? 1 : 0 }}
+                  transition={{ duration: 0.3, delay: isOpen ? FLIP * 0.45 : 0 }}
+                  className="relative flex h-full flex-col px-4 py-4 sm:px-5 sm:py-5"
+                >
+                  <Seal>{shown.isFinished ? '완독' : '읽는 중'}</Seal>
+                  <p className="mt-2 line-clamp-3 font-serif text-[15px] font-bold leading-snug text-ink sm:text-[18px]">
+                    {shown.title}
                   </p>
-                )}
-                <div className="my-4 w-7 border-t border-hairline-strong" />
-                <dl className="space-y-1 font-serif text-[12.5px] tabular-nums leading-relaxed text-ink-sub">
-                  <div>
-                    <dt className="sr-only">진행</dt>
-                    <dd className={shown.isFinished ? 'text-accent' : undefined}>{progress}</dd>
-                  </div>
-                  {shown.readingPeriod && (
-                    <div>
-                      <dt className="sr-only">읽은 기간</dt>
-                      <dd>{shown.readingPeriod}</dd>
-                    </div>
+                  {shown.author && (
+                    <p className="mt-1 truncate font-serif text-[12px] text-ink-sub sm:text-[13px]">
+                      {shown.author}
+                    </p>
                   )}
-                  <div>
-                    <dt className="sr-only">남긴 문장</dt>
-                    <dd>
-                      {shown.entryCount > 0
-                        ? `남긴 문장 ${shown.entryCount}개`
-                        : '아직 남긴 문장 없음'}
-                    </dd>
+                  <div className="my-3 w-6 border-t border-hairline-strong sm:my-4 sm:w-7" />
+                  <dl className="space-y-0.5 font-serif text-[12px] tabular-nums leading-relaxed text-ink-sub sm:text-[12.5px]">
+                    <div>
+                      <dt className="sr-only">진행</dt>
+                      <dd className={shown.isFinished ? 'text-accent' : undefined}>
+                        {progressText(shown)}
+                      </dd>
+                    </div>
+                    {shown.readingPeriod && (
+                      <div>
+                        <dt className="sr-only">읽은 기간</dt>
+                        <dd>{shown.readingPeriod}</dd>
+                      </div>
+                    )}
+                    <div>
+                      <dt className="sr-only">남긴 문장</dt>
+                      <dd>
+                        {shown.entryCount > 0
+                          ? `남긴 문장 ${shown.entryCount}개`
+                          : '아직 남긴 문장 없음'}
+                      </dd>
+                    </div>
+                  </dl>
+                  <div className="mt-auto flex items-center justify-between gap-3 pt-3 text-[12.5px] sm:text-[13px]">
+                    <Link
+                      href={shown.href}
+                      tabIndex={isOpen ? undefined : -1}
+                      className="font-serif text-accent hover:underline"
+                    >
+                      책 상세 →
+                    </Link>
+                    <button
+                      ref={closeButtonRef}
+                      type="button"
+                      onClick={onClose}
+                      tabIndex={isOpen ? undefined : -1}
+                      className="text-ink-faint transition-colors hover:text-ink-sub focus-visible:text-ink focus-visible:outline-none"
+                    >
+                      덮기
+                    </button>
                   </div>
-                </dl>
-                <div className="mt-auto flex items-center justify-between gap-3 pt-4 text-[13px]">
-                  <Link href={shown.href} className="font-serif text-accent hover:underline">
-                    책 상세 →
-                  </Link>
-                  <button
-                    ref={closeButtonRef}
-                    type="button"
-                    onClick={onClose}
-                    className="text-ink-faint transition-colors hover:text-ink-sub focus-visible:text-ink focus-visible:outline-none"
-                  >
-                    덮기
-                  </button>
-                </div>
-              </motion.div>
+                </motion.div>
+              </div>
+            </motion.div>
+          )}
 
-              {/* 표지 — 책등 자리에서 자라나(shared layout), 왼쪽 가장자리를 축으로 넘어간다 */}
+          {/* 앞표지와 읽은 종이 — 책등 자리에서 자라나(shared layout), 왼쪽 가장자리를 축으로 넘어간다 */}
+          <AnimatePresence>
+            {shown && stacks && (
               <motion.div
+                key={`cover-${shown.id}`}
                 layoutId={spineLayoutId(shown.id)}
-                transition={{ layout: { duration: PULL, ease: [0.22, 1, 0.36, 1] } }}
+                exit={{ opacity: 0 }}
+                transition={{
+                  layout: { duration: PULL, ease: EASE_OUT },
+                  opacity: { duration: PULL * 0.5, delay: PULL * 0.4 },
+                }}
                 className="absolute inset-y-0 left-1/2 w-1/2"
                 style={{ transformStyle: 'preserve-3d' }}
               >
                 <motion.div
                   initial={false}
-                  animate={{ rotateY: phase === 'open' ? -180 : 0 }}
+                  animate={{ rotateY: isOpen ? -180 : 0 }}
                   transition={{ duration: FLIP, ease: [0.4, 0, 0.2, 1] }}
                   className="relative h-full w-full origin-left"
                   style={{ transformStyle: 'preserve-3d' }}
                 >
-                  {/* 앞면 — 닫힌 책의 표지 */}
+                  {/* 앞면 — 닫힌 책의 표지. 시안의 발췌집 표지 문법: 제본 줄, 가운데 정렬 서지, 잉크 표식 */}
                   <div
-                    className="absolute inset-0 overflow-hidden rounded-r-[4px] border border-hairline-strong bg-card"
+                    className={`absolute inset-0 overflow-hidden rounded-r-[5px] border border-hairline-strong ${
+                      shown.isFinished ? 'bg-card-raised' : 'bg-card'
+                    }`}
                     style={{ backfaceVisibility: 'hidden' }}
                   >
-                    <Image
-                      src={shown.coverUrl ?? '/images/default-book-cover.png'}
-                      alt=""
-                      fill
-                      sizes="260px"
-                      className="object-cover"
+                    <span
+                      aria-hidden
+                      className="absolute inset-y-0 left-[5px] w-px bg-hairline-strong"
                     />
+                    <span aria-hidden className="absolute inset-y-0 left-[9px] w-px bg-hairline" />
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.2, delay: PULL * 0.9 }}
+                      className="flex h-full flex-col items-center justify-center px-5 text-center"
+                    >
+                      <span className="font-sans text-[10px] tracking-[0.22em] text-ink-faint">
+                        내 책장
+                      </span>
+                      <p className="mt-3 line-clamp-3 font-serif text-[15px] font-bold leading-snug text-ink sm:text-[17px]">
+                        {shown.title}
+                      </p>
+                      {shown.author && (
+                        <p className="mt-1.5 truncate font-serif text-[11.5px] text-ink-sub sm:text-[12.5px]">
+                          {shown.author}
+                        </p>
+                      )}
+                      <span aria-hidden className="my-4 w-6 border-t border-hairline-strong" />
+                      <p className="font-serif text-[11px] tabular-nums text-ink-sub sm:text-[12px]">
+                        {progressText(shown)}
+                      </p>
+                      {shown.readingPeriod && (
+                        <p className="mt-0.5 font-serif text-[11px] tabular-nums text-ink-sub sm:text-[12px]">
+                          {shown.readingPeriod}
+                        </p>
+                      )}
+                      <Seal className="mt-4">{shown.isFinished ? '완독' : '읽는 중'}</Seal>
+                    </motion.div>
                   </div>
-                  {/* 뒷면 — 넘어가 왼쪽 면이 된 뒤에 보이는 표지. 미리 뒤집어 두어 바로 읽힌다 */}
+
+                  {/* 뒷면 — 넘어가 왼쪽이 된 앞표지 안쪽. 읽은 종이가 왼쪽으로 쌓이고, 맨 위 종이에 표지 사진 */}
                   <div
-                    className="absolute inset-0 overflow-hidden rounded-l-[4px] border border-r-0 border-hairline-strong bg-card"
+                    className="absolute inset-0"
                     style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
                   >
-                    <Image
-                      src={shown.coverUrl ?? '/images/default-book-cover.png'}
-                      alt={`${shown.title} 표지`}
-                      fill
-                      sizes="260px"
-                      className="object-cover"
-                    />
+                    <div className="absolute inset-0 rounded-l-[5px] border border-r-0 border-hairline-strong bg-card-raised" />
                     <div
-                      aria-hidden
-                      className="absolute inset-0"
+                      className="absolute right-0 rounded-l-[2px] bg-card"
                       style={{
-                        backgroundImage:
-                          'linear-gradient(to left, rgb(var(--ink) / 0.14), rgb(var(--ink) / 0) 12%)',
+                        top: BOARD,
+                        bottom: PAGE_BOTTOM,
+                        left: BOARD + stacks.left,
+                        boxShadow: pageStackShadow(stacks.left, -1),
                       }}
-                    />
+                    >
+                      <div
+                        aria-hidden
+                        className="pointer-events-none absolute inset-0"
+                        style={{
+                          backgroundImage:
+                            'linear-gradient(to left, rgb(var(--ink) / 0.09), rgb(var(--ink) / 0) 16%)',
+                        }}
+                      />
+                      {shown.coverUrl ? (
+                        /* 종이 위에 붙인 사진 — 인화지 여백에 살짝 비스듬히 */
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div
+                            className="w-[58%] border border-hairline bg-card p-[3.5%]"
+                            style={{
+                              transform: `rotate(${photoTilt(shown.id)}deg)`,
+                              boxShadow:
+                                '0 1px 1px rgb(var(--ink) / 0.12), 0 5px 12px rgb(var(--ink) / 0.10)',
+                            }}
+                          >
+                            <div className="relative aspect-[2/3]">
+                              <Image
+                                src={shown.coverUrl}
+                                alt={`${shown.title} 표지`}
+                                fill
+                                sizes="160px"
+                                className="object-cover"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        /* 표지가 없으면 속표지처럼 — 제목을 세로로 */
+                        <div className="absolute inset-0 flex items-center justify-center gap-3 py-6">
+                          <span
+                            className="max-h-full overflow-hidden text-ellipsis whitespace-nowrap font-serif text-[15px] tracking-[0.1em] text-ink"
+                            style={{ writingMode: 'vertical-rl' }}
+                          >
+                            {shown.title}
+                          </span>
+                          {shown.author && (
+                            <span
+                              className="max-h-full overflow-hidden text-ellipsis whitespace-nowrap font-serif text-[11.5px] tracking-[0.08em] text-ink-sub"
+                              style={{ writingMode: 'vertical-rl' }}
+                            >
+                              {shown.author}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </motion.div>
               </motion.div>
-            </div>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+    </motion.section>
   );
 }

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { MyBook } from '@/types/book';
 import { formatReadingPeriod } from '@/lib/dates';
 import type { BookReadingStat } from '@/lib/queries/fetchBookReadingStats';
@@ -83,8 +83,60 @@ export default function BookList({
   const [viewMode, setViewMode] = useState<ViewMode>('shelf');
   const [filter, setFilter] = useState<FilterMode>('all');
   const [sort, setSort] = useState<SortMode>('recent');
+  // 꺼낸 책 — 열린 채로 다른 책을 누르면 먼저 덮어 꽂고(pending에 담아 두고) 그 다음 책을 꺼낸다.
+  // 그동안 책장 위 자리는 열린 채로 둬 책장이 오르내리지 않는다. 진행 중 판단은 ref로 — 갱신 함수에 부작용을 두지 않는다.
   const [openBook, setOpenBook] = useState<ShelfBook | null>(null);
-  const closeBook = useCallback(() => setOpenBook(null), []);
+  const [slotOpen, setSlotOpen] = useState(false);
+  // 책장에서 감출 책등 — 꺼낼 때 같이 감추고, 표지가 돌아가기 시작하는 커밋에서 다시 보인다
+  const [hiddenId, setHiddenId] = useState<string | null>(null);
+  const openRef = useRef<ShelfBook | null>(null);
+  const pendingRef = useRef<ShelfBook | null>(null);
+  const closingRef = useRef(false);
+
+  const setOpen = useCallback((b: ShelfBook | null) => {
+    openRef.current = b;
+    setOpenBook(b);
+    if (b) setHiddenId(b.id);
+  }, []);
+  const handleReturn = useCallback(() => setHiddenId(null), []);
+  const closeBook = useCallback(() => {
+    if (!openRef.current) return;
+    closingRef.current = true;
+    setOpen(null);
+  }, [setOpen]);
+  const handleOpen = useCallback(
+    (book: ShelfBook) => {
+      setSlotOpen(true);
+      if (closingRef.current) {
+        pendingRef.current = book;
+        return;
+      }
+      const cur = openRef.current;
+      if (!cur) {
+        setOpen(book);
+        return;
+      }
+      if (cur.id === book.id) return;
+      pendingRef.current = book;
+      closingRef.current = true;
+      setOpen(null);
+    },
+    [setOpen]
+  );
+  const handleClosed = useCallback(() => {
+    closingRef.current = false;
+    const next = pendingRef.current;
+    pendingRef.current = null;
+    if (next) setOpen(next);
+    else setSlotOpen(false);
+  }, [setOpen]);
+  const resetOpen = useCallback(() => {
+    closingRef.current = false;
+    pendingRef.current = null;
+    setOpen(null);
+    setHiddenId(null);
+    setSlotOpen(false);
+  }, [setOpen]);
 
   const getDetailHref = (userBook: MyBook) =>
     isFriend && nicknameAndTag !== ''
@@ -104,6 +156,30 @@ export default function BookList({
     }
     return list;
   }, [books, filter, sort]);
+
+  // 책장에 넘길 목록은 고정해 둔다 — 꺼내고 덮는 동안 책장이 리렌더되지 않도록(BookSpineShelf memo)
+  const shelfBooks = useMemo<ShelfBook[]>(
+    () =>
+      processed.map((ub) => {
+        const stat = stats[ub.id];
+        return {
+          id: ub.id,
+          title: ub.books.title ?? '(제목 없음)',
+          author: ub.books.author,
+          coverUrl: ub.books.cover_url ?? null,
+          totalPages: ub.books.total_pages,
+          lastReadPage: ub.last_read_page,
+          isFinished: ub.is_finished ?? false,
+          href:
+            isFriend && nicknameAndTag !== ''
+              ? `/protected/social/u/${nicknameAndTag}/books/${ub.book_id}`
+              : `/protected/books/${ub.book_id}`,
+          readingPeriod: stat ? formatReadingPeriod([stat.firstDate, stat.lastDate]) : null,
+          entryCount: stat?.entryCount ?? 0,
+        };
+      }),
+    [processed, stats, isFriend, nicknameAndTag]
+  );
 
   // 빈 책장 — 선반 한 칸만 비워 두고 한 줄
   if (books.length === 0) {
@@ -126,11 +202,22 @@ export default function BookList({
     <div>
       {/* 컨트롤 행 — pill·드롭다운 대신 밑줄 텍스트 */}
       <div className="mb-5 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-[13.5px]">
-        <TextToggle label="책 상태" options={FILTER_OPTIONS} value={filter} onChange={setFilter} />
+        <TextToggle
+          label="책 상태"
+          options={FILTER_OPTIONS}
+          value={filter}
+          onChange={(v) => {
+            resetOpen();
+            setFilter(v);
+          }}
+        />
         <div className="flex items-center gap-4">
           <button
             type="button"
-            onClick={() => setSort((v) => (v === 'recent' ? 'title' : 'recent'))}
+            onClick={() => {
+              resetOpen();
+              setSort((v) => (v === 'recent' ? 'title' : 'recent'));
+            }}
             className="text-ink-faint transition-colors hover:text-ink-sub"
           >
             {sort === 'recent' ? '최근 등록순' : '제목순'} ↕
@@ -140,7 +227,10 @@ export default function BookList({
             label="보기 방식"
             options={VIEW_OPTIONS}
             value={viewMode}
-            onChange={setViewMode}
+            onChange={(v) => {
+              resetOpen();
+              setViewMode(v);
+            }}
           />
         </div>
       </div>
@@ -151,26 +241,15 @@ export default function BookList({
         </p>
       ) : viewMode === 'shelf' ? (
         <>
-          <BookSpineShelf
-            books={processed.map((ub) => {
-              const stat = stats[ub.id];
-              return {
-                id: ub.id,
-                title: ub.books.title ?? '(제목 없음)',
-                author: ub.books.author,
-                coverUrl: ub.books.cover_url ?? null,
-                totalPages: ub.books.total_pages,
-                lastReadPage: ub.last_read_page,
-                isFinished: ub.is_finished ?? false,
-                href: getDetailHref(ub),
-                readingPeriod: stat ? formatReadingPeriod([stat.firstDate, stat.lastDate]) : null,
-                entryCount: stat?.entryCount ?? 0,
-              };
-            })}
-            onOpen={setOpenBook}
-            openId={openBook?.id ?? null}
+          {/* 꺼낸 책의 자리 — 열리면 책장이 그만큼 내려앉는다 */}
+          <OpenBook
+            book={openBook}
+            slotOpen={slotOpen}
+            onClose={closeBook}
+            onReturn={handleReturn}
+            onClosed={handleClosed}
           />
-          <OpenBook book={openBook} onClose={closeBook} />
+          <BookSpineShelf books={shelfBooks} onOpen={handleOpen} hiddenId={hiddenId} />
         </>
       ) : (
         /* 목록 — 조용한 리스트. 표지 작게, 서지는 부리 서체, 진행은 잉크 분수 */
