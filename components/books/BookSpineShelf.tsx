@@ -16,7 +16,8 @@ export interface ShelfBook {
   href: string;
   /** '2026. 6. 3. — 8. 12.' — 기록이 없으면 null */
   readingPeriod: string | null;
-  entryCount: number;
+  /** 통계를 모르면 null — 0(기록 없음)과 구분한다 */
+  entryCount: number | null;
 }
 
 interface Props {

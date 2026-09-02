@@ -210,14 +210,16 @@ export default function OpenBook({ book, slotOpen, onClose, onReturn, onClosed }
                         </dd>
                       </div>
                     )}
-                    <div>
-                      <dt className="sr-only">남긴 문장</dt>
-                      <dd>
-                        {shown.entryCount > 0
-                          ? `남긴 문장 ${shown.entryCount}개`
-                          : '아직 남긴 문장 없음'}
-                      </dd>
-                    </div>
+                    {shown.entryCount != null && (
+                      <div>
+                        <dt className="sr-only">남긴 문장</dt>
+                        <dd>
+                          {shown.entryCount > 0
+                            ? `남긴 문장 ${shown.entryCount}개`
+                            : '아직 남긴 문장 없음'}
+                        </dd>
+                      </div>
+                    )}
                   </dl>
                   <div className="mt-auto flex items-center justify-between gap-3 pt-3 text-[12.5px] sm:text-[13px]">
                     <Link

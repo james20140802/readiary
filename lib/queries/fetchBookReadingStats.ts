@@ -17,15 +17,15 @@ interface Row {
 
 /**
  * 본인 책 전부의 기록 날짜를 한 번에 읽어 user_book별 첫·마지막 날짜와 개수로 접는다.
- * 실패하면 빈 맵 — 통계는 장식이라 목록 자체를 막지 않는다.
+ * 실패하면 null — 통계는 장식이라 목록 자체를 막지 않되, 빈 맵(기록 없음)과는 구분한다.
  */
-export async function fetchBookReadingStats(): Promise<Record<string, BookReadingStat>> {
+export async function fetchBookReadingStats(): Promise<Record<string, BookReadingStat> | null> {
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
     error: userError,
   } = await supabase.auth.getUser();
-  if (!user || userError) return {};
+  if (!user || userError) return null;
 
   const { rows, error } = await fetchAllRows<Row>((from, to) =>
     supabase
@@ -36,7 +36,7 @@ export async function fetchBookReadingStats(): Promise<Record<string, BookReadin
       .order('id', { ascending: true })
       .range(from, to)
   );
-  if (error) return {};
+  if (error) return null;
 
   const stats: Record<string, BookReadingStat> = {};
   for (const row of rows) {

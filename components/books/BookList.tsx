@@ -11,8 +11,8 @@ import OpenBook from './OpenBook';
 
 interface Props {
   books: MyBook[];
-  /** user_book id → 읽기 통계. 없으면 펼친 책에 기간·문장 수를 비워 둔다 */
-  stats?: Record<string, BookReadingStat>;
+  /** user_book id → 읽기 통계. 없거나 null이면(친구 책장·조회 실패) 펼친 책에 기간·문장 수를 비워 둔다 */
+  stats?: Record<string, BookReadingStat> | null;
   isFriend?: boolean;
   nicknameAndTag?: string;
 }
@@ -74,12 +74,7 @@ function TextToggle<T extends string>({
   );
 }
 
-export default function BookList({
-  books,
-  stats = {},
-  isFriend = false,
-  nicknameAndTag = '',
-}: Props) {
+export default function BookList({ books, stats, isFriend = false, nicknameAndTag = '' }: Props) {
   const [viewMode, setViewMode] = useState<ViewMode>('shelf');
   const [filter, setFilter] = useState<FilterMode>('all');
   const [sort, setSort] = useState<SortMode>('recent');
@@ -161,7 +156,7 @@ export default function BookList({
   const shelfBooks = useMemo<ShelfBook[]>(
     () =>
       processed.map((ub) => {
-        const stat = stats[ub.id];
+        const stat = stats?.[ub.id];
         return {
           id: ub.id,
           title: ub.books.title ?? '(제목 없음)',
@@ -175,7 +170,8 @@ export default function BookList({
               ? `/protected/social/u/${nicknameAndTag}/books/${ub.book_id}`
               : `/protected/books/${ub.book_id}`,
           readingPeriod: stat ? formatReadingPeriod([stat.firstDate, stat.lastDate]) : null,
-          entryCount: stat?.entryCount ?? 0,
+          // 통계가 있는데 항목이 없으면 진짜 0, 통계 자체가 없으면 모름(null)
+          entryCount: stats ? (stat?.entryCount ?? 0) : null,
         };
       }),
     [processed, stats, isFriend, nicknameAndTag]
