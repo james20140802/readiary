@@ -1,13 +1,18 @@
+import { notFound } from 'next/navigation';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { fetchProfileData } from '@/lib/profile/fetchProfileData';
 import { fetchRetrospectData } from '@/lib/profile/fetchRetrospectData';
-import ProfileBookshelf from '@/components/profile/ProfileBookshelf';
-import ProfileStats from '@/components/profile/ProfileStats';
-import ProfileRetrospect from '@/components/profile/ProfileRetrospect';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { fetchFeaturedQuote } from '@/lib/profile/fetchFeaturedQuote';
+import { fetchFeaturedBookmark } from '@/lib/profile/fetchFeaturedBookmark';
+import { fetchBookReadingStats } from '@/lib/queries/fetchBookReadingStats';
 import { getUserStats } from '@/lib/stats/getUserStats';
-import ProfileHeader from '@/components/profile/ProfileHeader';
-import { notFound } from 'next/navigation';
+import { PROFILE_SHELF_LIMIT, toShelfBook } from '@/lib/books/shelfBook';
+import ProfileBook from '@/components/profile/ProfileBook';
+import ProfileShelf from '@/components/profile/ProfileShelf';
+import ProfileExcerpts from '@/components/profile/ProfileExcerpts';
 import AnimatedSection from '@/components/ui/AnimatedSection';
+
+const excerptsHref = (bookId: string) => `/protected/books/${bookId}/excerpts`;
 
 export default async function ProfilePage() {
   const supabase = await createSupabaseServerClient();
@@ -21,34 +26,51 @@ export default async function ProfilePage() {
     return <p className="text-center mt-10 text-danger">로그인이 필요합니다.</p>;
   }
 
-  const [{ profile, userBooks }, stats, retrospect] = await Promise.all([
+  const [{ profile, userBooks }, stats, retrospect, readingStats] = await Promise.all([
     fetchProfileData(user.id),
     getUserStats(user.id),
     fetchRetrospectData(user.id),
+    fetchBookReadingStats(),
   ]);
 
   if (!profile || !userBooks) {
     return notFound();
   }
 
+  const [featuredQuote, bookmark] = await Promise.all([
+    fetchFeaturedQuote(profile.featured_entry_id, profile.id),
+    fetchFeaturedBookmark(profile.bookmark_user_book_id, profile.id),
+  ]);
+
+  const shelfBooks = userBooks
+    .slice(0, PROFILE_SHELF_LIMIT)
+    .map((ub) => toShelfBook(ub, readingStats, `/protected/books/${ub.book_id}`));
+  const finishedBooks = retrospect?.finishedBooks ?? [];
+
   return (
-    <div>
-      <h1 className="text-page-title text-ink mb-2">내 프로필</h1>
+    <div className="pb-16">
       <AnimatedSection>
-        <div>
-          <ProfileHeader user={user} profile={profile} />
-          <ProfileBookshelf userBooks={userBooks} isOwnProfile />
-          {stats ? (
-            <ProfileStats stats={stats} />
-          ) : (
-            <p className="text-body-sm text-ink-faint">통계 정보를 불러올 수 없습니다.</p>
-          )}
-          {retrospect ? (
-            <ProfileRetrospect data={retrospect} />
-          ) : (
-            <p className="text-body-sm text-ink-faint">회고 정보를 불러올 수 없습니다.</p>
-          )}
-        </div>
+        <ProfileBook
+          user={user}
+          profile={profile}
+          stats={stats}
+          monthly={retrospect?.monthly ?? []}
+          featuredQuote={featuredQuote}
+          bookmark={bookmark}
+          bookmarkHref={bookmark ? excerptsHref(bookmark.bookId) : null}
+          canBookmark={userBooks.some((ub) => ub.is_finished)}
+        />
+        <ProfileShelf
+          books={shelfBooks}
+          total={userBooks.length}
+          shelfHref="/protected/books"
+          isOwnProfile
+        />
+        {retrospect ? (
+          <ProfileExcerpts books={finishedBooks} hrefFor={excerptsHref} />
+        ) : (
+          <p className="mt-10 text-body-sm text-ink-faint">회고 정보를 불러올 수 없습니다.</p>
+        )}
       </AnimatedSection>
     </div>
   );

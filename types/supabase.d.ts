@@ -313,7 +313,9 @@ export type Database = {
       profiles: {
         Row: {
           bio: string | null;
+          bookmark_user_book_id: string | null;
           created_at: string | null;
+          featured_entry_id: string | null;
           id: string;
           name: string;
           nickname: string;
@@ -322,7 +324,9 @@ export type Database = {
         };
         Insert: {
           bio?: string | null;
+          bookmark_user_book_id?: string | null;
           created_at?: string | null;
+          featured_entry_id?: string | null;
           id: string;
           name: string;
           nickname: string;
@@ -331,14 +335,31 @@ export type Database = {
         };
         Update: {
           bio?: string | null;
+          bookmark_user_book_id?: string | null;
           created_at?: string | null;
+          featured_entry_id?: string | null;
           id?: string;
           name?: string;
           nickname?: string;
           profile_image?: string | null;
           tag?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: 'profiles_bookmark_user_book_id_fkey';
+            columns: ['bookmark_user_book_id'];
+            isOneToOne: false;
+            referencedRelation: 'user_books';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'profiles_featured_entry_id_fkey';
+            columns: ['featured_entry_id'];
+            isOneToOne: false;
+            referencedRelation: 'entries';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       user_badges: {
         Row: {
