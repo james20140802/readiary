@@ -13,7 +13,10 @@ export async function fetchUnreadNotificationCount(): Promise<number | null> {
     const supabase = await createSupabaseServerClient();
     const {
       data: { user },
+      error: authError,
     } = await supabase.auth.getUser();
+    // 인증 조회 자체가 실패한 것(일시 장애)은 미로그인이 아니다 — 모름(null)
+    if (authError) return null;
     if (!user) return 0;
 
     const { count, error } = await supabase
