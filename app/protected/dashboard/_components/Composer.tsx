@@ -9,9 +9,7 @@ import { todayKST } from '@/lib/dates';
 import Card from '@/components/ui/Card';
 import Chip from '@/components/ui/Chip';
 import Button from '@/components/ui/Button';
-import { Textarea } from '@/components/ui/Textarea';
 import Seal from '@/components/ui/Seal';
-import Input from '@/components/ui/Input';
 
 interface ComposerProps {
   books: MyBook[];
@@ -148,79 +146,89 @@ export default function Composer({ books, recentUserBookId, userId }: ComposerPr
     }
   };
 
+  // 저장 뒤 덧붙이기 — 첫 단계와 같은 종이 문법. 입력은 박스 없이 헤어라인 아래에 바로,
+  // 쪽수는 기록 폼(EntryForm)과 같은 "p. __ – __" 인라인 입력. (박스형 Textarea/Input 금지)
   if (savedEntry) {
+    const extraLabel = savedEntry.mode === 'quote' ? '생각' : '문장';
+    const expanded = showExtraText || showPages;
     return (
       <Card hoverable={false}>
         <Seal>오늘의 기록</Seal>
-        <p className="mt-2 font-serif text-quote text-ink">{savedEntry.text}</p>
+        <p className="mt-2 whitespace-pre-wrap font-serif text-quote text-ink">{savedEntry.text}</p>
         <p className="mt-1 text-caption text-ink-sub">{savedEntry.bookTitle}</p>
 
-        {!showExtraText && !showPages ? (
-          <div className="mt-4 flex flex-wrap gap-2">
+        {showExtraText && (
+          <div className="mt-4 border-t border-hairline pt-4">
+            <label htmlFor="composer-extra" className="text-[11.5px] font-medium text-ink-faint">
+              {extraLabel}
+            </label>
+            <textarea
+              id="composer-extra"
+              value={extraText}
+              onChange={(e) => setExtraText(e.target.value)}
+              placeholder={
+                savedEntry.mode === 'quote'
+                  ? '이 문장에 대한 생각을 덧붙여보세요'
+                  : '책에서 마음에 남은 문장을 옮겨 적어보세요'
+              }
+              rows={3}
+              autoFocus
+              className="mt-2 block w-full resize-none border-b border-transparent bg-transparent font-serif text-[15px] leading-relaxed text-ink transition-colors placeholder:text-ink-faint focus:border-hairline-strong focus:outline-none"
+            />
+          </div>
+        )}
+
+        <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-3 border-t border-hairline pt-3.5">
+          {showPages && (
+            <div className="flex items-center gap-1 text-[13px] tabular-nums text-ink-sub">
+              <span className="text-ink-faint">p.</span>
+              <input
+                type="number"
+                inputMode="numeric"
+                aria-label="시작 페이지"
+                placeholder="10"
+                value={fromPage}
+                autoFocus={!showExtraText}
+                onChange={(e) => setFromPage(e.target.value)}
+                className="w-11 border-b border-transparent bg-transparent text-center text-ink placeholder:text-ink-faint focus:border-hairline-strong focus:outline-none"
+              />
+              <span className="text-ink-faint">–</span>
+              <input
+                type="number"
+                inputMode="numeric"
+                aria-label="종료 페이지"
+                placeholder="25"
+                value={toPage}
+                onChange={(e) => setToPage(e.target.value)}
+                className="w-11 border-b border-transparent bg-transparent text-center text-ink placeholder:text-ink-faint focus:border-hairline-strong focus:outline-none"
+              />
+            </div>
+          )}
+          {!showExtraText && (
             <Chip onClick={() => setShowExtraText(true)} disabled={isSubmitting}>
-              {savedEntry.mode === 'quote' ? '생각 덧붙이기' : '문장 덧붙이기'}
+              {extraLabel} 덧붙이기
             </Chip>
+          )}
+          {!showPages && (
             <Chip onClick={() => setShowPages(true)} disabled={isSubmitting}>
               페이지 남기기
             </Chip>
-            <Chip onClick={resetAll} disabled={isSubmitting}>
+          )}
+          {expanded ? (
+            <div className="ml-auto flex items-center gap-2">
+              <Button size="sm" variant="ghost" onClick={resetAll} disabled={isSubmitting}>
+                닫기
+              </Button>
+              <Button size="sm" onClick={handleExpand} disabled={isSubmitting}>
+                {isSubmitting ? '저장 중...' : '덧붙이기'}
+              </Button>
+            </div>
+          ) : (
+            <Chip className="ml-auto" onClick={resetAll} disabled={isSubmitting}>
               닫기
             </Chip>
-          </div>
-        ) : (
-          <div className="mt-4 space-y-3">
-            {showExtraText && (
-              <Textarea
-                value={extraText}
-                onChange={(e) => setExtraText(e.target.value)}
-                placeholder={
-                  savedEntry.mode === 'quote'
-                    ? '이 문장에 대한 생각을 덧붙여보세요'
-                    : '책에서 마음에 남은 문장을 옮겨 적어보세요'
-                }
-                rows={3}
-                fullWidth
-                className="resize-none"
-              />
-            )}
-            {showPages && (
-              <div className="flex gap-3">
-                <Input
-                  type="number"
-                  placeholder="시작 페이지"
-                  value={fromPage}
-                  onChange={(e) => setFromPage(e.target.value)}
-                />
-                <Input
-                  type="number"
-                  placeholder="종료 페이지"
-                  value={toPage}
-                  onChange={(e) => setToPage(e.target.value)}
-                />
-              </div>
-            )}
-            <div className="flex flex-wrap items-center gap-2">
-              {!showExtraText && (
-                <Chip onClick={() => setShowExtraText(true)} disabled={isSubmitting}>
-                  {savedEntry.mode === 'quote' ? '생각 덧붙이기' : '문장 덧붙이기'}
-                </Chip>
-              )}
-              {!showPages && (
-                <Chip onClick={() => setShowPages(true)} disabled={isSubmitting}>
-                  페이지 남기기
-                </Chip>
-              )}
-              <div className="ml-auto flex gap-2">
-                <Button size="sm" variant="ghost" onClick={resetAll} disabled={isSubmitting}>
-                  닫기
-                </Button>
-                <Button size="sm" onClick={handleExpand} disabled={isSubmitting}>
-                  {isSubmitting ? '저장 중...' : '덧붙이기'}
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </Card>
     );
   }
