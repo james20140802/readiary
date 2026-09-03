@@ -22,7 +22,7 @@ import {
   BOOK_W,
   BOOKMARK_EXPOSED,
   BOOKMARK_H,
-  BOOKMARK_PULL_GAP,
+  BOOKMARK_LIFT,
   BOOKMARK_W,
   bookmarkTint,
   INDEX_GAP,
@@ -61,12 +61,12 @@ const OBI_H = 100;
 const OBI_BOTTOM = 18;
 /** 무대 폭 — 인덱스가 오른쪽으로 삐져나올 자리까지 */
 const STAGE_W = W + INDEX_W - INDEX_OVERLAP;
-/** 위쪽 여백 — 꽂힌 책갈피가 삐져나올 자리. 뽑으면 그만큼 여백이 늘어 책이 내려앉는다 */
+/** 위쪽 여백 — 꽂힌 책갈피가 삐져나올 자리. 들어 올리면 그만큼 여백이 늘어 책이 내려앉는다 */
 const TOP_PAD = BOOKMARK_EXPOSED + 12;
-/** 책갈피를 뽑았을 때 올라가는 거리 — 책 위로 완전히 나올 만큼 */
-const BOOKMARK_PULL = BOOKMARK_H - BOOKMARK_EXPOSED + BOOKMARK_PULL_GAP;
 /** 책갈피 자리 — 사진처럼 가운데보다 조금 오른쪽 */
 const BOOKMARK_LEFT = Math.round(W * 0.6);
+/** 책갈피가 얹히는 오른쪽 위를 발췌집 면의 제목이 피해 가도록 비워 두는 폭 */
+const BOOKMARK_CLEAR = W - BOOKMARK_LEFT - 28 + 8;
 
 const FACE = 'absolute inset-0 [backface-visibility:hidden]';
 const TURN =
@@ -255,8 +255,8 @@ export default function ProfileBook({
         className="relative mx-auto transition-[padding,height] duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] [perspective:1800px] [touch-action:pan-y] motion-reduce:duration-0"
         style={{
           width: STAGE_W,
-          paddingTop: TOP_PAD + (isBookmarkPage ? BOOKMARK_PULL : 0),
-          height: TOP_PAD + H + (isBookmarkPage ? BOOKMARK_PULL : 0),
+          paddingTop: TOP_PAD + (isBookmarkPage ? BOOKMARK_LIFT : 0),
+          height: TOP_PAD + H + (isBookmarkPage ? BOOKMARK_LIFT : 0),
         }}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
@@ -463,10 +463,13 @@ export default function ProfileBook({
                 </div>
               ) : page === 'bookmark' && bookmark ? (
                 <div className="flex h-full flex-col px-7 pb-6 pt-8">
-                  <Seal>발췌집</Seal>
-                  <p className="mt-1 text-balance break-keep font-serif text-[15px] font-bold leading-snug text-ink">
-                    {bookmark.title}
-                  </p>
+                  {/* 오른쪽 위에는 책갈피가 얹혀 있다 */}
+                  <div style={{ paddingRight: BOOKMARK_CLEAR }}>
+                    <Seal>발췌집</Seal>
+                    <p className="mt-1 text-balance break-keep font-serif text-[15px] font-bold leading-snug text-ink">
+                      {bookmark.title}
+                    </p>
+                  </div>
                   {bookmark.quotes.length === 0 ? (
                     <p className="mt-5 font-serif text-[13.5px] text-ink-faint">
                       아직 옮겨 적은 문장이 없습니다.
@@ -625,81 +628,84 @@ export default function ProfileBook({
               }}
             />
 
-            {/* ── 책갈피 — 골라 둔 발췌집 하나. 윗면에서 삐져나오고, 누르면 위로 뽑히며 그 자리로 펼쳐진다 ── */}
+            {/* ── 책갈피 — 골라 둔 발췌집 하나. 윗면에서 삐져나오고, 누르면 그 자리로 펼쳐지며
+                꽂혀 있던 면 위에 얹힌 채 조금 들린다 ── */}
             {(bookmark || showBookmarkSlot) && (
               <div
-                className={`absolute [transform-style:preserve-3d] ${TURN}`}
+                className="absolute [transform-style:preserve-3d]"
                 style={{
                   left: BOOKMARK_LEFT,
                   top: -BOOKMARK_EXPOSED,
                   width: BOOKMARK_W,
                   height: BOOKMARK_H,
-                  // 첫 장(T/2-1)보다 살짝 뒤 — 종이 속에서 위로 빠져나오는 것처럼 아랫부분이 종이에 가려진다
-                  transform: isBookmarkPage
-                    ? `translateY(${-BOOKMARK_PULL}px) translateZ(${T / 2 - 3}px)`
-                    : 'translateY(0)',
+                  // 덮여 있으면 책 속(z=0), 펼치면 첫 장 바로 위(표지보다는 뒤)에 얹힌다.
+                  // 펼칠 때는 바로 올라와 표지가 열리며 드러나고, 덮을 때는 표지가 다 닫힌 뒤에 들어간다
+                  transform: `translateZ(${isBookmarkPage ? T / 2 - 0.5 : 0}px)`,
+                  transition: `transform 0s ${isBookmarkPage ? 0 : 700}ms`,
                 }}
               >
-                {bookmark ? (
-                  <>
-                    <button
-                      type="button"
-                      inert={isFlipped}
-                      onClick={() => (isBookmarkPage ? setOpen(false) : goTo('bookmark'))}
-                      aria-pressed={isBookmarkPage}
-                      title={
-                        isBookmarkPage
-                          ? '책갈피를 다시 꽂고 덮기'
-                          : `${bookmark.title} 발췌집 · 문장 ${bookmark.quoteCount}`
-                      }
-                      className={`${FACE} group overflow-hidden rounded-[3px] border border-hairline-strong transition-[transform,box-shadow] duration-200 ${
-                        isBookmarkPage
-                          ? 'shadow-[0_8px_20px_rgb(var(--ink)/0.18)]'
-                          : 'hover:-translate-y-2'
-                      }`}
-                      style={{ backgroundColor: bookmarkTint(bookmark.userBookId) }}
-                    >
-                      <span
-                        className={`absolute left-1/2 top-[18px] -translate-x-1/2 overflow-hidden whitespace-nowrap font-serif text-[12px] tracking-[0.08em] text-ink group-hover:text-accent ${
+                <div
+                  className={`absolute inset-0 [transform-style:preserve-3d] ${TURN}`}
+                  style={{ transform: `translateY(${isBookmarkPage ? -BOOKMARK_LIFT : 0}px)` }}
+                >
+                  {bookmark ? (
+                    <>
+                      <button
+                        type="button"
+                        inert={isFlipped}
+                        onClick={() => (isBookmarkPage ? setOpen(false) : goTo('bookmark'))}
+                        aria-pressed={isBookmarkPage}
+                        title={
                           isBookmarkPage
-                            ? '[mask-image:linear-gradient(to_bottom,black_80%,transparent)]'
-                            : ''
+                            ? '책갈피를 다시 꽂고 덮기'
+                            : `${bookmark.title} 발췌집 · 문장 ${bookmark.quoteCount}`
+                        }
+                        className={`${FACE} group overflow-hidden rounded-[3px] border border-hairline-strong transition-[transform,box-shadow] duration-200 ${
+                          isBookmarkPage
+                            ? 'shadow-[2px_4px_12px_rgb(var(--ink)/0.22)]'
+                            : 'hover:-translate-y-2'
                         }`}
-                        style={{
-                          writingMode: 'vertical-rl',
-                          maxHeight: isBookmarkPage ? BOOKMARK_H - 60 : BOOKMARK_EXPOSED + 60,
-                        }}
+                        style={{ backgroundColor: bookmarkTint(bookmark.userBookId) }}
                       >
-                        <SpineTitle title={bookmark.title} />
-                      </span>
-                      {isBookmarkPage && (
-                        <span className="absolute inset-x-0 bottom-2.5 font-sans text-[10px] tabular-nums text-ink-sub">
-                          {bookmark.quoteCount}
+                        <span
+                          className="absolute left-1/2 top-[18px] -translate-x-1/2 overflow-hidden whitespace-nowrap font-serif text-[12px] tracking-[0.08em] text-ink group-hover:text-accent"
+                          style={{
+                            writingMode: 'vertical-rl',
+                            maxHeight: isBookmarkPage ? BOOKMARK_H - 60 : BOOKMARK_EXPOSED + 60,
+                          }}
+                        >
+                          <SpineTitle title={bookmark.title} />
                         </span>
-                      )}
-                    </button>
-                    {/* 책갈피 뒷면 — 종이색만 */}
-                    <div
-                      aria-hidden
-                      className={`${FACE} rounded-[3px] border border-hairline-strong [transform:rotateY(180deg)]`}
-                      style={{ backgroundColor: bookmarkTint(bookmark.userBookId) }}
-                    />
-                  </>
-                ) : (
-                  <Link
-                    href="/protected/profile/edit#bookmark"
-                    inert={isFlipped}
-                    className={`${FACE} flex justify-center rounded-[3px] border border-dashed border-hairline-strong pt-6 font-serif text-[12px] tracking-[0.08em] text-ink-faint transition-colors hover:border-accent hover:text-accent`}
-                    style={{ writingMode: 'vertical-rl' }}
-                  >
-                    책갈피 꽂기
-                  </Link>
-                )}
+                        {isBookmarkPage && (
+                          <span className="absolute inset-x-0 bottom-2.5 font-sans text-[10px] tabular-nums text-ink-sub">
+                            {bookmark.quoteCount}
+                          </span>
+                        )}
+                      </button>
+                      {/* 책갈피 뒷면 — 종이색만 */}
+                      <div
+                        aria-hidden
+                        className={`${FACE} rounded-[3px] border border-hairline-strong [transform:rotateY(180deg)]`}
+                        style={{ backgroundColor: bookmarkTint(bookmark.userBookId) }}
+                      />
+                    </>
+                  ) : (
+                    <Link
+                      href="/protected/profile/edit#bookmark"
+                      inert={isFlipped}
+                      className={`${FACE} flex justify-center rounded-[3px] border border-dashed border-hairline-strong pt-6 font-serif text-[12px] tracking-[0.08em] text-ink-faint transition-colors hover:border-accent hover:text-accent`}
+                      style={{ writingMode: 'vertical-rl' }}
+                    >
+                      책갈피 꽂기
+                    </Link>
+                  )}
+                </div>
               </div>
             )}
 
             {/* ── 인덱스 — 기록한 달. 앞마구리에서 삐져나오고, 누르면 그 달 페이지로 펼쳐진다.
-                본문에 붙어 있어 펼쳐도 오른쪽 면 가장자리에 그대로 붙어 있다 ── */}
+                종이에 붙는 OVERLAP만큼은 책 속에 있어 보이지 않고, 펼친 그 달의 것만
+                오른쪽 면 위로 올라와 종이 안쪽으로 이어진다 ── */}
             {months.map((m, i) => {
               const label = indexLabel(m.label);
               const tint = INDEX_TINTS[i % INDEX_TINTS.length];
@@ -716,8 +722,8 @@ export default function ProfileBook({
                     top,
                     width: INDEX_W,
                     height: INDEX_H,
-                    // 덮여 있으면 책 안에 꽂혀 있고, 펼치면 첫 장 위(표지보다는 뒤)에 붙어 종이 안쪽으로 이어진다
-                    transform: `translateZ(${open ? T / 2 - 0.5 : innerZ(i, months.length)}px)${
+                    // 펼친 달의 것만 첫 장 위(표지보다는 뒤)로, 나머지는 책 속 제자리에
+                    transform: `translateZ(${active ? T / 2 - 0.5 : innerZ(i, months.length)}px)${
                       active ? ' translateX(6px)' : ''
                     }`,
                   }}
@@ -728,16 +734,20 @@ export default function ProfileBook({
                     onClick={() => (active ? setOpen(false) : goTo(monthPage(m.label)))}
                     aria-pressed={active}
                     title={`${m.label} · 기록 ${m.count}`}
-                    className={`${face} transition-[filter] hover:brightness-95 ${
+                    className={`${face} transition-[filter,clip-path] duration-300 hover:brightness-95 ${
                       active ? 'font-bold shadow-[0_1px_4px_rgb(var(--ink)/0.2)]' : ''
                     }`}
-                    style={{ backgroundColor: tint }}
+                    // 종이 위에 붙는 부분은 책 속에 있다 — 펼친 달의 것만 종이 위로 드러난다
+                    style={{
+                      backgroundColor: tint,
+                      clipPath: active ? 'inset(0 0 0 0)' : `inset(0 0 0 ${INDEX_OVERLAP}px)`,
+                    }}
                   >
                     {label}
                   </button>
                   <div
                     className={`${face} flex-row-reverse pl-2 pr-0 [transform:rotateY(180deg)]`}
-                    style={{ backgroundColor: tint }}
+                    style={{ backgroundColor: tint, clipPath: `inset(0 ${INDEX_OVERLAP}px 0 0)` }}
                   >
                     {label}
                   </div>

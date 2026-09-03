@@ -12,7 +12,7 @@ import {
 } from '@/lib/profile/bookGeometry';
 
 interface Props {
-  /** 책갈피로 꽂은 것을 뺀 나머지 발췌집 — 최근 완독부터 */
+  /** 발췌집 전부(책갈피로 꽂은 책 포함) — 최근 완독부터 */
   books: FinishedBookExcerpt[];
   /** 발췌집 링크 — 본인은 발췌집 페이지, 친구는 그 책 페이지 */
   hrefFor: (bookId: string) => string;
@@ -26,7 +26,7 @@ const STACK_W = NOTEBOOK_W + Math.max(...NOTEBOOK_W_STEP) + Math.max(...NOTEBOOK
 /**
  * 발췌집 — 책장 아래에 쌓인 공책 더미. 완독한 책마다 한 권씩 책등을 앞으로 눕혀 쌓고,
  * 한 더미에 EXCERPT_STACK_MAX권까지, 넘치면 옆에 새 더미. 좁은 화면에서는 오른쪽 더미가 가려지고
- * 맨 위·첫 더미가 가장 최근 것이다. 책갈피로 꽂아 둔 한 권은 프로필 책 안에 있으니 여기서는 뺀다.
+ * 맨 위·첫 더미가 가장 최근 것이다. 책갈피로 꽂아 둔 책도 발췌집이므로 여기에 그대로 있다.
  */
 export default function ProfileExcerpts({ books, hrefFor }: Props) {
   if (books.length === 0) return null;

@@ -59,7 +59,6 @@ export default async function FriendProfilePage({ params }: FriendProfilePagePro
     .slice(0, PROFILE_SHELF_LIMIT)
     .map((ub) => toShelfBook(ub, null, bookHref(ub.book_id)));
   const finishedBooks = retrospect?.finishedBooks ?? [];
-  const otherExcerpts = finishedBooks.filter((b) => b.bookId !== bookmark?.bookId);
 
   return (
     <div className="pb-16">
@@ -84,7 +83,7 @@ export default async function FriendProfilePage({ params }: FriendProfilePagePro
           shelfHref={shelfHref}
           isOwnProfile={false}
         />
-        <ProfileExcerpts books={otherExcerpts} hrefFor={bookHref} />
+        <ProfileExcerpts books={finishedBooks} hrefFor={bookHref} />
       </AnimatedSection>
     </div>
   );

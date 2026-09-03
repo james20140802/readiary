@@ -52,8 +52,8 @@ export function bookmarkTint(id: string): string {
 export const BOOKMARK_W = 54;
 export const BOOKMARK_H = 184;
 export const BOOKMARK_EXPOSED = 84;
-/** 책갈피를 뽑았을 때 — 책 위로 완전히 나와 이만큼 떠 있다 */
-export const BOOKMARK_PULL_GAP = 10;
+/** 책갈피를 들었을 때 종이 위로 올라가는 거리 — 아랫부분은 여전히 펼친 면 위에 얹혀 있다 */
+export const BOOKMARK_LIFT = 48;
 
 /** 인덱스 탭 치수 — 앞마구리 밖으로 (INDEX_W - INDEX_OVERLAP)만큼 나오고, OVERLAP만큼은 종이 위에 붙어 있다.
  *  덮으면 그 부분이 책 안에 숨고, 펼치면 오른쪽 면 위로 이어져 보인다 */

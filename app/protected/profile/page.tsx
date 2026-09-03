@@ -46,7 +46,6 @@ export default async function ProfilePage() {
     .slice(0, PROFILE_SHELF_LIMIT)
     .map((ub) => toShelfBook(ub, readingStats, `/protected/books/${ub.book_id}`));
   const finishedBooks = retrospect?.finishedBooks ?? [];
-  const otherExcerpts = finishedBooks.filter((b) => b.bookId !== bookmark?.bookId);
 
   return (
     <div className="pb-16">
@@ -67,7 +66,7 @@ export default async function ProfilePage() {
           shelfHref="/protected/books"
           isOwnProfile
         />
-        <ProfileExcerpts books={otherExcerpts} hrefFor={excerptsHref} />
+        <ProfileExcerpts books={finishedBooks} hrefFor={excerptsHref} />
       </AnimatedSection>
     </div>
   );
