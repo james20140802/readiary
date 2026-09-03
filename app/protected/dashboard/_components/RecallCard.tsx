@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Card from '@/components/ui/Card';
 import Seal from '@/components/ui/Seal';
+import ClampedText from '@/components/ui/ClampedText';
 import type { RecallEntry } from '@/lib/recall/fetchRecallEntry';
 
 export function RecallCard({ recall }: { recall: RecallEntry }) {
@@ -15,9 +16,9 @@ export function RecallCard({ recall }: { recall: RecallEntry }) {
         <span aria-hidden className="mb-2 block font-serif text-[40px] leading-none text-accent">
           “
         </span>
-        <blockquote className="line-clamp-3 font-serif text-quote text-ink">
-          {recall.quote}
-        </blockquote>
+        <ClampedText fadeFromClassName="from-card">
+          <blockquote className="font-serif text-quote text-ink">{recall.quote}</blockquote>
+        </ClampedText>
         <div className="mt-[18px] flex items-baseline gap-2 border-t border-hairline pt-[14px]">
           <span className="font-serif text-[13px] font-bold text-ink">{recall.bookTitle}</span>
           <span className="text-caption text-ink-faint">{meta}</span>
