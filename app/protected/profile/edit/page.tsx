@@ -124,7 +124,8 @@ export default function EditProfilePage() {
   };
 
   const handleUpdateProfile = async () => {
-    const error = validateNickname(nickname);
+    // 규칙 도입 전에 만든 닉네임은 그대로 두는 한 저장을 막지 않는다 — 바꿀 때만 검사
+    const error = nickname !== profile?.nickname ? validateNickname(nickname) : null;
     if (error) {
       setNicknameError(error);
       return;

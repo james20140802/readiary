@@ -102,7 +102,9 @@ export function useProfileUpdate(initialProfile: Profile | null) {
       setUpdating(true);
       if (!initialProfile) return { success: false, error: '프로필 정보가 없습니다.' };
 
-      const nicknameError = validateNickname(nickname);
+      // 규칙 도입 전 닉네임(20자 초과 등)은 바꾸지 않는 한 그대로 둔다 — 바꿀 때만 검사
+      const nicknameError =
+        nickname !== initialProfile.nickname ? validateNickname(nickname) : null;
       if (nicknameError) {
         return { success: false, error: nicknameError };
       }
