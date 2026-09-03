@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { createSupabaseClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { Profile } from '@/types/profile';
+import { validateNickname } from '@/lib/profile/nickname';
 
 export function useProfileUpdate(initialProfile: Profile | null) {
   const supabase = createSupabaseClient();
@@ -13,7 +14,7 @@ export function useProfileUpdate(initialProfile: Profile | null) {
   const [uploading, setUploading] = useState(false);
 
   // DB에 저장된 파일 이름(상대 경로)만 상태로 관리
-  const [imagePath, setImagePath] = useState<string | null>(initialProfile?.profile_image || null);
+  const [imagePath, setImagePath] = useState<string | null>(initialProfile?.profile_image ?? null);
 
   // initialProfile이 비동기로 채워질 때 imagePath 동기화
   // (렌더링 중 조건부 setState로 처리해 이펙트 한 프레임 지연을 피함)
@@ -100,6 +101,11 @@ export function useProfileUpdate(initialProfile: Profile | null) {
     try {
       setUpdating(true);
       if (!initialProfile) return { success: false, error: '프로필 정보가 없습니다.' };
+
+      const nicknameError = validateNickname(nickname);
+      if (nicknameError) {
+        return { success: false, error: nicknameError };
+      }
 
       let finalTag = initialProfile.tag;
 

@@ -5,6 +5,7 @@ import { fetchProfileData } from '@/lib/profile/fetchProfileData';
 import { fetchRetrospectData } from '@/lib/profile/fetchRetrospectData';
 import { fetchFeaturedQuote } from '@/lib/profile/fetchFeaturedQuote';
 import { fetchFeaturedBookmark } from '@/lib/profile/fetchFeaturedBookmark';
+import { parseNicknameAndTagSlug } from '@/lib/social/invite';
 import { PROFILE_SHELF_LIMIT, toShelfBook } from '@/lib/books/shelfBook';
 import ProfileBook from '@/components/profile/ProfileBook';
 import ProfileShelf from '@/components/profile/ProfileShelf';
@@ -24,10 +25,9 @@ export default async function FriendProfilePage({ params }: FriendProfilePagePro
   if (!user) return notFound();
 
   const slug = (await params).nicknameAndTag;
-  const decoded = decodeURIComponent(slug);
-  const processed = decoded.startsWith('@') ? decoded.slice(1) : decoded;
-  const [nickname, tag] = processed.split('-');
-  if (!nickname || !tag) return notFound();
+  const parsed = parseNicknameAndTagSlug(slug);
+  if (!parsed) return notFound();
+  const { nickname, tag } = parsed;
 
   const { profile, userBooks } = await fetchProfileData(nickname, tag);
   if (!profile) return notFound();

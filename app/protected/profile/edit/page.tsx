@@ -16,6 +16,7 @@ import FormGroup from '@/components/ui/FormGroup';
 import FormLabel from '@/components/ui/FormLabel';
 import { toast } from 'sonner';
 import { getImageUrl } from '@/utils/profile';
+import { validateNickname } from '@/lib/profile/nickname';
 
 interface QuoteOption {
   id: string;
@@ -36,6 +37,7 @@ export default function EditProfilePage() {
   const supabase = createSupabaseClient();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [nickname, setNickname] = useState('');
+  const [nicknameError, setNicknameError] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [bio, setBio] = useState('');
   // 뒷표지 문장 — 내가 남긴 인용 중 하나. 바꾼 적이 있을 때만 저장에 실린다
@@ -122,6 +124,13 @@ export default function EditProfilePage() {
   };
 
   const handleUpdateProfile = async () => {
+    const error = validateNickname(nickname);
+    if (error) {
+      setNicknameError(error);
+      return;
+    }
+    setNicknameError(null);
+
     const res = await updateProfile(
       nickname,
       name,
@@ -219,8 +228,12 @@ export default function EditProfilePage() {
             <Input
               type="text"
               value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
+              onChange={(e) => {
+                setNickname(e.target.value);
+                if (nicknameError) setNicknameError(null);
+              }}
               placeholder="닉네임 입력"
+              error={nicknameError ?? undefined}
             />
           </FormGroup>
 

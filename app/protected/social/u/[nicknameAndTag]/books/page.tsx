@@ -3,6 +3,7 @@ import { fetchFriendBooks } from '@/lib/friends/fetchFriendBooks';
 import { notFound } from 'next/navigation';
 import BookList from '@/components/books/BookList';
 import { isFriendWith } from '@/lib/friends/isFriendWith';
+import { parseNicknameAndTagSlug } from '@/lib/social/invite';
 import BackButton from '@/components/ui/BackButton';
 import Link from 'next/link';
 
@@ -11,7 +12,9 @@ interface Props {
 }
 
 export default async function FriendBooksPage({ params }: Props) {
-  const [nickname, tag] = (await params).nicknameAndTag.split('-');
+  const parsed = parseNicknameAndTagSlug((await params).nicknameAndTag);
+  if (!parsed) return notFound();
+  const { nickname, tag } = parsed;
 
   const isFriend = await isFriendWith({ nickname, tag });
 

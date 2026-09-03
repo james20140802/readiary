@@ -2,6 +2,7 @@ import { fetchFriendEntryDetail } from '@/lib/friends/fetchFriendEntryDetail';
 
 import { notFound } from 'next/navigation';
 import { isFriendWith } from '@/lib/friends/isFriendWith';
+import { parseNicknameAndTagSlug } from '@/lib/social/invite';
 import FriendProfileHeader from '@/components/social/FriendProfileHeader';
 import EntryDetailContent from '@/components/entry/EntryDetailContent';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
@@ -18,9 +19,10 @@ export default async function EntryDetailPage({
 
   if (!user) return null;
 
-  const entryId = (await params).entry_id;
-  const [nickname, tag] = (await params).nicknameAndTag.split('-');
-  if (!entryId || !nickname || !tag) return notFound();
+  const { entry_id: entryId, nicknameAndTag } = await params;
+  const parsed = parseNicknameAndTagSlug(nicknameAndTag);
+  if (!entryId || !parsed) return notFound();
+  const { nickname, tag } = parsed;
 
   const isFriend = await isFriendWith({ nickname, tag });
 
