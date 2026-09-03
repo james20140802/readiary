@@ -58,7 +58,7 @@ export default async function ProfilePage() {
           featuredQuote={featuredQuote}
           bookmark={bookmark}
           bookmarkHref={bookmark ? excerptsHref(bookmark.bookId) : null}
-          canBookmark={finishedBooks.length > 0}
+          canBookmark={userBooks.some((ub) => ub.is_finished)}
         />
         <ProfileShelf
           books={shelfBooks}
