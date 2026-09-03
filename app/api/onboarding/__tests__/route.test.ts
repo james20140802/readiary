@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { POST } from '../route';
+import { validateNickname } from '@/lib/profile/nickname';
 
 vi.mock('@/lib/supabase/server', () => ({
   createSupabaseServerClient: vi.fn(),
@@ -33,7 +34,7 @@ function makeRequest(body: unknown) {
   });
 }
 
-const validBody = { name: '홍길동', nickname: '길동이', tag: '0001', bio: '안녕하세요' };
+const validBody = { name: '홍길동', nickname: 'gildong', tag: '0001', bio: '안녕하세요' };
 
 describe('POST /api/onboarding', () => {
   beforeEach(() => {
@@ -125,6 +126,18 @@ describe('POST /api/onboarding', () => {
 
     expect(res.status).toBe(400);
     expect(json).toEqual({ error: '이름과 닉네임을 입력해주세요.' });
+  });
+
+  it('닉네임 형식이 규칙(영문·숫자·밑줄)에 어긋나면 400을 반환하고 insert를 호출하지 않는다', async () => {
+    const { stub, insert } = buildSupabaseStub();
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(stub as never);
+
+    const res = await POST(makeRequest({ ...validBody, nickname: 'gil-dong' }));
+    const json = await res.json();
+
+    expect(res.status).toBe(400);
+    expect(json).toEqual({ error: validateNickname('gil-dong') });
+    expect(insert).not.toHaveBeenCalled();
   });
 
   it('JSON 파싱에 실패하면 400 Invalid JSON을 반환한다', async () => {

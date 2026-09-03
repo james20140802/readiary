@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { classifyProfileInsertError } from '@/lib/onboarding/classifyProfileInsertError';
+import { validateNickname } from '@/lib/profile/nickname';
 
 export async function POST(req: Request) {
   try {
@@ -26,6 +27,12 @@ export async function POST(req: Request) {
 
     if (!name || !nickname || !tag) {
       return NextResponse.json({ error: '이름과 닉네임을 입력해주세요.' }, { status: 400 });
+    }
+
+    // 클라이언트(OnboardingForm)와 같은 규칙 — 하이픈 등이 섞인 닉네임은 친구 라우트 슬러그 파싱을 깨뜨린다
+    const nicknameError = validateNickname(String(nickname));
+    if (nicknameError) {
+      return NextResponse.json({ error: nicknameError }, { status: 400 });
     }
 
     const { data, error: insertError } = await supabase
