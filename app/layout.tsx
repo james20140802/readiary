@@ -3,6 +3,7 @@ import './globals.css';
 import { Toaster } from 'sonner';
 import AppShell from '@/components/AppShell';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { fetchUnreadNotificationCount } from '@/lib/notifications/fetchUnreadNotificationCount';
 import { maruBuri } from './fonts';
 
 export const metadata: Metadata = {
@@ -39,6 +40,8 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const loggedIn = await isLoggedIn();
+  // 로그인 상태일 때만 세면 됨 — 비로그인 방문자를 위해 헛돈 쿼리를 날리지 않는다
+  const initialUnread = loggedIn ? await fetchUnreadNotificationCount() : 0;
 
   return (
     <html lang="ko" className={maruBuri.variable}>
@@ -49,7 +52,9 @@ export default async function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
       <body className="overflow-x-hidden bg-paper text-ink">
-        <AppShell initialLoggedIn={loggedIn}>{children}</AppShell>
+        <AppShell initialLoggedIn={loggedIn} initialUnread={initialUnread}>
+          {children}
+        </AppShell>
         <Toaster
           richColors
           position="top-center"
