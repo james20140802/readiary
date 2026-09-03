@@ -5,6 +5,7 @@ import { Camera, Loader2, X } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { createSupabaseClient } from '@/lib/supabase/client';
+import { fetchAllRows } from '@/lib/supabase/fetchAllRows';
 import { useProfileUpdate } from '@/hooks/useProfileUpdate';
 import { Profile } from '@/types/profile';
 import BackButton from '@/components/ui/BackButton';
@@ -63,16 +64,22 @@ export default function EditProfilePage() {
         setBookmarkId(data.bookmark_user_book_id ?? null);
       }
 
-      const { data: finished } = await supabase
-        .from('user_books')
-        .select('id, books(title)')
-        .eq('user_id', user.id)
-        .eq('is_finished', true)
-        .order('created_at', { ascending: false });
+      // 완독 책은 행 캡에 잘리지 않도록 끝까지 읽는다 — 오래된 완독 책도 책갈피로 고를 수 있어야 한다
+      const { rows: finished } = await fetchAllRows<{
+        id: string;
+        books: { title: string | null } | null;
+      }>((from, to) =>
+        supabase
+          .from('user_books')
+          .select('id, books(title)')
+          .eq('user_id', user.id)
+          .eq('is_finished', true)
+          .order('created_at', { ascending: false })
+          .order('id', { ascending: true })
+          .range(from, to)
+      );
       setFinishedBooks(
-        (finished ?? []).flatMap((r) =>
-          r.books?.title ? [{ id: r.id, title: r.books.title }] : []
-        )
+        finished.flatMap((r) => (r.books?.title ? [{ id: r.id, title: r.books.title }] : []))
       );
 
       const { data: rows } = await supabase

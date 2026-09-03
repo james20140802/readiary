@@ -25,8 +25,9 @@ const STACK_W = NOTEBOOK_W + Math.max(...NOTEBOOK_W_STEP) + Math.max(...NOTEBOOK
 
 /**
  * 발췌집 — 책장 아래에 쌓인 공책 더미. 완독한 책마다 한 권씩 책등을 앞으로 눕혀 쌓고,
- * 한 더미에 EXCERPT_STACK_MAX권까지, 넘치면 옆에 새 더미. 좁은 화면에서는 오른쪽 더미가 가려지고
- * 맨 위·첫 더미가 가장 최근 것이다. 책갈피로 꽂아 둔 책도 발췌집이므로 여기에 그대로 있다.
+ * 한 더미에 EXCERPT_STACK_MAX권까지, 넘치면 옆에 새 더미. 화면에 다 안 들어가면 가로로 밀어 본다
+ * (오른쪽 가장자리가 흐려져 더 있음을 알린다). 맨 위·첫 더미가 가장 최근 것이다.
+ * 책갈피로 꽂아 둔 책도 발췌집이므로 여기에 그대로 있다.
  */
 export default function ProfileExcerpts({ books, hrefFor }: Props) {
   if (books.length === 0) return null;
@@ -41,7 +42,7 @@ export default function ProfileExcerpts({ books, hrefFor }: Props) {
         </span>
       </h2>
       <div
-        className={`flex items-end gap-12 overflow-hidden pt-3 ${
+        className={`flex items-end gap-12 overflow-x-auto pb-3 pt-3 [scrollbar-width:thin] ${
           stacks.length > 1
             ? '[mask-image:linear-gradient(to_right,black_calc(100%-48px),transparent)]'
             : ''
