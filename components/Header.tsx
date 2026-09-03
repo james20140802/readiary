@@ -1,58 +1,38 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import { createSupabaseClient } from '@/lib/supabase/client';
 import { Bell, BookMarked } from 'lucide-react';
-import { useIsMobile } from '@/hooks/useIsMobile';
-import { useRouter } from 'next/navigation';
-import { useUnreadNotifications } from '@/hooks/useUnreadNotifications';
 
-export default function Header() {
-  const isMobile = useIsMobile();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const hasUnread = useUnreadNotifications(isLoggedIn);
+interface HeaderProps {
+  loggedIn: boolean;
+  /** 탭·종을 보여도 되는 화면인지 (로그인 + 온보딩·인증 화면 아님) */
+  showNav: boolean;
+  hasUnread: boolean;
+}
 
-  const router = useRouter();
-
-  useEffect(() => {
-    router.prefetch('/protected/dashboard');
-  }, []);
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      const supabase = createSupabaseClient();
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      setIsLoggedIn(!!session);
-    };
-    checkAuth();
-  }, []);
-
-  if (!isMobile) return null;
-
+/** 모바일 전역 상단 헤더 — 로고와 알림 종. 데스크톱은 Navbar의 상단 바가 담당(md:hidden) */
+export default function Header({ loggedIn, showNav, hasUnread }: HeaderProps) {
   return (
-    <header className="fixed top-0 left-0 w-full py-3 px-4 flex items-center justify-between bg-paper/90 backdrop-blur-md z-50 border-b border-hairline">
+    <header className="fixed left-0 top-0 z-50 flex w-full items-center justify-between border-b border-hairline bg-paper/90 px-4 py-3 backdrop-blur-md md:hidden">
       <Link
-        href={isLoggedIn ? '/protected/dashboard' : '/'}
+        href={loggedIn ? '/protected/dashboard' : '/'}
         className="flex items-center space-x-2"
-        prefetch
+        prefetch={loggedIn}
       >
         <BookMarked size={24} />
-        <span className="font-serif font-bold text-lg tracking-wide">Readiary</span>
+        <span className="font-serif text-lg font-bold tracking-wide">Readiary</span>
       </Link>
 
-      {/* 알림 종 — 모바일은 전역 상단 헤더에 상주 (데스크톱은 상단 GNB가 담당) */}
-      {isLoggedIn && (
+      {/* 알림 종 — 모바일은 전역 상단 헤더에 상주. 터치 영역 44px */}
+      {showNav && (
         <Link
           href="/protected/social/notifications"
-          className="relative p-1.5 -mr-1.5 text-ink-sub"
+          className="relative -mr-3 p-3 text-ink-sub"
           aria-label="알림"
         >
           <Bell size={20} strokeWidth={1.75} />
           {hasUnread && (
-            <span className="absolute top-1 right-1 h-[7px] w-[7px] rounded-full bg-accent">
+            <span className="absolute right-2.5 top-2.5 h-[7px] w-[7px] rounded-full bg-accent">
               <span className="sr-only">읽지 않은 알림 있음</span>
             </span>
           )}

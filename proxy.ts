@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { sanitizeRedirectPath } from '@/lib/auth/safeRedirect';
 
 export async function proxy(request: NextRequest) {
   return await updateSession(request);
@@ -84,9 +85,9 @@ export async function updateSession(request: NextRequest) {
       request.nextUrl.pathname.startsWith('/login') ||
       request.nextUrl.pathname.startsWith('/signup'))
   ) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/protected/dashboard';
-    return redirectWithAuthCookies(url);
+    // 이미 로그인한 채 /login?redirect=… 로 오면(초대 링크 재방문 등) 원래 목적지를 살린다
+    const target = sanitizeRedirectPath(request.nextUrl.searchParams.get('redirect'));
+    return redirectWithAuthCookies(new URL(target, request.url));
   }
 
   if (user && profile && request.nextUrl.pathname.startsWith('/onboarding')) {
@@ -112,5 +113,7 @@ export async function updateSession(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/', '/login', '/signup', '/onboarding/:path*', '/protected/:path*'],
+  // /invite 는 보호 대상은 아니지만, 오래 방치된 세션으로 열릴 때가 많아 여기서 토큰을 갱신해야
+  // 서버 컴포넌트의 getUser()가 만료 토큰으로 실패해 로그인으로 튕기지 않는다
+  matcher: ['/', '/login', '/signup', '/onboarding/:path*', '/protected/:path*', '/invite/:path*'],
 };
