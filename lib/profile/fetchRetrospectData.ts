@@ -27,8 +27,14 @@ interface RetrospectEntryRow {
   user_book_id: string;
 }
 
+/** finished_at이 없는 오래된 행은 등록 시각으로 대신 — 둘 다 없으면 맨 뒤 */
+function finishedOrder(b: { finished_at: string | null; created_at: string | null }): string {
+  return b.finished_at ?? b.created_at ?? '';
+}
+
 /**
- * 프로필 회고 섹션 데이터 — 완독 책의 발췌집 목록 + 최근 6개월 월별 기록 수.
+ * 프로필 책 데이터 — 완독 책의 발췌집 목록(최근 완독부터) + 최근 6개월 월별 기록 수와
+ * 그 달의 책 제목·인용 몇 토막(인덱스를 누르면 펼쳐지는 달 페이지).
  * 본인이면 비공개 포함 전부, 친구 프로필이면 RLS가 보여주는 기록(공개)만 집계된다.
  * 조회 실패 시 부분 집계를 내보내는 대신 null — 호출부가 불러오기 실패 상태로 표시.
  */
@@ -40,11 +46,13 @@ export async function fetchRetrospectData(userId: string): Promise<RetrospectDat
     id: string;
     book_id: string;
     is_finished: boolean | null;
+    finished_at: string | null;
+    created_at: string | null;
     books: { title: string; cover_url: string | null } | null;
   }>((from, to) =>
     supabase
       .from('user_books')
-      .select('id, book_id, is_finished, books(title, cover_url)')
+      .select('id, book_id, is_finished, finished_at, created_at, books(title, cover_url)')
       .eq('user_id', userId)
       .order('id', { ascending: true })
       .range(from, to)
@@ -82,20 +90,29 @@ export async function fetchRetrospectData(userId: string): Promise<RetrospectDat
     }
   }
 
-  const finishedBooks: FinishedBookExcerpt[] = userBooks.flatMap((b) => {
-    if (!b.is_finished || !b.books?.title) return [];
-    return [
-      {
-        bookId: b.book_id,
-        title: b.books.title,
-        coverUrl: b.books.cover_url ?? null,
-        quoteCount: quoteCountByUserBookId.get(b.id) ?? 0,
-      },
-    ];
-  });
+  const titleByUserBookId = new Map(userBooks.map((b) => [b.id, b.books?.title ?? null]));
+
+  // 최근에 완독한 책이 앞에 — 공책 더미의 맨 위
+  const finishedBooks: FinishedBookExcerpt[] = [...userBooks]
+    .sort((a, b) => finishedOrder(b).localeCompare(finishedOrder(a)))
+    .flatMap((b) => {
+      if (!b.is_finished || !b.books?.title) return [];
+      return [
+        {
+          bookId: b.book_id,
+          title: b.books.title,
+          coverUrl: b.books.cover_url ?? null,
+          quoteCount: quoteCountByUserBookId.get(b.id) ?? 0,
+        },
+      ];
+    });
 
   const monthly = summarizeByMonth(
-    safeEntries.map((e) => e.date),
+    safeEntries.map((e) => ({
+      date: e.date,
+      quote: e.quote,
+      bookTitle: titleByUserBookId.get(e.user_book_id) ?? null,
+    })),
     todayKST(),
     RECENT_MONTHS
   );

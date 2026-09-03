@@ -48,15 +48,42 @@ export function bookmarkTint(id: string): string {
   return BOOKMARK_TINTS[Math.abs(hash) % BOOKMARK_TINTS.length];
 }
 
-/** 책갈피 치수 — 1:3.4의 긴 카드. EXPOSED만큼이 책 위로 삐져나온다 */
+/** 책갈피 치수 — 1:3.4의 긴 카드. 꽂혀 있을 때 EXPOSED만큼이 책 위로 삐져나온다 */
 export const BOOKMARK_W = 54;
 export const BOOKMARK_H = 184;
 export const BOOKMARK_EXPOSED = 84;
-/** 책갈피 끈이 카드 위로 더 올라가는 높이 */
-export const BOOKMARK_CORD = 34;
+/** 책갈피를 뽑았을 때 — 책 위로 완전히 나와 이만큼 떠 있다 */
+export const BOOKMARK_PULL_GAP = 10;
 
 /** 인덱스 탭 치수 — 앞마구리 밖으로 (INDEX_W - INDEX_OVERLAP)만큼 나온다 */
 export const INDEX_W = 58;
 export const INDEX_H = 20;
 export const INDEX_OVERLAP = 10;
 export const INDEX_GAP = 8;
+
+/** 발췌집 공책 더미 — 한 더미에 이만큼까지 쌓이고, 넘치면 옆 더미로 */
+export const EXCERPT_STACK_MAX = 6;
+/** 공책 한 권의 책등 높이·기본 폭(px) */
+export const NOTEBOOK_H = 46;
+export const NOTEBOOK_W = 232;
+/** 더미 안에서 권마다 조금씩 다른 폭·밀림 — 손으로 쌓은 티 */
+export const NOTEBOOK_W_STEP = [0, 22, 8, 30, 14, 4];
+export const NOTEBOOK_SHIFT = [0, 14, 6, 22, 2, 12];
+
+/** 공책 표지 색조 — 먹의 농담으로만. 어두운 표지는 종이색 글씨 */
+export const NOTEBOOK_TONES: { bg: string; fg: string; border: string }[] = [
+  { bg: 'rgb(var(--ink) / 0.88)', fg: 'rgb(var(--paper))', border: 'rgb(var(--ink))' },
+  { bg: 'rgb(var(--card))', fg: 'rgb(var(--ink))', border: 'rgb(var(--hairline-strong))' },
+  { bg: 'rgb(var(--ink) / 0.62)', fg: 'rgb(var(--paper))', border: 'rgb(var(--ink) / 0.7)' },
+  { bg: 'rgb(var(--card-raised))', fg: 'rgb(var(--ink))', border: 'rgb(var(--hairline-strong))' },
+  { bg: 'rgb(var(--ink) / 0.76)', fg: 'rgb(var(--paper))', border: 'rgb(var(--ink) / 0.85)' },
+  { bg: 'rgb(var(--ink) / 0.1)', fg: 'rgb(var(--ink))', border: 'rgb(var(--ink) / 0.25)' },
+];
+
+/** 목록을 더미로 나눈다 — 앞에서부터 max권씩. 첫 더미가 가장 최근 */
+export function stackExcerpts<T>(items: T[], max = EXCERPT_STACK_MAX): T[][] {
+  const size = Math.max(1, Math.floor(max));
+  const stacks: T[][] = [];
+  for (let i = 0; i < items.length; i += size) stacks.push(items.slice(i, i + size));
+  return stacks;
+}

@@ -20,9 +20,9 @@ import { getImageUrl } from '@/utils/profile';
 import {
   BOOK_H,
   BOOK_W,
-  BOOKMARK_CORD,
   BOOKMARK_EXPOSED,
   BOOKMARK_H,
+  BOOKMARK_PULL_GAP,
   BOOKMARK_W,
   bookmarkTint,
   INDEX_GAP,
@@ -50,7 +50,9 @@ interface Props {
   isFriend?: boolean;
 }
 
-type Page = 'colophon' | 'bookmark';
+/** 펼쳐서 보는 면 — 판권, 책갈피가 꽂힌 발췌집, 인덱스가 붙은 달 */
+type Page = 'colophon' | 'bookmark' | `month:${string}`;
+const monthPage = (label: string): Page => `month:${label}`;
 
 const W = BOOK_W;
 const H = BOOK_H;
@@ -59,7 +61,10 @@ const OBI_H = 100;
 const OBI_BOTTOM = 18;
 /** 무대 폭 — 인덱스가 오른쪽으로 삐져나올 자리까지 */
 const STAGE_W = W + INDEX_W - INDEX_OVERLAP;
-const TOP_PAD = BOOKMARK_EXPOSED + BOOKMARK_CORD;
+/** 위쪽 여백 — 꽂힌 책갈피가 삐져나올 자리. 뽑으면 그만큼 여백이 늘어 책이 내려앉는다 */
+const TOP_PAD = BOOKMARK_EXPOSED + 12;
+/** 책갈피를 뽑았을 때 올라가는 거리 — 책 위로 완전히 나올 만큼 */
+const BOOKMARK_PULL = BOOKMARK_H - BOOKMARK_EXPOSED + BOOKMARK_PULL_GAP;
 /** 책갈피 자리 — 사진처럼 가운데보다 조금 오른쪽 */
 const BOOKMARK_LEFT = Math.round(W * 0.6);
 
@@ -71,14 +76,11 @@ const pageEdge = (dir: 'to right' | 'to bottom'): CSSProperties => ({
   backgroundImage: `repeating-linear-gradient(${dir}, rgb(var(--card)) 0 1px, rgb(var(--hairline)) 1px 2px)`,
 });
 
-/** 책갈피 끈 — 구멍을 지나 위로 고리를 이룬다 */
-const CORD_PATH = 'M24 45C17 32 12 18 20 8c4-5 10-5 14 0 8 10 3 24-4 37';
-
 /**
  * 프로필 책 — 이 사람을 책 한 권으로. 완독 권수만큼 두꺼운 3D 상자 한 권이 서 있고,
- * 표지를 누르면 펼쳐져 판권면(통계)이, 책갈피를 누르면 그 자리로 펼쳐져 발췌집이 보인다.
- * 문지르거나 뒤집기를 누르면 돌아 뒷표지의 인용이 보인다. 앞마구리에는 기록한 달이 인덱스로 꽂힌다.
- * 띠지는 앞표지·책등·뒷표지를 한 바퀴 감싼다.
+ * 표지를 누르면 펼쳐져 판권면(통계)이, 책갈피를 누르면 책갈피가 뽑히며 그 자리로 펼쳐져 발췌집이,
+ * 인덱스를 누르면 그 달 페이지가 보인다. 펼친 왼쪽 면은 차례. 책 바깥을 누르면 덮인다.
+ * 문지르거나 뒤집기를 누르면 돌아 뒷표지의 인용이 보인다. 띠지는 앞표지·책등·뒷표지를 한 바퀴 감싼다.
  */
 export default function ProfileBook({
   user,
@@ -118,12 +120,28 @@ export default function ProfileBook({
     setPage('colophon');
     setOpen((v) => !v);
   };
-  // 책갈피를 누르면 그 자리로 펼쳐진다 — 뒤집혀 있었으면 앞으로 돌리면서
-  const openBookmark = () => {
+  // 책갈피·인덱스·차례를 누르면 그 면으로 펼쳐진다 — 뒤집혀 있었으면 앞으로 돌리면서
+  const goTo = (next: Page) => {
     if (isFlipped) setFlipAngle((prev) => prev + 180);
-    setPage('bookmark');
+    setPage(next);
     setOpen(true);
   };
+  const isBookmarkPage = open && page === 'bookmark';
+  const activeMonth = open && page.startsWith('month:') ? page.slice('month:'.length) : null;
+
+  // 펼쳐진 책 바깥을 누르면 덮인다 — 책 자체와 조작 줄은 바깥이 아니다
+  const bookRef = useRef<HTMLElement>(null);
+  const controlsRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (e: PointerEvent) => {
+      const target = e.target as Node;
+      if (bookRef.current?.contains(target) || controlsRef.current?.contains(target)) return;
+      setOpen(false);
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    return () => document.removeEventListener('pointerdown', onPointerDown);
+  }, [open]);
 
   // 펼치면 표지가 왼쪽으로 한 권 폭만큼 눕는다. 자리가 있으면 펼친 전체를 가운데에,
   // 없으면 줄이지 않고 본문을 그대로 둔 채 표지가 화면 밖으로 나간다
@@ -211,20 +229,27 @@ export default function ProfileBook({
     </div>
   );
 
-  const bookmarkHole = (
-    <span
-      aria-hidden
-      className="absolute left-1/2 top-2 h-[7px] w-[7px] -translate-x-1/2 rounded-full border border-hairline-strong bg-paper"
-    />
-  );
-
   const showBookmarkSlot = !bookmark && isOwnProfile && canBookmark;
+  const month = activeMonth ? (months.find((m) => m.label === activeMonth) ?? null) : null;
+
+  // 차례 — 펼친 왼쪽 면. 누르면 그 면으로 넘어간다
+  const contents: { key: Page; title: string; note: string | null }[] = [
+    { key: 'colophon', title: '판권', note: stats ? `완독 ${finished}` : null },
+    ...(bookmark
+      ? [{ key: 'bookmark' as Page, title: bookmark.title, note: `문장 ${bookmark.quoteCount}` }]
+      : []),
+    ...months.map((m) => ({ key: monthPage(m.label), title: m.label, note: `기록 ${m.count}` })),
+  ];
 
   return (
     <div ref={wrapRef} className="w-full" style={{ overflowX: 'clip' }}>
       <div
-        className="relative mx-auto [perspective:1800px] [touch-action:pan-y]"
-        style={{ width: STAGE_W, paddingTop: TOP_PAD, height: TOP_PAD + H }}
+        className="relative mx-auto transition-[padding,height] duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] [perspective:1800px] [touch-action:pan-y] motion-reduce:duration-0"
+        style={{
+          width: STAGE_W,
+          paddingTop: TOP_PAD + (isBookmarkPage ? BOOKMARK_PULL : 0),
+          height: TOP_PAD + H + (isBookmarkPage ? BOOKMARK_PULL : 0),
+        }}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
       >
@@ -240,6 +265,7 @@ export default function ProfileBook({
         >
           {/* 책 한 권 — 뒤집기는 가운데를 축으로 */}
           <section
+            ref={bookRef}
             aria-label={`${displayName}의 프로필 책`}
             className={`relative h-full w-full [transform-style:preserve-3d] ${TURN}`}
             style={{ transform: `rotateY(${flipAngle}deg)` }}
@@ -354,12 +380,40 @@ export default function ProfileBook({
                 )}
               </div>
 
-              {/* 앞표지 안쪽 — 면지 */}
+              {/* 앞표지 안쪽 — 면지에 차례. 넓은 화면에서 펼치면 왼쪽 면이 된다 */}
               <div
-                aria-hidden
-                className={`${FACE} flex items-center justify-center rounded-l-[3px] rounded-r-[8px] border border-hairline-strong bg-card-raised [transform:rotateY(180deg)]`}
+                inert={!open}
+                className={`${FACE} flex flex-col rounded-l-[3px] rounded-r-[8px] border border-hairline-strong bg-card-raised px-7 pb-6 pt-8 [transform:rotateY(180deg)]`}
               >
-                <Seal className="opacity-40">讀者</Seal>
+                <Seal>차례</Seal>
+                <p className="mt-1 font-serif text-[15px] font-bold text-ink">{displayName}</p>
+                <ol className="mt-5 border-t border-hairline">
+                  {contents.map((c) => {
+                    const current = page === c.key;
+                    return (
+                      <li key={c.key} className="border-b border-hairline">
+                        <button
+                          type="button"
+                          onClick={() => goTo(c.key)}
+                          aria-current={current ? 'page' : undefined}
+                          className={`flex w-full items-baseline justify-between gap-3 py-2.5 text-left transition-colors ${
+                            current ? 'text-accent' : 'text-ink hover:text-accent'
+                          }`}
+                        >
+                          <span className="min-w-0 truncate font-serif text-[13.5px]">
+                            {c.title}
+                          </span>
+                          {c.note && (
+                            <span className="shrink-0 font-sans text-[11px] tabular-nums text-ink-faint">
+                              {c.note}
+                            </span>
+                          )}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ol>
+                <Seal className="mt-auto self-center opacity-40">讀者</Seal>
               </div>
             </div>
 
@@ -369,7 +423,38 @@ export default function ProfileBook({
               className={`${FACE} border border-hairline bg-card`}
               style={{ transform: `translateZ(${T / 2 - 1}px)`, inset: '2px 3px 2px 0' }}
             >
-              {page === 'bookmark' && bookmark ? (
+              {month ? (
+                <div className="flex h-full flex-col px-7 pb-6 pt-8">
+                  <Seal>{indexLabel(month.label)}</Seal>
+                  <p className="mt-1 font-serif text-[15px] font-bold leading-snug text-ink">
+                    {month.label}
+                    <span className="ml-2 font-sans text-[12px] font-normal tabular-nums text-ink-faint">
+                      기록 {month.count}
+                    </span>
+                  </p>
+                  {month.books.length > 0 && (
+                    <p className="mt-3 line-clamp-3 break-keep text-[12.5px] leading-relaxed text-ink-sub">
+                      {month.books.map((t) => `『${t}』`).join(' ')}
+                    </p>
+                  )}
+                  {month.quotes.length === 0 ? (
+                    <p className="mt-5 font-serif text-[13.5px] text-ink-faint">
+                      이 달에는 옮겨 적은 문장이 없습니다.
+                    </p>
+                  ) : (
+                    <ul className="mt-4 divide-y divide-hairline border-t border-hairline">
+                      {month.quotes.map((q, i) => (
+                        <li
+                          key={i}
+                          className="line-clamp-3 break-keep py-3 font-serif text-[13px] leading-relaxed text-ink"
+                        >
+                          {q}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ) : page === 'bookmark' && bookmark ? (
                 <div className="flex h-full flex-col px-7 pb-6 pt-8">
                   <Seal>발췌집</Seal>
                   <p className="mt-1 text-balance break-keep font-serif text-[15px] font-bold leading-snug text-ink">
@@ -534,59 +619,64 @@ export default function ProfileBook({
               }}
             />
 
-            {/* ── 책갈피 — 골라 둔 발췌집 하나. 윗면에서 삐져나오고, 누르면 그 자리로 펼쳐진다 ── */}
+            {/* ── 책갈피 — 골라 둔 발췌집 하나. 윗면에서 삐져나오고, 누르면 위로 뽑히며 그 자리로 펼쳐진다 ── */}
             {(bookmark || showBookmarkSlot) && (
               <div
-                className="absolute [transform-style:preserve-3d]"
+                className={`absolute [transform-style:preserve-3d] ${TURN}`}
                 style={{
                   left: BOOKMARK_LEFT,
                   top: -BOOKMARK_EXPOSED,
                   width: BOOKMARK_W,
                   height: BOOKMARK_H,
+                  transform: isBookmarkPage
+                    ? `translateY(${-BOOKMARK_PULL}px) translateZ(${T / 2 + 2}px)`
+                    : 'translateY(0)',
                 }}
               >
                 {bookmark ? (
                   <>
-                    <svg
-                      aria-hidden
-                      viewBox="0 0 54 48"
-                      className="pointer-events-none absolute left-0 overflow-visible"
-                      style={{
-                        top: -BOOKMARK_CORD,
-                        width: BOOKMARK_W,
-                        height: BOOKMARK_CORD + 14,
-                      }}
-                      fill="none"
-                      strokeLinecap="round"
-                    >
-                      <path d={CORD_PATH} stroke="rgb(var(--ink-faint))" strokeWidth="3" />
-                      <path d={CORD_PATH} stroke="rgb(var(--card))" strokeWidth="1.3" />
-                    </svg>
                     <button
                       type="button"
                       inert={isFlipped}
-                      onClick={openBookmark}
-                      aria-pressed={open && page === 'bookmark'}
-                      title={`${bookmark.title} 발췌집 · 문장 ${bookmark.quoteCount}`}
-                      className={`${FACE} group overflow-hidden rounded-[3px] border border-hairline-strong transition-transform duration-200 hover:-translate-y-2`}
+                      onClick={() => (isBookmarkPage ? setOpen(false) : goTo('bookmark'))}
+                      aria-pressed={isBookmarkPage}
+                      title={
+                        isBookmarkPage
+                          ? '책갈피를 다시 꽂고 덮기'
+                          : `${bookmark.title} 발췌집 · 문장 ${bookmark.quoteCount}`
+                      }
+                      className={`${FACE} group overflow-hidden rounded-[3px] border border-hairline-strong transition-[transform,box-shadow] duration-200 ${
+                        isBookmarkPage
+                          ? 'shadow-[0_8px_20px_rgb(var(--ink)/0.18)]'
+                          : 'hover:-translate-y-2'
+                      }`}
                       style={{ backgroundColor: bookmarkTint(bookmark.userBookId) }}
                     >
-                      {bookmarkHole}
                       <span
-                        className="absolute left-1/2 top-[22px] -translate-x-1/2 overflow-hidden whitespace-nowrap font-serif text-[12px] tracking-[0.08em] text-ink group-hover:text-accent"
-                        style={{ writingMode: 'vertical-rl', maxHeight: BOOKMARK_EXPOSED + 60 }}
+                        className={`absolute left-1/2 top-[18px] -translate-x-1/2 overflow-hidden whitespace-nowrap font-serif text-[12px] tracking-[0.08em] text-ink group-hover:text-accent ${
+                          isBookmarkPage
+                            ? '[mask-image:linear-gradient(to_bottom,black_80%,transparent)]'
+                            : ''
+                        }`}
+                        style={{
+                          writingMode: 'vertical-rl',
+                          maxHeight: isBookmarkPage ? BOOKMARK_H - 60 : BOOKMARK_EXPOSED + 60,
+                        }}
                       >
                         <SpineTitle title={bookmark.title} />
                       </span>
+                      {isBookmarkPage && (
+                        <span className="absolute inset-x-0 bottom-2.5 font-sans text-[10px] tabular-nums text-ink-sub">
+                          {bookmark.quoteCount}
+                        </span>
+                      )}
                     </button>
                     {/* 책갈피 뒷면 — 종이색만 */}
                     <div
                       aria-hidden
                       className={`${FACE} rounded-[3px] border border-hairline-strong [transform:rotateY(180deg)]`}
                       style={{ backgroundColor: bookmarkTint(bookmark.userBookId) }}
-                    >
-                      {bookmarkHole}
-                    </div>
+                    />
                   </>
                 ) : (
                   <Link
@@ -601,29 +691,40 @@ export default function ProfileBook({
               </div>
             )}
 
-            {/* ── 인덱스 — 기록한 달. 앞마구리에서 삐져나온다 ── */}
+            {/* ── 인덱스 — 기록한 달. 앞마구리에서 삐져나오고, 누르면 그 달 페이지로 펼쳐진다.
+                본문에 붙어 있어 펼쳐도 오른쪽 면 가장자리에 그대로 붙어 있다 ── */}
             {months.map((m, i) => {
               const label = indexLabel(m.label);
               const tint = INDEX_TINTS[i % INDEX_TINTS.length];
               const top = 28 + i * (INDEX_H + INDEX_GAP);
+              const active = activeMonth === m.label;
               const face =
                 'absolute inset-0 flex items-center justify-end rounded-r-[3px] pr-2 font-sans text-[10px] font-medium tabular-nums leading-none tracking-[0.04em] text-ink [backface-visibility:hidden]';
               return (
                 <div
                   key={m.label}
-                  title={`${m.label} · 기록 ${m.count}`}
-                  className="absolute [transform-style:preserve-3d]"
+                  className="absolute [transform-style:preserve-3d] transition-transform duration-300"
                   style={{
                     left: W - INDEX_OVERLAP,
                     top,
                     width: INDEX_W,
                     height: INDEX_H,
-                    transform: `translateZ(${innerZ(i, months.length)}px)`,
+                    transform: `translateZ(${innerZ(i, months.length)}px)${active ? ' translateX(6px)' : ''}`,
                   }}
                 >
-                  <div className={face} style={{ backgroundColor: tint }}>
+                  <button
+                    type="button"
+                    inert={isFlipped}
+                    onClick={() => (active ? setOpen(false) : goTo(monthPage(m.label)))}
+                    aria-pressed={active}
+                    title={`${m.label} · 기록 ${m.count}`}
+                    className={`${face} transition-[filter] hover:brightness-95 ${
+                      active ? 'font-bold shadow-[0_1px_4px_rgb(var(--ink)/0.2)]' : ''
+                    }`}
+                    style={{ backgroundColor: tint }}
+                  >
                     {label}
-                  </div>
+                  </button>
                   <div
                     className={`${face} flex-row-reverse pl-2 pr-0 [transform:rotateY(180deg)]`}
                     style={{ backgroundColor: tint }}
@@ -638,7 +739,10 @@ export default function ProfileBook({
       </div>
 
       {/* 조작 — 왼쪽은 책을 다루는 것, 오른쪽은 계정을 다루는 것 */}
-      <div className="mt-5 flex items-center justify-between gap-4 text-[13px] text-ink-faint">
+      <div
+        ref={controlsRef}
+        className="mt-5 flex items-center justify-between gap-4 text-[13px] text-ink-faint"
+      >
         <div className="flex items-center gap-4">
           <button
             type="button"
