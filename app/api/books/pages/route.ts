@@ -1,11 +1,37 @@
 // app/api/books/pages/route.ts
 import { NextResponse } from 'next/server';
 import * as cheerio from 'cheerio';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
+
+/** 카카오 책 검색 결과의 상세 링크만 받는다 — 임의 URL을 서버가 대신 열어주면 SSRF가 된다 */
+const ALLOWED_HOSTS = new Set(['search.daum.net']);
+
+function parseAllowedUrl(raw: unknown): URL | null {
+  if (typeof raw !== 'string') return null;
+  try {
+    const url = new URL(raw);
+    if (url.protocol !== 'https:') return null;
+    if (!ALLOWED_HOSTS.has(url.hostname)) return null;
+    return url;
+  } catch {
+    return null;
+  }
+}
 
 export async function POST(req: Request) {
-  const { url } = await req.json();
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const res = await fetch(url);
+  const body = await req.json().catch(() => null);
+  const url = parseAllowedUrl(body?.url);
+  if (!url) {
+    return NextResponse.json({ error: '허용되지 않은 주소입니다.' }, { status: 400 });
+  }
+
+  const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
   const html = await res.text();
   const $ = cheerio.load(html);
 

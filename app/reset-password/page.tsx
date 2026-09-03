@@ -31,9 +31,11 @@ export default function ResetPasswordPage() {
     }
 
     setLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: process.env.NEXT_PUBLIC_PASSWORD_RESET_REDIRECT_TO,
-    });
+    // 환경 변수가 비어 있으면 Site URL(대시보드)로 가 새 비밀번호 화면에 못 닿는다 — 현재 오리진으로 폴백
+    const redirectTo =
+      process.env.NEXT_PUBLIC_PASSWORD_RESET_REDIRECT_TO ||
+      `${window.location.origin}/update-password`;
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo });
     setLoading(false);
 
     if (error) {

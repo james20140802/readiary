@@ -12,6 +12,7 @@ export default function LogoutPage() {
       const supabase = createSupabaseClient();
       await supabase.auth.signOut();
       router.push('/login');
+      router.refresh();
     };
     logout();
   }, [router]);

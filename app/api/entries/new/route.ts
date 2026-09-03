@@ -17,8 +17,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { user_book_id, quote, note, from_page, to_page, date, is_private, book_id, user_id } =
-      body;
+    const { user_book_id, quote, note, from_page, to_page, date, is_private } = body;
 
     if (!user_book_id || !date || !hasEntryContent(quote, note)) {
       return NextResponse.json(
@@ -36,6 +35,17 @@ export async function POST(req: Request) {
         { error: '시작 페이지는 종료 페이지보다 작거나 같아야 합니다.' },
         { status: 400 }
       );
+    }
+
+    // 내 책에만 기록한다 — 본문의 book_id/user_id는 믿지 않고 user_books에서 확인한 값을 쓴다
+    const { data: userBook } = await supabase
+      .from('user_books')
+      .select('id, book_id')
+      .eq('id', user_book_id)
+      .eq('user_id', user.id)
+      .maybeSingle();
+    if (!userBook) {
+      return NextResponse.json({ error: '권한이 없습니다.' }, { status: 403 });
     }
 
     // 한쪽 페이지만 입력되면 양쪽에 같은 값을 저장한다 — 진행률(max to_page)·통계(to-from)가
@@ -60,7 +70,7 @@ export async function POST(req: Request) {
     if (error || !created) {
       return NextResponse.json({ error: 'Failed to create entry' }, { status: 500 });
     }
-    await updateProgress(book_id, user_id);
+    await updateProgress(userBook.book_id, user.id);
     return NextResponse.json({ id: created.id });
   } catch (error) {
     console.error('Unexpected error in POST /api/entries/new:', error);

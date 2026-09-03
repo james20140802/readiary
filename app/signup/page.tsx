@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { createSupabaseClient } from '@/lib/supabase/client';
 import Input from '@/components/ui/Input';
@@ -19,7 +21,13 @@ export default function SignupPage() {
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [privacyAgreed, setPrivacyAgreed] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const supabase = createSupabaseClient();
+  const searchParams = useSearchParams();
+  const redirectParam = searchParams.get('redirect');
+  const loginHref = redirectParam
+    ? `/login?redirect=${encodeURIComponent(redirectParam)}`
+    : '/login';
 
   const errorMap: Record<string, string> = {
     'User already registered': '이미 가입된 이메일입니다.',
@@ -27,7 +35,19 @@ export default function SignupPage() {
     'Password should be at least 6 characters': '비밀번호는 최소 6자 이상이어야 합니다.',
   };
 
-  const handleSignup = async () => {
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isSubmitting) return;
+
+    // 서버에 보내기 전에 걸러낼 수 있는 것은 여기서 — 형식·길이·일치
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      toast.error('이메일 형식을 확인해주세요.');
+      return;
+    }
+    if (password.length < 6) {
+      toast.error('비밀번호는 최소 6자 이상이어야 합니다.');
+      return;
+    }
     if (password !== confirmPassword) {
       toast.error('비밀번호가 일치하지 않습니다.');
       return;
@@ -43,18 +63,31 @@ export default function SignupPage() {
       return;
     }
 
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: process.env.NEXT_PUBLIC_EMAIL_REDIRECT_TO,
-      },
-    });
+    setIsSubmitting(true);
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+        options: {
+          emailRedirectTo: process.env.NEXT_PUBLIC_EMAIL_REDIRECT_TO,
+        },
+      });
 
-    if (error) {
-      toast.error(errorMap[error.message] || '회원가입 중 오류가 발생했습니다.');
-    } else {
+      if (error) {
+        toast.error(errorMap[error.message] || '회원가입 중 오류가 발생했습니다.');
+        return;
+      }
+      // 이메일 확인이 켜진 프로젝트는 기존 계정이어도 성공처럼 답하되 identities가 비어 온다 —
+      // 그대로 "가입 완료"를 보여주면 사용자는 오지 않는 메일을 기다리게 된다
+      if (data.user && data.user.identities && data.user.identities.length === 0) {
+        toast.error('이미 가입된 이메일입니다. 로그인하거나 비밀번호를 재설정해주세요.');
+        return;
+      }
       setSignupComplete(true);
+    } catch {
+      toast.error('서버와 통신 중 오류가 발생했습니다.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -63,91 +96,105 @@ export default function SignupPage() {
       <div className="w-full">
         {!signupComplete ? (
           <AnimatedSection>
-            <h1 className="text-xl font-semibold mb-6 text-center">가입</h1>
-            <div className="space-y-6">
-              <FormGroup className="gap-1.5">
-                <FormLabel>이메일</FormLabel>
-                <Input
-                  type="email"
-                  placeholder="이메일"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </FormGroup>
-              <FormGroup className="gap-1.5">
-                <FormLabel>비밀번호</FormLabel>
-                <Input
-                  type="password"
-                  placeholder="비밀번호"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-                <p className="text-xs text-ink-sub mt-1">비밀번호는 최소 6자 이상이어야 합니다.</p>
-              </FormGroup>
-              <FormGroup className="gap-1.5">
-                <FormLabel>비밀번호 확인</FormLabel>
-                <Input
-                  type="password"
-                  placeholder="비밀번호 확인"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                />
-              </FormGroup>
-            </div>
+            <form onSubmit={handleSignup} noValidate>
+              <h1 className="text-xl font-semibold mb-6 text-center">가입</h1>
+              <div className="space-y-6">
+                <FormGroup className="gap-1.5">
+                  <FormLabel>이메일</FormLabel>
+                  <Input
+                    type="email"
+                    name="email"
+                    autoComplete="email"
+                    inputMode="email"
+                    placeholder="이메일"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </FormGroup>
+                <FormGroup className="gap-1.5">
+                  <FormLabel>비밀번호</FormLabel>
+                  <Input
+                    type="password"
+                    name="password"
+                    autoComplete="new-password"
+                    placeholder="비밀번호"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                  <p className="text-xs text-ink-sub mt-1">
+                    비밀번호는 최소 6자 이상이어야 합니다.
+                  </p>
+                </FormGroup>
+                <FormGroup className="gap-1.5">
+                  <FormLabel>비밀번호 확인</FormLabel>
+                  <Input
+                    type="password"
+                    name="confirm-password"
+                    autoComplete="new-password"
+                    placeholder="비밀번호 확인"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                  />
+                </FormGroup>
+              </div>
 
-            <FormGroup className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="privacy"
-                checked={privacyAgreed}
-                onChange={(e) => setPrivacyAgreed(e.target.checked)}
-                className="w-4 h-4"
-              />
-              <label htmlFor="privacy" className="text-sm text-ink-sub">
-                <button
-                  type="button"
-                  onClick={() => setShowPrivacyModal(true)}
-                  className="underline underline-offset-2"
-                >
-                  개인정보 수집 및 이용
-                </button>
-                에 동의합니다
-              </label>
-            </FormGroup>
-            <FormGroup className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="terms"
-                checked={agreed}
-                onChange={(e) => setAgreed(e.target.checked)}
-                className="w-4 h-4"
-              />
-              <label htmlFor="terms" className="text-sm text-ink-sub">
-                <button
-                  type="button"
-                  onClick={() => setShowTermsModal(true)}
-                  className="underline underline-offset-2"
-                >
-                  서비스 이용 약관
-                </button>
-                에 동의합니다
-              </label>
-            </FormGroup>
-            <div className="pt-2">
-              <Button onClick={handleSignup} fullWidth>
-                가입하기
-              </Button>
-            </div>
+              <FormGroup className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="privacy"
+                  checked={privacyAgreed}
+                  onChange={(e) => setPrivacyAgreed(e.target.checked)}
+                  className="w-4 h-4"
+                />
+                <label htmlFor="privacy" className="text-sm text-ink-sub">
+                  <button
+                    type="button"
+                    onClick={() => setShowPrivacyModal(true)}
+                    className="underline underline-offset-2"
+                  >
+                    개인정보 수집 및 이용
+                  </button>
+                  에 동의합니다
+                </label>
+              </FormGroup>
+              <FormGroup className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="terms"
+                  checked={agreed}
+                  onChange={(e) => setAgreed(e.target.checked)}
+                  className="w-4 h-4"
+                />
+                <label htmlFor="terms" className="text-sm text-ink-sub">
+                  <button
+                    type="button"
+                    onClick={() => setShowTermsModal(true)}
+                    className="underline underline-offset-2"
+                  >
+                    서비스 이용 약관
+                  </button>
+                  에 동의합니다
+                </label>
+              </FormGroup>
+              <div className="pt-2">
+                <Button type="submit" fullWidth disabled={isSubmitting}>
+                  {isSubmitting ? '가입 중...' : '가입하기'}
+                </Button>
+              </div>
+            </form>
             <p className="text-sm text-center mt-4 text-ink-sub">
-              <a href="/login" className="underline">
+              <Link href={loginHref} className="underline">
                 로그인으로 이동
-              </a>
+              </Link>
             </p>
           </AnimatedSection>
         ) : (
           <AnimatedSection>
             <h2 className="text-lg font-semibold">회원가입이 완료되었습니다.</h2>
             <p>이메일을 확인해 인증을 완료해주세요.</p>
+            <p className="mt-2 text-sm text-ink-sub">
+              메일이 보이지 않으면 스팸함을 확인해주세요. 인증을 마치면 프로필 설정으로 이어집니다.
+            </p>
           </AnimatedSection>
         )}
       </div>

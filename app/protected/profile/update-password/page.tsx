@@ -42,6 +42,7 @@ export default function UpdatePasswordPage() {
       toast.success('비밀번호가 성공적으로 변경되었습니다. 다시 로그인해주세요.');
       await supabase.auth.signOut();
       router.push('/login');
+      router.refresh();
     }
   };
 

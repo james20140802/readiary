@@ -23,6 +23,20 @@ export async function PATCH(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  // 내 기록만 고친다 — 삭제 라우트와 같은 소유권 대조
+  const { data: owned } = await supabase
+    .from('entries')
+    .select('id, user_books!inner(user_id)')
+    .eq('id', entry_id)
+    .maybeSingle();
+  const ownerRow = Array.isArray(owned?.user_books) ? owned?.user_books[0] : owned?.user_books;
+  if (!owned) {
+    return NextResponse.json({ error: '엔트리를 찾을 수 없습니다.' }, { status: 404 });
+  }
+  if (ownerRow?.user_id !== user.id) {
+    return NextResponse.json({ error: '권한이 없습니다.' }, { status: 403 });
+  }
+
   const body = await req.json();
   const norm = (v: unknown) => (typeof v === 'string' && v.trim() !== '' ? v.trim() : null);
 
