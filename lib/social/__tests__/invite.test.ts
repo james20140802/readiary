@@ -67,6 +67,12 @@ describe('parseNicknameAndTagSlug (u/[nicknameAndTag] 라우트 공통 진입점
     expect(parseNicknameAndTagSlug('@book_worm')).toBeNull();
     expect(parseNicknameAndTagSlug('')).toBeNull();
   });
+  it("한 번만 decode한다 — 규칙 도입 전 '%'가 든 닉네임 링크도 깨지지 않는다", () => {
+    expect(parseNicknameAndTagSlug(encodeURIComponent('@foo%bar-1234'))).toEqual({
+      nickname: 'foo%bar',
+      tag: '1234',
+    });
+  });
   it('잘못된 URI 인코딩이어도 던지지 않고 null을 반환한다', () => {
     expect(parseNicknameAndTagSlug('%')).toBeNull();
   });

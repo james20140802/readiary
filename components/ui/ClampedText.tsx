@@ -53,13 +53,15 @@ export default function ClampedText({
       </div>
       {isClamped && (
         <button
+          type="button"
           onClick={(e) => {
-            // Link 등 클릭 가능한 조상 안에 놓여도(회상 카드) 접기/펼치기만 하고 이동하지 않는다.
+            // 클릭 가능한 조상이 있어도 접기/펼치기만 하고 이동하지 않는다.
             e.preventDefault();
             e.stopPropagation();
             setIsExpanded((v) => !v);
           }}
-          className="mt-2 font-serif text-[12.5px] text-ink-faint transition-colors hover:text-accent"
+          // relative z-10: 카드 전체를 덮는 overlay 링크(회상 카드) 위에 올라와야 눌린다
+          className="relative z-10 mt-2 font-serif text-[12.5px] text-ink-faint transition-colors hover:text-accent"
         >
           {isExpanded ? '접기 ↑' : '계속 읽기 ↓'}
         </button>
