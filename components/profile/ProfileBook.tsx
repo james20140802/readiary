@@ -861,9 +861,9 @@ export default function ProfileBook({
       {/* 조작 — 왼쪽은 책을 다루는 것, 오른쪽은 계정을 다루는 것. 좁으면 두 줄로 나뉜다 */}
       <div
         ref={controlsRef}
-        className="mt-4 flex flex-col gap-2 whitespace-nowrap text-[15px] text-ink-faint sm:flex-row sm:items-center sm:justify-between sm:gap-5"
+        className="mt-4 flex flex-col items-center gap-2 whitespace-nowrap text-[15px] text-ink-faint sm:flex-row sm:justify-between sm:gap-5"
       >
-        <div className="flex items-center gap-4">
+        <div className="flex items-center justify-center gap-4">
           <button
             type="button"
             onClick={toggleOpen}
@@ -881,7 +881,7 @@ export default function ProfileBook({
             <Repeat size={16} /> 뒤집기
           </button>
         </div>
-        <div className="flex items-center gap-5 sm:justify-end">
+        <div className="flex items-center justify-center gap-5 sm:justify-end">
           {isOwnProfile ? (
             <>
               <button

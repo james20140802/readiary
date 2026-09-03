@@ -8,18 +8,22 @@ export interface ProfileFetchOptions {
 
 /**
  * 뒷표지 인용 — profiles.featured_entry_id가 가리키는 기록의 문장과 출처.
- * 친구가 비공개 기록을 골라 둔 경우 null — 뒷표지는 비운다. 마이그레이션 전이라 id가 없어도 null.
+ * 기록은 그 프로필 주인(ownerId)의 것이어야 한다 — FK는 존재만 보장하므로 남의 기록 id를
+ * 써 넣어도 여기서 걸러 뒷표지를 비운다. 친구가 비공개 기록을 골라 둔 경우도 null.
+ * 마이그레이션 전이라 id가 없어도 null.
  */
 export async function fetchFeaturedQuote(
   entryId: string | null | undefined,
+  ownerId: string,
   { publicOnly = false }: ProfileFetchOptions = {}
 ): Promise<FeaturedQuote | null> {
   if (!entryId) return null;
   const supabase = await createSupabaseServerClient();
   let query = supabase
     .from('entries')
-    .select('id, quote, user_books(books(title, author))')
-    .eq('id', entryId);
+    .select('id, quote, user_books!inner(user_id, books(title, author))')
+    .eq('id', entryId)
+    .eq('user_books.user_id', ownerId);
   if (publicOnly) query = query.eq('is_private', false);
   const { data, error } = await query.maybeSingle();
   if (error || !data || typeof data.quote !== 'string' || data.quote.trim() === '') return null;

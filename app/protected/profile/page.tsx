@@ -38,8 +38,8 @@ export default async function ProfilePage() {
   }
 
   const [featuredQuote, bookmark] = await Promise.all([
-    fetchFeaturedQuote(profile.featured_entry_id),
-    fetchFeaturedBookmark(profile.bookmark_user_book_id),
+    fetchFeaturedQuote(profile.featured_entry_id, profile.id),
+    fetchFeaturedBookmark(profile.bookmark_user_book_id, profile.id),
   ]);
 
   const shelfBooks = userBooks

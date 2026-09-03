@@ -49,8 +49,8 @@ export default async function FriendProfilePage({ params }: FriendProfilePagePro
   const [stats, retrospect, featuredQuote, bookmark] = await Promise.all([
     getUserStats(profile.id),
     fetchRetrospectData(profile.id, publicOnly),
-    fetchFeaturedQuote(profile.featured_entry_id, publicOnly),
-    fetchFeaturedBookmark(profile.bookmark_user_book_id, publicOnly),
+    fetchFeaturedQuote(profile.featured_entry_id, profile.id, publicOnly),
+    fetchFeaturedBookmark(profile.bookmark_user_book_id, profile.id, publicOnly),
   ]);
 
   // 친구의 읽기 통계(기간·문장 수)는 본인 것만 조회 가능해 비워 둔다 — 펼친 책이 그 행을 생략한다
