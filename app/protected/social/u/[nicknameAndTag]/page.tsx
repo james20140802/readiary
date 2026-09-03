@@ -44,12 +44,13 @@ export default async function FriendProfilePage({ params }: FriendProfilePagePro
   const isFriend = !!friendRecord;
   if (!isFriend && user.id !== profile.id) return notFound();
 
-  // 친구 책의 책갈피·인덱스·뒷표지는 RLS가 보여주는 기록(공개)만으로 만들어진다
+  // 친구 책의 책갈피·인덱스·뒷표지는 공개 기록만으로 만들어진다 — 쿼리에서 비공개를 거른다
+  const publicOnly = { publicOnly: true };
   const [stats, retrospect, featuredQuote, bookmark] = await Promise.all([
     getUserStats(profile.id),
-    fetchRetrospectData(profile.id),
-    fetchFeaturedQuote(profile.featured_entry_id),
-    fetchFeaturedBookmark(profile.bookmark_user_book_id),
+    fetchRetrospectData(profile.id, publicOnly),
+    fetchFeaturedQuote(profile.featured_entry_id, publicOnly),
+    fetchFeaturedBookmark(profile.bookmark_user_book_id, publicOnly),
   ]);
 
   // 친구의 읽기 통계(기간·문장 수)는 본인 것만 조회 가능해 비워 둔다 — 펼친 책이 그 행을 생략한다
