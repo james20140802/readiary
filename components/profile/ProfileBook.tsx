@@ -436,6 +436,8 @@ export default function ProfileBook({
   const renderBookmark = () => {
     const lifted = isBookmarkPage;
     const onPage = open && leafIndex === bookmarkLeaf;
+    // 낱장이 넘어가 뒷면이 보이면 앞면 버튼을, 아니면 뒷면 버튼을 탭 순서에서 뺀다
+    const turned = open && bookmarkLeaf < leafIndex;
     const clip = onPage ? 'inset(0 0 0 0)' : `inset(0 0 ${BOOKMARK_H - BOOKMARK_EXPOSED}px 0)`;
     const faceTransition = `clip-path 0s linear ${onPage ? 0 : moveMs}ms, box-shadow 200ms, color 150ms, transform 200ms`;
     return (
@@ -453,7 +455,7 @@ export default function ProfileBook({
           <>
             <button
               type="button"
-              inert={isFlipped}
+              inert={isFlipped || turned}
               onClick={() => (lifted ? close() : goTo('bookmark'))}
               aria-pressed={lifted}
               title={
@@ -488,7 +490,7 @@ export default function ProfileBook({
             {/* 책갈피 뒷면 — 낱장이 넘어가면 이쪽이 보인다. 제목은 양면에 */}
             <button
               type="button"
-              inert={isFlipped}
+              inert={isFlipped || !turned}
               onClick={() => goTo('bookmark')}
               title={`${bookmark.title} 발췌집 · 문장 ${bookmark.quoteCount}`}
               className={`${FACE} group overflow-hidden rounded-[3px] border border-hairline-strong [transform:rotateY(180deg)] hover:-translate-y-2 motion-reduce:!duration-0`}
@@ -509,7 +511,7 @@ export default function ProfileBook({
         ) : (
           <Link
             href="/protected/profile/edit#bookmark"
-            inert={isFlipped}
+            inert={isFlipped || turned}
             className={`${FACE} flex justify-center rounded-[3px] border border-dashed border-hairline-strong pt-6 font-serif text-[12px] tracking-[0.08em] text-ink-faint transition-colors hover:border-accent hover:text-accent`}
             style={{ writingMode: 'vertical-rl', clipPath: clip, transition: faceTransition }}
           >
@@ -529,6 +531,7 @@ export default function ProfileBook({
     const tint = INDEX_TINTS[i % INDEX_TINTS.length];
     const top = 26 + i * (INDEX_H + INDEX_GAP);
     const active = activeMonth === m.label;
+    const turned = open && order.indexOf(monthPage(m.label)) < leafIndex;
     const timing = `0s linear ${active ? 0 : moveMs}ms`;
     const face =
       'absolute inset-0 flex items-center justify-end rounded-r-[3px] pr-2 font-sans text-[10px] font-medium tabular-nums leading-none tracking-[0.04em] text-ink [backface-visibility:hidden] hover:brightness-95 motion-reduce:!duration-0';
@@ -546,7 +549,7 @@ export default function ProfileBook({
       >
         <button
           type="button"
-          inert={isFlipped}
+          inert={isFlipped || turned}
           onClick={go}
           aria-pressed={active}
           title={`${m.label} · 기록 ${m.count}`}
@@ -562,7 +565,7 @@ export default function ProfileBook({
         {/* 뒷면 — 낱장이 넘어가 왼쪽에 꽂히면 이쪽이 보인다 */}
         <button
           type="button"
-          inert={isFlipped}
+          inert={isFlipped || !turned}
           onClick={go}
           title={`${m.label} · 기록 ${m.count}`}
           className={`${face} flex-row-reverse pl-2 pr-0 [transform:rotateY(180deg)]`}
@@ -575,313 +578,314 @@ export default function ProfileBook({
   };
 
   return (
-    <div
-      ref={wrapRef}
-      className="w-full"
-      style={{ overflowX: 'clip', height: (TOP_PAD + H) * stageScale }}
-    >
-      <div
-        className="relative mx-auto [perspective:1800px] [touch-action:pan-y]"
-        style={{
-          width: STAGE_W,
-          paddingTop: TOP_PAD,
-          height: TOP_PAD + H,
-          transform: stageScale < 1 ? `scale(${stageScale})` : undefined,
-          transformOrigin: 'top left',
-        }}
-        onPointerDown={handlePointerDown}
-        onPointerUp={handlePointerUp}
-        onClickCapture={handleClickCapture}
-      >
-        {/* 펼칠 때의 자리 이동 — 경첩(왼쪽 가장자리)을 기준으로 */}
+    <div ref={wrapRef} className="w-full" style={{ overflowX: 'clip' }}>
+      {/* 무대 상자 — 무대를 축소해도 흐름에서는 원래 높이를 차지하므로, 줄인 높이만큼만 자리를 잡는다 */}
+      <div style={{ height: (TOP_PAD + H) * stageScale, overflow: 'clip' }}>
         <div
-          className={`relative [transform-style:preserve-3d] ${TURN}`}
+          className="relative mx-auto [perspective:1800px] [touch-action:pan-y]"
           style={{
-            width: W,
-            height: H,
-            transformOrigin: '0 50%',
-            transform: `translateX(${shiftX}px)`,
+            width: STAGE_W,
+            paddingTop: TOP_PAD,
+            height: TOP_PAD + H,
+            transform: stageScale < 1 ? `scale(${stageScale})` : undefined,
+            transformOrigin: 'top left',
           }}
+          onPointerDown={handlePointerDown}
+          onPointerUp={handlePointerUp}
+          onClickCapture={handleClickCapture}
         >
-          {/* 책 한 권 — 뒤집기는 가운데를 축으로 */}
-          <section
-            ref={bookRef}
-            aria-label={`${displayName}의 프로필 책`}
-            className={`relative h-full w-full [transform-style:preserve-3d] ${TURN}`}
-            style={{ transform: `rotateY(${flipAngle}deg)` }}
+          {/* 펼칠 때의 자리 이동 — 경첩(왼쪽 가장자리)을 기준으로 */}
+          <div
+            className={`relative [transform-style:preserve-3d] ${TURN}`}
+            style={{
+              width: W,
+              height: H,
+              transformOrigin: '0 50%',
+              transform: `translateX(${shiftX}px)`,
+            }}
           >
-            {/* ── 앞표지 (경첩을 축으로 펼쳐진다) ── */}
-            <div
-              className={`absolute inset-0 [transform-style:preserve-3d] ${TURN}`}
-              style={{
-                transformOrigin: '0 50%',
-                transform: `translateZ(${T / 2}px) rotateY(${open ? -180 : 0}deg)`,
-              }}
+            {/* 책 한 권 — 뒤집기는 가운데를 축으로 */}
+            <section
+              ref={bookRef}
+              aria-label={`${displayName}의 프로필 책`}
+              className={`relative h-full w-full [transform-style:preserve-3d] ${TURN}`}
+              style={{ transform: `rotateY(${flipAngle}deg)` }}
             >
-              {/* 앞표지 겉면 */}
+              {/* ── 앞표지 (경첩을 축으로 펼쳐진다) ── */}
               <div
-                inert={isFlipped}
-                onClick={(e) => {
-                  if ((e.target as HTMLElement).closest('button, a')) return;
-                  toggleOpen();
+                className={`absolute inset-0 [transform-style:preserve-3d] ${TURN}`}
+                style={{
+                  transformOrigin: '0 50%',
+                  transform: `translateZ(${T / 2}px) rotateY(${open ? -180 : 0}deg)`,
                 }}
-                className={`${FACE} cursor-pointer overflow-hidden rounded-l-[3px] rounded-r-[8px] border border-hairline-strong bg-card p-[5px]`}
               >
-                <div className="relative h-full w-full overflow-hidden rounded-l-[2px] rounded-r-[5px] border border-hairline">
-                  {/* 북라이트 — 왼쪽 위에서 비스듬히. 램프는 그리지 않는다 */}
-                  <div
-                    aria-hidden
-                    className="pointer-events-none absolute left-[18%] top-[-6rem] h-80 w-[36rem] max-w-[140%] -translate-x-1/2 bg-[radial-gradient(ellipse_at_center,rgba(255,196,110,0.16),transparent_66%)]"
-                  />
-                  {/* 경첩 홈 — 책등 쪽에 눌린 한 줄 */}
-                  <div
-                    aria-hidden
-                    className="pointer-events-none absolute inset-y-0 left-2 w-px bg-hairline"
-                  />
-
-                  <div
-                    className="relative flex flex-col items-center justify-center gap-5 px-7 text-center"
-                    style={{ height: H - OBI_H - OBI_BOTTOM - 10 }}
-                  >
-                    {/* 표지에 붙인 사진 — 인화지 여백에 살짝 비스듬히 */}
+                {/* 앞표지 겉면 */}
+                <div
+                  inert={isFlipped}
+                  onClick={(e) => {
+                    if ((e.target as HTMLElement).closest('button, a')) return;
+                    toggleOpen();
+                  }}
+                  className={`${FACE} cursor-pointer overflow-hidden rounded-l-[3px] rounded-r-[8px] border border-hairline-strong bg-card p-[5px]`}
+                >
+                  <div className="relative h-full w-full overflow-hidden rounded-l-[2px] rounded-r-[5px] border border-hairline">
+                    {/* 북라이트 — 왼쪽 위에서 비스듬히. 램프는 그리지 않는다 */}
                     <div
-                      className="w-[112px] shrink-0 border border-hairline bg-card p-[5px]"
-                      style={{
-                        transform: `rotate(${photoTilt(profile.id)}deg)`,
-                        boxShadow:
-                          '0 1px 1px rgb(var(--ink) / 0.12), 0 5px 12px rgb(var(--ink) / 0.10)',
-                      }}
+                      aria-hidden
+                      className="pointer-events-none absolute left-[18%] top-[-6rem] h-80 w-[36rem] max-w-[140%] -translate-x-1/2 bg-[radial-gradient(ellipse_at_center,rgba(255,196,110,0.16),transparent_66%)]"
+                    />
+                    {/* 경첩 홈 — 책등 쪽에 눌린 한 줄 */}
+                    <div
+                      aria-hidden
+                      className="pointer-events-none absolute inset-y-0 left-2 w-px bg-hairline"
+                    />
+
+                    <div
+                      className="relative flex flex-col items-center justify-center gap-5 px-7 text-center"
+                      style={{ height: H - OBI_H - OBI_BOTTOM - 10 }}
                     >
-                      <div className="relative aspect-square overflow-hidden bg-card-raised">
-                        {photoUrl ? (
-                          <Image
-                            src={photoUrl}
-                            alt={`${displayName}의 사진`}
-                            fill
-                            sizes="112px"
-                            className="object-cover"
-                            priority
-                          />
-                        ) : (
-                          <div className="flex h-full w-full select-none items-center justify-center font-serif text-4xl text-ink-faint">
-                            {profile.nickname?.at(0)?.toUpperCase() ?? 'U'}
-                          </div>
-                        )}
+                      {/* 표지에 붙인 사진 — 인화지 여백에 살짝 비스듬히 */}
+                      <div
+                        className="w-[112px] shrink-0 border border-hairline bg-card p-[5px]"
+                        style={{
+                          transform: `rotate(${photoTilt(profile.id)}deg)`,
+                          boxShadow:
+                            '0 1px 1px rgb(var(--ink) / 0.12), 0 5px 12px rgb(var(--ink) / 0.10)',
+                        }}
+                      >
+                        <div className="relative aspect-square overflow-hidden bg-card-raised">
+                          {photoUrl ? (
+                            <Image
+                              src={photoUrl}
+                              alt={`${displayName}의 사진`}
+                              fill
+                              sizes="112px"
+                              className="object-cover"
+                              priority
+                            />
+                          ) : (
+                            <div className="flex h-full w-full select-none items-center justify-center font-serif text-4xl text-ink-faint">
+                              {profile.nickname?.at(0)?.toUpperCase() ?? 'U'}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="min-w-0 max-w-full">
+                        <Seal>讀者</Seal>
+                        <h1 className="mt-1.5 text-balance break-keep font-serif text-[27px] font-bold leading-tight text-ink">
+                          {displayName}
+                        </h1>
+                        <button
+                          type="button"
+                          onClick={handleCopyTag}
+                          title="닉네임#태그 복사"
+                          className="relative mt-2 inline-block font-sans text-[12.5px] tabular-nums text-ink-faint transition-colors hover:text-ink-sub"
+                        >
+                          @{handle}
+                          <span
+                            aria-live="polite"
+                            className={`absolute left-full top-1/2 ml-2 -translate-y-1/2 whitespace-nowrap text-[11px] transition-opacity ${
+                              copied ? 'text-accent opacity-100' : 'opacity-0'
+                            }`}
+                          >
+                            복사됨
+                          </span>
+                        </button>
                       </div>
                     </div>
-
-                    <div className="min-w-0 max-w-full">
-                      <Seal>讀者</Seal>
-                      <h1 className="mt-1.5 text-balance break-keep font-serif text-[27px] font-bold leading-tight text-ink">
-                        {displayName}
-                      </h1>
-                      <button
-                        type="button"
-                        onClick={handleCopyTag}
-                        title="닉네임#태그 복사"
-                        className="relative mt-2 inline-block font-sans text-[12.5px] tabular-nums text-ink-faint transition-colors hover:text-ink-sub"
-                      >
-                        @{handle}
-                        <span
-                          aria-live="polite"
-                          className={`absolute left-full top-1/2 ml-2 -translate-y-1/2 whitespace-nowrap text-[11px] transition-opacity ${
-                            copied ? 'text-accent opacity-100' : 'opacity-0'
-                          }`}
-                        >
-                          복사됨
-                        </span>
-                      </button>
-                    </div>
                   </div>
+
+                  {/* 띠지 — 소개 한 줄을 가운데에, 그 아래 출판사 자리의 표식 */}
+                  {obiBand(
+                    profile.bio ? (
+                      <>
+                        <p className="line-clamp-3 text-balance break-keep font-serif text-[14px] leading-relaxed text-ink">
+                          {profile.bio}
+                        </p>
+                        <Seal className="opacity-70">Readiary</Seal>
+                      </>
+                    ) : isOwnProfile ? (
+                      <>
+                        <Link
+                          href="/protected/profile/edit"
+                          className="font-serif text-[13.5px] text-ink-faint transition-colors hover:text-accent"
+                        >
+                          띠지에 한 줄 소개를 써 두세요 →
+                        </Link>
+                        <Seal className="opacity-70">Readiary</Seal>
+                      </>
+                    ) : (
+                      <Seal className="opacity-70">Readiary</Seal>
+                    )
+                  )}
                 </div>
 
-                {/* 띠지 — 소개 한 줄을 가운데에, 그 아래 출판사 자리의 표식 */}
-                {obiBand(
-                  profile.bio ? (
-                    <>
-                      <p className="line-clamp-3 text-balance break-keep font-serif text-[14px] leading-relaxed text-ink">
-                        {profile.bio}
-                      </p>
-                      <Seal className="opacity-70">Readiary</Seal>
-                    </>
-                  ) : isOwnProfile ? (
-                    <>
+                {/* 앞표지 안쪽 — 면지에 차례. 첫 장을 펼쳤을 때 왼쪽 면이 된다 */}
+                <div
+                  inert={!open || leafIndex > 0}
+                  className={`${FACE} flex flex-col rounded-l-[3px] rounded-r-[8px] border border-hairline-strong bg-card-raised px-7 pb-6 pt-8 [transform:rotateY(180deg)]`}
+                >
+                  {renderContents()}
+                </div>
+              </div>
+
+              {/* ── 뒷표지 — 골라 둔 인용 한 토막 ── */}
+              <div
+                inert={!isFlipped}
+                onClick={(e) => {
+                  if ((e.target as HTMLElement).closest('button, a')) return;
+                  flip(1);
+                }}
+                className={`${FACE} cursor-pointer overflow-hidden rounded-l-[8px] rounded-r-[3px] border border-hairline-strong bg-card p-[5px]`}
+                style={{ transform: `rotateY(180deg) translateZ(${T / 2}px)` }}
+              >
+                <div className="relative h-full w-full overflow-hidden rounded-l-[5px] rounded-r-[2px] border border-hairline">
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute inset-y-0 right-2 w-px bg-hairline"
+                  />
+                  <div
+                    className="flex flex-col items-center justify-center px-8 text-center"
+                    style={{ height: H - OBI_H - OBI_BOTTOM - 10 }}
+                  >
+                    {featuredQuote ? (
+                      <blockquote className="min-w-0 max-w-full">
+                        <p className="line-clamp-[9] text-balance break-keep font-serif text-[16.5px] leading-[1.75] text-ink">
+                          {featuredQuote.quote}
+                        </p>
+                        {(featuredQuote.bookTitle || featuredQuote.author) && (
+                          <footer className="mt-4 text-[12.5px] text-ink-sub">
+                            {featuredQuote.bookTitle && `『${featuredQuote.bookTitle}』`}
+                            {featuredQuote.bookTitle && featuredQuote.author && ', '}
+                            {featuredQuote.author}
+                          </footer>
+                        )}
+                      </blockquote>
+                    ) : isOwnProfile ? (
                       <Link
-                        href="/protected/profile/edit"
-                        className="font-serif text-[13.5px] text-ink-faint transition-colors hover:text-accent"
+                        href="/protected/profile/edit#featured-quote"
+                        className="font-serif text-[14px] leading-relaxed text-ink-faint transition-colors hover:text-accent"
                       >
-                        띠지에 한 줄 소개를 써 두세요 →
+                        뒷표지에 실을 문장을
+                        <br />
+                        골라 두세요 →
                       </Link>
-                      <Seal className="opacity-70">Readiary</Seal>
-                    </>
-                  ) : (
+                    ) : (
+                      <p className="font-serif text-[14px] text-ink-faint">
+                        아직 뒷표지에 실린 문장이 없습니다.
+                      </p>
+                    )}
+                  </div>
+                </div>
+                {obiBand(
+                  <>
+                    <span className="font-sans text-[12px] tabular-nums text-ink-sub">
+                      @{handle}
+                    </span>
                     <Seal className="opacity-70">Readiary</Seal>
-                  )
+                  </>
                 )}
               </div>
 
-              {/* 앞표지 안쪽 — 면지에 차례. 첫 장을 펼쳤을 때 왼쪽 면이 된다 */}
+              {/* ── 책등 ── */}
               <div
-                inert={!open || leafIndex > 0}
-                className={`${FACE} flex flex-col rounded-l-[3px] rounded-r-[8px] border border-hairline-strong bg-card-raised px-7 pb-6 pt-8 [transform:rotateY(180deg)]`}
+                aria-hidden
+                className="absolute left-0 top-0 overflow-hidden border border-hairline-strong bg-card [backface-visibility:hidden]"
+                style={{
+                  width: T,
+                  height: H,
+                  transform: `translateX(${-T / 2}px) rotateY(-90deg)`,
+                }}
               >
-                {renderContents()}
-              </div>
-            </div>
-
-            {/* ── 뒷표지 — 골라 둔 인용 한 토막 ── */}
-            <div
-              inert={!isFlipped}
-              onClick={(e) => {
-                if ((e.target as HTMLElement).closest('button, a')) return;
-                flip(1);
-              }}
-              className={`${FACE} cursor-pointer overflow-hidden rounded-l-[8px] rounded-r-[3px] border border-hairline-strong bg-card p-[5px]`}
-              style={{ transform: `rotateY(180deg) translateZ(${T / 2}px)` }}
-            >
-              <div className="relative h-full w-full overflow-hidden rounded-l-[5px] rounded-r-[2px] border border-hairline">
-                <div
-                  aria-hidden
-                  className="pointer-events-none absolute inset-y-0 right-2 w-px bg-hairline"
-                />
-                <div
-                  className="flex flex-col items-center justify-center px-8 text-center"
-                  style={{ height: H - OBI_H - OBI_BOTTOM - 10 }}
-                >
-                  {featuredQuote ? (
-                    <blockquote className="min-w-0 max-w-full">
-                      <p className="line-clamp-[9] text-balance break-keep font-serif text-[16.5px] leading-[1.75] text-ink">
-                        {featuredQuote.quote}
-                      </p>
-                      {(featuredQuote.bookTitle || featuredQuote.author) && (
-                        <footer className="mt-4 text-[12.5px] text-ink-sub">
-                          {featuredQuote.bookTitle && `『${featuredQuote.bookTitle}』`}
-                          {featuredQuote.bookTitle && featuredQuote.author && ', '}
-                          {featuredQuote.author}
-                        </footer>
-                      )}
-                    </blockquote>
-                  ) : isOwnProfile ? (
-                    <Link
-                      href="/protected/profile/edit#featured-quote"
-                      className="font-serif text-[14px] leading-relaxed text-ink-faint transition-colors hover:text-accent"
-                    >
-                      뒷표지에 실을 문장을
-                      <br />
-                      골라 두세요 →
-                    </Link>
-                  ) : (
-                    <p className="font-serif text-[14px] text-ink-faint">
-                      아직 뒷표지에 실린 문장이 없습니다.
-                    </p>
-                  )}
-                </div>
-              </div>
-              {obiBand(
-                <>
-                  <span className="font-sans text-[12px] tabular-nums text-ink-sub">@{handle}</span>
-                  <Seal className="opacity-70">Readiary</Seal>
-                </>
-              )}
-            </div>
-
-            {/* ── 책등 ── */}
-            <div
-              aria-hidden
-              className="absolute left-0 top-0 overflow-hidden border border-hairline-strong bg-card [backface-visibility:hidden]"
-              style={{
-                width: T,
-                height: H,
-                transform: `translateX(${-T / 2}px) rotateY(-90deg)`,
-              }}
-            >
-              {T >= 18 && (
-                <div
-                  className="absolute inset-x-0 top-6 flex justify-center font-serif text-[11px] tracking-[0.1em] text-ink"
-                  style={{ writingMode: 'vertical-rl', height: H - OBI_H - OBI_BOTTOM - 40 }}
-                >
-                  <SpineTitle title={displayName} />
-                </div>
-              )}
-              <div
-                className="absolute inset-x-0 border-y border-hairline-strong bg-card-raised"
-                style={{ bottom: OBI_BOTTOM, height: OBI_H }}
-              />
-            </div>
-
-            {/* ── 앞마구리 — 종이 단면 ── */}
-            <div
-              aria-hidden
-              className="absolute right-0 [backface-visibility:hidden]"
-              style={{
-                width: T,
-                height: H - 4,
-                top: 2,
-                transform: `translateX(${T / 2}px) rotateY(90deg)`,
-                ...pageEdge('to right'),
-              }}
-            />
-            {/* ── 윗면·아랫면 ── */}
-            <div
-              aria-hidden
-              className="absolute left-0 top-0 [backface-visibility:hidden]"
-              style={{
-                width: W - 3,
-                height: T,
-                transform: `translateY(${-T / 2}px) rotateX(90deg)`,
-                ...pageEdge('to bottom'),
-              }}
-            />
-            <div
-              aria-hidden
-              className="absolute bottom-0 left-0 [backface-visibility:hidden]"
-              style={{
-                width: W - 3,
-                height: T,
-                transform: `translateY(${T / 2}px) rotateX(-90deg)`,
-                ...pageEdge('to bottom'),
-              }}
-            />
-
-            {/* ── 낱장들 — 차례 순서대로. 경첩을 축으로 넘어가고, 넘어간 장은 면지 위에 쌓인다.
-                책갈피와 인덱스는 제 낱장에 붙어 있어 함께 넘어간다 ── */}
-            {order.map((p, i) => {
-              const turned = open && i < leafIndex;
-              const current = open && i === leafIndex;
-              const { duration, delay } = leafTiming(i);
-              const m = p.startsWith('month:')
-                ? (months.find((x) => x.label === p.slice('month:'.length)) ?? null)
-                : null;
-              return (
-                <div
-                  key={p}
-                  className="absolute [transform-style:preserve-3d] motion-reduce:!duration-0"
-                  style={{
-                    inset: '2px 3px 2px 0',
-                    transformOrigin: '0 50%',
-                    transform: turned
-                      ? `translateZ(${T / 2 + 1 + i * LEAF_DZ}px) rotateY(-180deg)`
-                      : `translateZ(${T / 2 - 1 - i * LEAF_DZ}px) rotateY(0deg)`,
-                    transition: `transform ${duration}ms ${EASE} ${delay}ms`,
-                  }}
-                >
-                  {/* 앞면 — 그 면의 내용 */}
-                  <div inert={!current} className={`${FACE} border border-hairline bg-card`}>
-                    {renderRecto(p, m)}
-                  </div>
-                  {/* 뒷면 — 넘어가면 왼쪽 면이 된다. 차례를 다시 실어 어디서든 옮겨 갈 수 있게 */}
+                {T >= 18 && (
                   <div
-                    inert={!(turned && i === leafIndex - 1)}
-                    className={`${FACE} flex flex-col border border-hairline bg-card px-7 pb-6 pt-8 [transform:rotateY(180deg)]`}
+                    className="absolute inset-x-0 top-6 flex justify-center font-serif text-[11px] tracking-[0.1em] text-ink"
+                    style={{ writingMode: 'vertical-rl', height: H - OBI_H - OBI_BOTTOM - 40 }}
                   >
-                    {renderContents()}
+                    <SpineTitle title={displayName} />
                   </div>
-                  {i === bookmarkLeaf && (bookmark || showBookmarkSlot) && renderBookmark()}
-                  {m && renderIndex(m)}
-                </div>
-              );
-            })}
-          </section>
+                )}
+                <div
+                  className="absolute inset-x-0 border-y border-hairline-strong bg-card-raised"
+                  style={{ bottom: OBI_BOTTOM, height: OBI_H }}
+                />
+              </div>
+
+              {/* ── 앞마구리 — 종이 단면 ── */}
+              <div
+                aria-hidden
+                className="absolute right-0 [backface-visibility:hidden]"
+                style={{
+                  width: T,
+                  height: H - 4,
+                  top: 2,
+                  transform: `translateX(${T / 2}px) rotateY(90deg)`,
+                  ...pageEdge('to right'),
+                }}
+              />
+              {/* ── 윗면·아랫면 ── */}
+              <div
+                aria-hidden
+                className="absolute left-0 top-0 [backface-visibility:hidden]"
+                style={{
+                  width: W - 3,
+                  height: T,
+                  transform: `translateY(${-T / 2}px) rotateX(90deg)`,
+                  ...pageEdge('to bottom'),
+                }}
+              />
+              <div
+                aria-hidden
+                className="absolute bottom-0 left-0 [backface-visibility:hidden]"
+                style={{
+                  width: W - 3,
+                  height: T,
+                  transform: `translateY(${T / 2}px) rotateX(-90deg)`,
+                  ...pageEdge('to bottom'),
+                }}
+              />
+
+              {/* ── 낱장들 — 차례 순서대로. 경첩을 축으로 넘어가고, 넘어간 장은 면지 위에 쌓인다.
+                책갈피와 인덱스는 제 낱장에 붙어 있어 함께 넘어간다 ── */}
+              {order.map((p, i) => {
+                const turned = open && i < leafIndex;
+                const current = open && i === leafIndex;
+                const { duration, delay } = leafTiming(i);
+                const m = p.startsWith('month:')
+                  ? (months.find((x) => x.label === p.slice('month:'.length)) ?? null)
+                  : null;
+                return (
+                  <div
+                    key={p}
+                    className="absolute [transform-style:preserve-3d] motion-reduce:!duration-0"
+                    style={{
+                      inset: '2px 3px 2px 0',
+                      transformOrigin: '0 50%',
+                      transform: turned
+                        ? `translateZ(${T / 2 + 1 + i * LEAF_DZ}px) rotateY(-180deg)`
+                        : `translateZ(${T / 2 - 1 - i * LEAF_DZ}px) rotateY(0deg)`,
+                      transition: `transform ${duration}ms ${EASE} ${delay}ms`,
+                    }}
+                  >
+                    {/* 앞면 — 그 면의 내용 */}
+                    <div inert={!current} className={`${FACE} border border-hairline bg-card`}>
+                      {renderRecto(p, m)}
+                    </div>
+                    {/* 뒷면 — 넘어가면 왼쪽 면이 된다. 차례를 다시 실어 어디서든 옮겨 갈 수 있게 */}
+                    <div
+                      inert={!(turned && i === leafIndex - 1)}
+                      className={`${FACE} flex flex-col border border-hairline bg-card px-7 pb-6 pt-8 [transform:rotateY(180deg)]`}
+                    >
+                      {renderContents()}
+                    </div>
+                    {i === bookmarkLeaf && (bookmark || showBookmarkSlot) && renderBookmark()}
+                    {m && renderIndex(m)}
+                  </div>
+                );
+              })}
+            </section>
+          </div>
         </div>
       </div>
 
