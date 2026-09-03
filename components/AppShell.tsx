@@ -12,7 +12,8 @@ interface AppShellProps {
   /** 서버(루트 레이아웃)가 쿠키로 판정한 초기 로그인 여부 — 첫 페인트부터 맞는 GNB를 그린다 */
   initialLoggedIn: boolean;
   /** 서버가 미리 세어 온 안 읽은 알림 개수 — 뱃지가 0에서 시작했다가 켜지는 깜빡임을 없앤다 */
-  initialUnread: number;
+  /** 서버가 미리 센 안 읽은 알림 수 — null은 조회 실패(모름)라 클라이언트 값을 유지한다 */
+  initialUnread: number | null;
   children: React.ReactNode;
 }
 

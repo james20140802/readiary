@@ -14,14 +14,16 @@ export const NOTIFICATIONS_READ_EVENT = 'readiary:notifications-read';
  *
  * initialUnread는 루트 레이아웃이 서버에서 미리 세어 내려준 값 — 첫 페인트부터
  * 맞는 상태로 그려서, 0에서 시작했다가 클라이언트 조회 후 켜지는 깜빡임을 없앤다.
+ * null은 서버 조회 실패(모름) — 그때는 클라이언트가 세어 둔 값을 그대로 둔다.
  */
-export function useUnreadNotifications(enabled: boolean, initialUnread = 0) {
-  const [hasUnread, setHasUnread] = useState(initialUnread > 0);
-  // 서버 재렌더로 초기값이 바뀌면 따라간다 — 렌더 중 비교(AppShell의 prevInitial과 동일 패턴)
+export function useUnreadNotifications(enabled: boolean, initialUnread: number | null = 0) {
+  const [hasUnread, setHasUnread] = useState((initialUnread ?? 0) > 0);
+  // 서버 재렌더로 초기값이 바뀌면 따라간다 — 렌더 중 비교(AppShell의 prevInitial과 동일 패턴).
+  // 단 null(실패)은 권위 있는 값이 아니므로 기존 상태를 덮어쓰지 않는다.
   const [prevInitialUnread, setPrevInitialUnread] = useState(initialUnread);
   if (prevInitialUnread !== initialUnread) {
     setPrevInitialUnread(initialUnread);
-    setHasUnread(initialUnread > 0);
+    if (initialUnread !== null) setHasUnread(initialUnread > 0);
   }
   const pathname = usePathname();
 
