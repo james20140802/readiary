@@ -270,16 +270,17 @@ export default function ProfileBook({
       return { duration: LEAF_MS, delay: turnBase + (prevLeaf - 1 - i) * LEAF_STAGGER };
     return { duration: LEAF_MS, delay: 0 };
   };
-  // 도착한 뒤에야 책갈피를 들고 인덱스를 종이 위로 편다
-  const arriveDelay = navigating
+  // 이번 이동(넘김·펼침·덮음)이 끝나는 시각 — 책갈피는 그 뒤에 들리고,
+  // 떠난 면의 책갈피·인덱스는 그 뒤에야 책 속으로 감춰진다(이동 중에는 종이 위에 붙어 있다)
+  const moveMs = navigating
     ? turning > 0
       ? turnBase + (turning - 1) * LEAF_STAGGER + LEAF_MS
       : 0
-    : open && !prev.open
+    : open !== prev.open
       ? COVER_MS
       : 0;
   const wasOn = (p: Page) => prev.open && prev.page === p;
-  const bookmarkDelay = isBookmarkPage && !wasOn('bookmark') ? arriveDelay : 0;
+  const bookmarkDelay = isBookmarkPage && !wasOn('bookmark') ? moveMs : 0;
 
   const obiBand = (children: ReactNode) => (
     <div
@@ -419,14 +420,16 @@ export default function ProfileBook({
     </>
   );
 
-  // 책갈피 — 골라 둔 발췌집 하나. 제 낱장 위에 얹혀 윗면으로 삐져나온다. 종이 위에 있는 부분은
-  // 깊이 대신 clip-path로 감춘다(Safari가 얇은 z 차이를 잘못 그린다). 누르면 그 면으로 넘어가고
-  // 도착한 뒤 조금 들린다. 다시 누르면 꽂히며 덮인다
+  // 책갈피 — 골라 둔 발췌집 하나. 제 낱장 위에 얹혀 윗면으로 삐져나온다. 그 낱장이 맨 위에 있는
+  // 동안은 종이 위에 통째로 보이고, 다른 장 아래에 있을 때는 종이 위 부분을 clip-path로 감춘다
+  // (깊이에 맡기면 Safari가 얇은 z 차이를 잘못 그린다). 감추는 것은 이동이 끝난 뒤에, 드러내는
+  // 것은 바로 — 넘어오는 장 아래에 이미 붙어 있다. 누르면 그 면으로 넘어가 도착한 뒤 조금 들린다
   const renderBookmark = () => {
     const lifted = isBookmarkPage;
-    const clip = lifted ? 'inset(0 0 0 0)' : `inset(0 0 ${BOOKMARK_H - BOOKMARK_EXPOSED}px 0)`;
+    const onPage = open && leafIndex === bookmarkLeaf;
+    const clip = onPage ? 'inset(0 0 0 0)' : `inset(0 0 ${BOOKMARK_H - BOOKMARK_EXPOSED}px 0)`;
     const timing = `${BOOKMARK_MS}ms ${EASE} ${bookmarkDelay}ms`;
-    const faceTransition = `clip-path ${timing}, box-shadow 200ms, color 150ms, transform 200ms`;
+    const faceTransition = `clip-path 0s linear ${onPage ? 0 : moveMs}ms, box-shadow 200ms, color 150ms, transform 200ms`;
     return (
       <div
         className="absolute [transform-style:preserve-3d]"
@@ -507,7 +510,7 @@ export default function ProfileBook({
               href="/protected/profile/edit#bookmark"
               inert={isFlipped}
               className={`${FACE} flex justify-center rounded-[3px] border border-dashed border-hairline-strong pt-6 font-serif text-[12px] tracking-[0.08em] text-ink-faint transition-colors hover:border-accent hover:text-accent`}
-              style={{ writingMode: 'vertical-rl', clipPath: clip }}
+              style={{ writingMode: 'vertical-rl', clipPath: clip, transition: faceTransition }}
             >
               책갈피 꽂기
             </Link>
@@ -518,15 +521,15 @@ export default function ProfileBook({
   };
 
   // 인덱스 — 기록한 달. 제 낱장의 앞마구리에서 삐져나오고, 누르면 그 달로 넘어간다.
-  // 종이에 붙는 OVERLAP만큼은 책 속에 있어 잘라 두고, 펼친 그 달의 것만 도착한 뒤 종이 위로 이어진다
+  // 종이에 붙는 OVERLAP만큼은 다른 장 아래에서는 잘라 두고, 그 낱장이 맨 위에 오면 바로 종이 위로
+  // 이어져 보인다. 떠날 때는 이동이 끝난 뒤에 감춘다
   const renderIndex = (m: MonthlySummary) => {
     const i = months.indexOf(m);
     const label = indexLabel(m.label);
     const tint = INDEX_TINTS[i % INDEX_TINTS.length];
     const top = 26 + i * (INDEX_H + INDEX_GAP);
     const active = activeMonth === m.label;
-    const delay = active && !wasOn(monthPage(m.label)) ? arriveDelay : 0;
-    const timing = `300ms ${EASE} ${delay}ms`;
+    const timing = `0s linear ${active ? 0 : moveMs}ms`;
     const face =
       'absolute inset-0 flex items-center justify-end rounded-r-[3px] pr-2 font-sans text-[10px] font-medium tabular-nums leading-none tracking-[0.04em] text-ink [backface-visibility:hidden] hover:brightness-95 motion-reduce:!duration-0';
     const go = () => (active ? close() : goTo(monthPage(m.label)));
