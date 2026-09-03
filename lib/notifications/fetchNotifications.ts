@@ -12,12 +12,18 @@ function resolveActor(actor: ActorProfile | ActorProfile[] | null): ActorProfile
   return Array.isArray(actor) ? (actor[0] ?? null) : actor;
 }
 
-export async function fetchNotifications(): Promise<NotificationItem[]> {
+export interface FetchNotificationsResult {
+  items: NotificationItem[];
+  /** true면 조회 자체가 실패한 것 — UI는 "알림 없음"이 아니라 에러 문구를 보여줘야 한다 */
+  error: boolean;
+}
+
+export async function fetchNotifications(): Promise<FetchNotificationsResult> {
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return [];
+  if (!user) return { items: [], error: false };
 
   const { data, error } = await supabase
     .from('notifications')
@@ -28,9 +34,9 @@ export async function fetchNotifications(): Promise<NotificationItem[]> {
     .order('created_at', { ascending: false })
     .limit(NOTIFICATIONS_LIMIT);
 
-  if (error || !data) return [];
+  if (error || !data) return { items: [], error: true };
 
-  return data.map((row) => {
+  const items = data.map((row) => {
     const actor = resolveActor(row.actor);
     return {
       id: row.id,
@@ -43,4 +49,6 @@ export async function fetchNotifications(): Promise<NotificationItem[]> {
       actorProfileImage: getImageUrl(actor?.profile_image ?? null),
     };
   });
+
+  return { items, error: false };
 }

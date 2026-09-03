@@ -4,12 +4,18 @@ import { useEffect, useRef } from 'react';
 import NotificationList from './NotificationList';
 import { NOTIFICATIONS_LIMIT, type NotificationItem } from '@/lib/notifications/types';
 import { NOTIFICATIONS_READ_EVENT } from '@/hooks/useUnreadNotifications';
+import { useLiveRefresh } from '@/hooks/useLiveRefresh';
 
 interface Props {
   notifications: NotificationItem[];
+  /** 서버 조회 자체가 실패했는지 — true면 "알림 없음" 대신 에러 문구를 보여준다 */
+  error?: boolean;
 }
 
-export default function NotificationsView({ notifications }: Props) {
+export default function NotificationsView({ notifications, error = false }: Props) {
+  // 열어 둔 채 써도 새 알림이 새로고침 없이 도착하도록
+  useLiveRefresh();
+
   const hasMarkedRead = useRef(false);
   useEffect(() => {
     if (hasMarkedRead.current) return;
@@ -38,5 +44,5 @@ export default function NotificationsView({ notifications }: Props) {
       .catch(() => {});
   }, [notifications]);
 
-  return <NotificationList notifications={notifications} />;
+  return <NotificationList notifications={notifications} error={error} />;
 }

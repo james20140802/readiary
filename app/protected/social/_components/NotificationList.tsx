@@ -8,9 +8,20 @@ import type { NotificationItem } from '@/lib/notifications/types';
 
 interface Props {
   notifications: NotificationItem[];
+  /** 서버 조회 자체가 실패했는지 — true면 빈 상태 대신 에러 문구를 보여준다 */
+  error?: boolean;
 }
 
-export default function NotificationList({ notifications }: Props) {
+export default function NotificationList({ notifications, error = false }: Props) {
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 gap-2">
+        <Bell size={28} className="text-ink-faint" />
+        <p className="text-body-sm text-ink-faint">알림을 불러오지 못했습니다.</p>
+      </div>
+    );
+  }
+
   if (notifications.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-2">
@@ -42,11 +53,9 @@ export default function NotificationList({ notifications }: Props) {
               </p>
             </div>
             {isUnread && (
-              <span
-                className="h-[7px] w-[7px] shrink-0 rounded-full bg-accent"
-                aria-label="읽지 않음"
-              />
+              <span aria-hidden className="h-[7px] w-[7px] shrink-0 rounded-full bg-accent" />
             )}
+            {isUnread && <span className="sr-only">읽지 않음</span>}
           </div>
         );
 
@@ -68,7 +77,11 @@ export default function NotificationList({ notifications }: Props) {
                 {body}
               </Link>
             ) : (
-              body
+              // 이동할 곳이 없어도(예: 지워진 기록) 키보드로 목록을 훑을 때 다른 항목과
+              // 동일하게 탭 정지점이 되도록 버튼으로 감싼다 — 동작은 없다
+              <button type="button" className="block w-full text-left">
+                {body}
+              </button>
             )}
           </li>
         );

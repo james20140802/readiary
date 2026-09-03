@@ -11,7 +11,7 @@ export default async function NotificationsPage() {
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const notifications = await fetchNotifications();
+  const { items: notifications, error } = await fetchNotifications();
 
   return (
     <div className="space-y-4">
@@ -20,7 +20,7 @@ export default async function NotificationsPage() {
         <h1 className="text-page-title text-ink">알림</h1>
       </header>
 
-      <NotificationsView notifications={notifications} />
+      <NotificationsView notifications={notifications} error={error} />
     </div>
   );
 }
