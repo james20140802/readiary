@@ -22,7 +22,6 @@ import {
   BOOK_W,
   BOOKMARK_EXPOSED,
   BOOKMARK_H,
-  BOOKMARK_LIFT,
   BOOKMARK_W,
   bookmarkTint,
   INDEX_GAP,
@@ -78,7 +77,6 @@ const COVER_MS = 700;
 const LEAF_MS = 600;
 const LEAF_STAGGER = 120;
 /** 책갈피를 들거나 꽂는 시간 */
-const BOOKMARK_MS = 450;
 /** 낱장 사이 간격(z). 오른쪽 더미는 앞장일수록 표지 쪽, 넘어간 왼쪽 더미는 뒷장일수록 위 */
 const LEAF_DZ = 1;
 /** 종이 단면 — 낱장이 겹친 줄무늬 */
@@ -256,31 +254,26 @@ export default function ProfileBook({
   /** 책갈피가 꽂힌 장 — 없으면 빈 자리는 첫 장에 */
   const bookmarkLeaf = bookmark ? 1 : 0;
 
-  // 펼친 채 면을 옮기면 사이의 낱장들이 한 장씩 시차를 두고 넘어간다.
-  // 책갈피 면을 떠날 때는 책갈피를 먼저 꽂고 넘긴다. 펼치거나 덮을 때는 표지와 함께 움직인다
+  // 펼친 채 면을 옮기면 사이의 낱장들이 한 장씩 시차를 두고 넘어간다. 펼치거나 덮을 때는 표지와 함께 움직인다
   const navigating = open && prev.open;
-  const leavingBookmark = navigating && prev.page === 'bookmark' && page !== 'bookmark';
-  const turnBase = leavingBookmark ? BOOKMARK_MS : 0;
   const turning = navigating ? Math.abs(leafIndex - prevLeaf) : 0;
   const leafTiming = (i: number): { duration: number; delay: number } => {
     if (!navigating) return { duration: COVER_MS, delay: 0 };
     if (leafIndex > prevLeaf && i >= prevLeaf && i < leafIndex)
-      return { duration: LEAF_MS, delay: turnBase + (i - prevLeaf) * LEAF_STAGGER };
+      return { duration: LEAF_MS, delay: (i - prevLeaf) * LEAF_STAGGER };
     if (leafIndex < prevLeaf && i >= leafIndex && i < prevLeaf)
-      return { duration: LEAF_MS, delay: turnBase + (prevLeaf - 1 - i) * LEAF_STAGGER };
+      return { duration: LEAF_MS, delay: (prevLeaf - 1 - i) * LEAF_STAGGER };
     return { duration: LEAF_MS, delay: 0 };
   };
-  // 이번 이동(넘김·펼침·덮음)이 끝나는 시각 — 책갈피는 그 뒤에 들리고,
-  // 떠난 면의 책갈피·인덱스는 그 뒤에야 책 속으로 감춰진다(이동 중에는 종이 위에 붙어 있다)
+  // 이번 이동(넘김·펼침·덮음)이 끝나는 시각 — 떠난 면의 책갈피·인덱스는 그 뒤에야
+  // 책 속으로 감춰진다(이동 중에는 종이 위에 붙어 있다)
   const moveMs = navigating
     ? turning > 0
-      ? turnBase + (turning - 1) * LEAF_STAGGER + LEAF_MS
+      ? (turning - 1) * LEAF_STAGGER + LEAF_MS
       : 0
     : open !== prev.open
       ? COVER_MS
       : 0;
-  const wasOn = (p: Page) => prev.open && prev.page === p;
-  const bookmarkDelay = isBookmarkPage && !wasOn('bookmark') ? moveMs : 0;
 
   const obiBand = (children: ReactNode) => (
     <div
@@ -423,12 +416,11 @@ export default function ProfileBook({
   // 책갈피 — 골라 둔 발췌집 하나. 제 낱장 위에 얹혀 윗면으로 삐져나온다. 그 낱장이 맨 위에 있는
   // 동안은 종이 위에 통째로 보이고, 다른 장 아래에 있을 때는 종이 위 부분을 clip-path로 감춘다
   // (깊이에 맡기면 Safari가 얇은 z 차이를 잘못 그린다). 감추는 것은 이동이 끝난 뒤에, 드러내는
-  // 것은 바로 — 넘어오는 장 아래에 이미 붙어 있다. 누르면 그 면으로 넘어가 도착한 뒤 조금 들린다
+  // 것은 바로 — 넘어오는 장 아래에 이미 붙어 있다. 누르면 그 면으로 넘어가고, 그 면에서 다시 누르면 덮는다
   const renderBookmark = () => {
     const lifted = isBookmarkPage;
     const onPage = open && leafIndex === bookmarkLeaf;
     const clip = onPage ? 'inset(0 0 0 0)' : `inset(0 0 ${BOOKMARK_H - BOOKMARK_EXPOSED}px 0)`;
-    const timing = `${BOOKMARK_MS}ms ${EASE} ${bookmarkDelay}ms`;
     const faceTransition = `clip-path 0s linear ${onPage ? 0 : moveMs}ms, box-shadow 200ms, color 150ms, transform 200ms`;
     return (
       <div
@@ -441,81 +433,73 @@ export default function ProfileBook({
           transform: 'translateZ(0.5px)',
         }}
       >
-        <div
-          className="absolute inset-0 [transform-style:preserve-3d] motion-reduce:!duration-0"
-          style={{
-            transform: `translateY(${lifted ? -BOOKMARK_LIFT : 0}px)`,
-            transition: `transform ${timing}`,
-          }}
-        >
-          {bookmark ? (
-            <>
-              <button
-                type="button"
-                inert={isFlipped}
-                onClick={() => (lifted ? close() : goTo('bookmark'))}
-                aria-pressed={lifted}
-                title={
-                  lifted
-                    ? '책갈피를 다시 꽂고 덮기'
-                    : `${bookmark.title} 발췌집 · 문장 ${bookmark.quoteCount}`
-                }
-                className={`${FACE} group overflow-hidden rounded-[3px] border border-hairline-strong motion-reduce:!duration-0 ${
-                  lifted ? 'shadow-[2px_4px_12px_rgb(var(--ink)/0.22)]' : 'hover:-translate-y-2'
-                }`}
-                style={{
-                  backgroundColor: bookmarkTint(bookmark.userBookId),
-                  clipPath: clip,
-                  transition: faceTransition,
-                }}
-              >
-                <span
-                  className="absolute left-1/2 top-[18px] -translate-x-1/2 overflow-hidden whitespace-nowrap font-serif text-[12px] tracking-[0.08em] text-ink group-hover:text-accent"
-                  style={{
-                    writingMode: 'vertical-rl',
-                    maxHeight: lifted ? BOOKMARK_H - 60 : BOOKMARK_EXPOSED + 60,
-                  }}
-                >
-                  <SpineTitle title={bookmark.title} />
-                </span>
-                {lifted && (
-                  <span className="absolute inset-x-0 bottom-2.5 font-sans text-[10px] tabular-nums text-ink-sub">
-                    {bookmark.quoteCount}
-                  </span>
-                )}
-              </button>
-              {/* 책갈피 뒷면 — 낱장이 넘어가면 이쪽이 보인다. 제목은 양면에 */}
-              <button
-                type="button"
-                inert={isFlipped}
-                onClick={() => goTo('bookmark')}
-                title={`${bookmark.title} 발췌집 · 문장 ${bookmark.quoteCount}`}
-                className={`${FACE} group overflow-hidden rounded-[3px] border border-hairline-strong [transform:rotateY(180deg)] hover:-translate-y-2 motion-reduce:!duration-0`}
-                style={{
-                  backgroundColor: bookmarkTint(bookmark.userBookId),
-                  clipPath: clip,
-                  transition: faceTransition,
-                }}
-              >
-                <span
-                  className="absolute left-1/2 top-[18px] -translate-x-1/2 overflow-hidden whitespace-nowrap font-serif text-[12px] tracking-[0.08em] text-ink group-hover:text-accent"
-                  style={{ writingMode: 'vertical-rl', maxHeight: BOOKMARK_EXPOSED + 60 }}
-                >
-                  <SpineTitle title={bookmark.title} />
-                </span>
-              </button>
-            </>
-          ) : (
-            <Link
-              href="/protected/profile/edit#bookmark"
+        {bookmark ? (
+          <>
+            <button
+              type="button"
               inert={isFlipped}
-              className={`${FACE} flex justify-center rounded-[3px] border border-dashed border-hairline-strong pt-6 font-serif text-[12px] tracking-[0.08em] text-ink-faint transition-colors hover:border-accent hover:text-accent`}
-              style={{ writingMode: 'vertical-rl', clipPath: clip, transition: faceTransition }}
+              onClick={() => (lifted ? close() : goTo('bookmark'))}
+              aria-pressed={lifted}
+              title={
+                lifted
+                  ? '책갈피를 다시 꽂고 덮기'
+                  : `${bookmark.title} 발췌집 · 문장 ${bookmark.quoteCount}`
+              }
+              className={`${FACE} group overflow-hidden rounded-[3px] border border-hairline-strong motion-reduce:!duration-0 ${
+                lifted ? 'shadow-[2px_4px_12px_rgb(var(--ink)/0.22)]' : 'hover:-translate-y-2'
+              }`}
+              style={{
+                backgroundColor: bookmarkTint(bookmark.userBookId),
+                clipPath: clip,
+                transition: faceTransition,
+              }}
             >
-              책갈피 꽂기
-            </Link>
-          )}
-        </div>
+              <span
+                className="absolute left-1/2 top-[18px] -translate-x-1/2 overflow-hidden whitespace-nowrap font-serif text-[12px] tracking-[0.08em] text-ink group-hover:text-accent"
+                style={{
+                  writingMode: 'vertical-rl',
+                  maxHeight: onPage ? BOOKMARK_H - 60 : BOOKMARK_EXPOSED + 60,
+                }}
+              >
+                <SpineTitle title={bookmark.title} />
+              </span>
+              {onPage && (
+                <span className="absolute inset-x-0 bottom-2.5 font-sans text-[10px] tabular-nums text-ink-sub">
+                  {bookmark.quoteCount}
+                </span>
+              )}
+            </button>
+            {/* 책갈피 뒷면 — 낱장이 넘어가면 이쪽이 보인다. 제목은 양면에 */}
+            <button
+              type="button"
+              inert={isFlipped}
+              onClick={() => goTo('bookmark')}
+              title={`${bookmark.title} 발췌집 · 문장 ${bookmark.quoteCount}`}
+              className={`${FACE} group overflow-hidden rounded-[3px] border border-hairline-strong [transform:rotateY(180deg)] hover:-translate-y-2 motion-reduce:!duration-0`}
+              style={{
+                backgroundColor: bookmarkTint(bookmark.userBookId),
+                clipPath: clip,
+                transition: faceTransition,
+              }}
+            >
+              <span
+                className="absolute left-1/2 top-[18px] -translate-x-1/2 overflow-hidden whitespace-nowrap font-serif text-[12px] tracking-[0.08em] text-ink group-hover:text-accent"
+                style={{ writingMode: 'vertical-rl', maxHeight: BOOKMARK_EXPOSED + 60 }}
+              >
+                <SpineTitle title={bookmark.title} />
+              </span>
+            </button>
+          </>
+        ) : (
+          <Link
+            href="/protected/profile/edit#bookmark"
+            inert={isFlipped}
+            className={`${FACE} flex justify-center rounded-[3px] border border-dashed border-hairline-strong pt-6 font-serif text-[12px] tracking-[0.08em] text-ink-faint transition-colors hover:border-accent hover:text-accent`}
+            style={{ writingMode: 'vertical-rl', clipPath: clip, transition: faceTransition }}
+          >
+            책갈피 꽂기
+          </Link>
+        )}
       </div>
     );
   };
@@ -541,8 +525,7 @@ export default function ProfileBook({
           top,
           width: INDEX_W,
           height: INDEX_H,
-          transform: `translateZ(0.5px) translateX(${active ? 6 : 0}px)`,
-          transition: `transform ${timing}`,
+          transform: 'translateZ(0.5px)',
         }}
       >
         <button
@@ -578,13 +561,8 @@ export default function ProfileBook({
   return (
     <div ref={wrapRef} className="w-full" style={{ overflowX: 'clip' }}>
       <div
-        className="relative mx-auto transition-[padding,height] duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] [perspective:1800px] [touch-action:pan-y] motion-reduce:duration-0"
-        style={{
-          width: STAGE_W,
-          paddingTop: TOP_PAD + (isBookmarkPage ? BOOKMARK_LIFT : 0),
-          height: TOP_PAD + H + (isBookmarkPage ? BOOKMARK_LIFT : 0),
-          transitionDelay: `${bookmarkDelay}ms`,
-        }}
+        className="relative mx-auto [perspective:1800px] [touch-action:pan-y]"
+        style={{ width: STAGE_W, paddingTop: TOP_PAD, height: TOP_PAD + H }}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
       >
