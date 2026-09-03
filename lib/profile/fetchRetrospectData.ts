@@ -7,6 +7,7 @@ import { summarizeByMonth, type MonthlySummary } from './monthlySummary';
 export { summarizeByMonth };
 export type { MonthlySummary };
 
+/** 발췌집 한 권 — 완독했고 옮겨 적은 문장이 하나라도 있는 책 */
 export interface FinishedBookExcerpt {
   bookId: string;
   title: string;
@@ -92,17 +93,18 @@ export async function fetchRetrospectData(userId: string): Promise<RetrospectDat
 
   const titleByUserBookId = new Map(userBooks.map((b) => [b.id, b.books?.title ?? null]));
 
-  // 최근에 완독한 책이 앞에 — 공책 더미의 맨 위
+  // 최근에 완독한 책이 앞에 — 공책 더미의 맨 위. 옮겨 적은 문장이 없는 책은 발췌집이 아니다
   const finishedBooks: FinishedBookExcerpt[] = [...userBooks]
     .sort((a, b) => finishedOrder(b).localeCompare(finishedOrder(a)))
     .flatMap((b) => {
-      if (!b.is_finished || !b.books?.title) return [];
+      const quoteCount = quoteCountByUserBookId.get(b.id) ?? 0;
+      if (!b.is_finished || !b.books?.title || quoteCount === 0) return [];
       return [
         {
           bookId: b.book_id,
           title: b.books.title,
           coverUrl: b.books.cover_url ?? null,
-          quoteCount: quoteCountByUserBookId.get(b.id) ?? 0,
+          quoteCount,
         },
       ];
     });

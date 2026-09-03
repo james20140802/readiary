@@ -55,10 +55,11 @@ export const BOOKMARK_EXPOSED = 84;
 /** 책갈피를 뽑았을 때 — 책 위로 완전히 나와 이만큼 떠 있다 */
 export const BOOKMARK_PULL_GAP = 10;
 
-/** 인덱스 탭 치수 — 앞마구리 밖으로 (INDEX_W - INDEX_OVERLAP)만큼 나온다 */
-export const INDEX_W = 58;
+/** 인덱스 탭 치수 — 앞마구리 밖으로 (INDEX_W - INDEX_OVERLAP)만큼 나오고, OVERLAP만큼은 종이 위에 붙어 있다.
+ *  덮으면 그 부분이 책 안에 숨고, 펼치면 오른쪽 면 위로 이어져 보인다 */
+export const INDEX_W = 76;
 export const INDEX_H = 20;
-export const INDEX_OVERLAP = 10;
+export const INDEX_OVERLAP = 28;
 export const INDEX_GAP = 8;
 
 /** 발췌집 공책 더미 — 한 더미에 이만큼까지 쌓이고, 넘치면 옆 더미로 */

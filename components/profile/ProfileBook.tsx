@@ -112,13 +112,18 @@ export default function ProfileBook({
     setOpen(false);
     setFlipAngle((prev) => prev + dir * 180);
   };
+  // 표지를 눌러 펼치면 판권부터. 덮을 때는 보던 면 그대로 닫힌다
   const toggleOpen = () => {
     if (isFlipped) {
       flip(1);
       return;
     }
+    if (open) {
+      setOpen(false);
+      return;
+    }
     setPage('colophon');
-    setOpen((v) => !v);
+    setOpen(true);
   };
   // 책갈피·인덱스·차례를 누르면 그 면으로 펼쳐진다 — 뒤집혀 있었으면 앞으로 돌리면서
   const goTo = (next: Page) => {
@@ -127,7 +132,10 @@ export default function ProfileBook({
     setOpen(true);
   };
   const isBookmarkPage = open && page === 'bookmark';
-  const activeMonth = open && page.startsWith('month:') ? page.slice('month:'.length) : null;
+  // 보고 있는(또는 마지막으로 본) 달 — 덮는 동안에도 그 면이 그대로 남아야 한다
+  const pageMonth = page.startsWith('month:') ? page.slice('month:'.length) : null;
+  // 인덱스 강조는 펼쳐 있을 때만
+  const activeMonth = open ? pageMonth : null;
 
   // 펼쳐진 책 바깥을 누르면 덮인다 — 책 자체와 조작 줄은 바깥이 아니다
   const bookRef = useRef<HTMLElement>(null);
@@ -230,7 +238,7 @@ export default function ProfileBook({
   );
 
   const showBookmarkSlot = !bookmark && isOwnProfile && canBookmark;
-  const month = activeMonth ? (months.find((m) => m.label === activeMonth) ?? null) : null;
+  const month = pageMonth ? (months.find((m) => m.label === pageMonth) ?? null) : null;
 
   // 차례 — 펼친 왼쪽 면. 누르면 그 면으로 넘어간다
   const contents: { key: Page; title: string; note: string | null }[] = [
@@ -444,11 +452,10 @@ export default function ProfileBook({
                   ) : (
                     <ul className="mt-4 divide-y divide-hairline border-t border-hairline">
                       {month.quotes.map((q, i) => (
-                        <li
-                          key={i}
-                          className="line-clamp-3 break-keep py-3 font-serif text-[13px] leading-relaxed text-ink"
-                        >
-                          {q}
+                        <li key={i} className="py-3">
+                          <p className="line-clamp-3 break-keep font-serif text-[13px] leading-relaxed text-ink">
+                            {q}
+                          </p>
                         </li>
                       ))}
                     </ul>
@@ -467,11 +474,10 @@ export default function ProfileBook({
                   ) : (
                     <ul className="mt-4 divide-y divide-hairline border-t border-hairline">
                       {bookmark.quotes.map((q, i) => (
-                        <li
-                          key={i}
-                          className="line-clamp-3 break-keep py-3 font-serif text-[13px] leading-relaxed text-ink"
-                        >
-                          {q}
+                        <li key={i} className="py-3">
+                          <p className="line-clamp-3 break-keep font-serif text-[13px] leading-relaxed text-ink">
+                            {q}
+                          </p>
                         </li>
                       ))}
                     </ul>
@@ -628,8 +634,9 @@ export default function ProfileBook({
                   top: -BOOKMARK_EXPOSED,
                   width: BOOKMARK_W,
                   height: BOOKMARK_H,
+                  // 첫 장(T/2-1)보다 살짝 뒤 — 종이 속에서 위로 빠져나오는 것처럼 아랫부분이 종이에 가려진다
                   transform: isBookmarkPage
-                    ? `translateY(${-BOOKMARK_PULL}px) translateZ(${T / 2 + 2}px)`
+                    ? `translateY(${-BOOKMARK_PULL}px) translateZ(${T / 2 - 3}px)`
                     : 'translateY(0)',
                 }}
               >
@@ -709,7 +716,10 @@ export default function ProfileBook({
                     top,
                     width: INDEX_W,
                     height: INDEX_H,
-                    transform: `translateZ(${innerZ(i, months.length)}px)${active ? ' translateX(6px)' : ''}`,
+                    // 덮여 있으면 책 안에 꽂혀 있고, 펼치면 첫 장 위(표지보다는 뒤)에 붙어 종이 안쪽으로 이어진다
+                    transform: `translateZ(${open ? T / 2 - 0.5 : innerZ(i, months.length)}px)${
+                      active ? ' translateX(6px)' : ''
+                    }`,
                   }}
                 >
                   <button
