@@ -84,7 +84,11 @@ export default async function FriendProfilePage({ params }: FriendProfilePagePro
           shelfHref={shelfHref}
           isOwnProfile={false}
         />
-        <ProfileExcerpts books={finishedBooks} hrefFor={bookHref} />
+        {retrospect ? (
+          <ProfileExcerpts books={finishedBooks} hrefFor={bookHref} />
+        ) : (
+          <p className="mt-10 text-body-sm text-ink-faint">회고 정보를 불러올 수 없습니다.</p>
+        )}
       </AnimatedSection>
     </div>
   );

@@ -190,6 +190,15 @@ export default function ProfileBook({
   const shiftX = open ? Math.min(W / 2, stageLeft) : 0;
 
   const swipeStart = useRef<{ x: number; y: number } | null>(null);
+  // 마우스로 문질러 뒤집으면 브라우저가 같은 자리에 click도 보낸다 — 표지 클릭이 한 번 더 뒤집지 않도록
+  // 스와이프로 소비한 직후의 click 한 번은 무대에서 삼킨다(click은 pointerup과 같은 태스크에서 온다)
+  const swipeConsumed = useRef(false);
+  const handleClickCapture = (e: React.MouseEvent) => {
+    if (!swipeConsumed.current) return;
+    swipeConsumed.current = false;
+    e.stopPropagation();
+    e.preventDefault();
+  };
   const handlePointerDown = (e: React.PointerEvent) => {
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     if ((e.target as HTMLElement).closest('button, a')) return;
@@ -204,6 +213,11 @@ export default function ProfileBook({
     if (Math.abs(dx) < 48 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
     if (!window.getSelection()?.isCollapsed) return;
     flip(dx > 0 ? 1 : -1);
+    swipeConsumed.current = true;
+    // 터치처럼 click이 따라오지 않는 입력이면 다음 탭을 삼키지 않도록 곧 되돌린다
+    setTimeout(() => {
+      swipeConsumed.current = false;
+    }, 0);
   };
 
   const handleCopyTag = async () => {
@@ -565,6 +579,7 @@ export default function ProfileBook({
         style={{ width: STAGE_W, paddingTop: TOP_PAD, height: TOP_PAD + H }}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
+        onClickCapture={handleClickCapture}
       >
         {/* 펼칠 때의 자리 이동 — 경첩(왼쪽 가장자리)을 기준으로 */}
         <div

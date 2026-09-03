@@ -66,7 +66,11 @@ export default async function ProfilePage() {
           shelfHref="/protected/books"
           isOwnProfile
         />
-        <ProfileExcerpts books={finishedBooks} hrefFor={excerptsHref} />
+        {retrospect ? (
+          <ProfileExcerpts books={finishedBooks} hrefFor={excerptsHref} />
+        ) : (
+          <p className="mt-10 text-body-sm text-ink-faint">회고 정보를 불러올 수 없습니다.</p>
+        )}
       </AnimatedSection>
     </div>
   );
