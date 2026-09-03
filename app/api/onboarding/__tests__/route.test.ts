@@ -140,6 +140,16 @@ describe('POST /api/onboarding', () => {
     expect(insert).not.toHaveBeenCalled();
   });
 
+  it('닉네임이 문자열이 아니면(배열 등) 강제 변환 없이 400을 반환하고 insert를 호출하지 않는다', async () => {
+    const { stub, insert } = buildSupabaseStub();
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(stub as never);
+
+    const res = await POST(makeRequest({ ...validBody, nickname: ['gildong'] }));
+
+    expect(res.status).toBe(400);
+    expect(insert).not.toHaveBeenCalled();
+  });
+
   it('JSON 파싱에 실패하면 400 Invalid JSON을 반환한다', async () => {
     const { stub } = buildSupabaseStub();
     vi.mocked(createSupabaseServerClient).mockResolvedValue(stub as never);
