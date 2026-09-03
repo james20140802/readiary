@@ -861,43 +861,46 @@ export default function ProfileBook({
       {/* 조작 — 왼쪽은 책을 다루는 것, 오른쪽은 계정을 다루는 것 */}
       <div
         ref={controlsRef}
-        className="mt-5 flex items-center justify-between gap-4 text-[13px] text-ink-faint"
+        className="mt-4 flex items-center justify-between gap-5 text-[15px] text-ink-faint"
       >
         <div className="flex items-center gap-4">
           <button
             type="button"
             onClick={toggleOpen}
             aria-pressed={open}
-            className="flex items-center gap-1 transition-colors hover:text-accent"
+            className="flex items-center gap-1.5 px-1 py-1.5 transition-colors hover:text-accent"
           >
-            <BookOpen size={13} /> {open ? '덮기' : '펼치기'}
+            <BookOpen size={16} /> {open ? '덮기' : '펼치기'}
           </button>
           <button
             type="button"
             onClick={() => flip(1)}
             aria-label={isFlipped ? '앞표지 보기' : '뒷표지 보기'}
-            className="flex items-center gap-1 transition-colors hover:text-accent"
+            className="flex items-center gap-1.5 px-1 py-1.5 transition-colors hover:text-accent"
           >
-            <Repeat size={13} /> 뒤집기
+            <Repeat size={16} /> 뒤집기
           </button>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-5">
           {isOwnProfile ? (
             <>
               <button
                 type="button"
                 onClick={handleShareInvite}
-                className="transition-colors hover:text-ink-sub"
+                className="px-1 py-1.5 transition-colors hover:text-ink-sub"
               >
                 초대 링크
               </button>
-              <Link href="/protected/profile/edit" className="transition-colors hover:text-ink-sub">
+              <Link
+                href="/protected/profile/edit"
+                className="px-1 py-1.5 transition-colors hover:text-ink-sub"
+              >
                 프로필 수정
               </Link>
               <button
                 type="button"
                 onClick={handleSignOut}
-                className="transition-colors hover:text-danger"
+                className="px-1 py-1.5 transition-colors hover:text-danger"
               >
                 로그아웃
               </button>
