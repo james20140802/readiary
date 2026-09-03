@@ -14,7 +14,6 @@ import Seal from '@/components/ui/Seal';
 interface ComposerProps {
   books: MyBook[];
   recentUserBookId: string | null;
-  userId: string;
 }
 
 type Mode = 'quote' | 'note';
@@ -30,7 +29,7 @@ interface SavedEntry {
 const MAX_BOOK_CHIPS = 3;
 
 /** 홈 최상단 기록 입력창 — 문장 한 줄로 기록을 시작한다 (스펙 §4) */
-export default function Composer({ books, recentUserBookId, userId }: ComposerProps) {
+export default function Composer({ books, recentUserBookId }: ComposerProps) {
   const router = useRouter();
   const initialSelected = books.find((b) => b.id === recentUserBookId)?.id ?? books[0]?.id ?? null;
 
@@ -71,8 +70,6 @@ export default function Composer({ books, recentUserBookId, userId }: ComposerPr
           note: mode === 'note' ? text.trim() : null,
           date: todayKST(),
           is_private: isPrivate,
-          book_id: selectedBook.book_id,
-          user_id: userId,
         }),
       });
       const data = await res.json().catch(() => null);

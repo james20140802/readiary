@@ -1,6 +1,7 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { notifyEntryEvent } from '@/lib/notifications/notify';
 import { NextResponse } from 'next/server';
+import { isUuid } from '@/lib/share/validation';
 
 // GET: 댓글 목록 조회
 export async function GET(request: Request) {
@@ -8,7 +9,27 @@ export async function GET(request: Request) {
   const entryId = searchParams.get('entry_id');
   const supabase = await createSupabaseServerClient();
 
-  if (!entryId) return NextResponse.json({ error: 'entryId가 필요합니다.' }, { status: 400 });
+  if (!entryId || !isUuid(entryId)) {
+    return NextResponse.json({ error: 'entryId가 필요합니다.' }, { status: 400 });
+  }
+
+  // 로그인한 사용자만, 그리고 볼 수 있는 기록(본인 것이거나 공개 기록)의 댓글만 —
+  // 예전엔 entry_id만 알면 누구나 댓글과 작성자 프로필을 읽을 수 있었다
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: '인증되지 않은 유저입니다.' }, { status: 401 });
+
+  const { data: entry } = await supabase
+    .from('entries')
+    .select('id, is_private, user_books!inner(user_id)')
+    .eq('id', entryId)
+    .maybeSingle();
+  const owner = Array.isArray(entry?.user_books) ? entry?.user_books[0] : entry?.user_books;
+  if (!entry) return NextResponse.json({ error: '기록을 찾을 수 없습니다.' }, { status: 404 });
+  if (entry.is_private && owner?.user_id !== user.id) {
+    return NextResponse.json({ error: '권한이 없습니다.' }, { status: 403 });
+  }
 
   const { data, error } = await supabase
     .from('comments')
