@@ -44,8 +44,9 @@ export default async function FriendProfilePage({ params }: FriendProfilePagePro
   const isFriend = !!friendRecord;
   if (!isFriend && user.id !== profile.id) return notFound();
 
-  // 친구 책의 책갈피·인덱스·뒷표지는 공개 기록만으로 만들어진다 — 쿼리에서 비공개를 거른다
-  const publicOnly = { publicOnly: true };
+  // 친구 책의 책갈피·인덱스·뒷표지는 공개 기록만으로 만들어진다 — 쿼리에서 비공개를 거른다.
+  // 본인이 자기 소셜 URL을 열면 /protected/profile과 같이 비공개 포함
+  const publicOnly = { publicOnly: user.id !== profile.id };
   const [stats, retrospect, featuredQuote, bookmark] = await Promise.all([
     getUserStats(profile.id),
     fetchRetrospectData(profile.id, publicOnly),

@@ -188,6 +188,8 @@ export default function ProfileBook({
   }, []);
   const stageLeft = Math.max(0, (wrapW - STAGE_W) / 2);
   const shiftX = open ? Math.min(W / 2, stageLeft) : 0;
+  // 래퍼가 무대보다 좁으면(320px 화면 등) 무대를 통째로 줄인다 — 인덱스·차례가 화면 밖으로 나가지 않도록
+  const stageScale = Math.min(1, wrapW / STAGE_W);
 
   const swipeStart = useRef<{ x: number; y: number } | null>(null);
   // 마우스로 문질러 뒤집으면 브라우저가 같은 자리에 click도 보낸다 — 표지 클릭이 한 번 더 뒤집지 않도록
@@ -573,10 +575,20 @@ export default function ProfileBook({
   };
 
   return (
-    <div ref={wrapRef} className="w-full" style={{ overflowX: 'clip' }}>
+    <div
+      ref={wrapRef}
+      className="w-full"
+      style={{ overflowX: 'clip', height: (TOP_PAD + H) * stageScale }}
+    >
       <div
         className="relative mx-auto [perspective:1800px] [touch-action:pan-y]"
-        style={{ width: STAGE_W, paddingTop: TOP_PAD, height: TOP_PAD + H }}
+        style={{
+          width: STAGE_W,
+          paddingTop: TOP_PAD,
+          height: TOP_PAD + H,
+          transform: stageScale < 1 ? `scale(${stageScale})` : undefined,
+          transformOrigin: 'top left',
+        }}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
         onClickCapture={handleClickCapture}
