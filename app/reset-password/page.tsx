@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createSupabaseClient } from '@/lib/supabase/client';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Input } from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import { toast } from 'sonner';
@@ -14,6 +14,7 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createSupabaseClient();
 
   useEffect(() => {
@@ -23,6 +24,13 @@ export default function ResetPasswordPage() {
       }
     });
   }, [supabase, router]);
+
+  useEffect(() => {
+    // /auth/confirm 이 재설정 링크 검증에 실패하면 여기로 보낸다 — 만료됐거나 이미 쓴 링크
+    if (searchParams.get('error') === 'invalid-link') {
+      toast.error('재설정 링크가 만료되었거나 이미 사용되었습니다. 다시 요청해주세요.');
+    }
+  }, [searchParams]);
 
   const handleReset = async () => {
     if (!email.trim()) {
