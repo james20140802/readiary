@@ -210,9 +210,14 @@ create policy "profiles_select_authenticated" on public.profiles
   for select to authenticated
   using (true);
 
+-- INSERT 때는 대표 인용·책갈피를 비워 둔다(온보딩은 이 둘을 넣지 않는다). UPDATE 정책의 소유 검사가 INSERT 행엔 돌지 않기 때문.
 create policy "profiles_insert_own" on public.profiles
   for insert to authenticated
-  with check (id = (select auth.uid()));
+  with check (
+    id = (select auth.uid())
+    and featured_entry_id is null
+    and bookmark_user_book_id is null
+  );
 
 create policy "profiles_update_own" on public.profiles
   for update to authenticated
