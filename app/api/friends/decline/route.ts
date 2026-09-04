@@ -1,5 +1,4 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { retractFriendRequestNotification } from '@/lib/notifications/notify';
 import { NextResponse } from 'next/server';
 
 export async function DELETE(req: Request) {
@@ -22,8 +21,7 @@ export async function DELETE(req: Request) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  // 거절했으니 내게 온 friend_request 알림도 함께 지운다 — 실패해도 요청 자체는 성공 처리
-  await retractFriendRequestNotification(supabase, friendUserId);
+  // 내게 온 friend_request 알림은 friends 행에 매달려 있어 행 삭제와 함께 DB에서 사라진다
 
   return NextResponse.json({ success: true });
 }

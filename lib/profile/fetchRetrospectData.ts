@@ -29,7 +29,7 @@ interface RetrospectEntryRow {
   user_book_id: string;
 }
 
-/** finished_at이 없는 오래된 행은 등록 시각으로 대신 — 둘 다 없으면 맨 뒤 */
+/** finished_at은 완독 행 전부 채워져 있다(20260905 백필). 방어적으로 등록 시각을 대신 쓰고, 둘 다 없으면 맨 뒤 */
 function finishedOrder(b: { finished_at: string | null; created_at: string | null }): string {
   return b.finished_at ?? b.created_at ?? '';
 }
