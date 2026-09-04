@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { validateNotificationIds } from '@/lib/notifications/validateNotificationIds';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -21,11 +22,11 @@ export async function POST(request: NextRequest) {
 
   const { ids, clearOlderThan } = body as { ids?: unknown; clearOlderThan?: unknown };
   const hasIds = ids !== undefined;
-  if (
-    hasIds &&
-    (!Array.isArray(ids) || ids.length === 0 || !ids.every((id) => typeof id === 'string'))
-  ) {
-    return NextResponse.json({ error: 'ids는 문자열 배열이어야 합니다.' }, { status: 400 });
+  if (hasIds && !validateNotificationIds(ids)) {
+    return NextResponse.json(
+      { error: 'ids는 UUID 문자열 배열(최대 100개)이어야 합니다.' },
+      { status: 400 }
+    );
   }
 
   const hasClearOlderThan = clearOlderThan !== undefined;

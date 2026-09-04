@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { buildInviteSlug, parseInviteSlug, slugToSearchQuery } from '../invite';
+import {
+  buildInviteSlug,
+  parseInviteSlug,
+  parseNicknameAndTagSlug,
+  slugToSearchQuery,
+} from '../invite';
 
 describe('invite slug', () => {
   it('닉네임과 태그로 슬러그를 만든다', () => {
@@ -36,5 +41,39 @@ describe('invite slug', () => {
     expect(parseInviteSlug('%')).toBeNull();
     expect(parseInviteSlug('%zz-1234')).toBeNull();
     expect(slugToSearchQuery('%')).toBeNull();
+  });
+});
+
+describe('parseNicknameAndTagSlug (u/[nicknameAndTag] 라우트 공통 진입점)', () => {
+  it('@ 접두어를 떼고 마지막 하이픈에서 분할한다', () => {
+    expect(parseNicknameAndTagSlug('@book_worm-1234')).toEqual({
+      nickname: 'book_worm',
+      tag: '1234',
+    });
+  });
+  it('@ 접두어가 없어도 동일하게 동작한다', () => {
+    expect(parseNicknameAndTagSlug('book_worm-1234')).toEqual({
+      nickname: 'book_worm',
+      tag: '1234',
+    });
+  });
+  it('URL 인코딩된 슬러그를 디코드한다', () => {
+    expect(parseNicknameAndTagSlug(encodeURIComponent('@책벌레-1234'))).toEqual({
+      nickname: '책벌레',
+      tag: '1234',
+    });
+  });
+  it('하이픈이 없으면 null', () => {
+    expect(parseNicknameAndTagSlug('@book_worm')).toBeNull();
+    expect(parseNicknameAndTagSlug('')).toBeNull();
+  });
+  it("한 번만 decode한다 — 규칙 도입 전 '%'가 든 닉네임 링크도 깨지지 않는다", () => {
+    expect(parseNicknameAndTagSlug(encodeURIComponent('@foo%bar-1234'))).toEqual({
+      nickname: 'foo%bar',
+      tag: '1234',
+    });
+  });
+  it('잘못된 URI 인코딩이어도 던지지 않고 null을 반환한다', () => {
+    expect(parseNicknameAndTagSlug('%')).toBeNull();
   });
 });

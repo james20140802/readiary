@@ -1,9 +1,10 @@
 'use client';
 
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { Heart, Lock, MessageCircle } from 'lucide-react';
 import { formatKoreanDate } from '@/lib/dates';
+import ClampedText from '@/components/ui/ClampedText';
 import CommentBottomSheet from './comments/CommentBottomSheet';
 
 interface EntryCardProps {
@@ -45,33 +46,14 @@ export default function EntryCard({
   initialCommentCount = 0,
   initialLiked = false,
 }: EntryCardProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [isClamped, setIsClamped] = useState(false);
   const [isCommentOpen, setIsCommentOpen] = useState(false);
   const [commentCount, setCommentCount] = useState(initialCommentCount);
   const [isLiked, setIsLiked] = useState(initialLiked);
   const [likeCount, setLikeCount] = useState(initialLikeCount);
   const [isLikeLoading, setIsLikeLoading] = useState(false);
-  const bodyRef = useRef<HTMLDivElement>(null);
 
   const targetHref = href ?? `/protected/entry/${id}`;
   const pages = formatPages(fromPage, toPage);
-
-  // 접힌 높이(17em)보다 실제 내용이 길 때만 '계속 읽기'를 보여준다.
-  // clientHeight 대신 17em을 기준으로 재는 이유: 펼친 상태에서 리사이즈가 와도
-  // '접기' 버튼이 사라지지 않아야 하므로. 회전·리사이즈·폰트 지연 로드에도 재측정.
-  useLayoutEffect(() => {
-    const el = bodyRef.current;
-    if (!el) return;
-    const measure = () => {
-      const collapsedMax = parseFloat(getComputedStyle(el).fontSize) * 17;
-      setIsClamped(el.scrollHeight > collapsedMax + 1);
-    };
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [quote, note]);
 
   const handleLikeToggle = async () => {
     if (isLikeLoading) return;
@@ -113,40 +95,27 @@ export default function EntryCard({
       </div>
 
       <div className="min-w-0">
-        <div className="relative">
-          <div ref={bodyRef} className={isExpanded ? undefined : 'max-h-[17em] overflow-hidden'}>
-            {quote && (
-              <div>
-                <span aria-hidden className="block font-serif text-[32px] leading-none text-accent">
-                  &ldquo;
-                </span>
-                <blockquote className="mt-1 whitespace-pre-wrap font-serif text-quote text-ink">
-                  {quote}
-                </blockquote>
-              </div>
-            )}
-            {note && (
-              <p
-                className={`whitespace-pre-wrap font-serif text-[14px] leading-[1.85] text-ink-sub ${
-                  quote ? 'mt-4' : ''
-                }`}
-              >
-                {note}
-              </p>
-            )}
-          </div>
-          {isClamped && !isExpanded && (
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-paper to-transparent" />
+        <ClampedText>
+          {quote && (
+            <div>
+              <span aria-hidden className="block font-serif text-[32px] leading-none text-accent">
+                &ldquo;
+              </span>
+              <blockquote className="mt-1 whitespace-pre-wrap font-serif text-quote text-ink">
+                {quote}
+              </blockquote>
+            </div>
           )}
-        </div>
-        {isClamped && (
-          <button
-            onClick={() => setIsExpanded((v) => !v)}
-            className="mt-2 font-serif text-[12.5px] text-ink-faint transition-colors hover:text-accent"
-          >
-            {isExpanded ? '접기 ↑' : '계속 읽기 ↓'}
-          </button>
-        )}
+          {note && (
+            <p
+              className={`whitespace-pre-wrap font-serif text-[14px] leading-[1.85] text-ink-sub ${
+                quote ? 'mt-4' : ''
+              }`}
+            >
+              {note}
+            </p>
+          )}
+        </ClampedText>
 
         <div className="mt-3 flex items-center justify-between">
           <div className="flex items-center gap-4">

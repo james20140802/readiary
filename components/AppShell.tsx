@@ -11,6 +11,9 @@ import Navbar from '@/components/Navbar';
 interface AppShellProps {
   /** 서버(루트 레이아웃)가 쿠키로 판정한 초기 로그인 여부 — 첫 페인트부터 맞는 GNB를 그린다 */
   initialLoggedIn: boolean;
+  /** 서버가 미리 세어 온 안 읽은 알림 개수 — 뱃지가 0에서 시작했다가 켜지는 깜빡임을 없앤다 */
+  /** 서버가 미리 센 안 읽은 알림 수 — null은 조회 실패(모름)라 클라이언트 값을 유지한다 */
+  initialUnread: number | null;
   children: React.ReactNode;
 }
 
@@ -30,7 +33,7 @@ const BARE_PREFIXES = [
  * 로그인 여부는 서버 초기값 + onAuthStateChange 구독으로 로그인·로그아웃 직후 즉시 갱신된다.
  * (예전엔 Header가 마운트 때 한 번만 세션을 읽어 로그아웃 뒤에도 종이 남았다)
  */
-export default function AppShell({ initialLoggedIn, children }: AppShellProps) {
+export default function AppShell({ initialLoggedIn, initialUnread, children }: AppShellProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [loggedIn, setLoggedIn] = useState(initialLoggedIn);
@@ -52,7 +55,7 @@ export default function AppShell({ initialLoggedIn, children }: AppShellProps) {
   const bare = BARE_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
   const showNav = loggedIn && !bare;
   // 뱃지 조회는 셸에서 한 번만 — 모바일 헤더·데스크톱 바가 같은 값을 나눠 쓴다
-  const hasUnread = useUnreadNotifications(showNav);
+  const hasUnread = useUnreadNotifications(showNav, initialUnread);
 
   // 보호 라우트 프리페치는 로그인한 뒤에만 — 비로그인 방문자가 매번 /login 리다이렉트만 받아오던 낭비
   useEffect(() => {

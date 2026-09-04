@@ -8,6 +8,7 @@ import Button from '@/components/ui/Button';
 import FormLabel from '@/components/ui/FormLabel';
 import { toast } from 'sonner';
 import AnimatedSection from '@/components/ui/AnimatedSection';
+import { validateNickname } from '@/lib/profile/nickname';
 
 const generateRandomTag = () => Math.floor(1000 + Math.random() * 9000).toString();
 
@@ -21,8 +22,9 @@ export default function OnboardingForm() {
   const handleSubmit = async () => {
     setLoading(true);
 
-    if (!/^[a-zA-Z0-9_]+$/.test(nickname)) {
-      toast.error('닉네임은 영어 알파벳과 숫자, 언더스코어(_)만 사용할 수 있습니다.');
+    const nicknameError = validateNickname(nickname);
+    if (nicknameError) {
+      toast.error(nicknameError);
       setLoading(false);
       return;
     }

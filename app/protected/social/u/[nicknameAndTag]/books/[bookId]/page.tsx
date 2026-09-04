@@ -1,6 +1,7 @@
 import { fetchFriendBookEntries } from '@/lib/friends/fetchFriendBookEntries';
 import { notFound } from 'next/navigation';
 import { isFriendWith } from '@/lib/friends/isFriendWith';
+import { parseNicknameAndTagSlug } from '@/lib/social/invite';
 import FriendProfileHeader from '@/components/social/FriendProfileHeader';
 import BookDetailContent from '@/components/books/BookDetailContent';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
@@ -21,7 +22,9 @@ export default async function FriendBookDetailPage({ params }: FriendBookDetailP
   if (!user) return null;
 
   const { nicknameAndTag, bookId } = await params;
-  const [nickname, tag] = nicknameAndTag.split('-');
+  const parsed = parseNicknameAndTagSlug(nicknameAndTag);
+  if (!parsed) return notFound();
+  const { nickname, tag } = parsed;
 
   const isFriend = await isFriendWith({ nickname, tag });
 

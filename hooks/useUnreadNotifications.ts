@@ -11,9 +11,20 @@ export const NOTIFICATIONS_READ_EVENT = 'readiary:notifications-read';
  * 안 읽은 알림 존재 여부(뱃지) — 경로 이동뿐 아니라 탭 복귀·창 포커스,
  * 읽음 처리 신호(NOTIFICATIONS_READ_EVENT), 그리고 보이는 동안 60초 주기로
  * 다시 세어, 열어 둔 채 쓰는 웹앱에서도 뱃지가 스스로 켜지고 꺼진다.
+ *
+ * initialUnread는 루트 레이아웃이 서버에서 미리 세어 내려준 값 — 첫 페인트부터
+ * 맞는 상태로 그려서, 0에서 시작했다가 클라이언트 조회 후 켜지는 깜빡임을 없앤다.
+ * null은 서버 조회 실패(모름) — 그때는 클라이언트가 세어 둔 값을 그대로 둔다.
  */
-export function useUnreadNotifications(enabled: boolean) {
-  const [hasUnread, setHasUnread] = useState(false);
+export function useUnreadNotifications(enabled: boolean, initialUnread: number | null = 0) {
+  const [hasUnread, setHasUnread] = useState((initialUnread ?? 0) > 0);
+  // 서버 재렌더로 초기값이 바뀌면 따라간다 — 렌더 중 비교(AppShell의 prevInitial과 동일 패턴).
+  // 단 null(실패)은 권위 있는 값이 아니므로 기존 상태를 덮어쓰지 않는다.
+  const [prevInitialUnread, setPrevInitialUnread] = useState(initialUnread);
+  if (prevInitialUnread !== initialUnread) {
+    setPrevInitialUnread(initialUnread);
+    if (initialUnread !== null) setHasUnread(initialUnread > 0);
+  }
   const pathname = usePathname();
 
   useEffect(() => {

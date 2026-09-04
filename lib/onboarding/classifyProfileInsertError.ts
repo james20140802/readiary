@@ -4,7 +4,8 @@ export type ProfileInsertErrorKind = 'profile_exists' | 'tag_conflict' | 'unknow
 /**
  * profiles insert의 유니크 제약은 pkey(id)와 (nickname, tag) 둘뿐이므로,
  * 검증된 이름(profiles_pkey)이 아닌 23505는 태그 충돌로 간주한다 —
- * 두 번째 제약의 실제 이름에 의존하지 않기 위한 선택(재시도는 5회 상한이라 안전).
+ * 두 번째 제약의 이름에 의존하지 않기 위한 선택(재시도는 5회 상한이라 안전).
+ * 실물 확인(2026-09-04, pg_constraint): 두 번째 제약은 `profiles_nickname_tag_key UNIQUE (nickname, tag)`로 실재한다.
  */
 export function classifyProfileInsertError(
   error: { code?: string; message?: string } | null | undefined
