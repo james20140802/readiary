@@ -6,7 +6,8 @@
 --    부수 효과: 친구를 끊으면 옛 friend_request·friend_accept 알림도 지워져 다시 요청하면 알림이 다시 간다
 --    (그동안은 (user_id, actor_id, type) 유니크 인덱스 때문에 재알림이 없었다).
 --    기존 알림: 친구 알림은 friends 행과 대조해 연결하고, 대조되는 행이 없는 잔존 알림은 지운다.
---    댓글 알림은 (entry, actor)별 생성 순서로 댓글과 짝지어 연결하고, 짝이 없는(댓글이 이미 지워진) 알림은 지운다.
+--    댓글 알림은 짝이 분명할 때만(같은 (entry, actor)에 알림도 댓글도 하나뿐) 연결하고, 행위자의 댓글이 하나도
+--    남지 않은(이미 지워진) 알림은 지운다. 짝이 모호한 알림은 추측해 연결하지 않고 그대로 둔다.
 -- 2) user_books.finished_at 백필 — 완독인데 값이 빈 행은 마지막 기록 시각, 기록이 없으면 등록 시각으로.
 --    발췌집 정렬이 등록 시각 대체값 대신 실제에 가까운 완독 시각을 쓰게 된다.
 -- 3) badges·user_badges 삭제 — 앱 코드 참조는 PR #63에서 사라졌고 테이블·정책만 남아 있었다.
@@ -51,26 +52,33 @@ where n.type = 'friend_accept' and n.friendship_id is null;
 delete from public.notifications
 where type in ('friend_request', 'friend_accept') and friendship_id is null;
 
--- 기존 댓글 알림은 같은 (entry, actor)의 댓글과 생성 순서대로 짝짓는다.
-with n as (
-  select id, entry_id, actor_id,
-         row_number() over (partition by entry_id, actor_id order by created_at, id) as rn
+-- 기존 댓글 알림은 짝이 분명할 때만 댓글과 연결한다: 같은 (entry, actor)에 미연결 알림도 댓글도 하나뿐인 경우.
+-- 알림 생성이 실패한 댓글이 섞여 있으면 생성 순서 짝짓기가 엉뚱한 댓글을 가리키므로 추측하지 않는다.
+with single_n as (
+  select entry_id, actor_id, (array_agg(id))[1] as notification_id
   from public.notifications
   where type = 'comment' and comment_id is null
-), c as (
-  select id, entry_id, user_id,
-         row_number() over (partition by entry_id, user_id order by created_at, id) as rn
+  group by entry_id, actor_id
+  having count(*) = 1
+), single_c as (
+  select entry_id, user_id, (array_agg(id))[1] as comment_id
   from public.comments
+  group by entry_id, user_id
+  having count(*) = 1
 )
 update public.notifications x
-set comment_id = c.id
-from n
-join c on c.entry_id = n.entry_id and c.user_id = n.actor_id and c.rn = n.rn
-where x.id = n.id;
+set comment_id = sc.comment_id
+from single_n sn
+join single_c sc on sc.entry_id = sn.entry_id and sc.user_id = sn.actor_id
+where x.id = sn.notification_id;
 
--- 짝지을 댓글이 없는 댓글 알림은 댓글이 이미 지워진 잔존물이다.
-delete from public.notifications
-where type = 'comment' and comment_id is null;
+-- 행위자의 댓글이 그 기록에 하나도 없는 댓글 알림은 댓글이 이미 지워진 잔존물이다.
+-- 짝이 모호한 알림은 연결 없이 남긴다 — 자동 회수만 안 될 뿐 실제 있었던 사건이다.
+delete from public.notifications n
+where n.type = 'comment' and n.comment_id is null
+  and not exists (
+    select 1 from public.comments c where c.entry_id = n.entry_id and c.user_id = n.actor_id
+  );
 
 -- 2) 알림 생성 RPC 갱신 ------------------------------------------------------------
 
