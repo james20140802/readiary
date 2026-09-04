@@ -27,7 +27,7 @@ export async function fetchFriendBooks(
   if (profileError || !profile) return null;
 
   // 친구인지 확인
-  const isFriend = isFriendWith({ nickname, tag });
+  const isFriend = await isFriendWith({ nickname, tag });
 
   if (!isFriend) return null;
 

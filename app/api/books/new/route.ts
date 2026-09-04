@@ -23,31 +23,34 @@ export async function POST(req: Request) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), { status: 400 });
     }
 
-    // books는 ISBN으로 공유되는 행 — 페이지 수를 모른 채 등록해도
-    // 다른 사용자가 채워둔 기존 total_pages를 null로 덮어쓰지 않는다
-    let pages: number | null = total_pages ?? null;
-    if (pages == null && isbn) {
-      const { data: existing } = await supabase
+    // books는 ISBN으로 공유되는 공용 행 — 이미 있으면 그 행을 그대로 쓴다.
+    // 클라이언트는 books를 UPDATE하지 않는다(RLS에 UPDATE 정책 없음). 다른 사용자가 등록한
+    // 제목·저자·표지를 덮어쓰지 않기 위해서다.
+    let bookId: string | null = null;
+    if (isbn) {
+      const { data: existing, error: existingError } = await supabase
         .from('books')
-        .select('total_pages')
+        .select('id')
         .eq('isbn', isbn)
         .maybeSingle();
-      pages = existing?.total_pages ?? null;
+      if (existingError) {
+        return new Response(JSON.stringify({ error: 'Failed to create book' }), { status: 500 });
+      }
+      bookId = existing?.id ?? null;
     }
 
-    const { data: book, error: bookError } = await supabase
-      .from('books')
-      .upsert({ title, author, total_pages: pages, isbn, cover_url } as BookInsert, {
-        onConflict: 'isbn',
-      })
-      .select('*')
-      .single();
+    if (!bookId) {
+      const { data: book, error: bookError } = await supabase
+        .from('books')
+        .insert({ title, author, total_pages: total_pages ?? null, isbn, cover_url } as BookInsert)
+        .select('id')
+        .single();
 
-    if (!book || bookError) {
-      return new Response(JSON.stringify({ error: 'Failed to create book' }), { status: 500 });
+      if (!book || bookError) {
+        return new Response(JSON.stringify({ error: 'Failed to create book' }), { status: 500 });
+      }
+      bookId = book.id;
     }
-
-    const bookId = book.id;
 
     const { error: userBookError } = await supabase.from('user_books').insert({
       user_id: user.id,
