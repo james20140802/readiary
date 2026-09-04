@@ -65,12 +65,14 @@ export default function SignupPage() {
 
     setIsSubmitting(true);
     try {
+      // 템플릿이 token_hash 방식이면 쓰이지 않는다. 구형(ConfirmationURL) 템플릿일 때만 착지로 쓰이며,
+      // 환경 변수가 비면 Site URL로 가 버리므로 서버 착지(/auth/confirm)로 폴백
+      const emailRedirectTo =
+        process.env.NEXT_PUBLIC_EMAIL_REDIRECT_TO || `${window.location.origin}/auth/confirm`;
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password,
-        options: {
-          emailRedirectTo: process.env.NEXT_PUBLIC_EMAIL_REDIRECT_TO,
-        },
+        options: { emailRedirectTo },
       });
 
       if (error) {

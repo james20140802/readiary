@@ -39,6 +39,10 @@ export default function LoginPage() {
     if (from === 'auth-callback') {
       toast.info('이메일 인증이 완료되었습니다. 로그인해주세요.');
     }
+    // /auth/confirm 이 링크 검증에 실패하면 여기로 보낸다 — 만료됐거나 이미 쓴 링크
+    if (searchParams.get('error') === 'invalid-link') {
+      toast.error('인증 링크가 만료되었거나 이미 사용되었습니다. 로그인하거나 다시 가입해주세요.');
+    }
   }, [searchParams]);
 
   const handleLogin = async (e: React.FormEvent) => {
