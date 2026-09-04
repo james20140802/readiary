@@ -15,25 +15,32 @@ type Err = { message: string } | null;
 
 /**
  * 라우트가 쓰는 체인만 흉내 낸다.
- * books: select('id').eq('isbn', …).maybeSingle() / insert(…).select('id').single()
- * user_books: insert(…)
+ * ISBN 있음: books.upsert(row, { onConflict: 'isbn', ignoreDuplicates: true }).select('id').maybeSingle()
+ *            → 충돌(행 없음)이면 books.select('id').eq('isbn', …).maybeSingle()
+ * ISBN 없음: books.insert(row).select('id').single()
+ * 그다음 user_books.insert(…)
  */
 function buildSupabaseStub({
   user = { id: 'user-1' } as { id: string } | null,
-  existingBook = null as Row,
+  upserted = { id: 'book-new' } as Row,
+  upsertError = null as Err,
+  existing = null as Row,
   existingError = null as Err,
-  insertedBook = { id: 'book-new' } as Row,
+  inserted = { id: 'book-manual' } as Row,
   insertError = null as Err,
   userBookError = null as Err,
 } = {}) {
-  const maybeSingle = vi.fn().mockResolvedValue({ data: existingBook, error: existingError });
-  const eq = vi.fn().mockReturnValue({ maybeSingle });
+  const upsertMaybeSingle = vi.fn().mockResolvedValue({ data: upserted, error: upsertError });
+  const upsertSelect = vi.fn().mockReturnValue({ maybeSingle: upsertMaybeSingle });
+  const booksUpsert = vi.fn().mockReturnValue({ select: upsertSelect });
+
+  const lookupMaybeSingle = vi.fn().mockResolvedValue({ data: existing, error: existingError });
+  const eq = vi.fn().mockReturnValue({ maybeSingle: lookupMaybeSingle });
   const booksSelect = vi.fn().mockReturnValue({ eq });
 
-  const single = vi.fn().mockResolvedValue({ data: insertedBook, error: insertError });
+  const single = vi.fn().mockResolvedValue({ data: inserted, error: insertError });
   const insertSelect = vi.fn().mockReturnValue({ single });
   const booksInsert = vi.fn().mockReturnValue({ select: insertSelect });
-  const booksUpsert = vi.fn();
 
   const userBooksInsert = vi.fn().mockResolvedValue({ error: userBookError });
 
@@ -44,7 +51,7 @@ function buildSupabaseStub({
   });
   const getUser = vi.fn().mockResolvedValue({ data: { user }, error: null });
 
-  return { stub: { auth: { getUser }, from }, booksInsert, booksUpsert, userBooksInsert, eq };
+  return { stub: { auth: { getUser }, from }, booksUpsert, booksInsert, userBooksInsert, eq };
 }
 
 function makeRequest(body: unknown) {
@@ -63,6 +70,14 @@ const validBody = {
   cover_url: 'https://example.test/cover.jpg',
 };
 
+const expectedRow = {
+  title: validBody.title,
+  author: validBody.author,
+  total_pages: validBody.total_pages,
+  isbn: validBody.isbn,
+  cover_url: validBody.cover_url,
+};
+
 describe('POST /api/books/new', () => {
   beforeEach(() => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -72,9 +87,28 @@ describe('POST /api/books/new', () => {
     vi.restoreAllMocks();
   });
 
-  it('같은 ISBN의 책이 이미 있으면 그 행을 그대로 쓰고 books를 쓰지 않는다', async () => {
-    const { stub, booksInsert, booksUpsert, userBooksInsert, eq } = buildSupabaseStub({
-      existingBook: { id: 'book-existing' },
+  it('ISBN이 있으면 ON CONFLICT DO NOTHING으로 넣고(UPDATE 없음) 새 id로 user_books를 연결한다', async () => {
+    const { stub, booksUpsert, booksInsert, userBooksInsert, eq } = buildSupabaseStub({
+      upserted: { id: 'book-new' },
+    });
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(stub as never);
+
+    const res = await POST(makeRequest(validBody));
+
+    expect(res.status).toBe(200);
+    expect(booksUpsert).toHaveBeenCalledWith(expectedRow, {
+      onConflict: 'isbn',
+      ignoreDuplicates: true,
+    });
+    expect(eq).not.toHaveBeenCalled();
+    expect(booksInsert).not.toHaveBeenCalled();
+    expect(userBooksInsert).toHaveBeenCalledWith({ user_id: 'user-1', book_id: 'book-new' });
+  });
+
+  it('같은 ISBN의 책이 이미 있으면(충돌로 행 없음) 기존 id를 조회해 그대로 쓴다', async () => {
+    const { stub, booksInsert, userBooksInsert, eq } = buildSupabaseStub({
+      upserted: null,
+      existing: { id: 'book-existing' },
     });
     vi.mocked(createSupabaseServerClient).mockResolvedValue(stub as never);
 
@@ -83,38 +117,19 @@ describe('POST /api/books/new', () => {
     expect(res.status).toBe(200);
     expect(eq).toHaveBeenCalledWith('isbn', validBody.isbn);
     expect(booksInsert).not.toHaveBeenCalled();
-    expect(booksUpsert).not.toHaveBeenCalled();
     expect(userBooksInsert).toHaveBeenCalledWith({ user_id: 'user-1', book_id: 'book-existing' });
   });
 
-  it('같은 ISBN의 책이 없으면 insert하고 새 id로 user_books를 연결한다', async () => {
-    const { stub, booksInsert, booksUpsert, userBooksInsert } = buildSupabaseStub({
-      existingBook: null,
-      insertedBook: { id: 'book-new' },
-    });
-    vi.mocked(createSupabaseServerClient).mockResolvedValue(stub as never);
-
-    const res = await POST(makeRequest(validBody));
-
-    expect(res.status).toBe(200);
-    expect(booksInsert).toHaveBeenCalledWith({
-      title: validBody.title,
-      author: validBody.author,
-      total_pages: validBody.total_pages,
-      isbn: validBody.isbn,
-      cover_url: validBody.cover_url,
-    });
-    expect(booksUpsert).not.toHaveBeenCalled();
-    expect(userBooksInsert).toHaveBeenCalledWith({ user_id: 'user-1', book_id: 'book-new' });
-  });
-
   it('ISBN이 없으면 조회 없이 바로 insert한다(수동 등록)', async () => {
-    const { stub, booksInsert, eq } = buildSupabaseStub({ insertedBook: { id: 'book-manual' } });
+    const { stub, booksUpsert, booksInsert, eq, userBooksInsert } = buildSupabaseStub({
+      inserted: { id: 'book-manual' },
+    });
     vi.mocked(createSupabaseServerClient).mockResolvedValue(stub as never);
 
     const res = await POST(makeRequest({ title: '수동', author: '작가' }));
 
     expect(res.status).toBe(200);
+    expect(booksUpsert).not.toHaveBeenCalled();
     expect(eq).not.toHaveBeenCalled();
     expect(booksInsert).toHaveBeenCalledWith({
       title: '수동',
@@ -123,22 +138,27 @@ describe('POST /api/books/new', () => {
       isbn: undefined,
       cover_url: undefined,
     });
+    expect(userBooksInsert).toHaveBeenCalledWith({ user_id: 'user-1', book_id: 'book-manual' });
   });
 
-  it('ISBN 조회가 실패하면 500을 반환하고 insert하지 않는다', async () => {
-    const { stub, booksInsert } = buildSupabaseStub({ existingError: { message: 'boom' } });
+  it('충돌 후 기존 행 조회가 실패하면 500을 반환하고 user_books를 만들지 않는다', async () => {
+    const { stub, userBooksInsert } = buildSupabaseStub({
+      upserted: null,
+      existing: null,
+      existingError: { message: 'boom' },
+    });
     vi.mocked(createSupabaseServerClient).mockResolvedValue(stub as never);
 
     const res = await POST(makeRequest(validBody));
 
     expect(res.status).toBe(500);
-    expect(booksInsert).not.toHaveBeenCalled();
+    expect(userBooksInsert).not.toHaveBeenCalled();
   });
 
-  it('books insert가 실패하면 500을 반환하고 user_books를 만들지 않는다', async () => {
+  it('upsert가 실패하면 500을 반환하고 user_books를 만들지 않는다', async () => {
     const { stub, userBooksInsert } = buildSupabaseStub({
-      insertedBook: null,
-      insertError: { message: 'denied' },
+      upserted: null,
+      upsertError: { message: 'denied' },
     });
     vi.mocked(createSupabaseServerClient).mockResolvedValue(stub as never);
 

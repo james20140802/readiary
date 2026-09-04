@@ -26,26 +26,45 @@ export async function POST(req: Request) {
     // books는 ISBN으로 공유되는 공용 행 — 이미 있으면 그 행을 그대로 쓴다.
     // 클라이언트는 books를 UPDATE하지 않는다(RLS에 UPDATE 정책 없음). 다른 사용자가 등록한
     // 제목·저자·표지를 덮어쓰지 않기 위해서다.
+    const bookRow = {
+      title,
+      author,
+      total_pages: total_pages ?? null,
+      isbn,
+      cover_url,
+    } as BookInsert;
     let bookId: string | null = null;
+
     if (isbn) {
-      const { data: existing, error: existingError } = await supabase
+      // INSERT … ON CONFLICT (isbn) DO NOTHING — 같은 ISBN을 동시에 등록해도 한쪽이 유니크 충돌로
+      // 실패하지 않는다. 충돌이면 행이 돌아오지 않으므로 기존 행의 id를 따로 읽는다.
+      const { data: inserted, error: insertError } = await supabase
         .from('books')
+        .upsert(bookRow, { onConflict: 'isbn', ignoreDuplicates: true })
         .select('id')
-        .eq('isbn', isbn)
         .maybeSingle();
-      if (existingError) {
+      if (insertError) {
         return new Response(JSON.stringify({ error: 'Failed to create book' }), { status: 500 });
       }
-      bookId = existing?.id ?? null;
-    }
+      bookId = inserted?.id ?? null;
 
-    if (!bookId) {
+      if (!bookId) {
+        const { data: existing, error: existingError } = await supabase
+          .from('books')
+          .select('id')
+          .eq('isbn', isbn)
+          .maybeSingle();
+        if (existingError || !existing) {
+          return new Response(JSON.stringify({ error: 'Failed to create book' }), { status: 500 });
+        }
+        bookId = existing.id;
+      }
+    } else {
       const { data: book, error: bookError } = await supabase
         .from('books')
-        .insert({ title, author, total_pages: total_pages ?? null, isbn, cover_url } as BookInsert)
+        .insert(bookRow)
         .select('id')
         .single();
-
       if (!book || bookError) {
         return new Response(JSON.stringify({ error: 'Failed to create book' }), { status: 500 });
       }
