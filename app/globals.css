@@ -84,20 +84,40 @@ li {
 /* ── 타공 가장자리(우표·엽서) ─────────────────────
    격자점마다 투명 원을 뚫은 배경 위에, 내용부가 bg-card로
    안쪽 구멍을 덮어 가장자리 물결(타공)만 남긴다.
-   그림자는 box-shadow 대신 drop-shadow — 물결 모양을 따라간다 */
+
+   그림자는 filter(drop-shadow) 대신 box-shadow로 낸다 — 타공면은 엽서 뒤집기
+   (preserve-3d) 3D 문맥 안에 있어 filter가 걸리면 따로 합성되는 버퍼가 되고, 그림자
+   꼬리도 상자 밖으로 멀리 뻗는다. 물결은 구멍마다 두른 옅은 테로 그린다.
+   (화면을 떠난 뒤 양 옆에 남던 유령 선의 원인은 엽서 기울기 래퍼였다 —
+   DetailSocialFeedItem 참고) */
 .perforated {
   padding: 5px;
-  background-image: radial-gradient(circle, transparent 3px, rgb(var(--card)) 3.5px);
+  background-image: radial-gradient(
+    circle,
+    transparent 3px,
+    rgb(var(--ink) / 0.13) 3.4px,
+    rgb(var(--ink) / 0.13) 3.8px,
+    rgb(var(--card)) 4.3px
+  );
   background-size: 11px 11px;
   background-position: -5.5px -5.5px;
-  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.05)) drop-shadow(0 5px 10px rgb(0 0 0 / 0.07));
+  /* 뚫린 자리마다 남는 옅은 테가 물결을 그린다 — drop-shadow가 하던 일.
+     들뜬 느낌은 아래로만 지는 그림자로, 옆면은 비워 두어야 물결이 묻히지 않는다 */
+  box-shadow: 0 7px 12px -5px rgb(0 0 0 / 0.16);
 }
 
 .perforated-stamp {
   padding: 3px;
   /* 카드 위에 얹히므로 카드보다 한 단계 눌린 종이색으로 구분한다 */
-  background-image: radial-gradient(circle, transparent 1.8px, rgb(var(--card-raised)) 2.2px);
+  background-image: radial-gradient(
+    circle,
+    transparent 1.8px,
+    rgb(var(--ink) / 0.16) 2.05px,
+    rgb(var(--ink) / 0.16) 2.35px,
+    rgb(var(--card-raised)) 2.7px
+  );
   background-size: 7px 7px;
   background-position: -3.5px -3.5px;
-  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.12));
+  /* 우표도 같은 3D 문맥 안이라 같은 이유로 filter 대신 box-shadow */
+  box-shadow: 0 2px 3px -1px rgb(0 0 0 / 0.16);
 }
