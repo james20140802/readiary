@@ -345,32 +345,41 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
   return (
     <article aria-label="상세 소셜 피드 항목">
       {/* transform이 걸린 요소는 fixed 자손의 containing block이 된다 —
-          기울기는 바텀시트를 포함하지 않는 래퍼에만 건다 */}
-      <div style={{ transform: `rotate(${tilt}deg) translateX(${shift}px)` }}>
-        {hasQuote ? (
-          <div
-            className="[perspective:1200px] [touch-action:pan-y]"
-            onPointerDown={handlePointerDown}
-            onPointerUp={handlePointerUp}
-          >
+          기울기는 바텀시트를 포함하지 않는 래퍼에만 건다.
+
+          기울인 엽서는 제 레이아웃 상자 밖으로 몇 px 삐져나온다(어긋남 4px + 회전 ≤4px +
+          그림자 꼬리). iOS WebKit은 화면을 떠날 때 레이아웃 상자 자리만 지우고 그 삐져나온
+          조각은 남겨 두어, 다음 화면 본문 칸 양 옆에 타공 가장자리가 유령처럼 남았다.
+          그래서 본문 칸의 여백(main의 px-4)만큼 넓힌 상자 안에서 기울여, 삐져나온 조각도
+          지워지는 상자 안에 들게 한다. overflow로 자르지는 않는다 — 뒤집는 동안은
+          가까운 변이 원근으로 커져 여백보다 더 나갔다 들어오므로 잘리면 눈에 띈다 */}
+      <div className="-mx-4 px-4">
+        <div style={{ transform: `rotate(${tilt}deg) translateX(${shift}px)` }}>
+          {hasQuote ? (
             <div
-              className="grid transition-transform duration-500 motion-reduce:duration-0 [transform-style:preserve-3d]"
-              style={{ transform: `rotateY(${flipAngle}deg)` }}
+              className="[perspective:1200px] [touch-action:pan-y]"
+              onPointerDown={handlePointerDown}
+              onPointerUp={handlePointerUp}
             >
-              <div inert={isFlipped} className="[grid-area:1/1] [backface-visibility:hidden]">
-                {postcard(frontFace)}
-              </div>
               <div
-                inert={!isFlipped}
-                className="[grid-area:1/1] [backface-visibility:hidden] [transform:rotateY(180deg)]"
+                className="grid transition-transform duration-500 motion-reduce:duration-0 [transform-style:preserve-3d]"
+                style={{ transform: `rotateY(${flipAngle}deg)` }}
               >
-                {postcard(backFace)}
+                <div inert={isFlipped} className="[grid-area:1/1] [backface-visibility:hidden]">
+                  {postcard(frontFace)}
+                </div>
+                <div
+                  inert={!isFlipped}
+                  className="[grid-area:1/1] [backface-visibility:hidden] [transform:rotateY(180deg)]"
+                >
+                  {postcard(backFace)}
+                </div>
               </div>
             </div>
-          </div>
-        ) : (
-          postcard(backFace)
-        )}
+          ) : (
+            postcard(backFace)
+          )}
+        </div>
       </div>
 
       <LikersBottomSheet

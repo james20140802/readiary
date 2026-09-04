@@ -85,11 +85,11 @@ li {
    격자점마다 투명 원을 뚫은 배경 위에, 내용부가 bg-card로
    안쪽 구멍을 덮어 가장자리 물결(타공)만 남긴다.
 
-   여기에 filter(drop-shadow)를 쓰지 않는다 — 타공면은 엽서 뒤집기(preserve-3d)
-   3D 문맥 안에 있고, filter가 걸린 자손은 그 문맥에서 떨어져 나와 따로 합성되는
-   버퍼가 된다. iOS WebKit은 그 버퍼를 다른 화면으로 넘어간 뒤에도 지우지 못할 때가
-   있어, 프로필 화면 양 옆에 엽서의 타공 가장자리와 그림자만 유령처럼 남았다.
-   그래서 물결은 구멍마다 두른 옅은 테로, 들뜬 느낌은 box-shadow로 낸다 */
+   그림자는 filter(drop-shadow) 대신 box-shadow로 낸다 — 타공면은 엽서 뒤집기
+   (preserve-3d) 3D 문맥 안에 있어 filter가 걸리면 따로 합성되는 버퍼가 되고, 그림자
+   꼬리도 상자 밖으로 멀리 뻗는다. 물결은 구멍마다 두른 옅은 테로 그린다.
+   (화면을 떠난 뒤 양 옆에 남던 유령 선의 원인은 엽서 기울기 래퍼였다 —
+   DetailSocialFeedItem 참고) */
 .perforated {
   padding: 5px;
   background-image: radial-gradient(
