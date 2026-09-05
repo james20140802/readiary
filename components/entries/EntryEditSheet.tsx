@@ -213,7 +213,14 @@ export default function EntryEditSheet({
           <p className="text-sm text-ink-sub">이 작업은 되돌릴 수 없습니다.</p>
           {deleteError && <p className="text-sm text-danger">{deleteError}</p>}
           <div className="flex justify-end gap-2 pt-2">
-            <Button size="sm" variant="ghost" onClick={() => setIsDeleteOpen(false)}>
+            {/* 지우는 중엔 취소도 막는다 — Modal.onClose의 isDeleting 가드와 같은 규칙. 여기서 빠져나가
+                시트를 닫고 같은 기록을 다시 열면, 늦게 성공한 DELETE가 이미 지워진 기록의 시트를 남긴다 */}
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setIsDeleteOpen(false)}
+              disabled={isDeleting}
+            >
               취소
             </Button>
             <Button size="sm" variant="danger" onClick={confirmDelete} disabled={isDeleting}>
