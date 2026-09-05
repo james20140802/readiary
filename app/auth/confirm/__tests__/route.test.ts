@@ -108,6 +108,37 @@ describe('GET /auth/confirm', () => {
     expect(location(res)).toBe('https://readiary.test/invite/xyz');
   });
 
+  it('next가 절대 URL이어도 같은 오리진이면 경로로 푼다 — 템플릿의 {{ .RedirectTo }}', async () => {
+    buildSupabaseStub({ profile: { id: 'user-1' } });
+    const res = await get(
+      '?token_hash=abc&type=email&next=' +
+        encodeURIComponent('https://readiary.test/invite/gildong-1234')
+    );
+    expect(location(res)).toBe('https://readiary.test/invite/gildong-1234');
+  });
+
+  it('next가 착지 자신(/auth/confirm?next=…)이면 그 안의 next를 꺼낸다', async () => {
+    buildSupabaseStub({ profile: { id: 'user-1' } });
+    const res = await get(
+      '?token_hash=abc&type=email&next=' +
+        encodeURIComponent('https://readiary.test/auth/confirm?next=%2Finvite%2Fxyz')
+    );
+    expect(location(res)).toBe('https://readiary.test/invite/xyz');
+  });
+
+  it('next가 Site URL 루트로 대체됐거나 다른 오리진이면 홈으로', async () => {
+    buildSupabaseStub({ profile: { id: 'user-1' } });
+    const root = await get(
+      '?token_hash=abc&type=email&next=' + encodeURIComponent('https://readiary.test')
+    );
+    expect(location(root)).toBe('https://readiary.test/protected/dashboard');
+    const other = await get(
+      '?token_hash=abc&type=email&next=' +
+        encodeURIComponent('https://evil.test/auth/confirm?next=%2Finvite%2Fx')
+    );
+    expect(location(other)).toBe('https://readiary.test/protected/dashboard');
+  });
+
   it('next가 외부 주소면 홈으로 대체한다', async () => {
     buildSupabaseStub({ profile: { id: 'user-1' } });
     const res = await get('?token_hash=abc&type=signup&next=https%3A%2F%2Fevil.test');

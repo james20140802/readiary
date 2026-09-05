@@ -37,6 +37,25 @@ function oauthFailureDestination(next: string): string {
 }
 
 /**
+ * `next`는 보통 경로지만, 가입 확인 메일 템플릿은 `{{ .RedirectTo }}`(절대 URL — 보통 이 착지 자신,
+ * `<origin>/auth/confirm?next=…`)를 실어 보낸다. 같은 오리진이면 경로로 풀고, 착지 자신을 가리키면 그 안의
+ * `next`를 꺼낸다. 다른 오리진(허용 목록에 없어 Site URL로 대체된 경우 포함)이나 루트는 기본 목적지.
+ */
+function resolveNext(raw: string | null, origin: string): string {
+  if (!raw || !/^https?:\/\//i.test(raw)) return sanitizeRedirectPath(raw);
+  let url: URL;
+  try {
+    url = new URL(raw);
+  } catch {
+    return DEFAULT_NEXT;
+  }
+  if (url.origin !== origin) return DEFAULT_NEXT;
+  if (url.pathname === '/auth/confirm') return sanitizeRedirectPath(url.searchParams.get('next'));
+  if (url.pathname === '/') return DEFAULT_NEXT;
+  return sanitizeRedirectPath(`${url.pathname}${url.search}`);
+}
+
+/**
  * 이메일 인증 링크 착지(서버).
  *
  * Supabase 이메일 템플릿이 `/auth/confirm?token_hash={{ .TokenHash }}&type=…` 로 오면 여기서
@@ -54,7 +73,7 @@ export async function GET(request: NextRequest) {
   const tokenHash = searchParams.get('token_hash');
   const type = searchParams.get('type');
   const code = searchParams.get('code');
-  const next = sanitizeRedirectPath(searchParams.get('next'));
+  const next = resolveNext(searchParams.get('next'), request.nextUrl.origin);
   const consented = searchParams.get(OAUTH_CONSENT_PARAM) === '1';
 
   const redirect = (path: string) => NextResponse.redirect(new URL(path, request.url));

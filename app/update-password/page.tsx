@@ -17,7 +17,8 @@ import { hasRecoveryMethod } from '@/lib/auth/recoverySession';
 type Gate = 'checking' | 'allowed' | 'denied';
 
 /**
- * 비밀번호 재설정 링크의 착지. 링크로 만들어진 복구 세션(JWT amr에 recovery)에서만 열린다 —
+ * 비밀번호 재설정 링크의 착지. 링크로 방금 만들어진 복구 세션(JWT amr의 recovery·otp·magiclink,
+ * 최근 1시간)에서만 열린다 —
  * 일반 로그인 세션으로 열리면 현재 비밀번호 없이 바꾸는 길이 되므로, 그 경우는 프로필의
  * 비밀번호 변경(현재 비밀번호 확인)으로 안내한다.
  */

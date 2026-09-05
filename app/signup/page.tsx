@@ -70,7 +70,7 @@ export default function SignupPage() {
         email: email.trim(),
         password,
         options: {
-          emailRedirectTo: emailConfirmRedirectTo(window.location.origin),
+          emailRedirectTo: emailConfirmRedirectTo(window.location.origin, redirectParam),
           data: {
             [CONSENTED_AT_KEY]: consentStamp(),
             ...(pendingRedirect ? { [PENDING_REDIRECT_KEY]: pendingRedirect } : {}),

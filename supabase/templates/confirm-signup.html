@@ -95,7 +95,7 @@
                   <tr>
                     <td align="center" style="background-color: #221e1a; border-radius: 999px">
                       <a
-                        href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email"
+                        href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next={{ .RedirectTo }}"
                         style="
                           display: inline-block;
                           padding: 12px 24px;
@@ -156,7 +156,7 @@
                     word-break: break-all;
                   "
                 >
-                  {{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email
+                  {{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next={{ .RedirectTo }}
                 </p>
                 <p
                   style="

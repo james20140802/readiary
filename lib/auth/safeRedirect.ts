@@ -1,4 +1,5 @@
-const DEFAULT_REDIRECT = '/protected/dashboard';
+export const DEFAULT_REDIRECT_PATH = '/protected/dashboard';
+const DEFAULT_REDIRECT = DEFAULT_REDIRECT_PATH;
 
 /** ASCII 제어문자(탭·개행·NUL 등). WHATWG URL 파서는 탭·LF·CR 을 입력에서 지워 버려서
  *  "/\t/evil.test" 가 "//evil.test" 로 풀린다 — 위치와 무관하게 하나라도 있으면 통째로 거절 */

@@ -20,8 +20,13 @@ Supabase Auth가 보내는 메일의 원본. 대시보드에 붙여 넣은 내�
   `verifyOtp`로 세션을 세운다. token_hash 방식이라 가입한 브라우저가 아닌 기기에서 메일을 열어도 된다.
   - 가입 확인: `type=email`
   - 재설정: `type=recovery` → 착지가 `/update-password`로 보낸다(복구 세션만 통과).
-- `next`는 싣지 않는다. 착지의 `sanitizeRedirectPath`는 경로만 받고 `{{ .RedirectTo }}`는 절대 URL이라
-  버려진다. 초대 링크 복귀는 `user_metadata.pending_redirect`로 관통한다.
+- 가입 확인은 `&next={{ .RedirectTo }}`를 덧붙인다. 앱이 `emailRedirectTo`로 넘기는 값은
+  `<origin>/auth/confirm?next=<복귀 경로>`이고, 착지는 같은 오리진일 때만 그 안의 `next`를 꺼내 쓴다
+  (허용 목록에 없어 Site URL로 대체되면 홈). 가입은 `user_metadata.pending_redirect`에도 넣지만,
+  로그인 화면의 "인증 메일 다시 보내기"(`auth.resend`)는 메타데이터를 못 건드리므로 이 통로가 필요하다.
+  Redirect URLs 허용 목록에 `https://www.readiary.net/auth/confirm**`(또는 `/**`)가 있어야 한다 —
+  OAuth 복귀도 같은 모양(`/auth/confirm?next=…`)을 쓴다.
+- 재설정 링크에는 `next`를 싣지 않는다(착지가 항상 `/update-password`로 보낸다).
 - Password changed는 링크가 필요 없는 알림 — 버튼은 `{{ .SiteURL }}/reset-password`로 가는 보조 아웃라인.
 
 ## 켜는 순서(사람 작업)
