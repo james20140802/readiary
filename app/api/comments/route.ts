@@ -77,7 +77,8 @@ export async function POST(request: Request) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  await notifyEntryEvent(supabase, entryId, 'comment');
+  // 알림을 이 댓글 행에 매단다 — 댓글을 지우면 알림도 DB에서 함께 사라진다
+  await notifyEntryEvent(supabase, entryId, 'comment', data.id);
 
   return NextResponse.json(data);
 }

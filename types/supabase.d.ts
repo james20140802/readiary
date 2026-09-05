@@ -33,33 +33,6 @@ export type Database = {
   };
   public: {
     Tables: {
-      badges: {
-        Row: {
-          code: string;
-          created_at: string | null;
-          description: string | null;
-          icon_url: string | null;
-          id: string;
-          name: string;
-        };
-        Insert: {
-          code: string;
-          created_at?: string | null;
-          description?: string | null;
-          icon_url?: string | null;
-          id?: string;
-          name: string;
-        };
-        Update: {
-          code?: string;
-          created_at?: string | null;
-          description?: string | null;
-          icon_url?: string | null;
-          id?: string;
-          name?: string;
-        };
-        Relationships: [];
-      };
       books: {
         Row: {
           author: string | null;
@@ -261,8 +234,10 @@ export type Database = {
       notifications: {
         Row: {
           actor_id: string;
+          comment_id: string | null;
           created_at: string;
           entry_id: string | null;
+          friendship_id: string | null;
           id: string;
           read_at: string | null;
           type: string;
@@ -270,8 +245,10 @@ export type Database = {
         };
         Insert: {
           actor_id: string;
+          comment_id?: string | null;
           created_at?: string;
           entry_id?: string | null;
+          friendship_id?: string | null;
           id?: string;
           read_at?: string | null;
           type: string;
@@ -279,8 +256,10 @@ export type Database = {
         };
         Update: {
           actor_id?: string;
+          comment_id?: string | null;
           created_at?: string;
           entry_id?: string | null;
+          friendship_id?: string | null;
           id?: string;
           read_at?: string | null;
           type?: string;
@@ -306,6 +285,20 @@ export type Database = {
             columns: ['entry_id'];
             isOneToOne: false;
             referencedRelation: 'entries';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'notifications_comment_id_fkey';
+            columns: ['comment_id'];
+            isOneToOne: false;
+            referencedRelation: 'comments';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'notifications_friendship_id_fkey';
+            columns: ['friendship_id'];
+            isOneToOne: false;
+            referencedRelation: 'friends';
             referencedColumns: ['id'];
           },
         ];
@@ -357,42 +350,6 @@ export type Database = {
             columns: ['featured_entry_id'];
             isOneToOne: false;
             referencedRelation: 'entries';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
-      user_badges: {
-        Row: {
-          awarded_at: string | null;
-          badge_id: string;
-          id: string;
-          user_id: string;
-        };
-        Insert: {
-          awarded_at?: string | null;
-          badge_id: string;
-          id?: string;
-          user_id: string;
-        };
-        Update: {
-          awarded_at?: string | null;
-          badge_id?: string;
-          id?: string;
-          user_id?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'fk_user_badges_badge_id';
-            columns: ['badge_id'];
-            isOneToOne: false;
-            referencedRelation: 'badges';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'user_badges_badge_id_fkey';
-            columns: ['badge_id'];
-            isOneToOne: false;
-            referencedRelation: 'badges';
             referencedColumns: ['id'];
           },
         ];
@@ -451,7 +408,7 @@ export type Database = {
         Returns: undefined;
       };
       notify_entry_event: {
-        Args: { p_entry_id: string; p_type: string };
+        Args: { p_entry_id: string; p_type: string; p_comment_id?: string };
         Returns: undefined;
       };
       notify_friend_event: {
