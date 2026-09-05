@@ -43,3 +43,13 @@ describe('readPendingRedirect — user_metadata에서 복귀 경로 읽기', () 
     expect(readPendingRedirect({ [PENDING_REDIRECT_KEY]: '//evil.test' })).toBeNull();
   });
 });
+
+describe('제어문자 변종은 싣지도 읽지도 않는다 — URL 파서가 탭·개행을 지워 외부 오리진으로 풀린다', () => {
+  const TAB = String.fromCharCode(9);
+  it('toPendingRedirect', () => {
+    expect(toPendingRedirect(`/${TAB}/evil.test/x`)).toBeNull();
+  });
+  it('readPendingRedirect', () => {
+    expect(readPendingRedirect({ [PENDING_REDIRECT_KEY]: `/${TAB}/evil.test/x` })).toBeNull();
+  });
+});

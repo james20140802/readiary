@@ -24,3 +24,34 @@ describe('sanitizeRedirectPath', () => {
     expect(sanitizeRedirectPath('')).toBe('/protected/dashboard');
   });
 });
+
+describe('sanitizeRedirectPath — 제어문자 변종 (WHATWG 파서가 탭·개행을 지워 //evil 로 바꾼다)', () => {
+  const TAB = String.fromCharCode(9);
+  const LF = String.fromCharCode(10);
+  const CR = String.fromCharCode(13);
+  const NUL = String.fromCharCode(0);
+
+  it('탭·LF·CR 이 끼어든 경로는 기본 경로', () => {
+    expect(sanitizeRedirectPath(`/${TAB}/evil.test/x`)).toBe('/protected/dashboard');
+    expect(sanitizeRedirectPath(`/${LF}/evil.test/x`)).toBe('/protected/dashboard');
+    expect(sanitizeRedirectPath(`/${CR}/evil.test/x`)).toBe('/protected/dashboard');
+  });
+
+  it('제어문자가 어디에 있어도 기본 경로 — 파서마다 다르게 다루므로 통째로 거절', () => {
+    expect(sanitizeRedirectPath(`/invite/gil${TAB}dong-1234`)).toBe('/protected/dashboard');
+    expect(sanitizeRedirectPath(`/invite/x${NUL}`)).toBe('/protected/dashboard');
+  });
+
+  it('파싱했을 때 다른 오리진으로 풀리는 값은 기본 경로', () => {
+    expect(sanitizeRedirectPath('/\\\\evil.test')).toBe('/protected/dashboard');
+    expect(sanitizeRedirectPath('//evil.test/x')).toBe('/protected/dashboard');
+  });
+
+  it('공백·한글·쿼리가 든 정상 경로는 그대로', () => {
+    expect(sanitizeRedirectPath('/protected/social?invite=gildong-1234')).toBe(
+      '/protected/social?invite=gildong-1234'
+    );
+    expect(sanitizeRedirectPath('/invite/길동-1234')).toBe('/invite/길동-1234');
+    expect(sanitizeRedirectPath('/invite/a b')).toBe('/invite/a b');
+  });
+});
