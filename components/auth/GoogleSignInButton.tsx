@@ -9,6 +9,11 @@ import { buildOAuthRedirectTo } from '@/lib/auth/oauthRedirect';
 interface GoogleSignInButtonProps {
   /** 로그인 뒤 돌아갈 같은 오리진 경로(`?redirect=`) — 없으면 홈 */
   redirectParam: string | null;
+  /**
+   * 약관·개인정보 동의를 이 화면에서 이미 받았는가. 가입 화면은 동의 뒤에만 버튼이 눌리므로 true,
+   * 로그인 화면은 false — 처음 온 사람이면 온보딩에서 동의를 받는다.
+   */
+  consented?: boolean;
   disabled?: boolean;
   children?: React.ReactNode;
 }
@@ -39,10 +44,12 @@ function GoogleMark() {
 
 /**
  * Google 계정으로 로그인·가입. Supabase가 Google을 거쳐 `/auth/confirm?code=`로 돌려보내면
- * 서버 착지가 세션을 세우고 프로필 유무에 따라 온보딩 또는 목적지로 보낸다.
+ * 서버 착지가 세션을 세우고 프로필 유무에 따라 온보딩 또는 목적지로 보낸다. 사용자가 Google에서
+ * 취소하면 `code` 없이 `error=`만 붙어 돌아오는데, 그것도 같은 착지가 받아 로그인으로 돌려보낸다.
  */
 export default function GoogleSignInButton({
   redirectParam,
+  consented = false,
   disabled,
   children = 'Google로 계속하기',
 }: GoogleSignInButtonProps) {
@@ -54,7 +61,9 @@ export default function GoogleSignInButton({
     const supabase = createSupabaseClient();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: buildOAuthRedirectTo(window.location.origin, redirectParam) },
+      options: {
+        redirectTo: buildOAuthRedirectTo(window.location.origin, redirectParam, { consented }),
+      },
     });
     // 성공하면 브라우저가 Google로 떠나므로 여기 돌아오는 건 실패했을 때뿐
     if (error) {

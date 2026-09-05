@@ -10,8 +10,14 @@ import FormGroup from '@/components/ui/FormGroup';
 import FormLabel from '@/components/ui/FormLabel';
 import FormAlert from '@/components/ui/FormAlert';
 import AuthFrame from '@/components/auth/AuthFrame';
+import ConsentFieldset, {
+  NO_CONSENT,
+  isConsentComplete,
+  type Consent,
+} from '@/components/auth/ConsentFieldset';
 import { validateNickname, MAX_NICKNAME_LENGTH } from '@/lib/profile/nickname';
 import { sanitizeRedirectPath } from '@/lib/auth/safeRedirect';
+import { CONSENT_REQUIRED_MESSAGE } from '@/lib/auth/consent';
 
 const generateRandomTag = () => Math.floor(1000 + Math.random() * 9000).toString();
 
@@ -27,16 +33,26 @@ const leaveOnboarding = (path: string) => {
 interface OnboardingFormProps {
   /** 소셜 로그인이 알려 준 이름 — 있으면 미리 채워 두고, 사용자가 고칠 수 있다 */
   defaultName?: string;
+  /**
+   * 약관·개인정보 동의를 아직 받지 않은 계정인가(로그인 화면의 Google 버튼으로 처음 온 사람).
+   * 이메일 가입과 가입 화면 Google은 이미 동의했으므로 다시 묻지 않는다.
+   */
+  requireConsent?: boolean;
 }
 
-export default function OnboardingForm({ defaultName = '' }: OnboardingFormProps) {
+export default function OnboardingForm({
+  defaultName = '',
+  requireConsent = false,
+}: OnboardingFormProps) {
   const [name, setName] = useState(defaultName);
   const [nickname, setNickname] = useState('');
   const [bio, setBio] = useState('');
+  const [consent, setConsent] = useState<Consent>(NO_CONSENT);
   const [nicknameError, setNicknameError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const consented = !requireConsent || isConsentComplete(consent);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,8 +60,8 @@ export default function OnboardingForm({ defaultName = '' }: OnboardingFormProps
 
     const problem = validateNickname(nickname.trim());
     setNicknameError(problem);
-    setFormError(null);
-    if (problem) return;
+    setFormError(consented ? null : CONSENT_REQUIRED_MESSAGE);
+    if (problem || !consented) return;
 
     setLoading(true);
     let tag = generateRandomTag();
@@ -57,7 +73,14 @@ export default function OnboardingForm({ defaultName = '' }: OnboardingFormProps
         const res = await fetch('/api/onboarding', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, nickname, tag, bio }),
+          // 동의를 여기서 받았다면 서버가 표식을 남기도록 함께 보낸다
+          body: JSON.stringify({
+            name,
+            nickname,
+            tag,
+            bio,
+            ...(requireConsent && { consent: true }),
+          }),
         });
 
         const result = await res.json().catch(() => ({}));
@@ -95,16 +118,26 @@ export default function OnboardingForm({ defaultName = '' }: OnboardingFormProps
     }
   };
 
-  const canSubmit = name.trim() !== '' && nickname.trim() !== '';
+  const canSubmit = name.trim() !== '' && nickname.trim() !== '' && consented;
 
   return (
-    <AuthFrame title="프로필 설정" lead="이름과 닉네임을 정하면 책장이 열립니다.">
+    <AuthFrame
+      title="프로필 설정"
+      lead={
+        requireConsent
+          ? '이름과 닉네임을 정하고 약관에 동의하면 책장이 열립니다.'
+          : '이름과 닉네임을 정하면 책장이 열립니다.'
+      }
+    >
       <form onSubmit={handleSubmit} noValidate className="space-y-5">
         {formError && <FormAlert>{formError}</FormAlert>}
 
         <FormGroup>
-          <FormLabel htmlFor="name">이름</FormLabel>
+          <FormLabel variant="line" htmlFor="name">
+            이름
+          </FormLabel>
           <Input
+            variant="line"
             id="name"
             name="name"
             autoComplete="name"
@@ -116,8 +149,11 @@ export default function OnboardingForm({ defaultName = '' }: OnboardingFormProps
         </FormGroup>
 
         <FormGroup>
-          <FormLabel htmlFor="nickname">닉네임</FormLabel>
+          <FormLabel variant="line" htmlFor="nickname">
+            닉네임
+          </FormLabel>
           <Input
+            variant="line"
             id="nickname"
             name="nickname"
             autoComplete="username"
@@ -139,8 +175,11 @@ export default function OnboardingForm({ defaultName = '' }: OnboardingFormProps
         </FormGroup>
 
         <FormGroup>
-          <FormLabel htmlFor="bio">자기소개</FormLabel>
+          <FormLabel variant="line" htmlFor="bio">
+            자기소개
+          </FormLabel>
           <Textarea
+            variant="line"
             id="bio"
             name="bio"
             rows={3}
@@ -151,6 +190,17 @@ export default function OnboardingForm({ defaultName = '' }: OnboardingFormProps
             className="resize-none"
           />
         </FormGroup>
+
+        {requireConsent && (
+          <ConsentFieldset
+            idPrefix="onboarding"
+            value={consent}
+            onChange={(next) => {
+              setConsent(next);
+              if (formError) setFormError(null);
+            }}
+          />
+        )}
 
         <Button type="submit" fullWidth loading={loading} disabled={!canSubmit} className="mt-2">
           {loading ? '등록 중...' : '프로필 등록하기'}

@@ -51,6 +51,29 @@ describe('GET /auth/confirm', () => {
     expect(verifyOtp).not.toHaveBeenCalled();
   });
 
+  it('OAuth가 취소·거절돼 code 없이 error만 오면 클라이언트 착지가 아니라 로그인으로 보낸다', async () => {
+    const { verifyOtp, exchangeCodeForSession } = buildSupabaseStub();
+    const res = await get(
+      '?error=access_denied&error_code=user_cancelled&error_description=User+cancelled'
+    );
+    expect(res.status).toBe(307);
+    expect(location(res)).toBe('https://readiary.test/login?error=oauth');
+    expect(verifyOtp).not.toHaveBeenCalled();
+    expect(exchangeCodeForSession).not.toHaveBeenCalled();
+  });
+
+  it('OAuth 실패 시 error_description 하나만 와도 실패로 다루고, next 는 redirect 로 이어 준다', async () => {
+    buildSupabaseStub();
+    const res = await get('?error_description=Provider+rejected&next=%2Finvite%2Fxyz');
+    expect(location(res)).toBe('https://readiary.test/login?error=oauth&redirect=%2Finvite%2Fxyz');
+  });
+
+  it('OAuth 실패의 next 가 외부 주소면 redirect 를 싣지 않는다', async () => {
+    buildSupabaseStub();
+    const res = await get('?error=access_denied&next=https%3A%2F%2Fevil.test');
+    expect(location(res)).toBe('https://readiary.test/login?error=oauth');
+  });
+
   it('type이 이메일 OTP 유형이 아니면 검증 없이 로그인으로 보낸다', async () => {
     const { verifyOtp } = buildSupabaseStub();
     const res = await get('?token_hash=abc&type=sms');
@@ -148,6 +171,37 @@ describe('GET /auth/confirm', () => {
     await get('?code=pkce-code');
     await get('?code=pkce-code&next=%2Fprotected%2Fdashboard');
     expect(updateUser).not.toHaveBeenCalled();
+  });
+
+  it('가입 화면에서 동의하고 온 OAuth(consent=1)는 동의 표식을 메타데이터에 남긴다', async () => {
+    const { updateUser } = buildSupabaseStub();
+    const res = await get('?code=pkce-code&consent=1');
+    expect(updateUser).toHaveBeenCalledTimes(1);
+    expect(updateUser).toHaveBeenCalledWith({ data: { consented_at: expect.any(String) } });
+    expect(location(res)).toBe('https://readiary.test/onboarding');
+  });
+
+  it('동의 표식과 복귀 경로는 한 번의 updateUser 로 함께 싣는다', async () => {
+    const { updateUser } = buildSupabaseStub();
+    await get('?code=pkce-code&next=%2Finvite%2Fx&consent=1');
+    expect(updateUser).toHaveBeenCalledTimes(1);
+    expect(updateUser).toHaveBeenCalledWith({
+      data: { pending_redirect: '/invite/x', consented_at: expect.any(String) },
+    });
+  });
+
+  it("consent 가 '1' 이 아니면 표식을 남기지 않는다 — 로그인 화면 Google 은 온보딩에서 동의를 받는다", async () => {
+    const { updateUser } = buildSupabaseStub();
+    await get('?code=pkce-code&consent=true');
+    await get('?code=pkce-code&consent=0');
+    expect(updateUser).not.toHaveBeenCalled();
+  });
+
+  it('프로필이 이미 있으면 consent=1 이어도 메타데이터를 건드리지 않고 목적지로 보낸다', async () => {
+    const { updateUser } = buildSupabaseStub({ profile: { id: 'user-1' } });
+    const res = await get('?code=pkce-code&consent=1');
+    expect(updateUser).not.toHaveBeenCalled();
+    expect(location(res)).toBe('https://readiary.test/protected/dashboard');
   });
 
   it('실어 두기에 실패해도 온보딩으로는 보낸다', async () => {

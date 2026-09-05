@@ -25,6 +25,18 @@ describe('buildOAuthRedirectTo', () => {
       'https://www.readiary.net/auth/confirm'
     );
   });
+
+  it('가입 화면에서 동의를 마쳤으면 consent=1 을 싣는다 — 로그인 화면(기본)은 싣지 않는다', () => {
+    expect(
+      buildOAuthRedirectTo('https://www.readiary.net', '/invite/abc', { consented: true })
+    ).toBe('https://www.readiary.net/auth/confirm?next=%2Finvite%2Fabc&consent=1');
+    expect(buildOAuthRedirectTo('https://www.readiary.net', null, { consented: true })).toBe(
+      'https://www.readiary.net/auth/confirm?consent=1'
+    );
+    expect(buildOAuthRedirectTo('https://www.readiary.net', null, { consented: false })).toBe(
+      'https://www.readiary.net/auth/confirm'
+    );
+  });
 });
 
 describe('isGoogleLoginEnabled', () => {

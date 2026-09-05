@@ -19,7 +19,6 @@ const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>((props, r
           onClick={() => setVisible((v) => !v)}
           aria-label={visible ? '비밀번호 숨기기' : '비밀번호 표시'}
           aria-pressed={visible}
-          tabIndex={-1}
           className="rounded-full p-2 text-ink-faint transition-colors hover:text-ink-sub"
         >
           {visible ? <EyeOff size={18} strokeWidth={1.75} /> : <Eye size={18} strokeWidth={1.75} />}

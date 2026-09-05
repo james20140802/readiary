@@ -10,9 +10,12 @@ vi.mock('@/lib/supabase/server', () => ({
 type FakeUser = { id: string; user_metadata?: Record<string, unknown> } | null;
 type FakeInsertError = { code?: string; message?: string } | null;
 
+/** 가입 때 남긴 약관·개인정보 동의 표식 — 이메일 가입과 가입 화면 Google 은 이걸 갖고 온다 */
+const CONSENTED = { consented_at: '2026-09-06T00:00:00.000Z' };
+
 /** 라우트가 실제로 사용하는 체인만 흉내 내는 최소 supabase 스텁. */
 function buildSupabaseStub({
-  user = { id: 'user-1' } as FakeUser,
+  user = { id: 'user-1', user_metadata: CONSENTED } as FakeUser,
   userError = null as { message: string } | null,
   insertData = null as Record<string, unknown> | null,
   insertError = null as FakeInsertError,
@@ -96,7 +99,10 @@ describe('POST /api/onboarding', () => {
 
   it('가입 때 실어 둔 복귀 경로(pending_redirect)가 있으면 redirectTo로 돌려주고 메타데이터를 비운다', async () => {
     const { stub, updateUser } = buildSupabaseStub({
-      user: { id: 'user-1', user_metadata: { pending_redirect: '/invite/gildong-1234' } },
+      user: {
+        id: 'user-1',
+        user_metadata: { ...CONSENTED, pending_redirect: '/invite/gildong-1234' },
+      },
       insertData: { id: 'user-1', ...validBody },
     });
     vi.mocked(createSupabaseServerClient).mockResolvedValue(stub as never);
@@ -111,7 +117,10 @@ describe('POST /api/onboarding', () => {
 
   it('복귀 경로가 외부 주소면 redirectTo를 내지 않는다 — 메타데이터는 사용자가 고칠 수 있다', async () => {
     const { stub, updateUser } = buildSupabaseStub({
-      user: { id: 'user-1', user_metadata: { pending_redirect: 'https://evil.test/x' } },
+      user: {
+        id: 'user-1',
+        user_metadata: { ...CONSENTED, pending_redirect: 'https://evil.test/x' },
+      },
       insertData: { id: 'user-1', ...validBody },
     });
     vi.mocked(createSupabaseServerClient).mockResolvedValue(stub as never);
@@ -126,7 +135,10 @@ describe('POST /api/onboarding', () => {
 
   it('메타데이터 정리에 실패해도 등록은 성공으로 답하고 redirectTo를 준다', async () => {
     const { stub, updateUser } = buildSupabaseStub({
-      user: { id: 'user-1', user_metadata: { pending_redirect: '/invite/gildong-1234' } },
+      user: {
+        id: 'user-1',
+        user_metadata: { ...CONSENTED, pending_redirect: '/invite/gildong-1234' },
+      },
       insertData: { id: 'user-1', ...validBody },
     });
     updateUser.mockResolvedValue({ data: { user: null }, error: { message: 'boom' } });
@@ -137,6 +149,85 @@ describe('POST /api/onboarding', () => {
 
     expect(res.status).toBe(200);
     expect(json).toEqual({ success: true, redirectTo: '/invite/gildong-1234' });
+  });
+
+  describe('약관·개인정보 동의 — 로그인 화면 Google 로 처음 온 사람은 표식이 없다', () => {
+    it('표식도 없고 본문에 consent 도 없으면 400 consent_required, insert 하지 않는다', async () => {
+      const { stub, insert } = buildSupabaseStub({ user: { id: 'user-1' } });
+      vi.mocked(createSupabaseServerClient).mockResolvedValue(stub as never);
+
+      const res = await POST(makeRequest(validBody));
+      const json = await res.json();
+
+      expect(res.status).toBe(400);
+      expect(json.code).toBe('consent_required');
+      expect(insert).not.toHaveBeenCalled();
+    });
+
+    it("consent 는 정확히 true 여야 한다 — 'true'·1 은 동의가 아니다", async () => {
+      const { stub, insert } = buildSupabaseStub({ user: { id: 'user-1' } });
+      vi.mocked(createSupabaseServerClient).mockResolvedValue(stub as never);
+
+      expect((await POST(makeRequest({ ...validBody, consent: 'true' }))).status).toBe(400);
+      expect((await POST(makeRequest({ ...validBody, consent: 1 }))).status).toBe(400);
+      expect(insert).not.toHaveBeenCalled();
+    });
+
+    it('온보딩에서 동의하면(consent: true) 등록하고 표식을 메타데이터에 남긴다', async () => {
+      const { stub, insert, updateUser } = buildSupabaseStub({
+        user: { id: 'user-1' },
+        insertData: { id: 'user-1', ...validBody },
+      });
+      vi.mocked(createSupabaseServerClient).mockResolvedValue(stub as never);
+
+      const res = await POST(makeRequest({ ...validBody, consent: true }));
+      const json = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(json).toEqual({ success: true });
+      expect(insert).toHaveBeenCalledTimes(1);
+      expect(updateUser).toHaveBeenCalledTimes(1);
+      expect(updateUser).toHaveBeenCalledWith({ data: { consented_at: expect.any(String) } });
+    });
+
+    it('표식이 이미 있으면 다시 남기지 않는다', async () => {
+      const { stub, updateUser } = buildSupabaseStub({ insertData: { id: 'user-1' } });
+      vi.mocked(createSupabaseServerClient).mockResolvedValue(stub as never);
+
+      const res = await POST(makeRequest({ ...validBody, consent: true }));
+
+      expect(res.status).toBe(200);
+      expect(updateUser).not.toHaveBeenCalled();
+    });
+
+    it('동의 표식과 복귀 경로 정리는 한 번의 updateUser 로 함께 한다', async () => {
+      const { stub, updateUser } = buildSupabaseStub({
+        user: { id: 'user-1', user_metadata: { pending_redirect: '/invite/gildong-1234' } },
+        insertData: { id: 'user-1' },
+      });
+      vi.mocked(createSupabaseServerClient).mockResolvedValue(stub as never);
+
+      const res = await POST(makeRequest({ ...validBody, consent: true }));
+      const json = await res.json();
+
+      expect(json).toEqual({ success: true, redirectTo: '/invite/gildong-1234' });
+      expect(updateUser).toHaveBeenCalledTimes(1);
+      expect(updateUser).toHaveBeenCalledWith({
+        data: { consented_at: expect.any(String), pending_redirect: null },
+      });
+    });
+
+    it('표식 남기기에 실패해도 등록은 성공으로 답한다', async () => {
+      const { stub, updateUser } = buildSupabaseStub({
+        user: { id: 'user-1' },
+        insertData: { id: 'user-1' },
+      });
+      updateUser.mockResolvedValue({ data: { user: null }, error: { message: 'boom' } });
+      vi.mocked(createSupabaseServerClient).mockResolvedValue(stub as never);
+
+      const res = await POST(makeRequest({ ...validBody, consent: true }));
+      expect(res.status).toBe(200);
+    });
   });
 
   it('pkey 유니크 위반(23505 + profiles_pkey) 시 409 profile_exists를 반환한다', async () => {

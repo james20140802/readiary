@@ -42,6 +42,10 @@ export default function LoginPage() {
     if (searchParams.get('error') === 'invalid-link') {
       toast.error('인증 링크가 만료되었거나 이미 사용되었습니다. 로그인하거나 다시 가입해주세요.');
     }
+    // Google에서 취소했거나 제공자가 거절해 code 없이 돌아온 경우
+    if (searchParams.get('error') === 'oauth') {
+      toast.error('Google 로그인이 취소되었거나 완료되지 않았습니다. 다시 시도해주세요.');
+    }
   }, [searchParams]);
 
   const redirectParam = searchParams.get('redirect');
@@ -138,8 +142,11 @@ export default function LoginPage() {
         )}
 
         <FormGroup>
-          <FormLabel htmlFor="login-email">이메일</FormLabel>
+          <FormLabel variant="line" htmlFor="login-email">
+            이메일
+          </FormLabel>
           <Input
+            variant="line"
             id="login-email"
             type="email"
             name="email"
@@ -158,7 +165,9 @@ export default function LoginPage() {
 
         <FormGroup>
           <div className="flex items-baseline justify-between">
-            <FormLabel htmlFor="login-password">비밀번호</FormLabel>
+            <FormLabel variant="line" htmlFor="login-password">
+              비밀번호
+            </FormLabel>
             <Link
               href="/reset-password"
               className="text-caption text-ink-sub underline underline-offset-4 hover:text-ink"
@@ -167,6 +176,7 @@ export default function LoginPage() {
             </Link>
           </div>
           <PasswordInput
+            variant="line"
             id="login-password"
             name="password"
             autoComplete="current-password"
