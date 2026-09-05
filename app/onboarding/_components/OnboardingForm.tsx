@@ -12,6 +12,15 @@ import { validateNickname } from '@/lib/profile/nickname';
 
 const generateRandomTag = () => Math.floor(1000 + Math.random() * 9000).toString();
 
+/**
+ * 프로필이 생긴 직후의 이동은 전체 페이지 이동으로 — 이 화면에 있는 동안 클라이언트 라우터가 받아 둔
+ * 보호 라우트 응답은 전부 "프로필 없음 → /onboarding" 리다이렉트라, router.push 로 가면 그 낡은 캐시를
+ * 재사용해 온보딩 화면에 그대로 머문다(2026-09-05 프로덕션 재현: 등록 201 뒤 서버 요청 0건).
+ */
+const leaveOnboarding = (path: string) => {
+  window.location.assign(path);
+};
+
 export default function OnboardingForm() {
   const [name, setName] = useState('');
   const [nickname, setNickname] = useState('');
@@ -42,7 +51,7 @@ export default function OnboardingForm() {
         });
 
         if (res.ok) {
-          router.push('/protected/dashboard');
+          leaveOnboarding('/protected/dashboard');
           return;
         }
 
@@ -53,7 +62,7 @@ export default function OnboardingForm() {
           tries++;
         } else if (res.status === 409 && result.code === 'profile_exists') {
           toast.info(result.error || '이미 프로필이 존재합니다.');
-          router.push('/protected/dashboard');
+          leaveOnboarding('/protected/dashboard');
           return;
         } else if (res.status === 401) {
           toast.error('세션이 만료되었습니다. 다시 로그인해주세요.');

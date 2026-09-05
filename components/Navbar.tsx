@@ -77,10 +77,11 @@ export default function Navbar({ loggedIn, showNav, hasUnread }: NavbarProps) {
         className="fixed inset-x-0 top-0 z-50 hidden border-b border-hairline bg-paper/90 px-8 py-5 backdrop-blur-md md:flex"
       >
         <div className="mx-auto flex w-full max-w-screen-md items-center justify-between text-sm text-ink-sub">
+          {/* Header 의 로고와 같은 이유로 GNB 가 보일 때만 프리페치 (온보딩 등 bare 화면 제외) */}
           <Link
             href={loggedIn ? '/protected/dashboard' : '/'}
             className="flex items-center gap-2 font-serif text-lg font-bold tracking-wide text-ink"
-            prefetch={loggedIn}
+            prefetch={showNav}
           >
             <BookMarked size={20} />
             Readiary
