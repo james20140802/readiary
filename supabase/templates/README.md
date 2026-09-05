@@ -27,7 +27,14 @@ Supabase Auth가 보내는 메일의 원본. 대시보드에 붙여 넣은 내�
   Redirect URLs 허용 목록에 `https://www.readiary.net/auth/confirm**`(또는 `/**`)가 있어야 한다 —
   OAuth 복귀도 같은 모양(`/auth/confirm?next=…`)을 쓴다.
 - 재설정 링크에는 `next`를 싣지 않는다(착지가 항상 `/update-password`로 보낸다).
-- Password changed는 링크가 필요 없는 알림 — 버튼은 `{{ .SiteURL }}/reset-password`로 가는 보조 아웃라인.
+- 링크의 호스트는 늘 `{{ .SiteURL }}`(프로덕션)이다. 로컬·프리뷰에서 요청한 메일도 프로덕션 착지로 오고,
+  착지는 `next` 안의 경로만 살린다. `{{ .RedirectTo }}`를 호스트로 쓰지 않는 이유: 허용 목록에 없으면
+  Supabase가 조용히 Site URL로 바꿔 넣는데 Go 템플릿에서 그걸 분간할 수 없어 링크가 깨질 수 있다.
+  `NEXT_PUBLIC_EMAIL_REDIRECT_TO`·`NEXT_PUBLIC_PASSWORD_RESET_REDIRECT_TO`는 옛 `{{ .ConfirmationURL }}`
+  템플릿에서만 착지를 정한다.
+- Password changed는 링크가 필요 없는 알림 — 버튼은 `{{ .SiteURL }}/reset-password?from=alert`로 가는 보조
+  아웃라인. `from=alert`가 있으면 이 기기에 세션이 남아 있어도 프로필(현재 비밀번호 확인)로 보내지 않고
+  이메일 재설정 폼을 그대로 보여 준다 — 남이 바꿨다면 현재 비밀번호를 모르기 때문.
 
 ## 켜는 순서(사람 작업)
 

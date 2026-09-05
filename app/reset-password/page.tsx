@@ -25,21 +25,28 @@ export default function ResetPasswordPage() {
   const searchParams = useSearchParams();
   const supabase = createSupabaseClient();
 
-  // 로그인한 사람은 재설정이 아니라 프로필의 비밀번호 변경으로 — 현재 비밀번호 확인이 거기 있다
+  // "비밀번호가 바뀌었습니다" 알림 메일에서 왔다 — 남이 바꿨다면 현재 비밀번호를 모르므로,
+  // 이 기기에 세션이 남아 있어도 이메일로 새 비밀번호를 정하는 길을 열어 둔다
+  const fromAlert = searchParams.get('from') === 'alert';
+  // /auth/confirm 이 재설정 링크 검증에 실패해 돌려보낸 경우 — 만료됐거나 이미 쓴 링크
+  const invalidLink = searchParams.get('error') === 'invalid-link';
+
+  // 로그인한 사람은 재설정이 아니라 프로필의 비밀번호 변경으로 — 현재 비밀번호 확인이 거기 있다.
+  // 단 알림 메일에서 왔거나 재설정 링크가 막 실패한 사람은 이메일 재설정을 다시 밟아야 하니 여기 둔다
   useEffect(() => {
+    if (fromAlert || invalidLink) return;
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         router.replace('/protected/profile/update-password');
       }
     });
-  }, [supabase, router]);
+  }, [supabase, router, fromAlert, invalidLink]);
 
   useEffect(() => {
-    // /auth/confirm 이 재설정 링크 검증에 실패하면 여기로 보낸다 — 만료됐거나 이미 쓴 링크
-    if (searchParams.get('error') === 'invalid-link') {
+    if (invalidLink) {
       toast.error('재설정 링크가 만료되었거나 이미 사용되었습니다. 다시 요청해주세요.');
     }
-  }, [searchParams]);
+  }, [invalidLink]);
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,7 +77,13 @@ export default function ResetPasswordPage() {
   return (
     <AuthFrame
       title="비밀번호 재설정"
-      lead={sent ? undefined : '가입할 때 쓴 이메일로 재설정 링크를 보내드립니다.'}
+      lead={
+        sent
+          ? undefined
+          : fromAlert
+            ? '기억에 없는 변경이라면 지금 새 비밀번호를 정해 주세요. 로그인된 상태여도 이메일로 진행할 수 있습니다.'
+            : '가입할 때 쓴 이메일로 재설정 링크를 보내드립니다.'
+      }
       footer={
         <p>
           <Link href="/login">로그인으로 돌아가기</Link>

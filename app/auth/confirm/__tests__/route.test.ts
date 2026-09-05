@@ -146,10 +146,24 @@ describe('GET /auth/confirm', () => {
     );
     expect(location(root)).toBe('https://readiary.test/protected/dashboard');
     const other = await get(
-      '?token_hash=abc&type=email&next=' +
-        encodeURIComponent('https://evil.test/auth/confirm?next=%2Finvite%2Fx')
+      '?token_hash=abc&type=email&next=' + encodeURIComponent('https://evil.test/invite/x')
     );
     expect(location(other)).toBe('https://readiary.test/protected/dashboard');
+  });
+
+  it('로컬·프리뷰 오리진에서 요청한 메일도 착지 안의 next 경로는 살린다 — 링크는 늘 Site URL로 열리므로', async () => {
+    buildSupabaseStub({ profile: { id: 'user-1' } });
+    const res = await get(
+      '?token_hash=abc&type=email&next=' +
+        encodeURIComponent('http://localhost:3000/auth/confirm?next=%2Finvite%2Fxyz')
+    );
+    expect(location(res)).toBe('https://readiary.test/invite/xyz');
+    // 안의 next 가 외부 주소면 그래도 홈
+    const evil = await get(
+      '?token_hash=abc&type=email&next=' +
+        encodeURIComponent('http://localhost:3000/auth/confirm?next=https%3A%2F%2Fevil.test')
+    );
+    expect(location(evil)).toBe('https://readiary.test/protected/dashboard');
   });
 
   it('next가 외부 주소면 홈으로 대체한다', async () => {
