@@ -252,7 +252,8 @@ export default function ProfileBook({
 
   const handleSignOut = async () => {
     const supabase = createSupabaseClient();
-    await supabase.auth.signOut();
+    // 이 기기만 로그아웃 — 기본값(global)은 휴대폰에서 눌렀는데 데스크톱 세션까지 끊어 버린다
+    await supabase.auth.signOut({ scope: 'local' });
     router.push('/login');
     router.refresh();
   };

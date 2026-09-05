@@ -2,13 +2,15 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import Button from '@/components/ui/Button';
+import FormGroup from '@/components/ui/FormGroup';
 import FormLabel from '@/components/ui/FormLabel';
-import { toast } from 'sonner';
-import AnimatedSection from '@/components/ui/AnimatedSection';
-import { validateNickname } from '@/lib/profile/nickname';
+import FormAlert from '@/components/ui/FormAlert';
+import AuthFrame from '@/components/auth/AuthFrame';
+import { validateNickname, MAX_NICKNAME_LENGTH } from '@/lib/profile/nickname';
 import { sanitizeRedirectPath } from '@/lib/auth/safeRedirect';
 
 const generateRandomTag = () => Math.floor(1000 + Math.random() * 9000).toString();
@@ -22,23 +24,30 @@ const leaveOnboarding = (path: string) => {
   window.location.assign(path);
 };
 
-export default function OnboardingForm() {
-  const [name, setName] = useState('');
+interface OnboardingFormProps {
+  /** 소셜 로그인이 알려 준 이름 — 있으면 미리 채워 두고, 사용자가 고칠 수 있다 */
+  defaultName?: string;
+}
+
+export default function OnboardingForm({ defaultName = '' }: OnboardingFormProps) {
+  const [name, setName] = useState(defaultName);
   const [nickname, setNickname] = useState('');
   const [bio, setBio] = useState('');
+  const [nicknameError, setNicknameError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (loading) return;
+
+    const problem = validateNickname(nickname.trim());
+    setNicknameError(problem);
+    setFormError(null);
+    if (problem) return;
+
     setLoading(true);
-
-    const nicknameError = validateNickname(nickname);
-    if (nicknameError) {
-      toast.error(nicknameError);
-      setLoading(false);
-      return;
-    }
-
     let tag = generateRandomTag();
     let tries = 0;
     const maxTries = 5;
@@ -73,57 +82,80 @@ export default function OnboardingForm() {
           router.push('/login');
           return;
         } else {
-          toast.error(result.error || '프로필 등록 중 오류가 발생했습니다.');
-          setLoading(false);
+          setFormError(result.error || '프로필 등록 중 오류가 발생했습니다.');
           return;
         }
       }
-      toast.error('태그 생성이 계속 겹칩니다. 닉네임을 바꿔 다시 시도해주세요.');
+      setFormError('태그 생성이 계속 겹칩니다. 닉네임을 바꿔 다시 시도해주세요.');
     } catch (error) {
-      toast.error('예기치 않은 오류가 발생했습니다. 나중에 다시 시도해주세요.');
+      setFormError('예기치 않은 오류가 발생했습니다. 나중에 다시 시도해주세요.');
       console.error(error);
     } finally {
       setLoading(false);
     }
   };
 
+  const canSubmit = name.trim() !== '' && nickname.trim() !== '';
+
   return (
-    <div className="flex items-center justify-center">
-      <div className="w-full space-y-4">
-        <h1 className="text-xl font-semibold text-center text-ink">프로필 설정</h1>
-        <AnimatedSection>
+    <AuthFrame title="프로필 설정" lead="이름과 닉네임을 정하면 책장이 열립니다.">
+      <form onSubmit={handleSubmit} noValidate className="space-y-5">
+        {formError && <FormAlert>{formError}</FormAlert>}
+
+        <FormGroup>
           <FormLabel htmlFor="name">이름</FormLabel>
           <Input
             id="name"
-            placeholder="이름"
+            name="name"
+            autoComplete="name"
+            placeholder="친구에게 보이는 이름"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full border p-2 rounded bg-card"
+            required
           />
+        </FormGroup>
+
+        <FormGroup>
           <FormLabel htmlFor="nickname">닉네임</FormLabel>
           <Input
             id="nickname"
-            placeholder="닉네임"
+            name="nickname"
+            autoComplete="username"
+            autoCapitalize="none"
+            spellCheck={false}
+            maxLength={MAX_NICKNAME_LENGTH}
+            placeholder="영문·숫자·언더스코어"
             value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
-            className="w-full border p-2 rounded bg-card"
+            onChange={(e) => {
+              setNickname(e.target.value);
+              if (nicknameError) setNicknameError(null);
+            }}
+            error={nicknameError ?? undefined}
+            required
           />
-          <p className="mt-1 text-sm text-ink-faint">
-            닉네임은 영어 알파벳과 숫자, 언더스코어(_)만 사용할 수 있습니다.
+          <p className="text-caption text-ink-faint">
+            영어 알파벳과 숫자, 언더스코어(_)만 쓸 수 있습니다. 친구가 나를 찾을 때 씁니다.
           </p>
+        </FormGroup>
+
+        <FormGroup>
           <FormLabel htmlFor="bio">자기소개</FormLabel>
           <Textarea
             id="bio"
-            placeholder="자기소개 (선택)"
+            name="bio"
+            rows={3}
+            placeholder="한 줄이면 충분합니다 (선택)"
             value={bio}
             onChange={(e) => setBio(e.target.value)}
-            className="w-full border p-2 rounded bg-card resize-none"
+            fullWidth
+            className="resize-none"
           />
-          <Button className="w-full" onClick={handleSubmit} disabled={loading} variant="primary">
-            {loading ? '등록 중...' : '프로필 등록하기'}
-          </Button>
-        </AnimatedSection>
-      </div>
-    </div>
+        </FormGroup>
+
+        <Button type="submit" fullWidth loading={loading} disabled={!canSubmit} className="mt-2">
+          {loading ? '등록 중...' : '프로필 등록하기'}
+        </Button>
+      </form>
+    </AuthFrame>
   );
 }

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Bell, BookMarked, Home, LibraryBig, Globe, UserRound } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import clsx from 'clsx';
+import Button from '@/components/ui/Button';
 
 interface NavItem {
   href: string;
@@ -123,6 +124,25 @@ export default function Navbar({ loggedIn, showNav, hasUnread }: NavbarProps) {
                   </span>
                 )}
               </Link>
+            </div>
+          )}
+
+          {/* 비로그인 방문자 — 로고만 있던 오른쪽에 로그인·시작하기. 지금 있는 화면의 것은 뺀다 */}
+          {!loggedIn && (
+            <div className="flex items-center gap-1">
+              {pathname !== '/login' && (
+                <Link
+                  href="/login"
+                  className="rounded-md px-3 py-1 text-ink-sub transition hover:bg-card-raised hover:text-ink"
+                >
+                  로그인
+                </Link>
+              )}
+              {pathname !== '/signup' && (
+                <Button asChild size="sm" className="ml-1">
+                  <Link href="/signup">시작하기</Link>
+                </Button>
+              )}
             </div>
           )}
         </div>

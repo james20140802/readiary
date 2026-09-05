@@ -2,34 +2,33 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { createSupabaseClient } from '@/lib/supabase/client';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { toast } from 'sonner';
+import { createSupabaseClient } from '@/lib/supabase/client';
 import { Input } from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
-import { toast } from 'sonner';
-import AnimatedSection from '@/components/ui/AnimatedSection';
+import FormGroup from '@/components/ui/FormGroup';
+import FormLabel from '@/components/ui/FormLabel';
+import FormAlert from '@/components/ui/FormAlert';
+import AuthFrame from '@/components/auth/AuthFrame';
+import PasswordInput from '@/components/auth/PasswordInput';
+import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
+import OrDivider from '@/components/auth/OrDivider';
 import { sanitizeRedirectPath } from '@/lib/auth/safeRedirect';
-
-const errorMap: Record<string, string> = {
-  'Invalid login credentials': '이메일 또는 비밀번호가 일치하지 않습니다.',
-  'Email not confirmed': '이메일 인증이 완료되지 않았습니다. 받은 메일함을 확인해주세요.',
-  'Email logins are disabled': '이메일 로그인이 비활성화되어 있습니다.',
-};
-
-/** Supabase 오류 문구를 한글로 — 표에 없는 것은 레이트리밋만 따로 가려낸다 */
-function describeError(message: string): string {
-  if (errorMap[message]) return errorMap[message];
-  if (/rate limit|too many requests/i.test(message)) {
-    return '시도가 너무 잦습니다. 잠시 후 다시 시도해주세요.';
-  }
-  return '로그인 중 오류가 발생했습니다.';
-}
+import { describeAuthError, isEmailNotConfirmed, validateEmail } from '@/lib/auth/authErrors';
+import { emailConfirmRedirectTo } from '@/lib/auth/emailRedirect';
+import { isGoogleLoginEnabled } from '@/lib/auth/oauthRedirect';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
+  // "이메일 미인증"으로 막혔을 때만 재발송 버튼을 함께 보여준다
+  const [unconfirmed, setUnconfirmed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [resending, setResending] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createSupabaseClient();
@@ -45,89 +44,147 @@ export default function LoginPage() {
     }
   }, [searchParams]);
 
+  const redirectParam = searchParams.get('redirect');
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
-    setError('');
+
+    const emailProblem = validateEmail(email);
+    const passwordProblem = password === '' ? '비밀번호를 입력해주세요.' : null;
+    setEmailError(emailProblem);
+    setPasswordError(passwordProblem);
+    setFormError(null);
+    setUnconfirmed(false);
+    if (emailProblem || passwordProblem) return;
+
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
       if (error) {
-        setError(describeError(error.message));
+        setFormError(describeAuthError('login', error.message));
+        setUnconfirmed(isEmailNotConfirmed(error.message));
         return;
       }
-      toast.success('로그인 성공!');
-      const redirectTo = sanitizeRedirectPath(searchParams.get('redirect'));
-      router.push(redirectTo);
+      router.push(sanitizeRedirectPath(redirectParam));
       router.refresh();
     } catch {
-      setError('서버와 통신 중 오류가 발생했습니다.');
+      setFormError('서버와 통신 중 오류가 발생했습니다.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  // 인증 메일이 안 왔거나 만료된 사람을 가입 화면으로 되돌리지 않고 여기서 다시 보낸다
+  const handleResend = async () => {
+    if (resending) return;
+    setResending(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email.trim(),
+        options: { emailRedirectTo: emailConfirmRedirectTo(window.location.origin) },
+      });
+      if (error) {
+        toast.error(describeAuthError('signup', error.message));
+      } else {
+        toast.success('인증 메일을 다시 보냈습니다. 받은 메일함을 확인해주세요.');
+      }
+    } finally {
+      setResending(false);
+    }
+  };
+
   // 다른 화면에서 왔다면(redirect 파라미터) 가입 링크에도 실어 보내, 가입 뒤 같은 곳으로 돌아오게
-  const redirectParam = searchParams.get('redirect');
   const signupHref = redirectParam
     ? `/signup?redirect=${encodeURIComponent(redirectParam)}`
     : '/signup';
 
   return (
-    <div className="flex items-center justify-center">
-      <div className="w-full">
-        <h1 className="text-section-title font-semibold mb-6 text-center">로그인</h1>
-        <AnimatedSection>
-          <form onSubmit={handleLogin} noValidate>
-            {error && (
-              <div role="alert" className="mb-4 p-2 rounded text-sm text-danger bg-danger-soft">
-                {error}
-              </div>
+    <AuthFrame
+      title="로그인"
+      lead="이어서 오늘의 문장을 남겨 보세요."
+      footer={
+        <p>
+          아직 회원이 아니신가요? <Link href={signupHref}>가입하기</Link>
+        </p>
+      }
+    >
+      {isGoogleLoginEnabled() && (
+        <>
+          <GoogleSignInButton redirectParam={redirectParam} />
+          <OrDivider />
+        </>
+      )}
+
+      <form onSubmit={handleLogin} noValidate className="space-y-5">
+        {formError && (
+          <FormAlert>
+            {formError}
+            {unconfirmed && (
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={resending}
+                className="mt-1 block font-semibold underline underline-offset-4 disabled:opacity-50"
+              >
+                {resending ? '보내는 중...' : '인증 메일 다시 보내기'}
+              </button>
             )}
+          </FormAlert>
+        )}
 
-            <Input
-              type="email"
-              name="email"
-              autoComplete="email"
-              inputMode="email"
-              placeholder="이메일"
-              aria-label="이메일"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-            <Input
-              type="password"
-              name="password"
-              autoComplete="current-password"
-              placeholder="비밀번호"
-              aria-label="비밀번호"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-3"
-              required
-            />
-            <Button
-              type="submit"
-              className="w-full mt-4"
-              disabled={isSubmitting || email.trim() === '' || password === ''}
+        <FormGroup>
+          <FormLabel htmlFor="login-email">이메일</FormLabel>
+          <Input
+            id="login-email"
+            type="email"
+            name="email"
+            autoComplete="email"
+            inputMode="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (emailError) setEmailError(null);
+            }}
+            error={emailError ?? undefined}
+            required
+          />
+        </FormGroup>
+
+        <FormGroup>
+          <div className="flex items-baseline justify-between">
+            <FormLabel htmlFor="login-password">비밀번호</FormLabel>
+            <Link
+              href="/reset-password"
+              className="text-caption text-ink-sub underline underline-offset-4 hover:text-ink"
             >
-              {isSubmitting ? '로그인 중...' : '로그인하기'}
-            </Button>
-          </form>
+              잊으셨나요?
+            </Link>
+          </div>
+          <PasswordInput
+            id="login-password"
+            name="password"
+            autoComplete="current-password"
+            placeholder="비밀번호"
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              if (passwordError) setPasswordError(null);
+            }}
+            error={passwordError ?? undefined}
+            required
+          />
+        </FormGroup>
 
-          <p className="text-sm text-center mt-4">
-            <Link href={signupHref} className="text-ink-sub underline">
-              아직 회원이 아니신가요?
-            </Link>
-          </p>
-          <p className="text-sm text-center !mt-4">
-            <Link href="/reset-password" className="text-ink-sub underline">
-              비밀번호를 잊으셨나요?
-            </Link>
-          </p>
-        </AnimatedSection>
-      </div>
-    </div>
+        <Button type="submit" fullWidth loading={isSubmitting} className="mt-2">
+          {isSubmitting ? '로그인 중...' : '로그인'}
+        </Button>
+      </form>
+    </AuthFrame>
   );
 }

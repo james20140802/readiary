@@ -24,9 +24,10 @@ function buildSupabaseStub({
   const from = vi.fn().mockReturnValue({ select });
   const verifyOtp = vi.fn().mockResolvedValue(verify);
   const exchangeCodeForSession = vi.fn().mockResolvedValue(exchange);
-  const stub = { auth: { verifyOtp, exchangeCodeForSession }, from };
+  const updateUser = vi.fn().mockResolvedValue({ data: { user: { id: 'user-1' } }, error: null });
+  const stub = { auth: { verifyOtp, exchangeCodeForSession, updateUser }, from };
   vi.mocked(createSupabaseServerClient).mockResolvedValue(stub as never);
-  return { verifyOtp, exchangeCodeForSession, from, eq };
+  return { verifyOtp, exchangeCodeForSession, updateUser, from, eq };
 }
 
 function get(query: string) {
@@ -131,6 +132,30 @@ describe('GET /auth/confirm', () => {
     buildSupabaseStub({ exchange: fail });
     const res = await get('?code=pkce-code');
     expect(location(res)).toBe('https://readiary.test/login?error=invalid-link');
+  });
+
+  it('OAuth로 처음 온 사람(프로필 없음)의 next는 메타데이터에 실어 두고 온보딩으로', async () => {
+    const { updateUser } = buildSupabaseStub();
+    const res = await get('?code=pkce-code&next=%2Finvite%2Fgildong-1234');
+    expect(updateUser).toHaveBeenCalledWith({
+      data: { pending_redirect: '/invite/gildong-1234' },
+    });
+    expect(location(res)).toBe('https://readiary.test/onboarding');
+  });
+
+  it('next가 없거나 기본 목적지면 메타데이터를 건드리지 않는다', async () => {
+    const { updateUser } = buildSupabaseStub();
+    await get('?code=pkce-code');
+    await get('?code=pkce-code&next=%2Fprotected%2Fdashboard');
+    expect(updateUser).not.toHaveBeenCalled();
+  });
+
+  it('실어 두기에 실패해도 온보딩으로는 보낸다', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { updateUser } = buildSupabaseStub();
+    updateUser.mockResolvedValue({ data: { user: null }, error: { message: 'boom' } });
+    const res = await get('?code=pkce-code&next=%2Finvite%2Fx');
+    expect(location(res)).toBe('https://readiary.test/onboarding');
   });
 
   it('token_hash와 code가 같이 오면 token_hash를 쓴다', async () => {

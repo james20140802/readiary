@@ -24,15 +24,20 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
     }
 
-    const { name, nickname, tag, bio } = body;
-
-    if (!name || !nickname || !tag) {
-      return NextResponse.json({ error: '이름과 닉네임을 입력해주세요.' }, { status: 400 });
-    }
+    const { name: rawName, nickname: rawNickname, tag, bio: rawBio } = body;
 
     // 문자열이 아닌 값(배열 등)은 String()으로 눙치지 않고 거절한다 — 강제 변환된 값만 검증을
     // 통과하고 원본이 그대로 insert되면 서버 규칙이 무력해진다
-    if (typeof name !== 'string' || typeof nickname !== 'string' || typeof tag !== 'string') {
+    if (typeof rawName !== 'string' || typeof rawNickname !== 'string' || typeof tag !== 'string') {
+      return NextResponse.json({ error: '이름과 닉네임을 입력해주세요.' }, { status: 400 });
+    }
+
+    // 앞뒤 공백은 뜻이 없다 — 공백만 친 이름은 빈 것으로, 빈 자기소개는 ''가 아니라 null로 남긴다
+    const name = rawName.trim();
+    const nickname = rawNickname.trim();
+    const bio = typeof rawBio === 'string' && rawBio.trim() !== '' ? rawBio.trim() : null;
+
+    if (!name || !nickname || !tag) {
       return NextResponse.json({ error: '이름과 닉네임을 입력해주세요.' }, { status: 400 });
     }
 
@@ -49,7 +54,7 @@ export async function POST(req: Request) {
         name,
         nickname,
         tag,
-        bio: bio ?? null,
+        bio,
       })
       .select('*')
       .single();

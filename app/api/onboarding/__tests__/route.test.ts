@@ -66,6 +66,34 @@ describe('POST /api/onboarding', () => {
     });
   });
 
+  it('이름·닉네임·자기소개의 앞뒤 공백을 지우고, 빈 자기소개는 null로 넣는다', async () => {
+    const { stub, insert } = buildSupabaseStub({ insertData: { id: 'user-1' } });
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(stub as never);
+
+    const res = await POST(
+      makeRequest({ name: '  홍길동 ', nickname: ' gildong ', tag: '0001', bio: '   ' })
+    );
+
+    expect(res.status).toBe(200);
+    expect(insert).toHaveBeenCalledWith({
+      id: 'user-1',
+      name: '홍길동',
+      nickname: 'gildong',
+      tag: '0001',
+      bio: null,
+    });
+  });
+
+  it('공백만 친 이름은 빈 것으로 보고 400', async () => {
+    const { stub, insert } = buildSupabaseStub();
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(stub as never);
+
+    const res = await POST(makeRequest({ ...validBody, name: '   ' }));
+
+    expect(res.status).toBe(400);
+    expect(insert).not.toHaveBeenCalled();
+  });
+
   it('가입 때 실어 둔 복귀 경로(pending_redirect)가 있으면 redirectTo로 돌려주고 메타데이터를 비운다', async () => {
     const { stub, updateUser } = buildSupabaseStub({
       user: { id: 'user-1', user_metadata: { pending_redirect: '/invite/gildong-1234' } },
