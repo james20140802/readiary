@@ -127,62 +127,68 @@ export default function EntryFormBody({
         </div>
       </div>
 
-      {/* 컨트롤 행 — 쪽수·날짜는 조용한 인라인 입력, 공개 여부는 칩 */}
+      {/* 컨트롤 행 — 쪽수·날짜는 조용한 인라인 입력, 공개 여부는 칩.
+          좁은 화면에선 자연 줄바꿈 대신 줄을 의도적으로 나눈다: ① 쪽수·날짜 ② 비공개 칩(왼쪽)·부가 동작(오른끝)
+          ③ 전폭 저장 버튼. 넓어지면 전부 한 줄로 합쳐지고 저장 버튼은 오른끝에 붙는다. */}
       <div className="border-t border-hairline pt-4">
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
-          <div className="flex items-center gap-1 text-[13px] tabular-nums text-ink-sub">
-            <span className="text-ink-faint">p.</span>
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1 text-[13px] tabular-nums text-ink-sub">
+              <span className="text-ink-faint">p.</span>
+              <input
+                type="number"
+                inputMode="numeric"
+                aria-label="시작 페이지"
+                placeholder="10"
+                value={fromPage}
+                onChange={(e) => setFromPage(e.target.value)}
+                className="w-11 border-b border-transparent bg-transparent text-center text-ink placeholder:text-ink-faint focus:border-hairline-strong focus:outline-none"
+              />
+              <span className="text-ink-faint">–</span>
+              <input
+                type="number"
+                inputMode="numeric"
+                aria-label="종료 페이지"
+                placeholder="25"
+                value={toPage}
+                max={totalPages ?? undefined}
+                onChange={(e) => setToPage(e.target.value)}
+                className="w-11 border-b border-transparent bg-transparent text-center text-ink placeholder:text-ink-faint focus:border-hairline-strong focus:outline-none"
+              />
+            </div>
+
+            <span aria-hidden className="h-4 w-px bg-hairline" />
+
             <input
-              type="number"
-              inputMode="numeric"
-              aria-label="시작 페이지"
-              placeholder="10"
-              value={fromPage}
-              onChange={(e) => setFromPage(e.target.value)}
-              className="w-11 border-b border-transparent bg-transparent text-center text-ink placeholder:text-ink-faint focus:border-hairline-strong focus:outline-none"
-            />
-            <span className="text-ink-faint">–</span>
-            <input
-              type="number"
-              inputMode="numeric"
-              aria-label="종료 페이지"
-              placeholder="25"
-              value={toPage}
-              max={totalPages ?? undefined}
-              onChange={(e) => setToPage(e.target.value)}
-              className="w-11 border-b border-transparent bg-transparent text-center text-ink placeholder:text-ink-faint focus:border-hairline-strong focus:outline-none"
+              type="date"
+              aria-label="읽은 날짜"
+              value={date}
+              max={todayKST()}
+              onChange={(e) => setDate(e.target.value)}
+              className="border-b border-transparent bg-transparent text-[13px] tabular-nums text-ink-sub transition-colors focus:border-hairline-strong focus:outline-none"
             />
           </div>
 
-          <span aria-hidden className="h-4 w-px bg-hairline" />
+          <div className="flex items-center justify-between sm:justify-start sm:gap-4">
+            {/* 한 줄로 합쳐질 때만 날짜와 칩 사이에 구분선 */}
+            <span aria-hidden className="hidden h-4 w-px bg-hairline sm:block" />
 
-          <input
-            type="date"
-            aria-label="읽은 날짜"
-            value={date}
-            max={todayKST()}
-            onChange={(e) => setDate(e.target.value)}
-            className="border-b border-transparent bg-transparent text-[13px] tabular-nums text-ink-sub transition-colors focus:border-hairline-strong focus:outline-none"
-          />
+            <Chip
+              selected={isPrivate}
+              aria-pressed={isPrivate}
+              onClick={() => setIsPrivate((v) => !v)}
+            >
+              <Lock size={12} strokeWidth={1.75} aria-hidden />
+              비공개
+            </Chip>
 
-          <span aria-hidden className="h-4 w-px bg-hairline" />
+            {secondaryAction}
+          </div>
 
-          <Chip
-            selected={isPrivate}
-            aria-pressed={isPrivate}
-            onClick={() => setIsPrivate((v) => !v)}
-          >
-            <Lock size={12} strokeWidth={1.75} aria-hidden />
-            비공개
-          </Chip>
-
-          {secondaryAction}
-
-          {/* 좁은 화면에선 전폭으로 내려앉고, 넓어지면 컨트롤 행 오른끝에 붙는다 */}
           <Button
             type="submit"
             size="md"
-            className="mt-1 w-full sm:mt-0 sm:ml-auto sm:h-8 sm:w-auto sm:px-4 sm:text-caption"
+            className="w-full sm:ml-auto sm:h-8 sm:w-auto sm:px-4 sm:text-caption"
             disabled={isSubmitting}
           >
             {isSubmitting ? '남기는 중...' : submitLabel}
