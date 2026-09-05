@@ -7,7 +7,7 @@ vi.mock('@/lib/supabase/server', () => ({
   createSupabaseServerClient: vi.fn(),
 }));
 
-type FakeUser = { id: string } | null;
+type FakeUser = { id: string; user_metadata?: Record<string, unknown> } | null;
 type FakeInsertError = { code?: string; message?: string } | null;
 
 /** 라우트가 실제로 사용하는 체인만 흉내 내는 최소 supabase 스텁. */
@@ -22,8 +22,9 @@ function buildSupabaseStub({
   const insert = vi.fn().mockReturnValue({ select });
   const from = vi.fn().mockReturnValue({ insert });
   const getUser = vi.fn().mockResolvedValue({ data: { user }, error: userError });
+  const updateUser = vi.fn().mockResolvedValue({ data: { user }, error: null });
 
-  return { stub: { auth: { getUser }, from }, insert };
+  return { stub: { auth: { getUser, updateUser }, from }, insert, updateUser };
 }
 
 function makeRequest(body: unknown) {
@@ -63,6 +64,51 @@ describe('POST /api/onboarding', () => {
       tag: validBody.tag,
       bio: validBody.bio,
     });
+  });
+
+  it('가입 때 실어 둔 복귀 경로(pending_redirect)가 있으면 redirectTo로 돌려주고 메타데이터를 비운다', async () => {
+    const { stub, updateUser } = buildSupabaseStub({
+      user: { id: 'user-1', user_metadata: { pending_redirect: '/invite/gildong-1234' } },
+      insertData: { id: 'user-1', ...validBody },
+    });
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(stub as never);
+
+    const res = await POST(makeRequest(validBody));
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json).toEqual({ success: true, redirectTo: '/invite/gildong-1234' });
+    expect(updateUser).toHaveBeenCalledWith({ data: { pending_redirect: null } });
+  });
+
+  it('복귀 경로가 외부 주소면 redirectTo를 내지 않는다 — 메타데이터는 사용자가 고칠 수 있다', async () => {
+    const { stub, updateUser } = buildSupabaseStub({
+      user: { id: 'user-1', user_metadata: { pending_redirect: 'https://evil.test/x' } },
+      insertData: { id: 'user-1', ...validBody },
+    });
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(stub as never);
+
+    const res = await POST(makeRequest(validBody));
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json).toEqual({ success: true });
+    expect(updateUser).not.toHaveBeenCalled();
+  });
+
+  it('메타데이터 정리에 실패해도 등록은 성공으로 답하고 redirectTo를 준다', async () => {
+    const { stub, updateUser } = buildSupabaseStub({
+      user: { id: 'user-1', user_metadata: { pending_redirect: '/invite/gildong-1234' } },
+      insertData: { id: 'user-1', ...validBody },
+    });
+    updateUser.mockResolvedValue({ data: { user: null }, error: { message: 'boom' } });
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(stub as never);
+
+    const res = await POST(makeRequest(validBody));
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json).toEqual({ success: true, redirectTo: '/invite/gildong-1234' });
   });
 
   it('pkey 유니크 위반(23505 + profiles_pkey) 시 409 profile_exists를 반환한다', async () => {

@@ -9,6 +9,7 @@ import FormLabel from '@/components/ui/FormLabel';
 import { toast } from 'sonner';
 import AnimatedSection from '@/components/ui/AnimatedSection';
 import { validateNickname } from '@/lib/profile/nickname';
+import { sanitizeRedirectPath } from '@/lib/auth/safeRedirect';
 
 const generateRandomTag = () => Math.floor(1000 + Math.random() * 9000).toString();
 
@@ -50,12 +51,15 @@ export default function OnboardingForm() {
           body: JSON.stringify({ name, nickname, tag, bio }),
         });
 
+        const result = await res.json().catch(() => ({}));
+
         if (res.ok) {
-          leaveOnboarding('/protected/dashboard');
+          // 초대 링크로 가입했다면 서버가 복귀 경로를 함께 준다 — 없으면 홈
+          const redirectTo =
+            typeof result.redirectTo === 'string' ? sanitizeRedirectPath(result.redirectTo) : null;
+          leaveOnboarding(redirectTo ?? '/protected/dashboard');
           return;
         }
-
-        const result = await res.json().catch(() => ({}));
 
         if (res.status === 409 && result.code === 'tag_conflict') {
           tag = generateRandomTag();

@@ -11,6 +11,7 @@ import FormGroup from '@/components/ui/FormGroup';
 import FormLabel from '@/components/ui/FormLabel';
 import Modal from '@/components/ui/Modal';
 import AnimatedSection from '@/components/ui/AnimatedSection';
+import { PENDING_REDIRECT_KEY, toPendingRedirect } from '@/lib/auth/pendingRedirect';
 
 export default function SignupPage() {
   const [email, setEmail] = useState('');
@@ -28,6 +29,10 @@ export default function SignupPage() {
   const loginHref = redirectParam
     ? `/login?redirect=${encodeURIComponent(redirectParam)}`
     : '/login';
+  // 초대로 온 사람에게는 가입 뒤에도 초대가 이어진다는 걸 미리 알려 둔다
+  const pendingRedirectHint = redirectParam?.startsWith('/invite/')
+    ? ' 프로필 설정을 마치면 받은 초대로 돌아갑니다.'
+    : null;
 
   const errorMap: Record<string, string> = {
     'User already registered': '이미 가입된 이메일입니다.',
@@ -69,10 +74,16 @@ export default function SignupPage() {
       // 환경 변수가 비면 Site URL로 가 버리므로 서버 착지(/auth/confirm)로 폴백
       const emailRedirectTo =
         process.env.NEXT_PUBLIC_EMAIL_REDIRECT_TO || `${window.location.origin}/auth/confirm`;
+      // 초대 링크 등에서 왔다면 목적지를 계정 메타데이터에 실어, 이메일 인증(다른 기기여도)과
+      // 온보딩을 지나 /api/onboarding 이 꺼내 복귀시킨다 — 쿼리·쿠키는 그 사이에 끊긴다
+      const pendingRedirect = toPendingRedirect(redirectParam);
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password,
-        options: { emailRedirectTo },
+        options: {
+          emailRedirectTo,
+          ...(pendingRedirect ? { data: { [PENDING_REDIRECT_KEY]: pendingRedirect } } : {}),
+        },
       });
 
       if (error) {
@@ -196,6 +207,7 @@ export default function SignupPage() {
             <p>이메일을 확인해 인증을 완료해주세요.</p>
             <p className="mt-2 text-sm text-ink-sub">
               메일이 보이지 않으면 스팸함을 확인해주세요. 인증을 마치면 프로필 설정으로 이어집니다.
+              {pendingRedirectHint}
             </p>
           </AnimatedSection>
         )}
