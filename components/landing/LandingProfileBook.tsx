@@ -6,6 +6,7 @@ import Seal from '@/components/ui/Seal';
 import { SpineTitle } from '@/components/books/BookSpineShelf';
 import { BOOK_H, BOOK_W, spineThickness } from '@/lib/profile/bookGeometry';
 import SlideHeading from './SlideHeading';
+import { SlideBody } from './Slide';
 import { PROFILE_DEMO } from './demo';
 
 const W = BOOK_W;
@@ -53,7 +54,7 @@ export default function LandingProfileBook() {
         body="프로필은 완독한 권수만큼 두꺼워지는 책 한 권이에요. 표지엔 사진과 띠지의 한 줄이, 뒷표지엔 골라 둔 문장이 실립니다. 펼치면 판권과 달마다의 기록이 차례로 넘어가요."
       />
 
-      <div className="mt-6 md:mt-0">
+      <SlideBody className="mt-6 md:mt-0">
         {/* 자리 상자 — 줄인 책이 차지하는 만큼만 흐름에서 자리를 잡는다 */}
         <div
           className="mx-auto h-[301px] w-[210px] sm:h-[430px] sm:w-[300px]"
@@ -232,7 +233,7 @@ export default function LandingProfileBook() {
           </button>
           <span className="text-caption">완독 {p.finishedBooks}권만큼 두꺼워진 책</span>
         </div>
-      </div>
+      </SlideBody>
     </div>
   );
 }

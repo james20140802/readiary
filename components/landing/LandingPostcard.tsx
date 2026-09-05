@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Heart, MessageCircle, Repeat } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import SlideHeading from './SlideHeading';
+import { SlideBody } from './Slide';
 import { POSTCARD_DEMO } from './demo';
 
 /**
@@ -158,7 +159,7 @@ export default function LandingPostcard() {
         body="앞면엔 그림 대신 문장이, 뒤집으면 감상과 우표 자리의 표지가 있어요. 좋아요와 댓글로 마음을 보태세요."
       />
 
-      <div className="mx-auto mt-6 max-w-[520px] md:mt-8">
+      <SlideBody className="mx-auto mt-6 max-w-[520px] md:mt-8">
         <div className="-mx-4 px-4">
           <div style={{ transform: 'rotate(-0.35deg) translateX(4px)' }}>
             <div
@@ -186,7 +187,7 @@ export default function LandingPostcard() {
         <p className="mt-3 text-caption text-ink-faint">
           엽서를 옆으로 문지르거나 뒤집기를 눌러 보세요.
         </p>
-      </div>
+      </SlideBody>
     </div>
   );
 }

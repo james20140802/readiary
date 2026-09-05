@@ -6,6 +6,7 @@ import { MonthlyRecapCard } from '@/app/protected/dashboard/_components/MonthlyR
 import { weekDatesKST } from '@/lib/dashboard/streak';
 import { todayKST } from '@/lib/dates';
 import SlideHeading from './SlideHeading';
+import { SlideBody } from './Slide';
 import { RECALL_DEMO, WEEK_PATTERN } from './demo';
 
 /**
@@ -34,7 +35,7 @@ export default function LandingRecall() {
         body="지난날 적어 둔 문장이 회상 카드로 돌아오고, 이번 주의 리듬은 도장 한 줄로 남습니다. 매월 첫날엔 지난달의 기록을 돌아봐요."
       />
 
-      <div className="mt-6 grid gap-4 md:mt-8 md:grid-cols-[3fr_2fr] md:items-start">
+      <SlideBody className="mt-6 grid gap-4 md:mt-8 md:grid-cols-[3fr_2fr] md:items-start">
         <Card hoverable={false} variant="raised" className="px-[26px] pb-6 pt-[30px]">
           <Seal className="mb-3 block">1년 전 오늘</Seal>
           <span aria-hidden className="mb-2 block font-serif text-[40px] leading-none text-accent">
@@ -65,7 +66,7 @@ export default function LandingRecall() {
             />
           </div>
         </div>
-      </div>
+      </SlideBody>
     </div>
   );
 }

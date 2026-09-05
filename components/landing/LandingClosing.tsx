@@ -1,11 +1,12 @@
 import Link from 'next/link';
 import Button from '@/components/ui/Button';
 import Seal from '@/components/ui/Seal';
+import { SlideBody } from './Slide';
 
 /** ⑧ 시작 — 홈 맨 아래 장서표(Ex Libris) 명패의 이중 보더 어휘로 마지막 장을 닫는다 */
 export default function LandingClosing() {
   return (
-    <div className="flex flex-col items-center text-center">
+    <SlideBody className="flex flex-col items-center text-center">
       <section className="w-full max-w-md rounded-sm border border-hairline-strong bg-card p-[5px]">
         <div className="rounded-[2px] border border-hairline px-6 py-10">
           <Seal>Ex Libris</Seal>
@@ -27,6 +28,6 @@ export default function LandingClosing() {
         </div>
       </section>
       <p className="mt-10 text-caption text-ink-faint">© 2026 Readiary</p>
-    </div>
+    </SlideBody>
   );
 }

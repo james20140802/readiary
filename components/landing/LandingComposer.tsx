@@ -8,6 +8,7 @@ import Chip from '@/components/ui/Chip';
 import Button from '@/components/ui/Button';
 import Seal from '@/components/ui/Seal';
 import SlideHeading from './SlideHeading';
+import { SlideBody } from './Slide';
 import { COMPOSER_DEMO } from './demo';
 
 const TYPE_MS = 62;
@@ -55,7 +56,7 @@ export default function LandingComposer() {
         body="길게 쓰지 않아도 됩니다. 오늘 마음에 남은 문장 하나가 기록의 시작이에요. 생각이 이어지면 그때 덧붙이면 됩니다."
       />
 
-      <div className="mt-8">
+      <SlideBody className="mt-8">
         {saved ? (
           <Card hoverable={false}>
             <Seal>오늘의 기록</Seal>
@@ -133,7 +134,7 @@ export default function LandingComposer() {
         <p className="mt-3 text-caption text-ink-faint">
           홈 맨 위에 놓이는 실제 입력창이에요. 남기기를 눌러 보세요.
         </p>
-      </div>
+      </SlideBody>
     </div>
   );
 }
