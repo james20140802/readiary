@@ -20,6 +20,8 @@ interface EntryCardProps {
   initialLikeCount?: number;
   initialCommentCount?: number;
   initialLiked?: boolean;
+  /** 내 기록을 그 자리에서 고치기 — 있으면 '수정 →'이 페이지 이동 대신 이 콜백을 부른다 */
+  onEdit?: () => void;
 }
 
 function formatPages(fromPage?: number | null, toPage?: number | null) {
@@ -45,6 +47,7 @@ export default function EntryCard({
   initialLikeCount = 0,
   initialCommentCount = 0,
   initialLiked = false,
+  onEdit,
 }: EntryCardProps) {
   const [isCommentOpen, setIsCommentOpen] = useState(false);
   const [commentCount, setCommentCount] = useState(initialCommentCount);
@@ -136,7 +139,7 @@ export default function EntryCard({
               <span className="text-[11.5px] tabular-nums">{commentCount}</span>
             </button>
           </div>
-          {/* 내 기록은 수정 직행, 친구 기록은 상세로 — 상세(공유·삭제)는 날짜 링크로도 열린다 */}
+          {/* 내 기록은 그 자리에서(시트) 또는 수정 페이지로, 친구 기록은 상세로 — 상세(공유)는 날짜 링크로도 열린다 */}
           {href ? (
             <Link
               href={targetHref}
@@ -144,6 +147,14 @@ export default function EntryCard({
             >
               상세 →
             </Link>
+          ) : onEdit ? (
+            <button
+              type="button"
+              onClick={onEdit}
+              className="text-[11.5px] text-ink-faint transition-colors hover:text-accent"
+            >
+              수정 →
+            </button>
           ) : (
             <Link
               href={`/protected/entry/${id}/edit`}

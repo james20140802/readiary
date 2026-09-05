@@ -1,9 +1,14 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import EntryCard from '@/components/EntryCard';
+import EntryEditSheet from '@/components/entries/EntryEditSheet';
+import { EntryFormValues } from '@/components/entries/EntryFormBody';
+import { patchEntryInList, removeEntryFromList } from '@/lib/entries/entryList';
 import { MyBook } from '@/types/book';
-import { EntryDetailData } from '@/types/entry';
+import { Entry, EntryDetailData } from '@/types/entry';
 import Image from 'next/image';
 import MarkAsFinishedButton from './MarkAsFinishedButton';
 import UnfinishBookButton from './UnfinishBookButton';
@@ -27,9 +32,42 @@ export default function BookDetailContent({
   isFriend = false,
   friendProfile,
 }: Props) {
+  const router = useRouter();
   const [isFinished, setIsFinished] = useState(userBook.is_finished);
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
   const [filterOption, setFilterOption] = useState<'all' | 'public' | 'private'>('all');
+
+  // 기록 목록은 서버 props를 따르되, 시트에서 고치거나 지운 결과를 재조회 전에 먼저 반영한다.
+  // props가 새로 오면(router.refresh) 렌더 중에 되맞춘다 — React의 '이전 props 기억' 패턴.
+  const [entryList, setEntryList] = useState(entries);
+  const [prevEntries, setPrevEntries] = useState(entries);
+  if (entries !== prevEntries) {
+    setPrevEntries(entries);
+    setEntryList(entries);
+  }
+
+  // 그 자리에서 고치기 — 닫히는 동안에도 마지막 기록을 들고 있어야 퇴장 애니메이션이 자연스럽다
+  const [editingEntry, setEditingEntry] = useState<Entry | null>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+
+  const openEdit = (entry: Entry) => {
+    setEditingEntry(entry);
+    setIsEditOpen(true);
+  };
+
+  const handleSaved = (entryId: string, values: EntryFormValues) => {
+    setEntryList((list) => patchEntryInList(list, entryId, values));
+    setIsEditOpen(false);
+    toast.success('기록을 고쳤어요.');
+    router.refresh(); // 쪽수가 바뀌면 진행률(last_read_page)도 서버에서 다시 받는다
+  };
+
+  const handleDeleted = (entryId: string) => {
+    setEntryList((list) => removeEntryFromList(list, entryId));
+    setIsEditOpen(false);
+    toast.success('기록을 지웠어요.');
+    router.refresh();
+  };
 
   const FILTER_OPTIONS: { value: 'all' | 'public' | 'private'; label: string }[] = [
     { value: 'all', label: '전체' },
@@ -41,10 +79,10 @@ export default function BookDetailContent({
   const { title, author, total_pages, cover_url } = books;
 
   const sortedEntries = useMemo(() => {
-    if (!entries) return null;
+    if (!entryList) return null;
 
     // 1. 먼저 필터링
-    let processed = [...entries];
+    let processed = [...entryList];
     if (filterOption === 'public') {
       processed = processed.filter((e) => !e.entry.is_private);
     } else if (filterOption === 'private') {
@@ -62,10 +100,10 @@ export default function BookDetailContent({
       const createdB = new Date(b.entry.created_at).getTime();
       return sortOrder === 'desc' ? createdB - createdA : createdA - createdB;
     });
-  }, [entries, filterOption, sortOrder]);
+  }, [entryList, filterOption, sortOrder]);
 
   // 읽기 기간 — 첫 기록과 마지막 기록의 날짜. 발췌집 표지의 통계와 같은 문법.
-  const readingPeriod = formatReadingPeriod((entries ?? []).map((e) => e.entry.date));
+  const readingPeriod = formatReadingPeriod((entryList ?? []).map((e) => e.entry.date));
 
   // 진행 상황은 막대 대신 잉크로 쓴 분수 하나
   const progressLine =
@@ -129,9 +167,9 @@ export default function BookDetailContent({
         <div className="flex items-center justify-between gap-4">
           <h2 className="font-serif text-[19px] font-bold text-ink">
             독서 기록
-            {entries && entries.length > 0 && (
+            {entryList && entryList.length > 0 && (
               <span className="ml-2 text-[13px] font-normal tabular-nums text-ink-faint">
-                {entries.length}
+                {entryList.length}
               </span>
             )}
           </h2>
@@ -142,7 +180,7 @@ export default function BookDetailContent({
           )}
         </div>
 
-        {entries && entries.length > 1 && (
+        {entryList && entryList.length > 1 && (
           <div className="mt-3 flex items-center justify-between text-[13.5px]">
             {!isFriend ? (
               <div className="flex items-center gap-3">
@@ -193,6 +231,7 @@ export default function BookDetailContent({
                 initialCommentCount={data.initialCommentCount}
                 initialLikeCount={data.initialLikeCount}
                 initialLiked={data.initialLiked}
+                onEdit={isFriend ? undefined : () => openEdit(data.entry)}
               />
             ))}
           </div>
@@ -202,6 +241,17 @@ export default function BookDetailContent({
           </p>
         )}
       </section>
+
+      {!isFriend && (
+        <EntryEditSheet
+          entry={editingEntry}
+          bookId={book_id}
+          isOpen={isEditOpen}
+          onClose={() => setIsEditOpen(false)}
+          onSaved={handleSaved}
+          onDeleted={handleDeleted}
+        />
+      )}
     </div>
   );
 }
