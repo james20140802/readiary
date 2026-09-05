@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
@@ -15,8 +15,9 @@ interface Props {
   bookId: string;
   isOpen: boolean;
   onClose: () => void;
-  onSaved: (entryId: string, values: EntryFormValues) => void;
-  onDeleted: (entryId: string) => void;
+  /** `isCurrent`가 false면 요청을 보낸 뒤 시트가 닫혔다 다시 열린 것 — 목록엔 반영하되 지금 시트는 닫지 말 것 */
+  onSaved: (entryId: string, values: EntryFormValues, isCurrent: boolean) => void;
+  onDeleted: (entryId: string, isCurrent: boolean) => void;
 }
 
 /**
@@ -64,8 +65,16 @@ export default function EntryEditSheet({
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
 
+  // 열림 세션 번호 — 같은 기록을 닫았다 다시 열어도 번호가 바뀐다. 느린 요청이 돌아왔을 때 붙잡아 둔 번호와
+  // 다르면 그 사이 시트가 닫혔다 다시 열린 것이므로, 새 시트(와 거기 쓰던 내용)를 닫지 않는다.
+  const sessionRef = useRef(0);
+  useEffect(() => {
+    if (isOpen) sessionRef.current += 1;
+  }, [isOpen]);
+
   const handleSubmit = async (values: EntryFormValues): Promise<string | null> => {
     if (!entry) return null;
+    const session = sessionRef.current;
     try {
       const res = await fetch(`/api/entries/${entry.id}/edit`, {
         method: 'PATCH',
@@ -76,7 +85,7 @@ export default function EntryEditSheet({
         const data = await res.json().catch(() => null);
         return data?.error ?? '수정에 실패했어요.';
       }
-      onSaved(entry.id, values);
+      onSaved(entry.id, values, session === sessionRef.current);
       return null;
     } catch {
       return '서버와 통신 중 오류가 발생했습니다.';
@@ -85,6 +94,7 @@ export default function EntryEditSheet({
 
   const confirmDelete = async () => {
     if (!entry) return;
+    const session = sessionRef.current;
     setIsDeleting(true);
     setDeleteError('');
     try {
@@ -96,7 +106,7 @@ export default function EntryEditSheet({
         throw new Error(data?.error ?? '삭제 실패');
       }
       setIsDeleteOpen(false);
-      onDeleted(entry.id);
+      onDeleted(entry.id, session === sessionRef.current);
     } catch (error) {
       setDeleteError((error as Error).message);
     } finally {

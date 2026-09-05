@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import EntryCard from '@/components/EntryCard';
@@ -49,30 +49,23 @@ export default function BookDetailContent({
   // 그 자리에서 고치기 — 닫히는 동안에도 마지막 기록을 들고 있어야 퇴장 애니메이션이 자연스럽다
   const [editingEntry, setEditingEntry] = useState<Entry | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
-  // 저장이 느린 사이 시트를 닫고 다른 기록을 열었을 수 있다 — 콜백은 '지금 열린 기록'일 때만 시트를 닫는다.
-  // 목록 반영은 어느 기록이든 그대로 한다(서버엔 이미 반영됐으니).
-  const editingIdRef = useRef<string | null>(null);
-
   const openEdit = (entry: Entry) => {
-    editingIdRef.current = entry.id;
     setEditingEntry(entry);
     setIsEditOpen(true);
   };
 
-  const closeEditIfCurrent = (entryId: string) => {
-    if (editingIdRef.current === entryId) setIsEditOpen(false);
-  };
-
-  const handleSaved = (entryId: string, values: EntryFormValues) => {
+  // 저장이 느린 사이 시트를 닫고 다른(또는 같은) 기록을 다시 열었을 수 있다 — 시트가 '요청을 보낸 그 열림'이
+  // 아니라고 알려주면(isCurrent=false) 닫지 않는다. 목록 반영은 어느 경우든 한다(서버엔 이미 반영됐으니).
+  const handleSaved = (entryId: string, values: EntryFormValues, isCurrent: boolean) => {
     setEntryList((list) => patchEntryInList(list, entryId, values));
-    closeEditIfCurrent(entryId);
+    if (isCurrent) setIsEditOpen(false);
     toast.success('기록을 고쳤어요.');
     router.refresh(); // 쪽수가 바뀌면 진행률(last_read_page)도 서버에서 다시 받는다
   };
 
-  const handleDeleted = (entryId: string) => {
+  const handleDeleted = (entryId: string, isCurrent: boolean) => {
     setEntryList((list) => removeEntryFromList(list, entryId));
-    closeEditIfCurrent(entryId);
+    if (isCurrent) setIsEditOpen(false);
     toast.success('기록을 지웠어요.');
     router.refresh();
   };
