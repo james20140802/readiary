@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { classifyProfileInsertError } from '@/lib/onboarding/classifyProfileInsertError';
 import { validateNickname } from '@/lib/profile/nickname';
+import { PENDING_REDIRECT_KEY, readPendingRedirect } from '@/lib/auth/pendingRedirect';
 
 export async function POST(req: Request) {
   try {
@@ -69,6 +70,19 @@ export async function POST(req: Request) {
       }
       console.error('[ONBOARDING INSERT ERROR]', { insertError, hasData: !!data });
       return NextResponse.json({ error: '프로필 등록에 실패했습니다.' }, { status: 500 });
+    }
+
+    // 초대 링크로 가입한 사람은 온보딩이 끝나면 대시보드 대신 원래 목적지로 — 가입 때 실어 둔
+    // 메타데이터를 한 번 쓰고 비운다. 비우기가 실패해도 등록은 끝났으니 성공으로 답한다
+    const redirectTo = readPendingRedirect(user.user_metadata);
+    if (redirectTo) {
+      const { error: clearError } = await supabase.auth.updateUser({
+        data: { [PENDING_REDIRECT_KEY]: null },
+      });
+      if (clearError) {
+        console.error('[ONBOARDING PENDING REDIRECT CLEAR ERROR]', clearError);
+      }
+      return NextResponse.json({ success: true, redirectTo });
     }
     return NextResponse.json({ success: true });
   } catch (err) {
