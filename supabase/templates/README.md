@@ -4,7 +4,7 @@ Supabase Auth가 보내는 메일의 원본. 대시보드에 붙여 넣은 내�
 여기서 고치고 다시 붙여 넣는다. 붙여 넣는 곳: **Authentication → Emails → Templates**.
 
 이메일은 Tailwind 토큰을 못 쓰므로 `app/globals.css`의 라이트 팔레트를 hex로 인라인했다. 그림자 없음,
-헤어라인, 讀 글리프, 부리 제목, 알약 버튼 — 앱과 같은 규칙(`docs/ui-guidelines.md`).
+헤어라인, 부리 제목, 알약 버튼 — 앱과 같은 규칙(`docs/ui-guidelines.md`).
 다크 모드는 메일 클라이언트마다 처리가 달라 라이트 고정(`color-scheme: light`).
 
 | 파일                    | 대시보드 템플릿                           | 제목(Subject)                            |

@@ -81,8 +81,11 @@ export default function ResetPasswordPage() {
         <form onSubmit={handleReset} noValidate className="space-y-5">
           {formError && <FormAlert>{formError}</FormAlert>}
           <FormGroup>
-            <FormLabel htmlFor="reset-email">이메일</FormLabel>
+            <FormLabel variant="line" htmlFor="reset-email">
+              이메일
+            </FormLabel>
             <Input
+              variant="line"
               id="reset-email"
               type="email"
               name="email"

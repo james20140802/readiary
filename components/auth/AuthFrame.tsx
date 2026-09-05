@@ -11,17 +11,14 @@ interface AuthFrameProps {
 }
 
 /**
- * 인증 화면(로그인·가입·재설정·새 비밀번호·온보딩)의 공통 틀 — 랜딩과 같은 讀 글리프와 부리 제목,
- * 좁은 한 단, 헤어라인으로 나눈 푸터. 도구(입력·버튼)는 산세리프, 제목만 부리.
+ * 인증 화면(로그인·가입·재설정·새 비밀번호·온보딩)의 공통 틀 — 부리 제목, 좁은 한 단, 괘선 위의
+ * 입력, 헤어라인으로 나눈 푸터. 도구(입력·버튼)는 산세리프, 제목만 부리. 장식 글리프는 두지 않는다.
  */
 export default function AuthFrame({ title, lead, children, footer }: AuthFrameProps) {
   return (
-    <section className="mx-auto w-full max-w-sm pb-4 pt-2 md:pt-8">
+    <section className="mx-auto w-full max-w-sm pb-4 pt-4 md:pt-10">
       <header className="text-center">
-        <span aria-hidden className="font-serif text-3xl text-ink-faint">
-          讀
-        </span>
-        <h1 className="mt-3 font-serif text-2xl font-bold leading-snug text-ink">{title}</h1>
+        <h1 className="font-serif text-2xl font-bold leading-snug text-ink">{title}</h1>
         {lead && <p className="mt-2 break-keep text-body-sm text-ink-sub">{lead}</p>}
       </header>
       <AnimatedSection>

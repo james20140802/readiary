@@ -126,8 +126,11 @@ export default function UpdatePasswordPage() {
       <form onSubmit={handleUpdate} noValidate className="space-y-5">
         {formError && <FormAlert>{formError}</FormAlert>}
         <FormGroup>
-          <FormLabel htmlFor="new-password">새 비밀번호</FormLabel>
+          <FormLabel variant="line" htmlFor="new-password">
+            새 비밀번호
+          </FormLabel>
           <PasswordInput
+            variant="line"
             id="new-password"
             name="new-password"
             autoComplete="new-password"
@@ -141,8 +144,11 @@ export default function UpdatePasswordPage() {
           />
         </FormGroup>
         <FormGroup>
-          <FormLabel htmlFor="new-password-confirm">새 비밀번호 확인</FormLabel>
+          <FormLabel variant="line" htmlFor="new-password-confirm">
+            새 비밀번호 확인
+          </FormLabel>
           <PasswordInput
+            variant="line"
             id="new-password-confirm"
             name="new-password-confirm"
             autoComplete="new-password"
