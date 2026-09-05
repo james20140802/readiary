@@ -1,11 +1,18 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { emailConfirmRedirectTo } from '../emailRedirect';
 
 const ORIGIN = 'https://readiary.test';
 
 describe('emailConfirmRedirectTo', () => {
-  afterEach(() => {
+  // CI 는 이 변수를 시크릿으로 넣어 두므로, 각 테스트가 스스로 정한 값만 보게 비우고 끝나면 되돌린다
+  let saved: string | undefined;
+  beforeEach(() => {
+    saved = process.env.NEXT_PUBLIC_EMAIL_REDIRECT_TO;
     delete process.env.NEXT_PUBLIC_EMAIL_REDIRECT_TO;
+  });
+  afterEach(() => {
+    if (saved === undefined) delete process.env.NEXT_PUBLIC_EMAIL_REDIRECT_TO;
+    else process.env.NEXT_PUBLIC_EMAIL_REDIRECT_TO = saved;
   });
 
   it('복귀 경로가 없으면 착지 주소 그대로', () => {

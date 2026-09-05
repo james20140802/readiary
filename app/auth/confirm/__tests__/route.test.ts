@@ -126,6 +126,19 @@ describe('GET /auth/confirm', () => {
     expect(location(res)).toBe('https://readiary.test/invite/xyz');
   });
 
+  it('next가 옛 클라이언트 착지(/auth/callback?next=…)여도 그 안의 next를 꺼낸다 — 환경 변수가 그쪽을 가리킬 때', async () => {
+    buildSupabaseStub({ profile: { id: 'user-1' } });
+    const res = await get(
+      '?token_hash=abc&type=email&next=' +
+        encodeURIComponent('https://readiary.test/auth/callback?next=%2Finvite%2Fxyz')
+    );
+    expect(location(res)).toBe('https://readiary.test/invite/xyz');
+    const bare = await get(
+      '?token_hash=abc&type=email&next=' + encodeURIComponent('https://readiary.test/auth/callback')
+    );
+    expect(location(bare)).toBe('https://readiary.test/protected/dashboard');
+  });
+
   it('next가 Site URL 루트로 대체됐거나 다른 오리진이면 홈으로', async () => {
     buildSupabaseStub({ profile: { id: 'user-1' } });
     const root = await get(
