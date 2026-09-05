@@ -21,11 +21,12 @@ interface Props {
 }
 
 /**
- * 열려 있는 동안 portal-root 밖의 배경(body 직계 자식)을 스크린리더·포커스에서 뺀다.
+ * 열려 있는 동안 portal-root 밖의 배경(body 직계 자식)을 스크린리더·포커스에서 빼고, 사라질 때 대상마다
+ * 우리가 보기 전의 값으로 되돌린다.
  * Headless UI 2.2의 inert 계산은 이 트리에서 첫 열림엔 비어 있고(메인 트리 노드가 늦게 잡히는데 effect deps가
  * 고정), 위에 삭제 Modal이 떴다 닫히면 그제야 MAIN을 잡는다 — 그때 '이전 값'으로 우리가 건 true를 기억해
- * 언마운트 때 되돌리므로, 이 컴포넌트는 Dialog *안*에 두어 수명을 맞추고(언마운트는 부모 cleanup이 먼저)
- * cleanup에서 캡처값 복원 대신 무조건 걷어낸다. 남는 inert는 페이지를 못 쓰게 하니 그쪽이 안전하다.
+ * 언마운트 때 되돌리므로, 이 컴포넌트는 반드시 Dialog *안*에 둔다: 마운트는 자식 effect가 먼저(우리가 원래
+ * 값을 본다), 언마운트는 부모 cleanup이 먼저(Headless가 되돌린 뒤 우리가 마지막으로 원래 값으로 되돌린다).
  */
 function InertBackground() {
   useEffect(() => {
@@ -33,14 +34,20 @@ function InertBackground() {
       (el): el is HTMLElement =>
         el instanceof HTMLElement && el.id !== 'headlessui-portal-root' && el.tagName !== 'SCRIPT'
     );
+    const previous = targets.map((el) => ({
+      el,
+      inert: el.inert,
+      ariaHidden: el.getAttribute('aria-hidden'),
+    }));
     for (const el of targets) {
       el.inert = true;
       el.setAttribute('aria-hidden', 'true');
     }
     return () => {
-      for (const el of targets) {
-        el.inert = false;
-        el.removeAttribute('aria-hidden');
+      for (const { el, inert, ariaHidden } of previous) {
+        el.inert = inert;
+        if (ariaHidden === null) el.removeAttribute('aria-hidden');
+        else el.setAttribute('aria-hidden', ariaHidden);
       }
     };
   }, []);
@@ -64,6 +71,17 @@ export default function EntryEditSheet({
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
+
+  // 시트가 닫히면 거기 딸린 삭제 확인창도 같이 닫는다 — 저장이 늦게 돌아와 시트를 닫는 사이 확인창이 열려
+  // 있었다면 고아 모달만 남는다. React의 '이전 props 기억' 패턴(렌더 중 되맞춤).
+  const [wasOpen, setWasOpen] = useState(isOpen);
+  if (isOpen !== wasOpen) {
+    setWasOpen(isOpen);
+    if (!isOpen) {
+      setIsDeleteOpen(false);
+      setDeleteError('');
+    }
+  }
 
   // 열림 세션 번호 — 같은 기록을 닫았다 다시 열어도 번호가 바뀐다. 느린 요청이 돌아왔을 때 붙잡아 둔 번호와
   // 다르면 그 사이 시트가 닫혔다 다시 열린 것이므로, 새 시트(와 거기 쓰던 내용)를 닫지 않는다.
