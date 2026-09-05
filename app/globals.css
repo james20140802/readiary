@@ -81,6 +81,25 @@ li {
   background: rgb(var(--accent) / 0.18);
 }
 
+/* 랜딩 표지의 넘김 신호 — 잉크 한 방울이 실처럼 흘러내렸다가 아래로 사라진다 */
+@keyframes landing-drip {
+  0% {
+    transform: scaleY(0);
+    transform-origin: top;
+  }
+  55% {
+    transform: scaleY(1);
+    transform-origin: top;
+  }
+  56% {
+    transform-origin: bottom;
+  }
+  100% {
+    transform: scaleY(0);
+    transform-origin: bottom;
+  }
+}
+
 /* ── 타공 가장자리(우표·엽서) ─────────────────────
    격자점마다 투명 원을 뚫은 배경 위에, 내용부가 bg-card로
    안쪽 구멍을 덮어 가장자리 물결(타공)만 남긴다.
