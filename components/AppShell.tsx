@@ -54,6 +54,9 @@ export default function AppShell({ initialLoggedIn, initialUnread, children }: A
 
   const bare = BARE_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
   const showNav = loggedIn && !bare;
+  // 랜딩은 화면 높이의 종이를 한 장씩 겹쳐 넘기는 슬라이드라 본문 칸(폭·위 여백)을 두지 않는다 —
+  // 각 장이 제 안에서 폭과 상단 크롬 여백을 잡는다 (로그인 상태면 서버가 홈으로 보내므로 늘 비로그인)
+  const fullBleed = pathname === '/';
   // 뱃지 조회는 셸에서 한 번만 — 모바일 헤더·데스크톱 바가 같은 값을 나눠 쓴다
   const hasUnread = useUnreadNotifications(showNav, initialUnread);
 
@@ -77,8 +80,9 @@ export default function AppShell({ initialLoggedIn, initialUnread, children }: A
       {/* 아래 여백은 하단 탭바가 실제로 있을 때만 — 비로그인·온보딩 화면에 빈 76px가 남지 않게 */}
       <main
         className={clsx(
-          'mx-auto w-full max-w-screen-md px-4 pt-[4rem] md:pt-[6rem] md:pb-16',
-          showNav ? 'pb-[calc(4.75rem+env(safe-area-inset-bottom))]' : 'pb-8'
+          'w-full',
+          !fullBleed && 'mx-auto max-w-screen-md px-4 pt-[4rem] md:pt-[6rem] md:pb-16',
+          !fullBleed && (showNav ? 'pb-[calc(4.75rem+env(safe-area-inset-bottom))]' : 'pb-8')
         )}
       >
         {children}
