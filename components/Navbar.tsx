@@ -1,7 +1,9 @@
 'use client';
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { Bell, BookMarked, Home, LibraryBig, Globe, UserRound } from 'lucide-react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { authHrefWithRedirect } from '@/lib/auth/safeRedirect';
 import clsx from 'clsx';
 import Button from '@/components/ui/Button';
 
@@ -127,26 +129,47 @@ export default function Navbar({ loggedIn, showNav, hasUnread }: NavbarProps) {
             </div>
           )}
 
-          {/* 비로그인 방문자 — 로고만 있던 오른쪽에 로그인·시작하기. 지금 있는 화면의 것은 뺀다 */}
+          {/* 비로그인 방문자 — 로고만 있던 오른쪽에 로그인·시작하기. 지금 있는 화면의 것은 뺀다.
+              redirect 파라미터를 읽는 쪽만 Suspense 로 감싸 정적 프리렌더(/login 등)를 막지 않는다 */}
           {!loggedIn && (
-            <div className="flex items-center gap-1">
-              {pathname !== '/login' && (
-                <Link
-                  href="/login"
-                  className="rounded-md px-3 py-1 text-ink-sub transition hover:bg-card-raised hover:text-ink"
-                >
-                  로그인
-                </Link>
-              )}
-              {pathname !== '/signup' && (
-                <Button asChild size="sm" className="ml-1">
-                  <Link href="/signup">시작하기</Link>
-                </Button>
-              )}
-            </div>
+            <Suspense fallback={<GuestAuthLinks pathname={pathname} redirectParam={null} />}>
+              <GuestAuthLinksWithRedirect pathname={pathname} />
+            </Suspense>
           )}
         </div>
       </nav>
     </>
+  );
+}
+
+/** 초대 등에서 온 방문자가 로그인↔가입을 오가도 복귀 경로(redirect)를 잃지 않도록 GNB 링크에도 싣는다 */
+function GuestAuthLinksWithRedirect({ pathname }: { pathname: string }) {
+  const redirectParam = useSearchParams().get('redirect');
+  return <GuestAuthLinks pathname={pathname} redirectParam={redirectParam} />;
+}
+
+function GuestAuthLinks({
+  pathname,
+  redirectParam,
+}: {
+  pathname: string;
+  redirectParam: string | null;
+}) {
+  return (
+    <div className="flex items-center gap-1">
+      {pathname !== '/login' && (
+        <Link
+          href={authHrefWithRedirect('/login', redirectParam)}
+          className="rounded-md px-3 py-1 text-ink-sub transition hover:bg-card-raised hover:text-ink"
+        >
+          로그인
+        </Link>
+      )}
+      {pathname !== '/signup' && (
+        <Button asChild size="sm" className="ml-1">
+          <Link href={authHrefWithRedirect('/signup', redirectParam)}>시작하기</Link>
+        </Button>
+      )}
+    </div>
   );
 }

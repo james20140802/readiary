@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { authHrefWithRedirect } from '@/lib/auth/safeRedirect';
 import { Mail } from 'lucide-react';
 import { createSupabaseClient } from '@/lib/supabase/client';
 import Input from '@/components/ui/Input';
@@ -38,9 +39,7 @@ export default function SignupPage() {
   const supabase = createSupabaseClient();
   const searchParams = useSearchParams();
   const redirectParam = searchParams.get('redirect');
-  const loginHref = redirectParam
-    ? `/login?redirect=${encodeURIComponent(redirectParam)}`
-    : '/login';
+  const loginHref = authHrefWithRedirect('/login', redirectParam);
   // 초대로 온 사람에게는 가입 뒤에도 초대가 이어진다는 걸 미리 알려 둔다
   const pendingRedirectHint = redirectParam?.startsWith('/invite/')
     ? ' 프로필 설정을 마치면 받은 초대로 돌아갑니다.'

@@ -14,7 +14,7 @@ import AuthFrame from '@/components/auth/AuthFrame';
 import PasswordInput from '@/components/auth/PasswordInput';
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 import OrDivider from '@/components/auth/OrDivider';
-import { sanitizeRedirectPath } from '@/lib/auth/safeRedirect';
+import { authHrefWithRedirect, sanitizeRedirectPath } from '@/lib/auth/safeRedirect';
 import { describeAuthError, isEmailNotConfirmed, validateEmail } from '@/lib/auth/authErrors';
 import { emailConfirmRedirectTo } from '@/lib/auth/emailRedirect';
 import { isGoogleLoginEnabled } from '@/lib/auth/oauthRedirect';
@@ -103,9 +103,7 @@ export default function LoginPage() {
   };
 
   // 다른 화면에서 왔다면(redirect 파라미터) 가입 링크에도 실어 보내, 가입 뒤 같은 곳으로 돌아오게
-  const signupHref = redirectParam
-    ? `/signup?redirect=${encodeURIComponent(redirectParam)}`
-    : '/signup';
+  const signupHref = authHrefWithRedirect('/signup', redirectParam);
 
   return (
     <AuthFrame
