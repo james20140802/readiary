@@ -4,7 +4,7 @@ import { motion, MotionConfig } from 'framer-motion';
 import clsx from 'clsx';
 import type { ReactNode } from 'react';
 
-/** 랜딩의 장 순서 — 폴리오(쪽 번호)와 라벨은 여기서 한 번만 정한다 */
+/** 랜딩의 장 순서 — 접근성 라벨과 첫 장 여부는 여기서 한 번만 정한다 */
 export const SLIDES = ['표지', '문장', '회고', '책장', '발췌집', '엽서', '프로필', '시작'] as const;
 export type SlideLabel = (typeof SLIDES)[number];
 
@@ -23,7 +23,6 @@ interface SlideProps {
  */
 export default function Slide({ label, children, className }: SlideProps) {
   const index = SLIDES.indexOf(label);
-  const folio = `${String(index + 1).padStart(2, '0')} / ${String(SLIDES.length).padStart(2, '0')}`;
 
   return (
     <section
@@ -48,15 +47,6 @@ export default function Slide({ label, children, className }: SlideProps) {
           {children}
         </motion.div>
       </div>
-
-      {/* 폴리오 — 책의 쪽 번호처럼 오른쪽 아래에 */}
-      <p
-        aria-hidden
-        className="pointer-events-none absolute bottom-5 right-5 flex items-baseline gap-2 font-sans text-caption tabular-nums text-ink-faint md:bottom-7 md:right-8"
-      >
-        <span className="text-seal uppercase">{label}</span>
-        {folio}
-      </p>
     </section>
   );
 }
