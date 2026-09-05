@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { sanitizeRedirectPath } from '../safeRedirect';
+import { authHrefWithRedirect, sanitizeRedirectPath } from '../safeRedirect';
 
 describe('sanitizeRedirectPath', () => {
   it('null이면 기본 경로', () => {
@@ -53,5 +53,28 @@ describe('sanitizeRedirectPath — 제어문자 변종 (WHATWG 파서가 탭·�
     );
     expect(sanitizeRedirectPath('/invite/길동-1234')).toBe('/invite/길동-1234');
     expect(sanitizeRedirectPath('/invite/a b')).toBe('/invite/a b');
+  });
+});
+
+describe('authHrefWithRedirect — 로그인·가입 링크에 복귀 경로 싣기', () => {
+  it('redirect 가 없으면 base 그대로', () => {
+    expect(authHrefWithRedirect('/login', null)).toBe('/login');
+    expect(authHrefWithRedirect('/signup', '')).toBe('/signup');
+  });
+  it('검증을 통과한 경로는 인코딩해 redirect 로 싣는다', () => {
+    expect(authHrefWithRedirect('/signup', '/invite/gildong-1234')).toBe(
+      '/signup?redirect=%2Finvite%2Fgildong-1234'
+    );
+    expect(authHrefWithRedirect('/login', '/protected/social?invite=x')).toBe(
+      '/login?redirect=%2Fprotected%2Fsocial%3Finvite%3Dx'
+    );
+  });
+  it('거절되는 값(외부 오리진·제어문자)은 싣지 않는다', () => {
+    expect(authHrefWithRedirect('/signup', '//evil.test')).toBe('/signup');
+    expect(authHrefWithRedirect('/login', 'https://evil.test')).toBe('/login');
+    expect(authHrefWithRedirect('/login', `/invite/x${String.fromCharCode(9)}`)).toBe('/login');
+  });
+  it('기본 경로(대시보드)는 굳이 싣지 않는다', () => {
+    expect(authHrefWithRedirect('/login', '/protected/dashboard')).toBe('/login');
   });
 });

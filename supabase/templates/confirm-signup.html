@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <meta name="supported-color-schemes" content="light" />
+    <title>이메일 주소를 확인해 주세요</title>
+  </head>
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      background-color: #f7f3ec;
+      word-break: keep-all;
+      -webkit-text-size-adjust: 100%;
+    "
+  >
+    <!-- 미리보기 문구: 받은편지함 목록에 제목 옆으로 보인다 -->
+    <div style="display: none; max-height: 0; overflow: hidden; opacity: 0; color: #f7f3ec">
+      아래 버튼을 누르면 가입이 끝납니다. 링크는 24시간 뒤 만료됩니다.
+    </div>
+
+    <table
+      role="presentation"
+      width="100%"
+      cellpadding="0"
+      cellspacing="0"
+      border="0"
+      style="background-color: #f7f3ec"
+    >
+      <tr>
+        <td align="center" style="padding: 40px 16px">
+          <table
+            role="presentation"
+            width="100%"
+            cellpadding="0"
+            cellspacing="0"
+            border="0"
+            style="max-width: 440px"
+          >
+            <!-- 글리프 + 워드마크 -->
+            <tr>
+              <td align="center" style="padding: 0 0 24px 0">
+                <div
+                  style="
+                    font-family: 'Noto Serif KR', 'Apple SD Gothic Neo', Georgia, serif;
+                    font-size: 13px;
+                    letter-spacing: 0.16em;
+                    color: #6e665c;
+                  "
+                >
+                  READIARY
+                </div>
+              </td>
+            </tr>
+
+            <!-- 본문 카드 -->
+            <tr>
+              <td
+                style="
+                  background-color: #fdfbf7;
+                  border: 1px solid #e3dcd0;
+                  border-radius: 6px;
+                  padding: 32px 28px;
+                "
+              >
+                <h1
+                  style="
+                    margin: 0 0 12px 0;
+                    font-family: 'Noto Serif KR', 'Apple SD Gothic Neo', Georgia, serif;
+                    font-size: 22px;
+                    font-weight: 700;
+                    line-height: 1.4;
+                    color: #221e1a;
+                  "
+                >
+                  이메일 주소를 확인해 주세요
+                </h1>
+                <p
+                  style="
+                    margin: 0 0 24px 0;
+                    font-family:
+                      Pretendard, 'Apple SD Gothic Neo', 'Malgun Gothic', Arial, sans-serif;
+                    font-size: 15px;
+                    line-height: 1.75;
+                    color: #6e665c;
+                  "
+                >
+                  Readiary 가입을 시작하셨습니다. 아래 버튼을 누르면 이 주소로 가입이 끝나고, 오늘의
+                  문장을 남길 수 있습니다.
+                </p>
+
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td align="center" style="background-color: #221e1a; border-radius: 999px">
+                      <a
+                        href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email"
+                        style="
+                          display: inline-block;
+                          padding: 12px 24px;
+                          font-family:
+                            Pretendard, 'Apple SD Gothic Neo', 'Malgun Gothic', Arial, sans-serif;
+                          font-size: 14px;
+                          font-weight: 600;
+                          line-height: 1;
+                          color: #fdfbf7;
+                          text-decoration: none;
+                          border-radius: 999px;
+                        "
+                      >
+                        이메일 확인하고 시작하기
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+
+                <p
+                  style="
+                    margin: 24px 0 0 0;
+                    font-family:
+                      Pretendard, 'Apple SD Gothic Neo', 'Malgun Gothic', Arial, sans-serif;
+                    font-size: 13px;
+                    line-height: 1.7;
+                    color: #a39a8d;
+                  "
+                >
+                  링크는 24시간 뒤 만료됩니다. 가입한 적이 없다면 이 메일은 그냥 두셔도 됩니다. 아무
+                  일도 일어나지 않습니다.
+                </p>
+              </td>
+            </tr>
+
+            <!-- 푸터 -->
+            <tr>
+              <td style="padding: 20px 4px 0 4px; border-top: 0">
+                <p
+                  style="
+                    margin: 0 0 6px 0;
+                    font-family:
+                      Pretendard, 'Apple SD Gothic Neo', 'Malgun Gothic', Arial, sans-serif;
+                    font-size: 12px;
+                    line-height: 1.6;
+                    color: #a39a8d;
+                  "
+                >
+                  버튼이 눌리지 않으면 아래 주소를 브라우저에 붙여 넣으세요.
+                </p>
+                <p
+                  style="
+                    margin: 0 0 16px 0;
+                    font-family: Menlo, Consolas, monospace;
+                    font-size: 11px;
+                    line-height: 1.6;
+                    color: #6e665c;
+                    word-break: break-all;
+                  "
+                >
+                  {{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email
+                </p>
+                <p
+                  style="
+                    margin: 0;
+                    font-family:
+                      Pretendard, 'Apple SD Gothic Neo', 'Malgun Gothic', Arial, sans-serif;
+                    font-size: 12px;
+                    line-height: 1.6;
+                    color: #a39a8d;
+                  "
+                >
+                  이 메일은 {{ .Email }} 주소로 요청된 가입에 대해 보냈습니다. ·
+                  <a href="{{ .SiteURL }}" style="color: #6e665c; text-decoration: underline"
+                    >readiary.net</a
+                  >
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

@@ -3,6 +3,12 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { classifyProfileInsertError } from '@/lib/onboarding/classifyProfileInsertError';
 import { validateNickname } from '@/lib/profile/nickname';
 import { PENDING_REDIRECT_KEY, readPendingRedirect } from '@/lib/auth/pendingRedirect';
+import {
+  CONSENTED_AT_KEY,
+  CONSENT_REQUIRED_MESSAGE,
+  consentStamp,
+  hasConsented,
+} from '@/lib/auth/consent';
 
 export async function POST(req: Request) {
   try {
@@ -24,15 +30,31 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
     }
 
-    const { name, nickname, tag, bio } = body;
+    const { name: rawName, nickname: rawNickname, tag, bio: rawBio, consent } = body;
 
-    if (!name || !nickname || !tag) {
-      return NextResponse.json({ error: '이름과 닉네임을 입력해주세요.' }, { status: 400 });
+    // 약관·개인정보 동의 없이는 프로필(개인정보)을 만들지 않는다 — 이메일 가입과 가입 화면 Google은
+    // 표식을 갖고 오고, 로그인 화면 Google로 처음 온 사람은 온보딩 폼에서 동의해 consent: true 로 보낸다
+    const consentedBefore = hasConsented(user.user_metadata);
+    const consentedNow = consent === true;
+    if (!consentedBefore && !consentedNow) {
+      return NextResponse.json(
+        { code: 'consent_required', error: CONSENT_REQUIRED_MESSAGE },
+        { status: 400 }
+      );
     }
 
     // 문자열이 아닌 값(배열 등)은 String()으로 눙치지 않고 거절한다 — 강제 변환된 값만 검증을
     // 통과하고 원본이 그대로 insert되면 서버 규칙이 무력해진다
-    if (typeof name !== 'string' || typeof nickname !== 'string' || typeof tag !== 'string') {
+    if (typeof rawName !== 'string' || typeof rawNickname !== 'string' || typeof tag !== 'string') {
+      return NextResponse.json({ error: '이름과 닉네임을 입력해주세요.' }, { status: 400 });
+    }
+
+    // 앞뒤 공백은 뜻이 없다 — 공백만 친 이름은 빈 것으로, 빈 자기소개는 ''가 아니라 null로 남긴다
+    const name = rawName.trim();
+    const nickname = rawNickname.trim();
+    const bio = typeof rawBio === 'string' && rawBio.trim() !== '' ? rawBio.trim() : null;
+
+    if (!name || !nickname || !tag) {
       return NextResponse.json({ error: '이름과 닉네임을 입력해주세요.' }, { status: 400 });
     }
 
@@ -49,7 +71,7 @@ export async function POST(req: Request) {
         name,
         nickname,
         tag,
-        bio: bio ?? null,
+        bio,
       })
       .select('*')
       .single();
@@ -72,19 +94,20 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: '프로필 등록에 실패했습니다.' }, { status: 500 });
     }
 
-    // 초대 링크로 가입한 사람은 온보딩이 끝나면 대시보드 대신 원래 목적지로 — 가입 때 실어 둔
-    // 메타데이터를 한 번 쓰고 비운다. 비우기가 실패해도 등록은 끝났으니 성공으로 답한다
+    // 메타데이터 뒷정리 한 번에: 여기서 처음 동의했다면 표식을 남기고, 초대 링크로 가입한 사람이면
+    // 가입 때 실어 둔 복귀 경로를 한 번 쓰고 비운다. 실패해도 등록은 끝났으니 성공으로 답한다
+    // (표식이 안 남아도 프로필이 있으면 온보딩은 다시 열리지 않는다)
     const redirectTo = readPendingRedirect(user.user_metadata);
-    if (redirectTo) {
-      const { error: clearError } = await supabase.auth.updateUser({
-        data: { [PENDING_REDIRECT_KEY]: null },
-      });
-      if (clearError) {
-        console.error('[ONBOARDING PENDING REDIRECT CLEAR ERROR]', clearError);
+    const metadata: Record<string, string | null> = {};
+    if (!consentedBefore) metadata[CONSENTED_AT_KEY] = consentStamp();
+    if (redirectTo) metadata[PENDING_REDIRECT_KEY] = null;
+    if (Object.keys(metadata).length > 0) {
+      const { error: metadataError } = await supabase.auth.updateUser({ data: metadata });
+      if (metadataError) {
+        console.error('[ONBOARDING METADATA UPDATE ERROR]', metadataError);
       }
-      return NextResponse.json({ success: true, redirectTo });
     }
-    return NextResponse.json({ success: true });
+    return NextResponse.json(redirectTo ? { success: true, redirectTo } : { success: true });
   } catch (err) {
     console.error('[ONBOARDING ERROR]', err);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
