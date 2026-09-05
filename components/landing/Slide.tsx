@@ -109,14 +109,16 @@ export default function Slide({ label, children, className }: SlideProps) {
       <section
         aria-label={label}
         className={clsx(
-          'sticky top-0 flex h-[100svh] flex-col overflow-hidden bg-paper',
+          // 내용이 한 화면을 넘는 짧은 화면(가로 폰·큰 글자)에서는 장 안에서 스크롤해 끝까지 닿을 수 있게 한다
+          'sticky top-0 flex h-[100svh] flex-col overflow-x-hidden overflow-y-auto bg-paper [scrollbar-width:thin]',
           index > 0 && 'shadow-[0_-24px_64px_-32px_rgb(var(--ink)/0.22)]'
         )}
       >
         <motion.div
           style={reduced ? undefined : { scale, opacity, y }}
           className={clsx(
-            'mx-auto flex w-full max-w-screen-md flex-1 flex-col justify-center px-5 pb-12 pt-16 md:px-4 md:pb-14 md:pt-[6rem]',
+            // my-auto — 들어맞으면 세로 가운데, 넘치면 위부터(justify-center는 넘친 윗부분을 닿을 수 없게 만든다)
+            'mx-auto my-auto flex w-full max-w-screen-md flex-col px-5 pb-12 pt-16 md:px-4 md:pb-14 md:pt-[6rem]',
             className
           )}
         >
