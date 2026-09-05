@@ -132,7 +132,8 @@ export default function EntryFormBody({
           ③ 전폭 저장 버튼. 넓어지면 전부 한 줄로 합쳐지고 저장 버튼은 오른끝에 붙는다. */}
       <div className="border-t border-hairline pt-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4">
-          <div className="flex items-center gap-4">
+          {/* 좁은 화면에선 쪽수 왼끝·날짜 오른끝, 넓어지면 붙어서 구분선 하나로 나뉜다 */}
+          <div className="flex items-center justify-between sm:justify-start sm:gap-4">
             <div className="flex items-center gap-1 text-[13px] tabular-nums text-ink-sub">
               <span className="text-ink-faint">p.</span>
               <input
@@ -157,7 +158,7 @@ export default function EntryFormBody({
               />
             </div>
 
-            <span aria-hidden className="h-4 w-px bg-hairline" />
+            <span aria-hidden className="hidden h-4 w-px bg-hairline sm:block" />
 
             <input
               type="date"

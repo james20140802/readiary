@@ -114,134 +114,137 @@ export default function BookDetailContent({
         : '읽는 중';
 
   return (
-    <div className="space-y-8">
-      {/* 속표지 — 표지와 서지 정보 */}
-      <section className="flex items-start gap-5 sm:gap-8">
-        <Image
-          src={cover_url ?? '/images/default-book-cover.png'}
-          alt={`${title} 표지`}
-          width={128}
-          height={192}
-          className="w-20 shrink-0 rounded object-cover shadow-sm sm:w-24"
-        />
-        <div className="min-w-0 pt-1">
-          <h1 className="font-serif text-[24px] font-bold leading-snug text-ink sm:text-3xl">
-            {title}
-          </h1>
-          <p className="mt-2 font-serif text-[14px] text-ink-sub">{author}</p>
-          <p className="mt-5 text-[12.5px] tabular-nums text-ink-faint">
-            {progressLine}
-            {!isFriend && !isFinished && (
-              <>
-                <span className="mx-2 text-hairline-strong">·</span>
-                <MarkAsFinishedButton onFinish={() => setIsFinished(true)} userBookId={id} />
-              </>
+    <>
+      <div className="space-y-8">
+        {/* 속표지 — 표지와 서지 정보 */}
+        <section className="flex items-start gap-5 sm:gap-8">
+          <Image
+            src={cover_url ?? '/images/default-book-cover.png'}
+            alt={`${title} 표지`}
+            width={128}
+            height={192}
+            className="w-20 shrink-0 rounded object-cover shadow-sm sm:w-24"
+          />
+          <div className="min-w-0 pt-1">
+            <h1 className="font-serif text-[24px] font-bold leading-snug text-ink sm:text-3xl">
+              {title}
+            </h1>
+            <p className="mt-2 font-serif text-[14px] text-ink-sub">{author}</p>
+            <p className="mt-5 text-[12.5px] tabular-nums text-ink-faint">
+              {progressLine}
+              {!isFriend && !isFinished && (
+                <>
+                  <span className="mx-2 text-hairline-strong">·</span>
+                  <MarkAsFinishedButton onFinish={() => setIsFinished(true)} userBookId={id} />
+                </>
+              )}
+            </p>
+            {readingPeriod && (
+              <p className="mt-1 text-[12px] tabular-nums text-ink-faint">{readingPeriod}</p>
             )}
-          </p>
-          {readingPeriod && (
-            <p className="mt-1 text-[12px] tabular-nums text-ink-faint">{readingPeriod}</p>
-          )}
-        </div>
-      </section>
-
-      {/* 완독한 책은 hairline 사이에 한 줄로 */}
-      {!isFriend && isFinished && (
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-y border-hairline py-3">
-          <p className="font-serif text-[13.5px] text-ink">
-            <span className="font-bold text-accent">완독</span>한 책입니다
-          </p>
-          <div className="flex items-center gap-2">
-            <Link
-              href={`/protected/books/${book_id}/excerpts`}
-              className="font-serif text-[12.5px] text-accent hover:underline"
-            >
-              발췌집 보기 →
-            </Link>
-            <UnfinishBookButton userBookId={id} onUnfinish={() => setIsFinished(false)} />
           </div>
-        </div>
-      )}
+        </section>
 
-      {/* 이 책에 남긴 문장들 */}
-      <section>
-        <div className="flex items-center justify-between gap-4">
-          <h2 className="font-serif text-[19px] font-bold text-ink">
-            독서 기록
-            {entryList && entryList.length > 0 && (
-              <span className="ml-2 text-[13px] font-normal tabular-nums text-ink-faint">
-                {entryList.length}
-              </span>
-            )}
-          </h2>
-          {!isFriend && (
-            <Button asChild size="sm" variant="primary">
-              <Link href={`/protected/books/${book_id}/entry/new`}>기록 남기기</Link>
-            </Button>
-          )}
-        </div>
-
-        {entryList && entryList.length > 1 && (
-          <div className="mt-3 flex items-center justify-between text-[13.5px]">
-            {!isFriend ? (
-              <div className="flex items-center gap-3">
-                {FILTER_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    onClick={() => setFilterOption(opt.value)}
-                    className={`transition-colors ${
-                      filterOption === opt.value
-                        ? 'text-ink underline decoration-accent underline-offset-4'
-                        : 'text-ink-faint hover:text-ink-sub'
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <span />
-            )}
-            <button
-              onClick={() => setSortOrder((v) => (v === 'desc' ? 'asc' : 'desc'))}
-              className="text-ink-faint transition-colors hover:text-ink-sub"
-            >
-              {sortOrder === 'desc' ? '최신순' : '오래된순'} ↕
-            </button>
+        {/* 완독한 책은 hairline 사이에 한 줄로 */}
+        {!isFriend && isFinished && (
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-y border-hairline py-3">
+            <p className="font-serif text-[13.5px] text-ink">
+              <span className="font-bold text-accent">완독</span>한 책입니다
+            </p>
+            <div className="flex items-center gap-2">
+              <Link
+                href={`/protected/books/${book_id}/excerpts`}
+                className="font-serif text-[12.5px] text-accent hover:underline"
+              >
+                발췌집 보기 →
+              </Link>
+              <UnfinishBookButton userBookId={id} onUnfinish={() => setIsFinished(false)} />
+            </div>
           </div>
         )}
 
-        {sortedEntries && sortedEntries.length > 0 ? (
-          <div className="mt-1 divide-y divide-hairline">
-            {sortedEntries.map((data) => (
-              <EntryCard
-                key={data.entry.id}
-                id={data.entry.id}
-                quote={data.entry.quote}
-                note={data.entry.note}
-                date={data.entry.date}
-                fromPage={data.entry.from_page}
-                toPage={data.entry.to_page}
-                isPrivate={data.entry.is_private}
-                userId={userId}
-                href={
-                  isFriend && friendProfile
-                    ? `/protected/social/u/${friendProfile.nickname + '-' + friendProfile.tag}/entry/${data.entry.id}`
-                    : undefined
-                }
-                initialCommentCount={data.initialCommentCount}
-                initialLikeCount={data.initialLikeCount}
-                initialLiked={data.initialLiked}
-                onEdit={isFriend ? undefined : () => openEdit(data.entry)}
-              />
-            ))}
+        {/* 이 책에 남긴 문장들 */}
+        <section>
+          <div className="flex items-center justify-between gap-4">
+            <h2 className="font-serif text-[19px] font-bold text-ink">
+              독서 기록
+              {entryList && entryList.length > 0 && (
+                <span className="ml-2 text-[13px] font-normal tabular-nums text-ink-faint">
+                  {entryList.length}
+                </span>
+              )}
+            </h2>
+            {!isFriend && (
+              <Button asChild size="sm" variant="primary">
+                <Link href={`/protected/books/${book_id}/entry/new`}>기록 남기기</Link>
+              </Button>
+            )}
           </div>
-        ) : (
-          <p className="mt-6 font-serif text-[13.5px] text-ink-faint">
-            아직 이 책에 남긴 문장이 없습니다.
-          </p>
-        )}
-      </section>
 
+          {entryList && entryList.length > 1 && (
+            <div className="mt-3 flex items-center justify-between text-[13.5px]">
+              {!isFriend ? (
+                <div className="flex items-center gap-3">
+                  {FILTER_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => setFilterOption(opt.value)}
+                      className={`transition-colors ${
+                        filterOption === opt.value
+                          ? 'text-ink underline decoration-accent underline-offset-4'
+                          : 'text-ink-faint hover:text-ink-sub'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <span />
+              )}
+              <button
+                onClick={() => setSortOrder((v) => (v === 'desc' ? 'asc' : 'desc'))}
+                className="text-ink-faint transition-colors hover:text-ink-sub"
+              >
+                {sortOrder === 'desc' ? '최신순' : '오래된순'} ↕
+              </button>
+            </div>
+          )}
+
+          {sortedEntries && sortedEntries.length > 0 ? (
+            <div className="mt-1 divide-y divide-hairline">
+              {sortedEntries.map((data) => (
+                <EntryCard
+                  key={data.entry.id}
+                  id={data.entry.id}
+                  quote={data.entry.quote}
+                  note={data.entry.note}
+                  date={data.entry.date}
+                  fromPage={data.entry.from_page}
+                  toPage={data.entry.to_page}
+                  isPrivate={data.entry.is_private}
+                  userId={userId}
+                  href={
+                    isFriend && friendProfile
+                      ? `/protected/social/u/${friendProfile.nickname + '-' + friendProfile.tag}/entry/${data.entry.id}`
+                      : undefined
+                  }
+                  initialCommentCount={data.initialCommentCount}
+                  initialLikeCount={data.initialLikeCount}
+                  initialLiked={data.initialLiked}
+                  onEdit={isFriend ? undefined : () => openEdit(data.entry)}
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="mt-6 font-serif text-[13.5px] text-ink-faint">
+              아직 이 책에 남긴 문장이 없습니다.
+            </p>
+          )}
+        </section>
+      </div>
+
+      {/* 시트는 space-y 상자 밖에 — 안에 두면 형제 margin-top(32px)이 fixed 덮개까지 밀어 헤더 위가 비었다 */}
       {!isFriend && (
         <EntryEditSheet
           entry={editingEntry}
@@ -252,6 +255,6 @@ export default function BookDetailContent({
           onDeleted={handleDeleted}
         />
       )}
-    </div>
+    </>
   );
 }
