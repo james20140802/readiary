@@ -1,3 +1,4 @@
+import { getServerUser } from '@/lib/supabase/getServerUser';
 import { fetchFriendEntryDetail } from '@/lib/friends/fetchFriendEntryDetail';
 
 import { notFound } from 'next/navigation';
@@ -5,17 +6,15 @@ import { isFriendWith } from '@/lib/friends/isFriendWith';
 import { parseNicknameAndTagSlug } from '@/lib/social/invite';
 import FriendProfileHeader from '@/components/social/FriendProfileHeader';
 import EntryDetailContent from '@/components/entry/EntryDetailContent';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 export default async function EntryDetailPage({
   params,
 }: {
   params: Promise<{ nicknameAndTag: string; entry_id: string }>;
 }) {
-  const supabase = await createSupabaseServerClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await getServerUser();
 
   if (!user) return null;
 

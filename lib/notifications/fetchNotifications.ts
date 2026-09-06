@@ -1,3 +1,4 @@
+import { getServerUser } from '@/lib/supabase/getServerUser';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { getImageUrl } from '@/utils/profile';
 import { NOTIFICATIONS_LIMIT } from './types';
@@ -22,7 +23,7 @@ export async function fetchNotifications(): Promise<FetchNotificationsResult> {
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await getServerUser();
   if (!user) return { items: [], error: false };
 
   const { data, error } = await supabase

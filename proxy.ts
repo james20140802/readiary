@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { hasProfile } from '@/lib/auth/profilePresence';
 import { sanitizeRedirectPath } from '@/lib/auth/safeRedirect';
 
 export async function proxy(request: NextRequest) {
@@ -40,11 +41,27 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Fetch user profile from 'profiles' table (only when logged in)
-  let profile: { id: string } | null = null;
+  // Short-lived, server-only positive cache. Onboarding always reads the source.
+  // getUser above stays uncached so revoked/deleted sessions are checked immediately.
+  let profile = false;
   if (user) {
-    const { data } = await supabase.from('profiles').select('id').eq('id', user.id).maybeSingle();
-    profile = data;
+    try {
+      profile = await hasProfile(
+        user.id,
+        () => supabase.from('profiles').select('id').eq('id', user.id).maybeSingle(),
+        request.nextUrl.pathname.startsWith('/onboarding')
+      );
+    } catch {
+      const response = new NextResponse(
+        '일시적으로 프로필을 확인할 수 없습니다. 잠시 후 다시 시도해 주세요.',
+        {
+          status: 503,
+          headers: { 'Cache-Control': 'no-store', 'Retry-After': '5' },
+        }
+      );
+      supabaseResponse.cookies.getAll().forEach((cookie) => response.cookies.set(cookie));
+      return response;
+    }
   }
 
   // 리다이렉트 응답에도 setAll이 실어둔 갱신 쿠키가 함께 가야 한다 — 버리면 토큰

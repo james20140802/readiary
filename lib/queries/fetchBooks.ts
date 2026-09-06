@@ -1,13 +1,13 @@
+import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { getServerUser } from '@/lib/supabase/getServerUser';
 import { MyBook } from '@/types/book';
-import { createSupabaseServerClient } from '../supabase/server';
 
 export async function fetchMyBooksData(): Promise<MyBook[] | null> {
   const supabase = await createSupabaseServerClient();
-
   const {
     data: { user },
     error: userError,
-  } = await supabase.auth.getUser();
+  } = await getServerUser();
 
   if (!user || userError) return null;
 

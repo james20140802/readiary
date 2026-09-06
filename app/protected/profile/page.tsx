@@ -1,5 +1,5 @@
+import { getServerUser } from '@/lib/supabase/getServerUser';
 import { notFound } from 'next/navigation';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { fetchProfileData } from '@/lib/profile/fetchProfileData';
 import { fetchRetrospectData } from '@/lib/profile/fetchRetrospectData';
 import { fetchFeaturedQuote } from '@/lib/profile/fetchFeaturedQuote';
@@ -15,12 +15,10 @@ import AnimatedSection from '@/components/ui/AnimatedSection';
 const excerptsHref = (bookId: string) => `/protected/books/${bookId}/excerpts`;
 
 export default async function ProfilePage() {
-  const supabase = await createSupabaseServerClient();
-
   const {
     data: { user },
     error: userError,
-  } = await supabase.auth.getUser();
+  } = await getServerUser();
 
   if (!user || userError) {
     return <p className="text-center mt-10 text-danger">로그인이 필요합니다.</p>;

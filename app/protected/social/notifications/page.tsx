@@ -1,14 +1,13 @@
+import { getServerUser } from '@/lib/supabase/getServerUser';
 // app/protected/social/notifications/page.tsx
-import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { fetchNotifications } from '@/lib/notifications/fetchNotifications';
 import BackButton from '@/components/ui/BackButton';
 import NotificationsView from '../_components/NotificationsView';
 
 export default async function NotificationsPage() {
-  const supabase = await createSupabaseServerClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await getServerUser();
   if (!user) return null;
 
   const { items: notifications, error } = await fetchNotifications();

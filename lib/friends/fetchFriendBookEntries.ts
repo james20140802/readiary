@@ -1,3 +1,4 @@
+import { getServerUser } from '@/lib/supabase/getServerUser';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { isFriendWith } from './isFriendWith';
 import { MyBook } from '@/types/book';
@@ -36,7 +37,7 @@ export async function fetchFriendBookEntries({
   const {
     data: { user },
     error: userError,
-  } = await supabase.auth.getUser();
+  } = await getServerUser();
   if (!user || userError) return null;
 
   // Step 2: Find user_book.id for this user and book

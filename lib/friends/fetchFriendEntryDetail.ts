@@ -1,3 +1,4 @@
+import { getServerUser } from '@/lib/supabase/getServerUser';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { EntryDetailData } from '@/types/entry';
 import { Profile } from '@/types/profile';
@@ -13,7 +14,7 @@ export async function fetchFriendEntryDetail(
   const {
     data: { user },
     error: userError,
-  } = await supabase.auth.getUser();
+  } = await getServerUser();
 
   if (!user || userError) return null;
   // 친구 프로필을 찾기

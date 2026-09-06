@@ -1,3 +1,4 @@
+import { getServerUser } from '@/lib/supabase/getServerUser';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { MyBook } from '@/types/book';
 import { Profile } from '@/types/profile';
@@ -12,7 +13,7 @@ export async function fetchFriendBooks(
   const {
     data: { user },
     error: userError,
-  } = await supabase.auth.getUser();
+  } = await getServerUser();
 
   if (!user || userError) return null;
 

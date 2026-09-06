@@ -1,3 +1,4 @@
+import { getServerUser } from '@/lib/supabase/getServerUser';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { EntryDetailData } from '@/types/entry';
 
@@ -7,7 +8,7 @@ export async function fetchEntryDetail(entryId: string): Promise<EntryDetailData
   const {
     data: { user },
     error: userError,
-  } = await supabase.auth.getUser();
+  } = await getServerUser();
 
   if (!user || userError) return null;
 

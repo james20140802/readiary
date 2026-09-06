@@ -1,4 +1,5 @@
 import { fetchAllRows } from '@/lib/supabase/fetchAllRows';
+import { getServerUser } from '@/lib/supabase/getServerUser';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 export interface BookExcerptEntry {
@@ -25,7 +26,7 @@ export async function fetchBookExcerpts(bookId: string): Promise<BookExcerptsDat
   const {
     data: { user },
     error: userError,
-  } = await supabase.auth.getUser();
+  } = await getServerUser();
 
   if (!user || userError) return null;
 

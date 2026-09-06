@@ -1,3 +1,4 @@
+import { getServerUser } from '@/lib/supabase/getServerUser';
 // app/protected/social/page.tsx
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
@@ -5,7 +6,6 @@ import { Users } from 'lucide-react';
 import { fetchDetailSocialFeedEntries } from '@/lib/queries/fetchSocialFeedEntries';
 import { fetchFriendList, fetchReceivedFriendRequests } from '@/lib/friends/fetchFriendList';
 import { FEED_PAGINATION_LIMIT } from '@/constants/social';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
 import DetailSocailFeedList from './_components/DetailSocialFeedList';
 
 interface SocialPageProps {
@@ -17,10 +17,9 @@ export default async function SocialPage({ searchParams }: SocialPageProps) {
   // 초대 링크는 친구 페이지가 담당한다
   if (invite) redirect(`/protected/social/friends?invite=${encodeURIComponent(invite)}`);
 
-  const supabase = await createSupabaseServerClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await getServerUser();
   if (!user) return null;
 
   const [feed, acceptedFriends, pendingFriends] = await Promise.all([
