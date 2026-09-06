@@ -17,14 +17,8 @@ import FormLabel from '@/components/ui/FormLabel';
 import { toast } from 'sonner';
 import { getImageUrl } from '@/utils/profile';
 import ProfileSelection from '@/components/profile/ProfileSelection';
+import FeaturedQuoteSelection from '@/components/profile/FeaturedQuoteSelection';
 import { validateNickname } from '@/lib/profile/nickname';
-
-interface QuoteOption {
-  id: string;
-  quote: string;
-  bookTitle: string | null;
-  userBookId: string;
-}
 
 interface FinishedOption {
   id: string;
@@ -42,7 +36,6 @@ export default function EditProfilePage() {
   // 뒷표지 문장 — 내가 남긴 인용 중 하나. 바꾼 적이 있을 때만 저장에 실린다
   const [featuredEntryId, setFeaturedEntryId] = useState<string | null>(null);
   const [featuredDirty, setFeaturedDirty] = useState(false);
-  const [quotes, setQuotes] = useState<QuoteOption[]>([]);
   // 책갈피 — 완독한 책 중 하나. 바꾼 적이 있을 때만 저장에 실린다
   const [bookmarkId, setBookmarkId] = useState<string | null>(null);
   const [bookmarkDirty, setBookmarkDirty] = useState(false);
@@ -50,8 +43,6 @@ export default function EditProfilePage() {
 
   const [booksLoading, setBooksLoading] = useState(true);
   const [booksError, setBooksError] = useState(false);
-  const [quotesLoading, setQuotesLoading] = useState(true);
-  const [quotesError, setQuotesError] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -98,51 +89,11 @@ export default function EditProfilePage() {
           setBooksLoading(false);
         }
       }
-      async function loadQuotes() {
-        try {
-          const { rows, error: quotesError } = await fetchAllRows<{
-            id: string;
-            quote: string | null;
-            user_book_id: string;
-            user_books: { books: { title: string | null } | null } | null;
-          }>((from, to) =>
-            supabase
-              .from('entries')
-              .select('id, quote, user_book_id, user_books!inner(user_id, books(title))')
-              .eq('user_books.user_id', userId)
-              .not('quote', 'is', null)
-              .order('date', { ascending: false })
-              .order('id', { ascending: true })
-              .range(from, to)
-          );
-          setQuotesError(Boolean(quotesError));
-          setQuotes(
-            (rows ?? []).flatMap((r) =>
-              r.quote && r.quote.trim() !== ''
-                ? [
-                    {
-                      id: r.id,
-                      quote: r.quote,
-                      bookTitle: r.user_books?.books?.title ?? null,
-                      userBookId: r.user_book_id,
-                    },
-                  ]
-                : []
-            )
-          );
-        } catch {
-          setQuotesError(true);
-        } finally {
-          setQuotesLoading(false);
-        }
-      }
-      await Promise.all([loadBooks(), loadQuotes()]);
+      await loadBooks();
     }
     loadData().catch(() => {
       setBooksError(true);
-      setQuotesError(true);
       setBooksLoading(false);
-      setQuotesLoading(false);
     });
   }, [supabase, router]);
 
@@ -338,25 +289,13 @@ export default function EditProfilePage() {
           <p className="mt-1 text-caption font-medium text-ink-faint">
             프로필 책을 뒤집으면 보이는 문장입니다. 내가 남긴 인용 중에서 하나를 고릅니다.
           </p>
-          <ProfileSelection
-            label="뒷표지 문장"
-            options={quotes.map((q) => ({
-              id: q.id,
-              title: q.quote,
-              subtitle: q.bookTitle ?? '제목 없는 책',
-              groupId: q.userBookId,
-            }))}
+          <FeaturedQuoteSelection
+            userId={profile.id}
             value={featuredEntryId}
             onChange={(id) => {
               setFeaturedEntryId(id);
               setFeaturedDirty(true);
             }}
-            emptyLabel="뒷표지를 비워 둡니다"
-            emptyMessage="아직 인용을 남긴 기록이 없습니다. 문장을 남기면 여기서 고를 수 있어요."
-            searchPlaceholder="책 제목이나 문장 검색"
-            filterByBook
-            loading={quotesLoading}
-            error={quotesError}
             disabled={updating}
           />
         </section>

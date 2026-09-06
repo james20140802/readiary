@@ -25,6 +25,17 @@ interface Props {
   error?: boolean;
   disabled?: boolean;
   filterByBook?: boolean;
+  selectedOption?: ProfileSelectionOption;
+  remote?: {
+    groups: [string, string][];
+    onOpen: (open: boolean) => void;
+    onSearch: (search: string) => void;
+    onBook: (id: string) => void;
+    page: number;
+    hasNext: boolean;
+    onPage: (page: number) => void;
+    retry: () => void;
+  };
 }
 
 export default function ProfileSelection({
@@ -39,30 +50,36 @@ export default function ProfileSelection({
   error,
   disabled,
   filterByBook,
+  selectedOption,
+  remote,
 }: Props) {
   const id = useId();
   const trigger = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [bookId, setBookId] = useState('');
-  const selected = options.find((option) => option.id === value);
-  const groups = [
+  const selected =
+    selectedOption?.id === value ? selectedOption : options.find((option) => option.id === value);
+  const groups = remote?.groups ?? [
     ...new Map(
       options.filter((o) => o.groupId).map((o) => [o.groupId!, o.subtitle ?? '제목 없는 책'])
     ).entries(),
   ];
   const query = search.trim().normalize('NFKC').toLocaleLowerCase();
-  const visible = options.filter(
-    (option) =>
-      (!bookId || option.groupId === bookId) &&
-      `${option.title} ${option.subtitle ?? ''}`
-        .normalize('NFKC')
-        .toLocaleLowerCase()
-        .includes(query)
-  );
+  const visible = remote
+    ? options
+    : options.filter(
+        (option) =>
+          (!bookId || option.groupId === bookId) &&
+          `${option.title} ${option.subtitle ?? ''}`
+            .normalize('NFKC')
+            .toLocaleLowerCase()
+            .includes(query)
+      );
 
   function close() {
     setOpen(false);
+    remote?.onOpen(false);
     trigger.current?.focus();
   }
 
@@ -94,9 +111,12 @@ export default function ProfileSelection({
           aria-label={`${label} ${open ? '선택 닫기' : '변경'}`}
           aria-expanded={open}
           aria-controls={`${id}-panel`}
-          disabled={disabled || loading || error}
+          disabled={disabled || (!remote && (loading || error))}
           onClick={() => {
             setOpen(!open);
+            remote?.onSearch('');
+            remote?.onBook('');
+            remote?.onOpen(!open);
             setSearch('');
             setBookId('');
           }}
@@ -113,7 +133,9 @@ export default function ProfileSelection({
       )}
       {error && (
         <p role="alert" className="pb-4 text-caption text-danger">
-          목록을 불러오지 못했습니다. 페이지를 새로고침해 주세요.
+          {remote
+            ? '목록을 불러오지 못했습니다. 다시 시도해 주세요.'
+            : '목록을 불러오지 못했습니다. 페이지를 새로고침해 주세요.'}
         </p>
       )}
       {open && (
@@ -127,7 +149,7 @@ export default function ProfileSelection({
             }
           }}
         >
-          {options.length > 0 ? (
+          {remote || options.length > 0 ? (
             <>
               <FormLabel variant="line" htmlFor={`${id}-search`}>
                 {label} 검색
@@ -138,7 +160,10 @@ export default function ProfileSelection({
                 type="search"
                 autoFocus
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  remote?.onSearch(e.target.value);
+                }}
                 placeholder={searchPlaceholder}
                 trailing={<Search size={16} aria-hidden className="text-ink-faint" />}
               />
@@ -150,7 +175,10 @@ export default function ProfileSelection({
                   <select
                     id={`${id}-book`}
                     value={bookId}
-                    onChange={(e) => setBookId(e.target.value)}
+                    onChange={(e) => {
+                      setBookId(e.target.value);
+                      remote?.onBook(e.target.value);
+                    }}
                     className="min-h-11 w-full border-b border-hairline bg-paper py-2 text-sm text-ink focus-visible:outline focus-visible:outline-accent"
                   >
                     <option value="">모든 책</option>
@@ -173,7 +201,7 @@ export default function ProfileSelection({
                   <li key={option.id}>
                     <button
                       type="button"
-                      disabled={disabled}
+                      disabled={disabled || loading || error}
                       aria-pressed={value === option.id}
                       onClick={() => select(option.id)}
                       className="flex min-h-12 w-full items-start gap-3 px-2 py-3 text-left hover:bg-card-raised focus-visible:outline focus-visible:outline-accent disabled:opacity-50"
@@ -195,7 +223,7 @@ export default function ProfileSelection({
                   </li>
                 ))}
               </ul>
-              {visible.length === 0 && (
+              {visible.length === 0 && !loading && !error && (
                 <p className="py-4 text-sm text-ink-sub">
                   검색 결과가 없습니다. 검색어나 책을 바꿔 보세요.
                 </p>
@@ -203,6 +231,32 @@ export default function ProfileSelection({
             </>
           ) : (
             <p className="py-3 text-sm text-ink-sub">{emptyMessage}</p>
+          )}
+          {remote && (
+            <div className="mt-3 flex items-center justify-between gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={loading || disabled || remote.page === 0}
+                onClick={() => remote.onPage(remote.page - 1)}
+              >
+                이전
+              </Button>
+              <span className="text-caption text-ink-faint">{remote.page + 1}쪽</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={loading || disabled || !remote.hasNext}
+                onClick={() => remote.onPage(remote.page + 1)}
+              >
+                다음
+              </Button>
+              {error && (
+                <Button variant="ghost" size="sm" onClick={remote.retry}>
+                  재시도
+                </Button>
+              )}
+            </div>
           )}
           <div className="mt-3 border-t border-hairline pt-3">
             <Button
