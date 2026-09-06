@@ -16,21 +16,20 @@ import FormGroup from '@/components/ui/FormGroup';
 import FormLabel from '@/components/ui/FormLabel';
 import { toast } from 'sonner';
 import { getImageUrl } from '@/utils/profile';
+import ProfileSelection from '@/components/profile/ProfileSelection';
 import { validateNickname } from '@/lib/profile/nickname';
 
 interface QuoteOption {
   id: string;
   quote: string;
   bookTitle: string | null;
+  userBookId: string;
 }
 
 interface FinishedOption {
   id: string;
   title: string;
 }
-
-/** 뒷표지 후보로 보여 주는 최근 인용 수 */
-const FEATURED_CANDIDATES = 40;
 
 export default function EditProfilePage() {
   const router = useRouter();
@@ -48,6 +47,9 @@ export default function EditProfilePage() {
   const [bookmarkId, setBookmarkId] = useState<string | null>(null);
   const [bookmarkDirty, setBookmarkDirty] = useState(false);
   const [finishedBooks, setFinishedBooks] = useState<FinishedOption[]>([]);
+
+  const [choicesLoading, setChoicesLoading] = useState(true);
+  const [choicesError, setChoicesError] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -67,7 +69,7 @@ export default function EditProfilePage() {
       }
 
       // 완독 책은 행 캡에 잘리지 않도록 끝까지 읽는다 — 오래된 완독 책도 책갈피로 고를 수 있어야 한다
-      const { rows: finished } = await fetchAllRows<{
+      const { rows: finished, error: finishedError } = await fetchAllRows<{
         id: string;
         books: { title: string | null } | null;
       }>((from, to) =>
@@ -84,22 +86,40 @@ export default function EditProfilePage() {
         finished.flatMap((r) => (r.books?.title ? [{ id: r.id, title: r.books.title }] : []))
       );
 
-      const { data: rows } = await supabase
-        .from('entries')
-        .select('id, quote, date, user_books!inner(user_id, books(title))')
-        .eq('user_books.user_id', user.id)
-        .not('quote', 'is', null)
-        .order('date', { ascending: false })
-        .limit(FEATURED_CANDIDATES);
+      const { rows, error: quotesError } = await fetchAllRows<{
+        id: string;
+        quote: string | null;
+        user_book_id: string;
+        user_books: { books: { title: string | null } | null } | null;
+      }>((from, to) =>
+        supabase
+          .from('entries')
+          .select('id, quote, user_book_id, user_books!inner(user_id, books(title))')
+          .eq('user_books.user_id', user.id)
+          .not('quote', 'is', null)
+          .order('date', { ascending: false })
+          .order('id', { ascending: true })
+          .range(from, to)
+      );
+      setChoicesError(Boolean(finishedError || quotesError));
       setQuotes(
         (rows ?? []).flatMap((r) =>
           r.quote && r.quote.trim() !== ''
-            ? [{ id: r.id, quote: r.quote, bookTitle: r.user_books?.books?.title ?? null }]
+            ? [
+                {
+                  id: r.id,
+                  quote: r.quote,
+                  bookTitle: r.user_books?.books?.title ?? null,
+                  userBookId: r.user_book_id,
+                },
+              ]
             : []
         )
       );
     }
-    loadData();
+    loadData()
+      .catch(() => setChoicesError(true))
+      .finally(() => setChoicesLoading(false));
   }, [supabase, router]);
 
   const { uploading, updating, imagePath, uploadAvatar, deleteAvatar, updateProfile } =
@@ -216,8 +236,12 @@ export default function EditProfilePage() {
         {/* 텍스트 입력 섹션 */}
         <div className="space-y-6">
           <FormGroup>
-            <FormLabel>이름</FormLabel>
+            <FormLabel variant="line" htmlFor="profile-name">
+              이름
+            </FormLabel>
             <Input
+              variant="line"
+              id="profile-name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -226,8 +250,12 @@ export default function EditProfilePage() {
           </FormGroup>
 
           <FormGroup>
-            <FormLabel>닉네임</FormLabel>
+            <FormLabel variant="line" htmlFor="profile-nickname">
+              닉네임
+            </FormLabel>
             <Input
+              variant="line"
+              id="profile-nickname"
               type="text"
               value={nickname}
               onChange={(e) => {
@@ -240,8 +268,12 @@ export default function EditProfilePage() {
           </FormGroup>
 
           <FormGroup>
-            <FormLabel>한줄 소개</FormLabel>
+            <FormLabel variant="line" htmlFor="profile-bio">
+              한줄 소개
+            </FormLabel>
             <Textarea
+              variant="line"
+              id="profile-bio"
               value={bio}
               onChange={(e) => setBio(e.target.value)}
               rows={4}
@@ -259,64 +291,21 @@ export default function EditProfilePage() {
             프로필 책에 끼워 두는 책갈피입니다. 완독한 책 중 하나를 고르면 누를 때 그 발췌집으로
             펼쳐집니다.
           </p>
-          {finishedBooks.length === 0 ? (
-            <p className="mt-4 font-serif text-[14px] text-ink-sub">
-              아직 완독한 책이 없습니다. 완독을 선언하면 여기서 고를 수 있어요.
-            </p>
-          ) : (
-            <ul className="mt-4 divide-y divide-hairline border-y border-hairline">
-              <li>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setBookmarkId(null);
-                    setBookmarkDirty(true);
-                  }}
-                  aria-pressed={bookmarkId === null}
-                  className={`flex w-full items-center gap-3 px-1 py-3 text-left text-[13.5px] transition-colors ${
-                    bookmarkId === null ? 'text-accent' : 'text-ink-faint hover:text-ink-sub'
-                  }`}
-                >
-                  <span aria-hidden className="w-3 shrink-0 text-center">
-                    {bookmarkId === null ? '●' : '○'}
-                  </span>
-                  책갈피를 꽂지 않습니다
-                </button>
-              </li>
-              {finishedBooks.map((b) => {
-                const selected = bookmarkId === b.id;
-                return (
-                  <li key={b.id}>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setBookmarkId(b.id);
-                        setBookmarkDirty(true);
-                      }}
-                      aria-pressed={selected}
-                      className="flex w-full items-center gap-3 px-1 py-3 text-left transition-colors"
-                    >
-                      <span
-                        aria-hidden
-                        className={`w-3 shrink-0 text-center text-[13px] ${
-                          selected ? 'text-accent' : 'text-ink-faint'
-                        }`}
-                      >
-                        {selected ? '●' : '○'}
-                      </span>
-                      <span
-                        className={`break-keep font-serif text-[14.5px] ${
-                          selected ? 'text-ink' : 'text-ink-sub'
-                        }`}
-                      >
-                        {b.title}
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
+          <ProfileSelection
+            label="책갈피"
+            options={finishedBooks}
+            value={bookmarkId}
+            onChange={(id) => {
+              setBookmarkId(id);
+              setBookmarkDirty(true);
+            }}
+            emptyLabel="책갈피를 꽂지 않습니다"
+            emptyMessage="아직 완독한 책이 없습니다. 완독을 선언하면 여기서 고를 수 있어요."
+            searchPlaceholder="완독한 책 제목 검색"
+            loading={choicesLoading}
+            error={choicesError}
+            disabled={updating}
+          />
         </section>
 
         {/* 뒷표지 문장 — 프로필 책을 뒤집으면 보이는 인용 하나 */}
@@ -325,71 +314,27 @@ export default function EditProfilePage() {
           <p className="mt-1 text-caption font-medium text-ink-faint">
             프로필 책을 뒤집으면 보이는 문장입니다. 내가 남긴 인용 중에서 하나를 고릅니다.
           </p>
-          {quotes.length === 0 ? (
-            <p className="mt-4 font-serif text-[14px] text-ink-sub">
-              아직 인용을 남긴 기록이 없습니다. 문장을 남기면 여기서 고를 수 있어요.
-            </p>
-          ) : (
-            <ul className="mt-4 divide-y divide-hairline border-y border-hairline">
-              <li>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setFeaturedEntryId(null);
-                    setFeaturedDirty(true);
-                  }}
-                  aria-pressed={featuredEntryId === null}
-                  className={`flex w-full items-center gap-3 px-1 py-3 text-left text-[13.5px] transition-colors ${
-                    featuredEntryId === null ? 'text-accent' : 'text-ink-faint hover:text-ink-sub'
-                  }`}
-                >
-                  <span aria-hidden className="w-3 shrink-0 text-center">
-                    {featuredEntryId === null ? '●' : '○'}
-                  </span>
-                  뒷표지를 비워 둡니다
-                </button>
-              </li>
-              {quotes.map((q) => {
-                const selected = featuredEntryId === q.id;
-                return (
-                  <li key={q.id}>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setFeaturedEntryId(q.id);
-                        setFeaturedDirty(true);
-                      }}
-                      aria-pressed={selected}
-                      className="flex w-full items-start gap-3 px-1 py-3 text-left transition-colors"
-                    >
-                      <span
-                        aria-hidden
-                        className={`w-3 shrink-0 pt-0.5 text-center text-[13px] ${
-                          selected ? 'text-accent' : 'text-ink-faint'
-                        }`}
-                      >
-                        {selected ? '●' : '○'}
-                      </span>
-                      <span className="min-w-0">
-                        <span
-                          className={`line-clamp-2 break-keep font-serif text-[14.5px] leading-relaxed ${
-                            selected ? 'text-ink' : 'text-ink-sub'
-                          }`}
-                        >
-                          {q.quote}
-                        </span>
-                        {q.bookTitle && (
-                          <span className="mt-1 block text-[12px] text-ink-faint">
-                            『{q.bookTitle}』
-                          </span>
-                        )}
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
+          <ProfileSelection
+            label="뒷표지 문장"
+            options={quotes.map((q) => ({
+              id: q.id,
+              title: q.quote,
+              subtitle: q.bookTitle ?? '제목 없는 책',
+              groupId: q.userBookId,
+            }))}
+            value={featuredEntryId}
+            onChange={(id) => {
+              setFeaturedEntryId(id);
+              setFeaturedDirty(true);
+            }}
+            emptyLabel="뒷표지를 비워 둡니다"
+            emptyMessage="아직 인용을 남긴 기록이 없습니다. 문장을 남기면 여기서 고를 수 있어요."
+            searchPlaceholder="책 제목이나 문장 검색"
+            filterByBook
+            loading={choicesLoading}
+            error={choicesError}
+            disabled={updating}
+          />
         </section>
 
         <div className="flex flex-col space-y-4 pt-2">
