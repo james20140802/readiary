@@ -2,6 +2,18 @@ import { describe, expect, it } from 'vitest';
 import { quoteSearchFilter } from '../quoteCandidates';
 
 describe('quoteSearchFilter', () => {
+  it.each(['*', '2 * 3', 'a.*(b)[c]+?^$|\\%_'])(
+    'keeps %s literal through the regex operator',
+    (term) => {
+      const filter = quoteSearchFilter(term, [])!;
+      expect(filter.startsWith('quote.imatch.')).toBe(true);
+      const pattern = JSON.parse(filter.slice('quote.imatch.'.length));
+      const matcher = new RegExp(pattern, 'i');
+      expect(matcher.test('before ' + term + ' after')).toBe(true);
+      expect(matcher.test(term.replaceAll('*', 'anything'))).toBe(false);
+      expect(matcher.test(term.replaceAll('*', '%'))).toBe(false);
+    }
+  );
   it('leaves an empty search unfiltered', () => {
     expect(quoteSearchFilter('  ', [])).toBeNull();
   });

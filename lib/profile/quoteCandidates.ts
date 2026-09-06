@@ -5,13 +5,18 @@ export function quoteSearchFilter(search: string, books: [string, string][]): st
   const term = search.trim().normalize('NFKC');
   if (!term) return null;
   const pattern = '%' + term.replace(/[\\%_]/g, '\\$&') + '%';
+  // PostgREST는 LIKE의 *를 %로 치환한다. 별표가 있으면 이스케이프한 정규식으로
+  // 리터럴 부분 문자열을 검색해 별표가 와일드카드나 퍼센트로 변하는 것을 피한다.
+  const quoteFilter = term.includes('*')
+    ? 'quote.imatch.' + JSON.stringify(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+    : 'quote.ilike.' + JSON.stringify(pattern);
   const matchingIds = books
     .filter(([, title]) =>
       title.normalize('NFKC').toLocaleLowerCase().includes(term.toLocaleLowerCase())
     )
     .map(([id]) => id);
   return [
-    'quote.ilike.' + JSON.stringify(pattern),
+    quoteFilter,
     ...(matchingIds.length
       ? ['user_book_id.in.(' + matchingIds.map((id) => JSON.stringify(id)).join(',') + ')']
       : []),
