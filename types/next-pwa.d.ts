@@ -5,7 +5,10 @@ declare module 'next-pwa' {
 
   /** workbox-build 의 RuntimeCaching 중 이 프로젝트가 쓰는 부분 — 규칙은 문자열로 sw.js 에 복사된다 */
   export type RuntimeCaching = {
-    urlPattern: RegExp | string | ((context: { url: URL; sameOrigin: boolean }) => boolean);
+    urlPattern:
+      | RegExp
+      | string
+      | ((context: { url: URL; request: Request; sameOrigin: boolean }) => boolean);
     handler: 'CacheFirst' | 'CacheOnly' | 'NetworkFirst' | 'NetworkOnly' | 'StaleWhileRevalidate';
     method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD';
     options: {

@@ -20,7 +20,10 @@ export async function clearPwaCaches(): Promise<void> {
   }
 }
 
-/** 개인정보가 담긴 응답을 캐시하던 next-pwa 기본 규칙의 캐시 이름 — 규칙을 NetworkOnly 로 바꾼 뒤엔 아무도 비우지 않는다 */
+/**
+ * 개인정보가 담긴 응답을 캐시하던 next-pwa 기본 규칙의 캐시 이름 — 규칙을 NetworkOnly 로 바꾼 뒤엔 아무도 비우지 않는다.
+ * 'others' 는 문서 전체를 NetworkOnly 로 돌리기 전까지 /terms 같은 공개 화면의 개인화된 HTML 을 담았다.
+ */
 export const LEGACY_PRIVATE_CACHE_NAMES = [
   'others',
   'apis',
@@ -29,7 +32,8 @@ export const LEGACY_PRIVATE_CACHE_NAMES = [
   'next-image',
 ];
 
-const SWEEP_FLAG = 'readiary.pwa.private-cache-swept.v1';
+// v2: 문서 전체를 NetworkOnly 로 돌리면서 'others' 에 남은 공개 화면 HTML 을 한 번 더 지운다
+const SWEEP_FLAG = 'readiary.pwa.private-cache-swept.v2';
 
 /**
  * 규칙을 바꾸기 전에 설치된 기기에 남은 옛 캐시를 한 번 지운다.

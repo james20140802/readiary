@@ -5,43 +5,40 @@ import type { RuntimeCaching } from 'next-pwa';
  * PWA 런타임 캐시 규칙 — 개인정보가 담긴 응답은 기기에 남기지 않는다.
  *
  * next-pwa 기본 규칙은 같은 오리진의 모든 페이지·/api 응답과 다른 오리진(Supabase REST·Storage) 응답까지
- * NetworkFirst 로 Cache Storage 에 하루 남긴다. 그러면 로그인한 뒤 본 프로필·책·기록 화면이 로그아웃한 뒤에도
- * 기기에 남아 개인정보처리방침 제7조 3항(캐시에 개인정보를 담지 않는다)과 어긋난다.
- * 그래서 로그인해야 보이는 경로와 Supabase 응답을 NetworkOnly 로 잡는 규칙을 기본 규칙보다 앞에 둔다.
- * 로그인 상태면 보호 화면으로 리다이렉트되는 공개 경로(/·/login·/signup)도 같이 잡는다 — Workbox 는 원래 URL 로
- * 규칙을 고르고 리다이렉트를 따라간 응답(개인화된 대시보드)을 그 공개 URL 아래 캐시하기 때문이다.
+ * NetworkFirst 로 Cache Storage 에 하루 남긴다. 그런데 루트 레이아웃(app/layout.tsx)이 모든 화면에 로그인 상태와
+ * 미읽음 알림 수를 실어 보내므로, /terms 같은 공개 화면의 HTML 도 로그인한 사람에게는 개인화된 응답이다.
+ * 경로를 골라 막으면 새 경로가 생길 때마다 구멍이 나므로, 응답의 종류로 막는다 — 같은 오리진의 문서(HTML)·RSC
+ * 페이로드·/api·/auth 응답은 전부 NetworkOnly, 캐시하는 것은 글꼴·아이콘·스크립트·스타일·이미지 같은 화면 파일뿐이다
+ * (개인정보처리방침 제7조 3항). Supabase 응답과 next/image 로 프록시한 Supabase 이미지(프로필 사진)도 NetworkOnly.
+ *
  * next-pwa 가 시작 URL(/)에 스스로 끼워 넣는 'start-url' NetworkFirst 규칙은 이 목록보다 앞에 서므로
  * next.config.ts 에서 cacheStartUrl·dynamicStartUrl 을 꺼 둔다(테스트로는 잡히지 않는 층).
  *
- * 규칙은 서비스 워커 파일(sw.js)로 문자열 복사된다 — 바깥 변수를 참조하는 함수는 깨지므로 RegExp 만 쓴다.
+ * 규칙은 서비스 워커 파일(sw.js)로 문자열 복사된다 — 함수는 바깥 변수를 참조하면 깨지므로 안에서 닫혀 있어야 한다.
  */
 
-/** 로그인해야 보이거나 남의 기록·프로필이 담기는 경로의 첫 세그먼트 */
-export const PRIVATE_PATH_SEGMENTS = [
-  'protected',
-  'api',
-  'auth',
-  'onboarding',
-  'invite',
-  'logout',
-  'share',
-] as const;
-
-/** 같은 오리진의 비공개 경로 — 페이지 HTML·RSC 페이로드(?_rsc=)·/api 응답 모두 */
-export const PRIVATE_PATH_PATTERN = new RegExp(
-  `^[a-z]+://[^/]+/(?:${PRIVATE_PATH_SEGMENTS.join('|')})(?:[/?#]|$)`
-);
-
-/** proxy.ts 가 로그인 상태면 보호 화면으로 보내는 공개 경로의 첫 세그먼트 — 루트(/)는 패턴에서 따로 잡는다 */
-export const AUTH_REDIRECT_PATH_SEGMENTS = ['login', 'signup'] as const;
+/** Workbox 가 매칭 함수에 넘기는 값 중 여기서 쓰는 부분 */
+export interface MatchContext {
+  url: URL;
+  request: Pick<Request, 'mode' | 'destination' | 'headers'>;
+  sameOrigin: boolean;
+}
 
 /**
- * 로그인 상태에서 보호 화면으로 리다이렉트되는 공개 경로 — 루트·/login·/signup 과 그 RSC 페이로드.
- * 리다이렉트를 따라간 개인화 응답이 이 URL 아래 캐시되지 않도록 NetworkOnly 로 둔다(오프라인 랜딩은 포기).
+ * 같은 오리진에서 개인화될 수 있는 응답 — 문서 내비게이션, RSC 페이로드(RSC 헤더 또는 ?_rsc=), /api·/auth,
+ * 그리고 확장자 없는 경로(페이지·리다이렉트·라우트 핸들러). /_next/ 아래 정적 청크와 이미지 프록시는 제외한다.
+ * sw.js 로 문자열 복사되므로 이 함수는 바깥 변수를 하나도 참조하지 않는다.
  */
-export const AUTH_REDIRECT_PATH_PATTERN = new RegExp(
-  `^[a-z]+://[^/]+/(?:(?:${AUTH_REDIRECT_PATH_SEGMENTS.join('|')})(?:[/?#]|$)|(?:[?#]|$))`
-);
+export function isPersonalizedSameOriginRequest(context: MatchContext): boolean {
+  const { url, request, sameOrigin } = context;
+  if (!sameOrigin) return false;
+  if (request.mode === 'navigate' || request.destination === 'document') return true;
+  if (request.headers.get('RSC') === '1' || url.searchParams.has('_rsc')) return true;
+  const pathname = url.pathname;
+  if (pathname.startsWith('/_next/')) return false;
+  if (pathname.startsWith('/api/') || pathname.startsWith('/auth/')) return true;
+  return !/\.[A-Za-z0-9]+$/.test(pathname);
+}
 
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -72,8 +69,7 @@ function safeOrigin(url: string | undefined): string | null {
 /** 개인정보가 담길 수 있는 응답은 네트워크로만 — 기본 규칙(NetworkFirst)보다 먼저 매칭돼야 한다 */
 export function privateRuntimeCaching(supabaseUrl: string | undefined): RuntimeCaching[] {
   return [
-    { urlPattern: PRIVATE_PATH_PATTERN, handler: 'NetworkOnly', options: {} },
-    { urlPattern: AUTH_REDIRECT_PATH_PATTERN, handler: 'NetworkOnly', options: {} },
+    { urlPattern: isPersonalizedSameOriginRequest, handler: 'NetworkOnly', options: {} },
     { urlPattern: supabaseOriginPattern(supabaseUrl), handler: 'NetworkOnly', options: {} },
     { urlPattern: supabaseImagePattern(supabaseUrl), handler: 'NetworkOnly', options: {} },
   ];

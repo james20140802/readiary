@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
-  AUTH_REDIRECT_PATH_PATTERN,
-  PRIVATE_PATH_PATTERN,
+  type MatchContext,
   buildRuntimeCaching,
+  isPersonalizedSameOriginRequest,
   privateRuntimeCaching,
   supabaseImagePattern,
   supabaseOriginPattern,
@@ -10,52 +10,97 @@ import {
 
 const ORIGIN = 'https://www.readiary.net';
 
-describe('PRIVATE_PATH_PATTERN', () => {
-  it.each([
-    '/protected/dashboard',
-    '/protected/books/abc?_rsc=1a2b',
-    '/protected',
-    '/api/notifications/read',
-    '/auth/callback?code=x',
-    '/onboarding',
-    '/invite/name-1234',
-    '/logout',
-    '/share/e/xyz',
-  ])('로그인 뒤 화면과 남의 기록이 담기는 경로를 잡는다: %s', (path) => {
-    expect(PRIVATE_PATH_PATTERN.test(`${ORIGIN}${path}`)).toBe(true);
-  });
+/** 서비스 워커의 fetch 이벤트가 넘기는 값을 흉내 낸다 — Node 의 Request 는 mode:'navigate' 를 만들 수 없다 */
+function context(
+  path: string,
+  init: {
+    mode?: RequestMode;
+    destination?: RequestDestination;
+    headers?: Record<string, string>;
+  } = {},
+  origin = ORIGIN
+): MatchContext {
+  const url = new URL(path, origin);
+  return {
+    url,
+    sameOrigin: url.origin === ORIGIN,
+    request: {
+      mode: init.mode ?? 'cors',
+      destination: init.destination ?? '',
+      headers: new Headers(init.headers ?? {}),
+    },
+  };
+}
 
-  it.each(['/', '/login', '/signup', '/terms', '/privacy', '/protectedx', '/_next/static/a.js'])(
-    '공개 화면과 정적 자원은 이 패턴이 잡지 않는다: %s',
-    (path) => {
-      expect(PRIVATE_PATH_PATTERN.test(`${ORIGIN}${path}`)).toBe(false);
-    }
-  );
-});
-
-describe('AUTH_REDIRECT_PATH_PATTERN', () => {
+describe('isPersonalizedSameOriginRequest', () => {
   it.each([
     '/',
-    '/?_rsc=1a2b',
-    '/#top',
+    '/terms',
+    '/privacy',
     '/login',
-    '/login?redirect=%2Fprotected%2Fdashboard',
-    '/login/',
-    '/signup',
-    '/signup?_rsc=1a2b',
-  ])('로그인 상태면 보호 화면으로 리다이렉트되는 공개 경로를 잡는다: %s', (path) => {
-    expect(AUTH_REDIRECT_PATH_PATTERN.test(`${ORIGIN}${path}`)).toBe(true);
+    '/reset-password',
+    '/protected/dashboard',
+    '/share/e/x',
+  ])(
+    '문서 내비게이션은 공개 화면이라도 잡는다 — 루트 레이아웃이 로그인 상태를 싣는다: %s',
+    (path) => {
+      expect(
+        isPersonalizedSameOriginRequest(
+          context(path, { mode: 'navigate', destination: 'document' })
+        )
+      ).toBe(true);
+    }
+  );
+
+  it('RSC 페이로드는 헤더로도 쿼리로도 잡는다', () => {
+    expect(isPersonalizedSameOriginRequest(context('/terms', { headers: { RSC: '1' } }))).toBe(
+      true
+    );
+    expect(isPersonalizedSameOriginRequest(context('/protected/books/abc?_rsc=1a2b'))).toBe(true);
   });
 
   it.each([
-    '/terms',
-    '/privacy',
-    '/loginx',
-    '/reset-password',
-    '/_next/static/a.js',
-    '/icons/a.png',
-  ])('리다이렉트 없는 공개 화면과 정적 자원은 두어 오프라인에서 열리게 한다: %s', (path) => {
-    expect(AUTH_REDIRECT_PATH_PATTERN.test(`${ORIGIN}${path}`)).toBe(false);
+    '/api/notifications/read',
+    '/api',
+    '/auth/callback?code=x',
+    '/logout',
+    '/invite/name-1234',
+  ])('fetch 로 받는 /api·/auth·확장자 없는 경로도 잡는다: %s', (path) => {
+    expect(isPersonalizedSameOriginRequest(context(path))).toBe(true);
+  });
+
+  it.each([
+    '/_next/static/chunks/a.js',
+    '/_next/image?url=https%3A%2F%2Fsearch1.kakaocdn.net%2Fcover.jpg&w=96&q=75',
+    '/icons/icon-192x192-v2.png',
+    '/manifest.json',
+    '/fonts/MaruBuri-Regular.woff',
+    '/sw.js',
+  ])('정적 화면 파일은 두어 오프라인에서 열리게 한다: %s', (path) => {
+    expect(isPersonalizedSameOriginRequest(context(path))).toBe(false);
+  });
+
+  it('다른 오리진은 이 규칙이 잡지 않는다(Supabase 는 뒤 규칙이 잡는다)', () => {
+    expect(
+      isPersonalizedSameOriginRequest(
+        context('https://abc.supabase.co/rest/v1/entries', { mode: 'navigate' })
+      )
+    ).toBe(false);
+  });
+
+  it('sw.js 로 문자열 복사돼도 같은 결과를 낸다 — 바깥 변수를 참조하지 않는다', () => {
+    const copied = new Function(
+      `return (${isPersonalizedSameOriginRequest.toString()})`
+    )() as typeof isPersonalizedSameOriginRequest;
+    for (const [path, init] of [
+      ['/terms', { mode: 'navigate' as const }],
+      ['/protected/x?_rsc=1'],
+      ['/_next/static/a.js'],
+      ['/icons/a.png'],
+    ] as const) {
+      const ctx = context(path, init);
+      expect(copied(ctx)).toBe(isPersonalizedSameOriginRequest(ctx));
+    }
   });
 });
 
@@ -90,9 +135,10 @@ describe('supabaseImagePattern', () => {
 });
 
 describe('buildRuntimeCaching', () => {
-  it('sw.js 로 복사할 수 있게 규칙은 RegExp 만 쓰고 options 를 늘 갖는다', () => {
-    for (const rule of privateRuntimeCaching('https://abc.supabase.co')) {
-      expect(rule.urlPattern).toBeInstanceOf(RegExp);
+  it('비공개 규칙은 전부 NetworkOnly 이고 options 를 늘 갖는다', () => {
+    const rules = privateRuntimeCaching('https://abc.supabase.co');
+    expect(rules[0].urlPattern).toBe(isPersonalizedSameOriginRequest);
+    for (const rule of rules) {
       expect(rule.handler).toBe('NetworkOnly');
       expect(rule.options).toBeDefined();
     }
