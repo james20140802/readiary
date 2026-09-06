@@ -1,5 +1,6 @@
 'use client';
 
+import { apiFetch } from '@/lib/api/fetch';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Profile } from '@/types/profile';
@@ -34,7 +35,7 @@ export default function FriendRequestForm({ initialQuery }: Props) {
     const separatorIndex = nicknameAndTag.lastIndexOf('#');
     const nickname = nicknameAndTag.slice(0, separatorIndex);
     const tag = nicknameAndTag.slice(separatorIndex + 1);
-    const res = await fetch('/api/friends/search', {
+    const res = await apiFetch('/api/friends/search', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ nickname, tag }),
@@ -67,7 +68,7 @@ export default function FriendRequestForm({ initialQuery }: Props) {
   const confirmSendRequest = async () => {
     if (!foundUser) return;
     setLoading(true);
-    const res = await fetch('/api/friends/send', {
+    const res = await apiFetch('/api/friends/send', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ nickname: foundUser.profile.nickname, tag: foundUser.profile.tag }),

@@ -1,5 +1,6 @@
 'use client';
 
+import { apiFetch } from '@/lib/api/fetch';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -94,7 +95,7 @@ export default function EntryEditSheet({
     if (!entry) return null;
     const session = sessionRef.current;
     try {
-      const res = await fetch(`/api/entries/${entry.id}/edit`, {
+      const res = await apiFetch(`/api/entries/${entry.id}/edit`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(values),
@@ -116,7 +117,7 @@ export default function EntryEditSheet({
     setIsDeleting(true);
     setDeleteError('');
     try {
-      const res = await fetch(`/api/entries/${entry.id}/delete?book_id=${bookId}`, {
+      const res = await apiFetch(`/api/entries/${entry.id}/delete?book_id=${bookId}`, {
         method: 'DELETE',
       });
       if (!res.ok) {

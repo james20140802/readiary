@@ -1,5 +1,6 @@
 'use client';
 
+import { apiFetch } from '@/lib/api/fetch';
 import { useState } from 'react';
 import { BookSearchResult } from '@/types/book';
 import { useRouter } from 'next/navigation';
@@ -47,7 +48,7 @@ export default function KakaoBookSearchForm() {
   const handleSelect = async (book: BookSearchResult) => {
     setSelectedBook(book);
     try {
-      const res = await fetch('/api/books/pages', {
+      const res = await apiFetch('/api/books/pages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: book.url }),
@@ -89,7 +90,7 @@ export default function KakaoBookSearchForm() {
     }
 
     try {
-      const registerRes = await fetch('/api/books/new', {
+      const registerRes = await apiFetch('/api/books/new', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

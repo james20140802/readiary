@@ -1,5 +1,6 @@
 'use client';
 
+import { apiFetch } from '@/lib/api/fetch';
 import { useRouter } from 'next/navigation';
 import { Book } from '@/types/book';
 import EntryForm, { EntryFormValues } from '@/components/entries/EntryForm';
@@ -29,7 +30,7 @@ export default function EditEntryForm({
 
   const handleSubmit = async (values: EntryFormValues): Promise<string | null> => {
     try {
-      const res = await fetch(`/api/entries/${entryId}/edit`, {
+      const res = await apiFetch(`/api/entries/${entryId}/edit`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(values),

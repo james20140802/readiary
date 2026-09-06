@@ -1,5 +1,6 @@
 'use client';
 
+import { apiFetch } from '@/lib/api/fetch';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Button from '@/components/ui/Button';
@@ -24,7 +25,7 @@ export default function NewBookForm() {
     setError(null);
 
     try {
-      const res = await fetch('/api/books/new', {
+      const res = await apiFetch('/api/books/new', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

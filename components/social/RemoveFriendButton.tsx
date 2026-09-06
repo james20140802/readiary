@@ -1,5 +1,6 @@
 'use client';
 
+import { apiFetch } from '@/lib/api/fetch';
 import { useRouter } from 'next/navigation';
 import { useTransition, useState } from 'react';
 import { toast } from 'sonner';
@@ -15,7 +16,7 @@ export default function RemoveFriendButton({ friendId }: Props) {
 
   const handleRemove = () => {
     startTransition(async () => {
-      const res = await fetch('/api/friends/remove', {
+      const res = await apiFetch('/api/friends/remove', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ friendId }),

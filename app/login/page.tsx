@@ -14,6 +14,7 @@ import AuthFrame from '@/components/auth/AuthFrame';
 import PasswordInput from '@/components/auth/PasswordInput';
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 import OrDivider from '@/components/auth/OrDivider';
+import { SESSION_EXPIRED_ERROR_PARAM } from '@/lib/api/fetch';
 import { authHrefWithRedirect, sanitizeRedirectPath } from '@/lib/auth/safeRedirect';
 import { describeAuthError, isEmailNotConfirmed, validateEmail } from '@/lib/auth/authErrors';
 import { emailConfirmRedirectTo } from '@/lib/auth/emailRedirect';
@@ -45,6 +46,10 @@ export default function LoginPage() {
     // Google에서 취소했거나 제공자가 거절해 code 없이 돌아온 경우
     if (searchParams.get('error') === 'oauth') {
       toast.error('Google 로그인이 취소되었거나 완료되지 않았습니다. 다시 시도해주세요.');
+    }
+    // 공용 fetch 래퍼가 API 401 을 받고 세션 갱신에도 실패해 보낸 경우 — redirect 에 원래 화면이 실려 있다
+    if (searchParams.get('error') === SESSION_EXPIRED_ERROR_PARAM) {
+      toast.error('세션이 만료되었습니다. 다시 로그인해주세요.');
     }
   }, [searchParams]);
 

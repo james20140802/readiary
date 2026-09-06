@@ -1,5 +1,6 @@
 'use client';
 
+import { apiFetch } from '@/lib/api/fetch';
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -61,7 +62,7 @@ export default function Composer({ books, recentUserBookId }: ComposerProps) {
     if (!selectedBook || text.trim() === '' || isSubmitting) return;
     setIsSubmitting(true);
     try {
-      const res = await fetch('/api/entries/new', {
+      const res = await apiFetch('/api/entries/new', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -123,7 +124,7 @@ export default function Composer({ books, recentUserBookId }: ComposerProps) {
     }
     setIsSubmitting(true);
     try {
-      const res = await fetch(`/api/entries/${savedEntry.id}/edit`, {
+      const res = await apiFetch(`/api/entries/${savedEntry.id}/edit`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),

@@ -1,7 +1,8 @@
+import { apiFetch } from '@/lib/api/fetch';
 import { KakaoBookSearchResponse } from '@/types/kakao';
 
 export async function searchBook(query: string) {
-  const res = await fetch(`/api/books/search?q=${encodeURIComponent(query)}`);
+  const res = await apiFetch(`/api/books/search?q=${encodeURIComponent(query)}`);
 
   if (!res.ok) {
     throw new Error(`검색 실패: ${res.status}`);

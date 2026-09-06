@@ -1,5 +1,6 @@
 'use client';
 
+import { apiFetch } from '@/lib/api/fetch';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -30,7 +31,7 @@ export default function LikersBottomSheet({ entryId, isOpen, onClose }: Props) {
   useEffect(() => {
     if (!isOpen) return;
     let cancelled = false;
-    fetch(`/api/likes?entry_id=${entryId}`)
+    apiFetch(`/api/likes?entry_id=${entryId}`)
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
         if (!cancelled) setLikers(Array.isArray(data) ? data : []);
