@@ -8,6 +8,8 @@ import type { RuntimeCaching } from 'next-pwa';
  * NetworkFirst 로 Cache Storage 에 하루 남긴다. 그러면 로그인한 뒤 본 프로필·책·기록 화면이 로그아웃한 뒤에도
  * 기기에 남아 개인정보처리방침 제7조 3항(캐시에 개인정보를 담지 않는다)과 어긋난다.
  * 그래서 로그인해야 보이는 경로와 Supabase 응답을 NetworkOnly 로 잡는 규칙을 기본 규칙보다 앞에 둔다.
+ * 로그인 상태면 보호 화면으로 리다이렉트되는 공개 경로(/·/login·/signup)도 같이 잡는다 — Workbox 는 원래 URL 로
+ * 규칙을 고르고 리다이렉트를 따라간 응답(개인화된 대시보드)을 그 공개 URL 아래 캐시하기 때문이다.
  *
  * 규칙은 서비스 워커 파일(sw.js)로 문자열 복사된다 — 바깥 변수를 참조하는 함수는 깨지므로 RegExp 만 쓴다.
  */
@@ -26,6 +28,17 @@ export const PRIVATE_PATH_SEGMENTS = [
 /** 같은 오리진의 비공개 경로 — 페이지 HTML·RSC 페이로드(?_rsc=)·/api 응답 모두 */
 export const PRIVATE_PATH_PATTERN = new RegExp(
   `^[a-z]+://[^/]+/(?:${PRIVATE_PATH_SEGMENTS.join('|')})(?:[/?#]|$)`
+);
+
+/** proxy.ts 가 로그인 상태면 보호 화면으로 보내는 공개 경로의 첫 세그먼트 — 루트(/)는 패턴에서 따로 잡는다 */
+export const AUTH_REDIRECT_PATH_SEGMENTS = ['login', 'signup'] as const;
+
+/**
+ * 로그인 상태에서 보호 화면으로 리다이렉트되는 공개 경로 — 루트·/login·/signup 과 그 RSC 페이로드.
+ * 리다이렉트를 따라간 개인화 응답이 이 URL 아래 캐시되지 않도록 NetworkOnly 로 둔다(오프라인 랜딩은 포기).
+ */
+export const AUTH_REDIRECT_PATH_PATTERN = new RegExp(
+  `^[a-z]+://[^/]+/(?:(?:${AUTH_REDIRECT_PATH_SEGMENTS.join('|')})(?:[/?#]|$)|(?:[?#]|$))`
 );
 
 function escapeRegExp(value: string): string {
@@ -58,6 +71,7 @@ function safeOrigin(url: string | undefined): string | null {
 export function privateRuntimeCaching(supabaseUrl: string | undefined): RuntimeCaching[] {
   return [
     { urlPattern: PRIVATE_PATH_PATTERN, handler: 'NetworkOnly', options: {} },
+    { urlPattern: AUTH_REDIRECT_PATH_PATTERN, handler: 'NetworkOnly', options: {} },
     { urlPattern: supabaseOriginPattern(supabaseUrl), handler: 'NetworkOnly', options: {} },
     { urlPattern: supabaseImagePattern(supabaseUrl), handler: 'NetworkOnly', options: {} },
   ];

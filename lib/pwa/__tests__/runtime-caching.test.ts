@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  AUTH_REDIRECT_PATH_PATTERN,
   PRIVATE_PATH_PATTERN,
   buildRuntimeCaching,
   privateRuntimeCaching,
@@ -25,11 +26,37 @@ describe('PRIVATE_PATH_PATTERN', () => {
   });
 
   it.each(['/', '/login', '/signup', '/terms', '/privacy', '/protectedx', '/_next/static/a.js'])(
-    '공개 화면과 정적 자원은 두어 오프라인에서 열리게 한다: %s',
+    '공개 화면과 정적 자원은 이 패턴이 잡지 않는다: %s',
     (path) => {
       expect(PRIVATE_PATH_PATTERN.test(`${ORIGIN}${path}`)).toBe(false);
     }
   );
+});
+
+describe('AUTH_REDIRECT_PATH_PATTERN', () => {
+  it.each([
+    '/',
+    '/?_rsc=1a2b',
+    '/#top',
+    '/login',
+    '/login?redirect=%2Fprotected%2Fdashboard',
+    '/login/',
+    '/signup',
+    '/signup?_rsc=1a2b',
+  ])('로그인 상태면 보호 화면으로 리다이렉트되는 공개 경로를 잡는다: %s', (path) => {
+    expect(AUTH_REDIRECT_PATH_PATTERN.test(`${ORIGIN}${path}`)).toBe(true);
+  });
+
+  it.each([
+    '/terms',
+    '/privacy',
+    '/loginx',
+    '/reset-password',
+    '/_next/static/a.js',
+    '/icons/a.png',
+  ])('리다이렉트 없는 공개 화면과 정적 자원은 두어 오프라인에서 열리게 한다: %s', (path) => {
+    expect(AUTH_REDIRECT_PATH_PATTERN.test(`${ORIGIN}${path}`)).toBe(false);
+  });
 });
 
 describe('supabaseOriginPattern', () => {
