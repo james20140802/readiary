@@ -34,14 +34,28 @@ export function useProfileUpdate(initialProfile: Profile | null) {
     return Math.floor(1000 + Math.random() * 9000).toString();
   };
 
+  // 저장이 끝난 뒤 더 이상 프로필이 가리키지 않는 옛 이미지 파일을 Storage에서 지운다.
+  // 실패해도 프로필 저장 자체는 이미 끝났으니 콘솔에만 남기고 흐름을 끊지 않는다.
+  const removeStoredAvatar = async (path: string) => {
+    // Storage 정책이 authenticated 사용자에게 profiles 버킷 전체 DELETE 를 허용하므로,
+    // 경로가 이 유저 소유 폴더(`${userId}/`) 밑인지 코드에서 한 번 더 확인해 남의 파일을 지우지 않는다.
+    if (!initialProfile || !path.startsWith(`${initialProfile.id}/`)) return;
+    try {
+      const { error } = await supabase.storage.from('profiles').remove([path]);
+      if (error) throw error;
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   // 이미지 삭제 로직
   const deleteAvatar = async () => {
     try {
       setUploading(true);
       if (!initialProfile) return { success: false, error: '프로필 정보가 없습니다.' };
 
-      // Storage에서 파일 삭제는 선택 사항, 프로필 업데이트 시 덮어쓰거나 null 처리 방식을 사용할 수 있음.
-      // 일단 UI 상태에서는 null로 만들고, 이후 updateProfile 호춣시 반영되도록 함.
+      // 여기서는 상태만 null로 바꾼다. Storage 파일은 updateProfile이 저장에 성공한 뒤
+      // 옛 경로를 지우는 방식으로 정리한다 — 저장하지 않고 화면을 떠나면 DB가 가리키는 파일이 지워지지 않게 하기 위해서다.
       setImagePath(null);
       return { success: true };
     } catch (error) {
@@ -157,6 +171,12 @@ export function useProfileUpdate(initialProfile: Profile | null) {
       });
 
       if (error) throw error;
+
+      // 저장이 끝났으니 더 이상 쓰이지 않는 옛 이미지 파일을 정리한다(DB를 진실로 삼는다).
+      const oldPath = initialProfile.profile_image;
+      if (oldPath && oldPath !== imagePath) {
+        await removeStoredAvatar(oldPath);
+      }
 
       router.push('/protected/profile');
       router.refresh();

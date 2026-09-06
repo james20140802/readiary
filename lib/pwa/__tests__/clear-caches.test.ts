@@ -43,6 +43,12 @@ describe('clearPwaCaches', () => {
   });
 });
 
+describe('LEGACY_PRIVATE_CACHE_NAMES', () => {
+  it('next-pwa 가 만들던 start-url 캐시도 담고 있다', () => {
+    expect(LEGACY_PRIVATE_CACHE_NAMES).toContain('start-url');
+  });
+});
+
 describe('sweepLegacyPrivateCaches', () => {
   beforeEach(() => vi.stubGlobal('localStorage', fakeLocalStorage()));
   afterEach(() => vi.unstubAllGlobals());

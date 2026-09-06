@@ -22,9 +22,11 @@ export async function clearPwaCaches(): Promise<void> {
 
 /**
  * 개인정보가 담긴 응답을 캐시하던 next-pwa 기본 규칙의 캐시 이름 — 규칙을 NetworkOnly 로 바꾼 뒤엔 아무도 비우지 않는다.
+ * 'start-url' 은 cacheStartUrl 이 켜져 있던 시절 로그인 상태로 '/'를 방문한 기기에 남은 NetworkFirst 캐시다(지금은 false 라 새로 쌓이진 않는다).
  * 'others' 는 문서 전체를 NetworkOnly 로 돌리기 전까지 /terms 같은 공개 화면의 개인화된 HTML 을 담았다.
  */
 export const LEGACY_PRIVATE_CACHE_NAMES = [
+  'start-url',
   'others',
   'apis',
   'cross-origin',
@@ -32,8 +34,9 @@ export const LEGACY_PRIVATE_CACHE_NAMES = [
   'next-image',
 ];
 
-// v2: 문서 전체를 NetworkOnly 로 돌리면서 'others' 에 남은 공개 화면 HTML 을 한 번 더 지운다
-const SWEEP_FLAG = 'readiary.pwa.private-cache-swept.v2';
+// v3: next-pwa 가 cacheStartUrl 로 만들던 'start-url' NetworkFirst 캐시를 마저 지운다 —
+// 로그인 상태에서 '/'를 방문한 기기에 개인화된 응답이 남아 있을 수 있다. v2 를 이미 기록한 기기도 한 번 더 지우도록 표식을 올린다.
+const SWEEP_FLAG = 'readiary.pwa.private-cache-swept.v3';
 
 /**
  * 규칙을 바꾸기 전에 설치된 기기에 남은 옛 캐시를 한 번 지운다.
