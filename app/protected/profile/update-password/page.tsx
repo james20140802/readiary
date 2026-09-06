@@ -10,8 +10,14 @@ import BackButton from '@/components/ui/BackButton';
 import FormGroup from '@/components/ui/FormGroup';
 import FormLabel from '@/components/ui/FormLabel';
 import FormAlert from '@/components/ui/FormAlert';
+import { Input } from '@/components/ui/Input';
 import PasswordInput from '@/components/auth/PasswordInput';
 import { describeAuthError, validateNewPassword } from '@/lib/auth/authErrors';
+import {
+  isReauthenticationCodeInvalid,
+  needsReauthentication,
+  normalizeReauthCode,
+} from '@/lib/auth/reauth';
 
 type Account =
   | { state: 'loading' }
@@ -19,20 +25,32 @@ type Account =
   /** 소셜 로그인으로만 만든 계정 — 확인할 현재 비밀번호가 없다 */
   | { state: 'no-password' };
 
+/** 'form' 은 현재·새 비밀번호, 'code' 는 Supabase 가 요구한 이메일 확인 코드(nonce) 입력 */
+type Step = 'form' | 'code';
+
 /**
- * 로그인한 채로 비밀번호 바꾸기. 세션만으로는 바꿀 수 없고, 현재 비밀번호를 다시 넣어
- * signInWithPassword 로 맞는지 확인한 뒤에야 updateUser 로 바꾼다 — 자리를 비운 사이 열린
- * 화면이나 훔친 세션으로 비밀번호까지 바꾸는 일을 막는다.
+ * 로그인한 채로 비밀번호 바꾸기.
+ *
+ * 1) 현재 비밀번호를 다시 넣어 signInWithPassword 로 맞는지 확인한 뒤에야 updateUser 를 부른다 —
+ *    자리를 비운 사이 열린 화면에서 바꾸는 일을 막는 첫 관문. 다만 이것은 화면 안의 확인이라,
+ *    세션을 훔친 사람이 Auth API 를 직접 부르는 것까지 막지는 못한다.
+ * 2) 그 경계는 Supabase Auth 의 **Secure password change**(대시보드 설정)가 맡는다. 켜져 있으면 세션이
+ *    오래된(24시간 초과) 사용자의 비밀번호 변경은 이메일로 받은 6자리 코드(nonce) 없이 거절되므로,
+ *    그 거절을 받으면 `auth.reauthenticate()` 로 코드를 보내고 입력 단계로 넘어간다.
  */
 export default function UpdatePasswordPage() {
   const [account, setAccount] = useState<Account>({ state: 'loading' });
+  const [step, setStep] = useState<Step>('form');
   const [currentPassword, setCurrentPassword] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [code, setCode] = useState('');
   const [currentError, setCurrentError] = useState<string | null>(null);
   const [newError, setNewError] = useState<string | null>(null);
+  const [codeError, setCodeError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
   const router = useRouter();
   const supabase = createSupabaseClient();
 
@@ -54,6 +72,24 @@ export default function UpdatePasswordPage() {
       cancelled = true;
     };
   }, [supabase, router]);
+
+  /** 바꾸기에 성공한 뒤 — 다른 기기의 세션도 모두 끊고(global) 다시 로그인하게 한다 */
+  const finish = async () => {
+    toast.success('비밀번호를 바꿨습니다. 새 비밀번호로 다시 로그인해주세요.');
+    await supabase.auth.signOut();
+    router.replace('/login');
+    router.refresh();
+  };
+
+  /** Supabase 가 확인 코드를 요구했다 — 이메일로 코드를 보내고 입력 단계로 */
+  const requestCode = async (): Promise<boolean> => {
+    const { error } = await supabase.auth.reauthenticate();
+    if (error) {
+      setFormError(describeAuthError('updatePassword', error.message));
+      return false;
+    }
+    return true;
+  };
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,18 +122,64 @@ export default function UpdatePasswordPage() {
 
       const { error } = await supabase.auth.updateUser({ password });
       if (error) {
+        if (needsReauthentication(error)) {
+          if (await requestCode()) {
+            setStep('code');
+            toast.info('본인 확인을 위해 이메일로 6자리 코드를 보냈습니다.');
+          }
+          return;
+        }
         setFormError(describeAuthError('updatePassword', error.message));
         return;
       }
-      toast.success('비밀번호를 바꿨습니다. 새 비밀번호로 다시 로그인해주세요.');
-      // 비밀번호를 바꿨으니 다른 기기의 세션도 모두 끊는다(global)
-      await supabase.auth.signOut();
-      router.replace('/login');
-      router.refresh();
+      await finish();
     } catch {
       setFormError('서버와 통신 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (loading) return;
+    const nonce = normalizeReauthCode(code);
+    if (nonce.length !== 6) {
+      setCodeError('이메일로 받은 6자리 코드를 입력해주세요.');
+      return;
+    }
+    setCodeError(null);
+    setFormError(null);
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password, nonce });
+      if (error) {
+        if (isReauthenticationCodeInvalid(error)) {
+          setCodeError('확인 코드가 맞지 않거나 만료되었습니다. 다시 확인해주세요.');
+        } else {
+          setFormError(describeAuthError('updatePassword', error.message));
+        }
+        return;
+      }
+      await finish();
+    } catch {
+      setFormError('서버와 통신 중 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    if (resending) return;
+    setResending(true);
+    try {
+      if (await requestCode()) {
+        setCode('');
+        setCodeError(null);
+        toast.success('확인 코드를 다시 보냈습니다.');
+      }
+    } finally {
+      setResending(false);
     }
   };
 
@@ -124,7 +206,7 @@ export default function UpdatePasswordPage() {
         </div>
       )}
 
-      {account.state === 'password' && (
+      {account.state === 'password' && step === 'form' && (
         <form onSubmit={handleUpdate} noValidate className="max-w-sm space-y-6">
           <p className="break-keep text-body-sm text-ink-sub">
             현재 비밀번호를 확인한 뒤 새 비밀번호로 바꿉니다. 바꾸고 나면 모든 기기에서 다시
@@ -200,6 +282,66 @@ export default function UpdatePasswordPage() {
           >
             {loading ? '변경 중...' : '비밀번호 변경하기'}
           </Button>
+        </form>
+      )}
+
+      {account.state === 'password' && step === 'code' && (
+        <form onSubmit={handleCode} noValidate className="max-w-sm space-y-6">
+          <p className="break-keep text-body-sm text-ink-sub">
+            한 번 더 본인 확인이 필요합니다. {account.email}로 보낸 6자리 확인 코드를 입력하면 새
+            비밀번호가 저장됩니다.
+          </p>
+
+          {formError && <FormAlert>{formError}</FormAlert>}
+
+          <FormGroup>
+            <FormLabel variant="line" htmlFor="reauth-code">
+              확인 코드
+            </FormLabel>
+            <Input
+              variant="line"
+              id="reauth-code"
+              name="reauth-code"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              placeholder="123456"
+              maxLength={7}
+              value={code}
+              onChange={(e) => {
+                setCode(e.target.value);
+                if (codeError) setCodeError(null);
+              }}
+              error={codeError ?? undefined}
+              required
+            />
+          </FormGroup>
+
+          <Button type="submit" fullWidth loading={loading} disabled={!code}>
+            {loading ? '확인 중...' : '코드 확인하고 변경하기'}
+          </Button>
+
+          <div className="flex items-center justify-between text-body-sm text-ink-sub">
+            <button
+              type="button"
+              className="underline underline-offset-4 hover:text-ink disabled:opacity-60"
+              onClick={handleResend}
+              disabled={resending}
+            >
+              {resending ? '보내는 중...' : '코드 다시 받기'}
+            </button>
+            <button
+              type="button"
+              className="underline underline-offset-4 hover:text-ink"
+              onClick={() => {
+                setStep('form');
+                setCode('');
+                setCodeError(null);
+                setFormError(null);
+              }}
+            >
+              비밀번호 다시 입력
+            </button>
+          </div>
         </form>
       )}
     </main>

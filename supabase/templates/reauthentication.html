@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <meta name="supported-color-schemes" content="light" />
+    <title>본인 확인 코드</title>
+  </head>
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      background-color: #f7f3ec;
+      word-break: keep-all;
+      -webkit-text-size-adjust: 100%;
+    "
+  >
+    <div style="display: none; max-height: 0; overflow: hidden; opacity: 0; color: #f7f3ec">
+      비밀번호를 바꾸려면 아래 6자리 코드를 입력하세요. 요청한 적이 없다면 무시하세요.
+    </div>
+
+    <table
+      role="presentation"
+      width="100%"
+      cellpadding="0"
+      cellspacing="0"
+      border="0"
+      style="background-color: #f7f3ec"
+    >
+      <tr>
+        <td align="center" style="padding: 40px 16px">
+          <table
+            role="presentation"
+            width="100%"
+            cellpadding="0"
+            cellspacing="0"
+            border="0"
+            style="max-width: 440px"
+          >
+            <tr>
+              <td align="center" style="padding: 0 0 24px 0">
+                <div
+                  style="
+                    font-family: 'Noto Serif KR', 'Apple SD Gothic Neo', Georgia, serif;
+                    font-size: 13px;
+                    letter-spacing: 0.16em;
+                    color: #6e665c;
+                  "
+                >
+                  READIARY
+                </div>
+              </td>
+            </tr>
+
+            <tr>
+              <td
+                style="
+                  background-color: #fdfbf7;
+                  border: 1px solid #e3dcd0;
+                  border-radius: 6px;
+                  padding: 32px 28px;
+                "
+              >
+                <h1
+                  style="
+                    margin: 0 0 12px 0;
+                    font-family: 'Noto Serif KR', 'Apple SD Gothic Neo', Georgia, serif;
+                    font-size: 22px;
+                    font-weight: 700;
+                    line-height: 1.4;
+                    color: #221e1a;
+                  "
+                >
+                  본인 확인 코드
+                </h1>
+                <p
+                  style="
+                    margin: 0 0 24px 0;
+                    font-family:
+                      Pretendard, 'Apple SD Gothic Neo', 'Malgun Gothic', Arial, sans-serif;
+                    font-size: 15px;
+                    line-height: 1.75;
+                    color: #6e665c;
+                  "
+                >
+                  {{ .Email }} 계정의 비밀번호를 바꾸려는 요청을 받았습니다. 아래 코드를 화면에
+                  입력하면 새 비밀번호가 저장됩니다.
+                </p>
+
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td
+                      align="center"
+                      style="
+                        border-top: 1px solid #e3dcd0;
+                        border-bottom: 1px solid #e3dcd0;
+                        padding: 18px 0;
+                        font-family: Menlo, Consolas, monospace;
+                        font-size: 30px;
+                        font-weight: 600;
+                        letter-spacing: 0.28em;
+                        color: #221e1a;
+                      "
+                    >
+                      {{ .Token }}
+                    </td>
+                  </tr>
+                </table>
+
+                <p
+                  style="
+                    margin: 24px 0 0 0;
+                    font-family:
+                      Pretendard, 'Apple SD Gothic Neo', 'Malgun Gothic', Arial, sans-serif;
+                    font-size: 13px;
+                    line-height: 1.7;
+                    color: #a39a8d;
+                  "
+                >
+                  코드는 한 번만 쓸 수 있고 잠시 뒤 만료됩니다. 요청한 적이 없다면 이 메일은 그냥
+                  두세요 — 코드 없이는 비밀번호가 바뀌지 않습니다. 계정이 걱정되면
+                  <a
+                    href="{{ .SiteURL }}/reset-password?from=alert"
+                    style="color: #6e665c; text-decoration: underline"
+                    >비밀번호를 새로 정해</a
+                  >
+                  두세요.
+                </p>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding: 20px 4px 0 4px">
+                <p
+                  style="
+                    margin: 0;
+                    font-family:
+                      Pretendard, 'Apple SD Gothic Neo', 'Malgun Gothic', Arial, sans-serif;
+                    font-size: 12px;
+                    line-height: 1.6;
+                    color: #a39a8d;
+                  "
+                >
+                  Readiary ·
+                  <a href="{{ .SiteURL }}" style="color: #6e665c; text-decoration: underline"
+                    >readiary.net</a
+                  >
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

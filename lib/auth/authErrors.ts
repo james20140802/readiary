@@ -30,6 +30,9 @@ const TABLE: Record<AuthFlow, Record<string, string>> = {
       '새 비밀번호는 기존 비밀번호와 달라야 합니다.',
     'Password should be at least 6 characters': '비밀번호는 최소 6자 이상이어야 합니다.',
     'Auth session missing!': '세션이 만료되었습니다. 다시 시도해주세요.',
+    'Password update requires reauthentication':
+      '본인 확인이 필요합니다. 이메일로 보낸 확인 코드를 입력해주세요.',
+    'Invalid nonce': '확인 코드가 맞지 않거나 만료되었습니다.',
   },
 };
 

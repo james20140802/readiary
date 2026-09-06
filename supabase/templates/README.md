@@ -12,6 +12,7 @@ Supabase Auth가 보내는 메일의 원본. 대시보드에 붙여 넣은 내�
 | `confirm-signup.html`   | Confirm sign up                           | `[Readiary] 이메일 주소를 확인해 주세요` |
 | `reset-password.html`   | Reset password                            | `[Readiary] 비밀번호 재설정 안내`        |
 | `password-changed.html` | Password changed (Security notifications) | `[Readiary] 비밀번호가 변경되었습니다`   |
+| `reauthentication.html` | Reauthentication                          | `[Readiary] 본인 확인 코드`              |
 
 ## 링크 규칙
 
@@ -35,14 +36,21 @@ Supabase Auth가 보내는 메일의 원본. 대시보드에 붙여 넣은 내�
 - Password changed는 링크가 필요 없는 알림 — 버튼은 `{{ .SiteURL }}/reset-password?from=alert`로 가는 보조
   아웃라인. `from=alert`가 있으면 이 기기에 세션이 남아 있어도 프로필(현재 비밀번호 확인)로 보내지 않고
   이메일 재설정 폼을 그대로 보여 준다 — 남이 바꿨다면 현재 비밀번호를 모르기 때문.
+- Reauthentication은 링크 없이 `{{ .Token }}`(6자리 코드)만 보여 준다. **Secure password change**가 켜져
+  있을 때 Supabase가 오래된 세션(24시간 초과)의 비밀번호 변경에 요구하는 코드로, 프로필 → 비밀번호 변경
+  화면이 거절을 받으면 `auth.reauthenticate()`로 보내고 입력 단계를 띄운다. 화면의 "현재 비밀번호 확인"은
+  첫 관문이고, 훔친 세션으로 Auth API를 직접 부르는 경우를 막는 경계는 이 설정이다.
 
 ## 켜는 순서(사람 작업)
 
-1. Authentication → Emails → Templates에서 **Confirm sign up**, **Reset password** 각각 제목을 위 표대로
-   바꾸고 Body에 해당 HTML을 통째로 붙여 넣기(기존 내용 지우고). Save.
+1. Authentication → Emails → Templates에서 **Confirm sign up**, **Reset password**, **Reauthentication**
+   각각 제목을 위 표대로 바꾸고 Body에 해당 HTML을 통째로 붙여 넣기(기존 내용 지우고). Save.
 2. 같은 화면의 **Password changed**(보안 알림 묶음)를 **enable** 하고 제목·Body를 같은 방식으로.
    보안 알림은 프로젝트 단위로 켜야 발송된다.
-3. 확인: 재설정 화면에서 본인 이메일로 요청 → 받은 메일이 이 디자인이면 끝.
-   Password changed는 프로필 → 비밀번호 변경을 한 번 해 보면 도착한다.
+3. Authentication → Sign In / Providers → Email에서 **Secure password change**를 켠다. 켜기 전에
+   Reauthentication 템플릿이 붙어 있어야 코드 메일이 이 디자인으로 나간다.
+4. 확인: 재설정 화면에서 본인 이메일로 요청 → 받은 메일이 이 디자인이면 끝.
+   Password changed는 프로필 → 비밀번호 변경을 한 번 해 보면 도착한다. 로그인한 지 24시간이 지난 세션으로
+   비밀번호를 바꾸면 확인 코드 단계가 나타나고 Reauthentication 메일이 온다.
 
 Site URL(Authentication → URL Configuration)이 `https://www.readiary.net`이어야 `{{ .SiteURL }}`이 맞게 찍힌다.
