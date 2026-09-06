@@ -39,6 +39,8 @@ export default function FeaturedQuoteSelection({ userId, value, onChange, disabl
   const [booksError, setBooksError] = useState(false);
   const [options, setOptions] = useState<ProfileSelectionOption[]>([]);
   const [selected, setSelected] = useState<ProfileSelectionOption>();
+  const [selectedFailureId, setSelectedFailureId] = useState<string | null>(null);
+  const [selectedRetry, setSelectedRetry] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const [hasNext, setHasNext] = useState(false);
@@ -48,19 +50,22 @@ export default function FeaturedQuoteSelection({ userId, value, onChange, disabl
     if (!value || selected?.id === value) return;
     let active = true;
     async function loadSelected() {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('entries')
         .select(SELECT)
         .eq('user_books.user_id', userId)
         .eq('id', value!)
         .maybeSingle();
-      if (active && data) setSelected(option(data));
+      if (error || !data) throw error ?? new Error('Selected quote not found');
+      if (active) setSelected(option(data));
     }
-    loadSelected().catch(() => {});
+    loadSelected().catch(() => {
+      if (active) setSelectedFailureId(value);
+    });
     return () => {
       active = false;
     };
-  }, [supabase, userId, value, selected?.id]);
+  }, [supabase, userId, value, selected?.id, selectedRetry]);
 
   // 필터에는 책 제목만 사용하고, 인용 전문은 페이지 단위로 조회한다.
   useEffect(() => {
@@ -147,6 +152,12 @@ export default function FeaturedQuoteSelection({ userId, value, onChange, disabl
         label="뒷표지 문장"
         options={options}
         selectedOption={selected}
+        selectedLoading={Boolean(value && selected?.id !== value && selectedFailureId !== value)}
+        selectedError={Boolean(value && selected?.id !== value && selectedFailureId === value)}
+        onRetrySelected={() => {
+          setSelectedFailureId(null);
+          setSelectedRetry((n) => n + 1);
+        }}
         value={value}
         onChange={(id) => {
           setSelected(options.find((o) => o.id === id));

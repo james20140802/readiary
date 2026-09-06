@@ -26,6 +26,9 @@ interface Props {
   disabled?: boolean;
   filterByBook?: boolean;
   selectedOption?: ProfileSelectionOption;
+  selectedLoading?: boolean;
+  selectedError?: boolean;
+  onRetrySelected?: () => void;
   remote?: {
     groups: [string, string][];
     onOpen: (open: boolean) => void;
@@ -51,6 +54,9 @@ export default function ProfileSelection({
   disabled,
   filterByBook,
   selectedOption,
+  selectedLoading,
+  selectedError,
+  onRetrySelected,
   remote,
 }: Props) {
   const id = useId();
@@ -96,11 +102,16 @@ export default function ProfileSelection({
           <p className="whitespace-pre-wrap break-words font-serif text-[15px] leading-relaxed text-ink">
             {selected?.title ??
               (value
-                ? loading
+                ? (selectedLoading ?? loading)
                   ? '선택한 항목을 불러오는 중…'
                   : '선택한 항목을 불러오지 못했습니다.'
                 : emptyLabel)}
           </p>
+          {selectedError && onRetrySelected && (
+            <Button variant="ghost" size="sm" disabled={disabled} onClick={onRetrySelected}>
+              현재 선택 다시 불러오기
+            </Button>
+          )}
           {selected?.subtitle && (
             <p className="mt-2 text-caption text-ink-sub">『{selected.subtitle}』</p>
           )}
