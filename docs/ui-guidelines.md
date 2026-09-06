@@ -52,7 +52,7 @@
 | --- | --- |
 | `Button` | 알약형. primary=먹 배경, secondary=헤어라인 아웃라인, ghost/danger/success |
 | `Card` | 헤어라인 카드. `raised`는 진한 헤어라인(그림자 없음) |
-| `Input`/`Textarea` | 카드 표면 + strong 헤어라인, 포커스에 accent 1px |
+| `Input`/`Textarea` | 기본(`box`): 카드 표면 + strong 헤어라인, 포커스에 accent 1px. `variant="line"`: 상자 없이 괘선 위에, 포커스는 괘선만 짙게 — 기록·책 등록·인증 화면 |
 | `Modal` | `bg-ink/30` 스크림 + 헤어라인 패널 |
 | `Tabs` | 밑줄형, 활성=accent |
 | `Seal` | 잉크색 날짜/상태 라벨 ("1년 전 오늘", "완독") |

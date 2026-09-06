@@ -1,4 +1,5 @@
-const DEFAULT_REDIRECT = '/protected/dashboard';
+export const DEFAULT_REDIRECT_PATH = '/protected/dashboard';
+const DEFAULT_REDIRECT = DEFAULT_REDIRECT_PATH;
 
 /** ASCII 제어문자(탭·개행·NUL 등). WHATWG URL 파서는 탭·LF·CR 을 입력에서 지워 버려서
  *  "/\t/evil.test" 가 "//evil.test" 로 풀린다 — 위치와 무관하게 하나라도 있으면 통째로 거절 */
@@ -22,4 +23,12 @@ export function sanitizeRedirectPath(param: string | null): string {
     return DEFAULT_REDIRECT;
   }
   return param;
+}
+
+/** 로그인·가입 화면 사이를 오갈 때(페이지 안 링크, 비로그인 GNB) 복귀 경로를 잃지 않도록 실어 보낸다.
+ *  검증을 통과한 경로만 싣고, 기본 경로로 풀리는 값(없음·거절)은 파라미터 없이 base 그대로 */
+export function authHrefWithRedirect(base: '/login' | '/signup', param: string | null): string {
+  const path = sanitizeRedirectPath(param);
+  if (path === DEFAULT_REDIRECT) return base;
+  return `${base}?redirect=${encodeURIComponent(path)}`;
 }
