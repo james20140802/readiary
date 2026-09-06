@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { apiFetch } from '@/lib/api/fetch';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/Input';
@@ -51,7 +51,6 @@ export default function OnboardingForm({
   const [nicknameError, setNicknameError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
   const consented = !requireConsent || isConsentComplete(consent);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -70,7 +69,7 @@ export default function OnboardingForm({
 
     try {
       while (tries < maxTries) {
-        const res = await fetch('/api/onboarding', {
+        const res = await apiFetch('/api/onboarding', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           // 동의를 여기서 받았다면 서버가 표식을 남기도록 함께 보낸다
@@ -99,10 +98,6 @@ export default function OnboardingForm({
         } else if (res.status === 409 && result.code === 'profile_exists') {
           toast.info(result.error || '이미 프로필이 존재합니다.');
           leaveOnboarding('/protected/dashboard');
-          return;
-        } else if (res.status === 401) {
-          toast.error('세션이 만료되었습니다. 다시 로그인해주세요.');
-          router.push('/login');
           return;
         } else {
           setFormError(result.error || '프로필 등록 중 오류가 발생했습니다.');

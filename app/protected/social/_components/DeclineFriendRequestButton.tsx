@@ -1,5 +1,6 @@
 'use client';
 
+import { apiFetch } from '@/lib/api/fetch';
 import { useRouter } from 'next/navigation';
 import { useTransition } from 'react';
 import { toast } from 'sonner';
@@ -15,7 +16,7 @@ export default function DeclineFriendRequestButton({ friendUserId, onSuccess }: 
 
   const handleDecline = () => {
     startTransition(async () => {
-      const res = await fetch('/api/friends/decline', {
+      const res = await apiFetch('/api/friends/decline', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ friendUserId }),

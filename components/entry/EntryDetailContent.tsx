@@ -1,5 +1,6 @@
 'use client';
 
+import { apiFetch } from '@/lib/api/fetch';
 import { Fragment, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -59,7 +60,7 @@ export default function EntryDetailContent({
     setIsDeleting(true);
     setDeleteError('');
     try {
-      const res = await fetch(`/api/entries/${entry.id}/delete?book_id=${book.id}`, {
+      const res = await apiFetch(`/api/entries/${entry.id}/delete?book_id=${book.id}`, {
         method: 'DELETE',
       });
       if (!res.ok) throw new Error('삭제 실패');

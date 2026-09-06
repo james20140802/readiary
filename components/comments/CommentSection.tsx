@@ -1,5 +1,6 @@
 'use client';
 
+import { apiFetch } from '@/lib/api/fetch';
 import { useState, useEffect } from 'react';
 import { Comment } from '@/types/comments';
 import CommentItem from './CommentItem';
@@ -32,7 +33,7 @@ export default function CommentSection({
   useEffect(() => {
     async function loadComments() {
       try {
-        const res = await fetch(`/api/comments?entry_id=${entryId}`);
+        const res = await apiFetch(`/api/comments?entry_id=${entryId}`);
         if (!res.ok) throw new Error('불러오기 실패');
         const data = await res.json();
         setComments(data);
@@ -49,7 +50,7 @@ export default function CommentSection({
   // 2. POST: 댓글 추가
   const handleAddComment = async (content: string) => {
     try {
-      const res = await fetch('/api/comments', {
+      const res = await apiFetch('/api/comments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ entryId, content, parentId: replyingTo?.id }),
@@ -78,7 +79,7 @@ export default function CommentSection({
     setIsDeleting(true);
 
     try {
-      const res = await fetch(`/api/comments?id=${deleteModalCommentId}`, { method: 'DELETE' });
+      const res = await apiFetch(`/api/comments?id=${deleteModalCommentId}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('삭제 실패');
 
       const updatedComments = comments.filter(

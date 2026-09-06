@@ -1,5 +1,6 @@
 'use client';
 
+import { apiFetch } from '@/lib/api/fetch';
 import { useState } from 'react';
 import Link from 'next/link';
 import { Heart, Lock, MessageCircle } from 'lucide-react';
@@ -66,7 +67,7 @@ export default function EntryCard({
     setLikeCount(prevLiked ? prevCount - 1 : prevCount + 1);
     setIsLikeLoading(true);
     try {
-      const response = await fetch('/api/likes', {
+      const response = await apiFetch('/api/likes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ entryId: id }),

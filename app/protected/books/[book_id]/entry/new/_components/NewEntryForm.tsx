@@ -1,5 +1,6 @@
 'use client';
 
+import { apiFetch } from '@/lib/api/fetch';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Book } from '@/types/book';
@@ -17,7 +18,7 @@ export default function NewEntryForm({ userBookId, userId, book, bookId }: Props
 
   const handleSubmit = async (values: EntryFormValues): Promise<string | null> => {
     try {
-      const res = await fetch('/api/entries/new', {
+      const res = await apiFetch('/api/entries/new', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

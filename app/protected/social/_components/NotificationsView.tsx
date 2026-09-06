@@ -1,5 +1,6 @@
 'use client';
 
+import { apiFetch } from '@/lib/api/fetch';
 import { useEffect, useRef } from 'react';
 import NotificationList from './NotificationList';
 import { NOTIFICATIONS_LIMIT, type NotificationItem } from '@/lib/notifications/types';
@@ -46,7 +47,7 @@ export default function NotificationsView({ notifications, error = false }: Prop
     if (unreadIds.length > 0) body.ids = unreadIds;
     if (shouldClear && boundary) body.clearOlderThan = boundary;
 
-    fetch('/api/notifications/read', {
+    apiFetch('/api/notifications/read', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
