@@ -154,15 +154,17 @@ export default function EntryDetailContent({
                   onCommentClick={scrollToComments}
                   border={false}
                 />
-                <ShareEntryButton
-                  entryId={entry.id}
-                  quote={entry.quote}
-                  note={entry.note}
-                  date={entry.date}
-                  isPrivate={entry.is_private}
-                  bookTitle={book.title}
-                  bookAuthor={book.author}
-                />
+                {!isFriend && (
+                  <ShareEntryButton
+                    entryId={entry.id}
+                    quote={entry.quote}
+                    note={entry.note}
+                    date={entry.date}
+                    isPrivate={entry.is_private}
+                    bookTitle={book.title}
+                    bookAuthor={book.author}
+                  />
+                )}
                 {!isFriend && (
                   <>
                     <span aria-hidden className="h-4 w-px bg-hairline" />
@@ -182,6 +184,12 @@ export default function EntryDetailContent({
                 )}
               </div>
             </footer>
+            {!isFriend && !entry.is_private && (
+              <p className="mt-3 text-caption text-ink-faint">
+                공유하면 기록과 닉네임이 링크를 아는 누구에게나 공개됩니다. 비공개로 바꾸면 링크가
+                닫힙니다.
+              </p>
+            )}
           </article>
         </AnimatedSection>
 

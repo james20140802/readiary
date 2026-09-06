@@ -32,11 +32,14 @@ export const LEGACY_PRIVATE_CACHE_NAMES = [
   'cross-origin',
   'next-data',
   'next-image',
+  'static-image-assets',
+  'static-data-assets',
 ];
 
 // v3: next-pwa 가 cacheStartUrl 로 만들던 'start-url' NetworkFirst 캐시를 마저 지운다 —
 // 로그인 상태에서 '/'를 방문한 기기에 개인화된 응답이 남아 있을 수 있다. v2 를 이미 기록한 기기도 한 번 더 지우도록 표식을 올린다.
-const SWEEP_FLAG = 'readiary.pwa.private-cache-swept.v3';
+// v4: 확장자 규칙이 먼저 담았던 프로필 이미지와 데이터 캐시도 정리한다.
+const SWEEP_FLAG = 'readiary.pwa.private-cache-swept.v4';
 
 /**
  * 규칙을 바꾸기 전에 설치된 기기에 남은 옛 캐시를 한 번 지운다.

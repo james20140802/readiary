@@ -661,6 +661,7 @@ export default function ProfileBook({
                           {photoUrl ? (
                             <Image
                               src={photoUrl}
+                              unoptimized
                               alt={`${displayName}의 사진`}
                               fill
                               sizes="112px"

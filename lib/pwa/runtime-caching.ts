@@ -35,6 +35,7 @@ export function isPersonalizedSameOriginRequest(context: MatchContext): boolean 
   if (request.mode === 'navigate' || request.destination === 'document') return true;
   if (request.headers.get('RSC') === '1' || url.searchParams.has('_rsc')) return true;
   const pathname = url.pathname;
+  if (pathname.startsWith('/_next/data/')) return true;
   if (pathname.startsWith('/_next/')) return false;
   if (pathname.startsWith('/api/') || pathname.startsWith('/auth/')) return true;
   return !/\.[A-Za-z0-9]+$/.test(pathname);

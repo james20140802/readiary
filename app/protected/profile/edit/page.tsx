@@ -108,7 +108,7 @@ export default function EditProfilePage() {
   const handleUploadAvatar = async (file: File) => {
     const res = await uploadAvatar(file);
     if (res?.success) {
-      toast.success('프로필 이미지가 변경되었습니다.');
+      toast.success('사진을 선택했습니다. 변경사항을 저장하면 반영됩니다.');
     } else if (res?.error) {
       toast.error(res.error);
     }
@@ -117,7 +117,7 @@ export default function EditProfilePage() {
   const handleDeleteAvatar = async () => {
     const res = await deleteAvatar();
     if (res?.success) {
-      toast.success('프로필 이미지가 삭제되었습니다.');
+      toast.success('사진을 제거했습니다. 변경사항을 저장하면 삭제됩니다.');
     } else if (res?.error) {
       toast.error(res.error);
     }
@@ -168,14 +168,15 @@ export default function EditProfilePage() {
               {imagePath ? (
                 <>
                   <Image
-                    src={getImageUrl(imagePath) || ''}
+                    src={imagePath.startsWith('blob:') ? imagePath : getImageUrl(imagePath) || ''}
+                    unoptimized
                     alt="Avatar"
                     fill
                     className="object-cover"
                   />
                   <button
                     onClick={handleDeleteAvatar}
-                    disabled={uploading}
+                    disabled={uploading || updating}
                     className="absolute top-2 right-2 p-1 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors z-10"
                     title="이미지 삭제"
                   >
@@ -200,14 +201,14 @@ export default function EditProfilePage() {
                 className="hidden"
                 accept="image/*"
                 onChange={(e) => e.target.files?.[0] && handleUploadAvatar(e.target.files[0])}
-                disabled={uploading}
+                disabled={uploading || updating}
               />
             </label>
           </div>
           <div className="text-center sm:text-left">
             <h3 className="font-bold text-ink">프로필 사진</h3>
             <p className="text-caption text-ink-faint mt-1 font-medium">
-              나를 나타내는 멋진 사진을 올려보세요.
+              사진은 로그인한 회원에게만 보입니다. 저장 전에는 서버에 전송되지 않습니다.
             </p>
           </div>
         </section>

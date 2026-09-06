@@ -59,7 +59,7 @@ module.exports = {
         '3xl': '1rem',
       },
       fontFamily: {
-        sans: ['Pretendard', 'var(--font-geist-sans)', 'ui-sans-serif', 'system-ui'],
+        sans: ['var(--font-sans)', 'ui-sans-serif', 'system-ui'],
         serif: ['var(--font-serif)', 'Noto Serif KR', 'Georgia', 'serif'],
       },
     },

@@ -4,7 +4,6 @@ import { type NextRequest, NextResponse } from 'next/server';
 export async function POST(req: NextRequest) {
   const supabase = await createSupabaseServerClient();
   const { nickname, tag } = await req.json();
-  console.log(nickname, tag);
   if (!nickname || !tag) {
     return NextResponse.json({ error: 'Invalid nickname or tag' }, { status: 400 });
   }

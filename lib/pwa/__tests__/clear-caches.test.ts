@@ -46,6 +46,8 @@ describe('clearPwaCaches', () => {
 describe('LEGACY_PRIVATE_CACHE_NAMES', () => {
   it('next-pwa 가 만들던 start-url 캐시도 담고 있다', () => {
     expect(LEGACY_PRIVATE_CACHE_NAMES).toContain('start-url');
+    expect(LEGACY_PRIVATE_CACHE_NAMES).toContain('static-image-assets');
+    expect(LEGACY_PRIVATE_CACHE_NAMES).toContain('static-data-assets');
   });
 });
 
@@ -58,6 +60,14 @@ describe('sweepLegacyPrivateCaches', () => {
     vi.stubGlobal('caches', storage);
     await sweepLegacyPrivateCaches();
     expect([...storage.store]).toEqual(['static-js-assets']);
+  });
+
+  it('v3까지 정리한 기기도 이미지 캐시를 다시 비운다', async () => {
+    localStorage.setItem('readiary.pwa.private-cache-swept.v3', '1');
+    const storage = fakeCacheStorage(['static-image-assets']);
+    vi.stubGlobal('caches', storage);
+    await sweepLegacyPrivateCaches();
+    expect(storage.store.size).toBe(0);
   });
 
   it('기기당 한 번만 지운다', async () => {

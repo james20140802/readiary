@@ -60,6 +60,8 @@ describe('isPersonalizedSameOriginRequest', () => {
   });
 
   it.each([
+    '/api/profile-image?path=11111111-1111-4111-8111-111111111111%2Fphoto.png',
+    '/_next/data/build/protected.json',
     '/api/notifications/read',
     '/api',
     '/auth/callback?code=x',
