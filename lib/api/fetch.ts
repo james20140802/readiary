@@ -23,11 +23,13 @@ let redirecting = false;
  *  `redirect` 에 실어 `/login` 으로 보내고 `SessionExpiredError` 를 던진다.
  *  그 외 응답은 `fetch` 와 똑같이 그대로 돌려준다 */
 export async function apiFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  // Request 객체의 본문은 첫 fetch 가 읽어 버리므로, 재시도에 쓸 복제본을 보내기 전에 떼어 둔다
+  const spare = isRequest(input) ? input.clone() : input;
   const res = await fetch(input, init);
   if (res.status !== 401) return res;
 
   if (canRetry(init) && (await refreshSession())) {
-    const retried = await fetch(input, init);
+    const retried = await fetch(spare, init);
     if (retried.status !== 401) return retried;
   }
 
@@ -35,7 +37,11 @@ export async function apiFetch(input: RequestInfo | URL, init?: RequestInit): Pr
   throw new SessionExpiredError();
 }
 
-/** 스트림 본문은 한 번 읽히면 다시 보낼 수 없다 — 이 앱은 JSON 문자열만 보내지만 안전장치로 */
+function isRequest(input: RequestInfo | URL): input is Request {
+  return typeof Request !== 'undefined' && input instanceof Request;
+}
+
+/** init 의 스트림 본문은 한 번 읽히면 다시 보낼 수 없다 — 이 앱은 JSON 문자열만 보내지만 안전장치로 */
 function canRetry(init?: RequestInit): boolean {
   return !(typeof ReadableStream !== 'undefined' && init?.body instanceof ReadableStream);
 }

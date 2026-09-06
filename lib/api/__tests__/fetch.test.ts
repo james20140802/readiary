@@ -100,6 +100,33 @@ describe('apiFetch', () => {
     expect(assign).not.toHaveBeenCalled();
   });
 
+  it('본문이 있는 Request 객체도 복제본으로 재시도한다 — 첫 요청이 본문을 읽어 버려도 된다', async () => {
+    const body = JSON.stringify({ entryId: 'e1' });
+    const request = new Request('http://localhost/api/likes', { method: 'POST', body });
+    const { apiFetch, fetchMock, assign } = await loadModule({
+      responses: [jsonResponse(401), jsonResponse(200, { liked: true })],
+    });
+
+    // 진짜 fetch 처럼 첫 호출이 본문을 소비한다
+    fetchMock.mockImplementationOnce(async (input: Request) => {
+      await input.text();
+      return jsonResponse(401);
+    });
+
+    const res = await apiFetch(request);
+
+    expect(res.status).toBe(200);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock.mock.calls[0][0]).toBe(request);
+    const retriedWith = fetchMock.mock.calls[1][0] as Request;
+    expect(retriedWith).toBeInstanceOf(Request);
+    expect(retriedWith).not.toBe(request);
+    expect(retriedWith.bodyUsed).toBe(false);
+    expect(retriedWith.method).toBe('POST');
+    expect(await retriedWith.text()).toBe(body);
+    expect(assign).not.toHaveBeenCalled();
+  });
+
   it('갱신이 실패하면 현재 경로를 redirect 에 실어 /login 으로 보내고 SessionExpiredError 를 던진다', async () => {
     const { apiFetch, SessionExpiredError, fetchMock, assign } = await loadModule({
       responses: [jsonResponse(401, { error: 'Unauthorized' })],
