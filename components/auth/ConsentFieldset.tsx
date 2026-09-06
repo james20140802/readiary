@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
+import { splitLegalBlocks } from '@/lib/legal/blocks';
 import { PRIVACY_CONSENT, TERMS_OF_SERVICE } from '@/lib/legal/texts';
 
 export interface Consent {
@@ -81,16 +83,19 @@ export default function ConsentFieldset({
       </fieldset>
 
       <Modal isOpen={openDoc === 'terms'} onClose={() => setOpenDoc(null)}>
-        <LegalDocument
+        <ConsentDocument
           title="서비스 이용 약관"
           body={TERMS_OF_SERVICE}
+          fullHref="/terms"
           onClose={() => setOpenDoc(null)}
         />
       </Modal>
       <Modal isOpen={openDoc === 'privacy'} onClose={() => setOpenDoc(null)}>
-        <LegalDocument
+        <ConsentDocument
           title="개인정보 수집 및 이용 동의서"
           body={PRIVACY_CONSENT}
+          fullHref="/privacy"
+          fullLabel="개인정보처리방침 전체 보기"
           onClose={() => setOpenDoc(null)}
         />
       </Modal>
@@ -98,20 +103,50 @@ export default function ConsentFieldset({
   );
 }
 
-function LegalDocument({
+/**
+ * 동의 모달 안의 문서 한 장. 공개 페이지(/terms, /privacy)와 같은 본문을 같은 파서로 나눠 그리고,
+ * 가입 흐름을 끊지 않도록 전체 문서는 새 탭으로 연다.
+ */
+function ConsentDocument({
   title,
   body,
+  fullHref,
+  fullLabel = '새 탭에서 보기',
   onClose,
 }: {
   title: string;
   body: string;
+  fullHref: string;
+  fullLabel?: string;
   onClose: () => void;
 }) {
+  const blocks = splitLegalBlocks(body);
   return (
-    <div className="space-y-4 max-h-[60vh] overflow-y-auto px-2 py-4">
+    <div className="max-h-[60vh] space-y-4 overflow-y-auto px-2 py-4">
       <h2 className="text-lg font-semibold">{title}</h2>
-      <p className="text-sm text-ink-sub leading-relaxed whitespace-pre-wrap">{body}</p>
-      <div className="pt-4 flex justify-end">
+      <div className="space-y-4">
+        {blocks.map((block, i) => (
+          <section key={i}>
+            {block.heading && (
+              <h3 className="mb-1 text-body-sm font-bold text-ink">{block.heading}</h3>
+            )}
+            {block.body && (
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-ink-sub">
+                {block.body}
+              </p>
+            )}
+          </section>
+        ))}
+      </div>
+      <div className="flex items-center justify-between gap-3 pt-4">
+        <Link
+          href={fullHref}
+          target="_blank"
+          rel="noopener"
+          className="text-body-sm text-ink-sub underline underline-offset-4 hover:text-ink"
+        >
+          {fullLabel}
+        </Link>
         <Button onClick={onClose}>닫기</Button>
       </div>
     </div>

@@ -2,8 +2,9 @@ import Link from 'next/link';
 import Button from '@/components/ui/Button';
 import Seal from '@/components/ui/Seal';
 import { SlideBody } from './Slide';
+import LandingFooter from './LandingFooter';
 
-/** ⑧ 시작 — 홈 맨 아래 장서표(Ex Libris) 명패의 이중 보더 어휘로 마지막 장을 닫는다 */
+/** ⑧ 시작 — 홈 맨 아래 장서표(Ex Libris) 명패의 이중 보더 어휘로 마지막 장을 닫고, 그 아래 푸터(약관·방침·문의)를 앉힌다 */
 export default function LandingClosing() {
   return (
     <SlideBody className="flex flex-col items-center text-center">
@@ -27,7 +28,7 @@ export default function LandingClosing() {
           </div>
         </div>
       </section>
-      <p className="mt-10 text-caption text-ink-faint">© 2026 Readiary</p>
+      <LandingFooter />
     </SlideBody>
   );
 }
