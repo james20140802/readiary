@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { getServerUser } from '@/lib/supabase/getServerUser';
 import { notFound } from 'next/navigation';
 import { getUserStats } from '@/lib/stats/getUserStats';
 import { fetchProfileData } from '@/lib/profile/fetchProfileData';
@@ -21,7 +22,7 @@ export default async function FriendProfilePage({ params }: FriendProfilePagePro
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await getServerUser();
   if (!user) return notFound();
 
   const slug = (await params).nicknameAndTag;

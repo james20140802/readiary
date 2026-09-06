@@ -1,3 +1,4 @@
+import { getServerUser } from '@/lib/supabase/getServerUser';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 /**
@@ -14,7 +15,7 @@ export async function fetchUnreadNotificationCount(): Promise<number | null> {
     const {
       data: { user },
       error: authError,
-    } = await supabase.auth.getUser();
+    } = await getServerUser();
     // 인증 조회 자체가 실패한 것(일시 장애)은 미로그인이 아니다 — 모름(null)
     if (authError) return null;
     if (!user) return 0;

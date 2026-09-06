@@ -1,7 +1,7 @@
+import { getServerUser } from '@/lib/supabase/getServerUser';
 import EntryDetailContent from '@/components/entry/EntryDetailContent';
 import BackButton from '@/components/ui/BackButton';
 import { fetchEntryDetail } from '@/lib/entries/fetchEntryDetail';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 
 export default async function EntryDetailPage({
@@ -9,10 +9,9 @@ export default async function EntryDetailPage({
 }: {
   params: Promise<{ entry_id: string }>;
 }) {
-  const supabase = await createSupabaseServerClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await getServerUser();
 
   if (!user) return null;
 

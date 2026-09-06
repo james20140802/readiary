@@ -1,10 +1,10 @@
+import { getServerUser } from '@/lib/supabase/getServerUser';
 // app/protected/social/friends/page.tsx
 import {
   fetchFriendList,
   fetchReceivedFriendRequests,
   fetchSentFriendRequests,
 } from '@/lib/friends/fetchFriendList';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { slugToSearchQuery } from '@/lib/social/invite';
 import BackButton from '@/components/ui/BackButton';
 import FriendsManager, { type FriendsTabValue } from '../_components/FriendsManager';
@@ -14,10 +14,9 @@ interface FriendsPageProps {
 }
 
 export default async function FriendsPage({ searchParams }: FriendsPageProps) {
-  const supabase = await createSupabaseServerClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await getServerUser();
   if (!user) return null;
 
   const { invite, tab } = await searchParams;

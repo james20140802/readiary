@@ -403,6 +403,21 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      get_books_page: { Args: Record<string, never>; Returns: Json };
+      get_profile_retrospect: {
+        Args: { p_user_id: string; p_today: string; p_public_only?: boolean };
+        Returns: Json;
+      };
+      get_featured_bookmark: {
+        Args: { p_user_book_id: string; p_owner_id: string; p_public_only?: boolean };
+        Returns: Json;
+      };
+      get_dashboard_core: { Args: { p_today: string }; Returns: Json };
+      get_reading_stats: { Args: { p_user_id: string }; Returns: Json };
+      get_book_reading_stats: { Args: Record<string, never>; Returns: Json };
+      get_social_feed: { Args: { p_page?: number; p_limit?: number }; Returns: Json };
+      get_monthly_recap: { Args: { p_today: string }; Returns: Json };
+      get_recall_entry: { Args: { p_today: string }; Returns: Json };
       enable_entry_share: {
         Args: { p_entry_id: string };
         Returns: boolean;

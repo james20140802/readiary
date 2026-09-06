@@ -1,3 +1,4 @@
+import { getServerUser } from '@/lib/supabase/getServerUser';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { BookDetailData } from '@/types/book';
 import { EntryDetailData } from '@/types/entry';
@@ -8,7 +9,7 @@ export async function fetchBookDetail(bookId: string): Promise<BookDetailData | 
   const {
     data: { user },
     error: userError,
-  } = await supabase.auth.getUser();
+  } = await getServerUser();
 
   if (!user || userError) return null;
 

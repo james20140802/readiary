@@ -1,10 +1,10 @@
+import { getServerUser } from '@/lib/supabase/getServerUser';
 import { fetchFriendBookEntries } from '@/lib/friends/fetchFriendBookEntries';
 import { notFound } from 'next/navigation';
 import { isFriendWith } from '@/lib/friends/isFriendWith';
 import { parseNicknameAndTagSlug } from '@/lib/social/invite';
 import FriendProfileHeader from '@/components/social/FriendProfileHeader';
 import BookDetailContent from '@/components/books/BookDetailContent';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 interface FriendBookDetailPageProps {
   params: Promise<{
@@ -14,10 +14,9 @@ interface FriendBookDetailPageProps {
 }
 
 export default async function FriendBookDetailPage({ params }: FriendBookDetailPageProps) {
-  const supabase = await createSupabaseServerClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await getServerUser();
 
   if (!user) return null;
 

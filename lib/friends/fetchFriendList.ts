@@ -1,14 +1,14 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { getServerUser } from '@/lib/supabase/getServerUser';
 import { Friend } from '@/types/friends';
 import { transformFriendRow } from '@/utils/friends';
 
 export async function fetchFriendList(): Promise<Friend[] | null> {
   const supabase = await createSupabaseServerClient();
-
   const {
     data: { user },
     error: userError,
-  } = await supabase.auth.getUser();
+  } = await getServerUser();
 
   if (!user || userError) {
     return [];
@@ -39,11 +39,10 @@ export async function fetchFriendList(): Promise<Friend[] | null> {
 
 export async function fetchSentFriendRequests(): Promise<Friend[] | null> {
   const supabase = await createSupabaseServerClient();
-
   const {
     data: { user },
     error: userError,
-  } = await supabase.auth.getUser();
+  } = await getServerUser();
 
   if (!user || userError) {
     return [];
@@ -74,11 +73,10 @@ export async function fetchSentFriendRequests(): Promise<Friend[] | null> {
 
 export async function fetchReceivedFriendRequests(): Promise<Friend[] | null> {
   const supabase = await createSupabaseServerClient();
-
   const {
     data: { user },
     error: userError,
-  } = await supabase.auth.getUser();
+  } = await getServerUser();
 
   if (!user || userError) {
     return [];

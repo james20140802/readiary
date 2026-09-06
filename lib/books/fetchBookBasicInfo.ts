@@ -1,3 +1,4 @@
+import { getServerUser } from '@/lib/supabase/getServerUser';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 export async function fetchBookBasicInfo(bookId: string) {
@@ -6,7 +7,7 @@ export async function fetchBookBasicInfo(bookId: string) {
   const {
     data: { user },
     error: userError,
-  } = await supabase.auth.getUser();
+  } = await getServerUser();
 
   if (!user || userError) return null;
 

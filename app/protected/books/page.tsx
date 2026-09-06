@@ -1,14 +1,10 @@
 import Link from 'next/link';
-import { fetchMyBooksData } from '@/lib/queries/fetchBooks';
-import { fetchBookReadingStats } from '@/lib/queries/fetchBookReadingStats';
-import { redirect } from 'next/navigation';
+import { fetchBooksPage } from '@/lib/queries/fetchBooksPage';
 import Button from '@/components/ui/Button';
 import BookList from '@/components/books/BookList';
 
 export default async function MyBooksPage() {
-  const [books, stats] = await Promise.all([fetchMyBooksData(), fetchBookReadingStats()]);
-
-  if (!books) return redirect('/');
+  const { books, stats } = await fetchBooksPage();
 
   const finishedCount = books.filter((b) => b.is_finished).length;
   const readingCount = books.length - finishedCount;

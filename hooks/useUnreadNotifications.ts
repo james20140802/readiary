@@ -12,8 +12,8 @@ export const NOTIFICATIONS_READ_EVENT = 'readiary:notifications-read';
  * 읽음 처리 신호(NOTIFICATIONS_READ_EVENT), 그리고 보이는 동안 60초 주기로
  * 다시 세어, 열어 둔 채 쓰는 웹앱에서도 뱃지가 스스로 켜지고 꺼진다.
  *
- * initialUnread는 루트 레이아웃이 서버에서 미리 세어 내려준 값 — 첫 페인트부터
- * 맞는 상태로 그려서, 0에서 시작했다가 클라이언트 조회 후 켜지는 깜빡임을 없앤다.
+ * initialUnread는 선택적 서버 초기값. 루트는 본문을 막지 않도록 null을 보내며
+ * hydration 뒤 최대 한 행만 읽어 뱃지를 갱신한다.
  * null은 서버 조회 실패(모름) — 그때는 클라이언트가 세어 둔 값을 그대로 둔다.
  */
 export function useUnreadNotifications(enabled: boolean, initialUnread: number | null = 0) {
@@ -36,10 +36,11 @@ export function useUnreadNotifications(enabled: boolean, initialUnread: number |
       if (document.visibilityState !== 'visible') return;
       supabase
         .from('notifications')
-        .select('id', { count: 'exact', head: true })
+        .select('id')
         .is('read_at', null)
-        .then(({ count, error }) => {
-          if (!cancelled && !error) setHasUnread((count ?? 0) > 0);
+        .limit(1)
+        .then(({ data, error }) => {
+          if (!cancelled && !error) setHasUnread((data?.length ?? 0) > 0);
         });
     };
 
