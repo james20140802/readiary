@@ -8,14 +8,16 @@ import { splitLegalBlocks } from '@/lib/legal/blocks';
 import { PRIVACY_CONSENT, TERMS_OF_SERVICE } from '@/lib/legal/texts';
 
 export interface Consent {
+  /** 만 14세 이상 확인 — 약관 제4조 2항 */
+  age: boolean;
   privacy: boolean;
   terms: boolean;
 }
 
-export const NO_CONSENT: Consent = { privacy: false, terms: false };
+export const NO_CONSENT: Consent = { age: false, privacy: false, terms: false };
 
 export function isConsentComplete(consent: Consent): boolean {
-  return consent.privacy && consent.terms;
+  return consent.age && consent.privacy && consent.terms;
 }
 
 interface ConsentFieldsetProps {
@@ -26,7 +28,7 @@ interface ConsentFieldsetProps {
 }
 
 /**
- * 개인정보 수집·이용과 서비스 이용 약관 동의 체크박스 두 개 + 본문 모달.
+ * 만 14세 이상 확인, 개인정보 수집·이용과 서비스 이용 약관 동의 체크박스 세 개 + 본문 모달.
  * 이메일 가입 화면과, 소셜 로그인으로 처음 온 사람의 온보딩 화면이 같은 것을 쓴다.
  */
 export default function ConsentFieldset({
@@ -35,6 +37,7 @@ export default function ConsentFieldset({
   idPrefix = 'consent',
 }: ConsentFieldsetProps) {
   const [openDoc, setOpenDoc] = useState<'terms' | 'privacy' | null>(null);
+  const ageId = `${idPrefix}-age`;
   const privacyId = `${idPrefix}-privacy`;
   const termsId = `${idPrefix}-terms`;
 
@@ -42,6 +45,16 @@ export default function ConsentFieldset({
     <>
       <fieldset className="space-y-2 pt-1">
         <legend className="sr-only">동의</legend>
+        <label htmlFor={ageId} className="flex items-center gap-2 text-body-sm text-ink-sub">
+          <input
+            type="checkbox"
+            id={ageId}
+            checked={value.age}
+            onChange={(e) => onChange({ ...value, age: e.target.checked })}
+            className="h-4 w-4 accent-accent"
+          />
+          <span>만 14세 이상입니다</span>
+        </label>
         <label htmlFor={privacyId} className="flex items-center gap-2 text-body-sm text-ink-sub">
           <input
             type="checkbox"

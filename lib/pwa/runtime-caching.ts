@@ -10,6 +10,8 @@ import type { RuntimeCaching } from 'next-pwa';
  * 그래서 로그인해야 보이는 경로와 Supabase 응답을 NetworkOnly 로 잡는 규칙을 기본 규칙보다 앞에 둔다.
  * 로그인 상태면 보호 화면으로 리다이렉트되는 공개 경로(/·/login·/signup)도 같이 잡는다 — Workbox 는 원래 URL 로
  * 규칙을 고르고 리다이렉트를 따라간 응답(개인화된 대시보드)을 그 공개 URL 아래 캐시하기 때문이다.
+ * next-pwa 가 시작 URL(/)에 스스로 끼워 넣는 'start-url' NetworkFirst 규칙은 이 목록보다 앞에 서므로
+ * next.config.ts 에서 cacheStartUrl·dynamicStartUrl 을 꺼 둔다(테스트로는 잡히지 않는 층).
  *
  * 규칙은 서비스 워커 파일(sw.js)로 문자열 복사된다 — 바깥 변수를 참조하는 함수는 깨지므로 RegExp 만 쓴다.
  */

@@ -22,6 +22,10 @@ declare module 'next-pwa' {
     register?: boolean;
     skipWaiting?: boolean;
     runtimeCaching?: RuntimeCaching[];
+    /** 시작 URL 을 프리캐시·별도 'start-url' 런타임 캐시에 넣을지 — 기본 true */
+    cacheStartUrl?: boolean;
+    /** 시작 URL 이 로그인 여부로 리다이렉트되면 true — 기본 true, runtimeCaching 맨 앞에 NetworkFirst 규칙을 끼운다 */
+    dynamicStartUrl?: boolean;
   };
 
   const withPWA =
