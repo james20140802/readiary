@@ -10,3 +10,13 @@ export const maruBuri = localFont({
   display: 'swap',
   fallback: ['Noto Serif KR', 'serif'],
 });
+
+// Pretendard v1.3.9 (SIL OFL): serve locally so page visits do not contact a font CDN.
+export const pretendard = localFont({
+  src: './fonts/PretendardVariable.woff2',
+  weight: '45 920',
+  variable: '--font-sans',
+  display: 'swap',
+  preload: false,
+  fallback: ['system-ui', 'sans-serif'],
+});

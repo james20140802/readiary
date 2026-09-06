@@ -21,14 +21,17 @@ type PublicEntryRow = {
   nickname: string;
 };
 
-/** 공개(비로그인) 문장 카드 데이터. 비공개·미존재 기록은 null. */
+/** 공개(비로그인) 문장 카드 데이터. 소유자가 공유하지 않았거나 비공개·미존재인 기록은 null. */
 export async function fetchPublicEntry(entryId: string): Promise<PublicShareEntry | null> {
   if (!isUuid(entryId)) return null;
 
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { auth: { persistSession: false, autoRefreshToken: false } }
+    {
+      auth: { persistSession: false, autoRefreshToken: false },
+      global: { fetch: (input, init) => fetch(input, { ...init, cache: 'no-store' }) },
+    }
   );
 
   const { data, error } = await supabase

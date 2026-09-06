@@ -33,7 +33,7 @@ export function Avatar({
       )}
     >
       {src ? (
-        <Image src={src} alt={alt} fill className="object-cover" />
+        <Image unoptimized src={src} alt={alt} fill className="object-cover" />
       ) : (
         <span>{fallbackText}</span>
       )}

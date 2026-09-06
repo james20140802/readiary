@@ -4,7 +4,7 @@ import { Toaster } from 'sonner';
 import AppShell from '@/components/AppShell';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { fetchUnreadNotificationCount } from '@/lib/notifications/fetchUnreadNotificationCount';
-import { maruBuri } from './fonts';
+import { maruBuri, pretendard } from './fonts';
 
 export const metadata: Metadata = {
   title: 'Readiary | 당신의 독서 일기',
@@ -44,7 +44,7 @@ export default async function RootLayout({
   const initialUnread = loggedIn ? await fetchUnreadNotificationCount() : 0;
 
   return (
-    <html lang="ko" className={maruBuri.variable}>
+    <html lang="ko" className={`${maruBuri.variable} ${pretendard.variable}`}>
       <head>
         <link rel="apple-touch-icon" href="/icons/icon-192x192-v2.png" />
         <meta name="mobile-web-app-capable" content="yes" />

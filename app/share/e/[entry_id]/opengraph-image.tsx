@@ -17,7 +17,11 @@ function loadMaruBuri(): Promise<Buffer> {
 export default async function OgImage({ params }: { params: Promise<{ entry_id: string }> }) {
   const { entry_id } = await params;
   const entry = await fetchPublicEntry(entry_id);
-  if (!entry) return new Response('Not Found', { status: 404 });
+  if (!entry)
+    return new Response('Not Found', {
+      status: 404,
+      headers: { 'Cache-Control': 'private, no-store' },
+    });
 
   const fontData = await loadMaruBuri();
 
@@ -82,6 +86,7 @@ export default async function OgImage({ params }: { params: Promise<{ entry_id: 
     ),
     {
       ...size,
+      headers: { 'Cache-Control': 'private, no-store, max-age=0' },
       fonts: [{ name: 'MaruBuri', data: fontData, style: 'normal', weight: 400 }],
     }
   );

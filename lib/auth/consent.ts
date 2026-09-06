@@ -24,4 +24,4 @@ export function consentStamp(now: Date = new Date()): string {
 }
 
 export const CONSENT_REQUIRED_MESSAGE =
-  '개인정보 수집·이용과 서비스 이용 약관에 동의해야 가입할 수 있습니다.';
+  '만 14세 이상이며 개인정보 수집·이용과 서비스 이용 약관에 동의해야 가입할 수 있습니다.';

@@ -196,6 +196,11 @@ export default function EntryFormBody({
           </Button>
         </div>
 
+        <p className="mt-3 text-caption text-ink-faint">
+          {isPrivate
+            ? '나만 볼 수 있습니다. 기존 공유 링크도 닫힙니다.'
+            : '친구가 볼 수 있습니다. 공유 버튼을 누르면 링크로도 공개됩니다.'}
+        </p>
         {error && <p className="mt-3 text-caption font-medium text-danger">{error}</p>}
       </div>
     </form>

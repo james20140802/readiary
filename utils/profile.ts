@@ -1,7 +1,7 @@
-// 유틸리티 함수 예시
+import { isAvatarPath } from '@/lib/profile/avatarPath';
+
+/** 쿠키로 인증하는 같은 출처 경로. 공개 URL·서명 URL·이미지 최적화 캐시를 사용하지 않는다. */
 export const getImageUrl = (path: string | null) => {
-  if (!path) return null;
-  // 외부 URL인 경우 그대로 반환, 경로만 있는 경우 환경 변수와 조합
-  if (path.startsWith('http')) return path;
-  return `${process.env.NEXT_PUBLIC_SUPABASE_URL!}${process.env.NEXT_PUBLIC_PROFILE_IMAGE_URL!}${path}`;
+  if (!path || !isAvatarPath(path)) return null;
+  return `/api/profile-image?path=${encodeURIComponent(path)}`;
 };

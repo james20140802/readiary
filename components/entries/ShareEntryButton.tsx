@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import { createSupabaseClient } from '@/lib/supabase/client';
 import { Share2 } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import { toast } from 'sonner';
@@ -39,6 +40,10 @@ export default function ShareEntryButton({
       const dataUrl = await toPng(cardRef.current, { pixelRatio: 2, cacheBust: true });
       const blob = await (await fetch(dataUrl)).blob();
       const file = new File([blob], 'readiary-sentence.png', { type: 'image/png' });
+      const { data: enabled, error } = await createSupabaseClient().rpc('enable_entry_share', {
+        p_entry_id: entryId,
+      });
+      if (error || !enabled) throw new Error('공유 링크를 만들 수 없습니다.');
       const shareUrl = `${window.location.origin}/share/e/${entryId}`;
 
       if (typeof navigator.share === 'function' && navigator.canShare?.({ files: [file] })) {

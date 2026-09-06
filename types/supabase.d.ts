@@ -403,6 +403,10 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      enable_entry_share: {
+        Args: { p_entry_id: string };
+        Returns: boolean;
+      };
       update_user_book_progress: {
         Args: { p_book_id: string; p_user_id: string };
         Returns: undefined;
