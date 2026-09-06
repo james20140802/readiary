@@ -48,8 +48,10 @@ export default function EditProfilePage() {
   const [bookmarkDirty, setBookmarkDirty] = useState(false);
   const [finishedBooks, setFinishedBooks] = useState<FinishedOption[]>([]);
 
-  const [choicesLoading, setChoicesLoading] = useState(true);
-  const [choicesError, setChoicesError] = useState(false);
+  const [booksLoading, setBooksLoading] = useState(true);
+  const [booksError, setBooksError] = useState(false);
+  const [quotesLoading, setQuotesLoading] = useState(true);
+  const [quotesError, setQuotesError] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -57,6 +59,7 @@ export default function EditProfilePage() {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) return router.push('/login');
+      const userId = user.id;
 
       const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
       if (data) {
@@ -68,58 +71,79 @@ export default function EditProfilePage() {
         setBookmarkId(data.bookmark_user_book_id ?? null);
       }
 
-      // 완독 책은 행 캡에 잘리지 않도록 끝까지 읽는다 — 오래된 완독 책도 책갈피로 고를 수 있어야 한다
-      const { rows: finished, error: finishedError } = await fetchAllRows<{
-        id: string;
-        books: { title: string | null } | null;
-      }>((from, to) =>
-        supabase
-          .from('user_books')
-          .select('id, books(title)')
-          .eq('user_id', user.id)
-          .eq('is_finished', true)
-          .order('created_at', { ascending: false })
-          .order('id', { ascending: true })
-          .range(from, to)
-      );
-      setFinishedBooks(
-        finished.flatMap((r) => (r.books?.title ? [{ id: r.id, title: r.books.title }] : []))
-      );
-
-      const { rows, error: quotesError } = await fetchAllRows<{
-        id: string;
-        quote: string | null;
-        user_book_id: string;
-        user_books: { books: { title: string | null } | null } | null;
-      }>((from, to) =>
-        supabase
-          .from('entries')
-          .select('id, quote, user_book_id, user_books!inner(user_id, books(title))')
-          .eq('user_books.user_id', user.id)
-          .not('quote', 'is', null)
-          .order('date', { ascending: false })
-          .order('id', { ascending: true })
-          .range(from, to)
-      );
-      setChoicesError(Boolean(finishedError || quotesError));
-      setQuotes(
-        (rows ?? []).flatMap((r) =>
-          r.quote && r.quote.trim() !== ''
-            ? [
-                {
-                  id: r.id,
-                  quote: r.quote,
-                  bookTitle: r.user_books?.books?.title ?? null,
-                  userBookId: r.user_book_id,
-                },
-              ]
-            : []
-        )
-      );
+      // 각 목록은 독립적으로 완료된다. 한쪽의 지연·실패가 다른 선택기를 막지 않는다.
+      async function loadBooks() {
+        try {
+          // 완독 책은 행 캡에 잘리지 않도록 끝까지 읽는다 — 오래된 완독 책도 책갈피로 고를 수 있어야 한다
+          const { rows: finished, error: finishedError } = await fetchAllRows<{
+            id: string;
+            books: { title: string | null } | null;
+          }>((from, to) =>
+            supabase
+              .from('user_books')
+              .select('id, books(title)')
+              .eq('user_id', userId)
+              .eq('is_finished', true)
+              .order('created_at', { ascending: false })
+              .order('id', { ascending: true })
+              .range(from, to)
+          );
+          setBooksError(Boolean(finishedError));
+          setFinishedBooks(
+            finished.flatMap((r) => (r.books?.title ? [{ id: r.id, title: r.books.title }] : []))
+          );
+        } catch {
+          setBooksError(true);
+        } finally {
+          setBooksLoading(false);
+        }
+      }
+      async function loadQuotes() {
+        try {
+          const { rows, error: quotesError } = await fetchAllRows<{
+            id: string;
+            quote: string | null;
+            user_book_id: string;
+            user_books: { books: { title: string | null } | null } | null;
+          }>((from, to) =>
+            supabase
+              .from('entries')
+              .select('id, quote, user_book_id, user_books!inner(user_id, books(title))')
+              .eq('user_books.user_id', userId)
+              .not('quote', 'is', null)
+              .order('date', { ascending: false })
+              .order('id', { ascending: true })
+              .range(from, to)
+          );
+          setQuotesError(Boolean(quotesError));
+          setQuotes(
+            (rows ?? []).flatMap((r) =>
+              r.quote && r.quote.trim() !== ''
+                ? [
+                    {
+                      id: r.id,
+                      quote: r.quote,
+                      bookTitle: r.user_books?.books?.title ?? null,
+                      userBookId: r.user_book_id,
+                    },
+                  ]
+                : []
+            )
+          );
+        } catch {
+          setQuotesError(true);
+        } finally {
+          setQuotesLoading(false);
+        }
+      }
+      await Promise.all([loadBooks(), loadQuotes()]);
     }
-    loadData()
-      .catch(() => setChoicesError(true))
-      .finally(() => setChoicesLoading(false));
+    loadData().catch(() => {
+      setBooksError(true);
+      setQuotesError(true);
+      setBooksLoading(false);
+      setQuotesLoading(false);
+    });
   }, [supabase, router]);
 
   const { uploading, updating, imagePath, uploadAvatar, deleteAvatar, updateProfile } =
@@ -302,8 +326,8 @@ export default function EditProfilePage() {
             emptyLabel="책갈피를 꽂지 않습니다"
             emptyMessage="아직 완독한 책이 없습니다. 완독을 선언하면 여기서 고를 수 있어요."
             searchPlaceholder="완독한 책 제목 검색"
-            loading={choicesLoading}
-            error={choicesError}
+            loading={booksLoading}
+            error={booksError}
             disabled={updating}
           />
         </section>
@@ -331,8 +355,8 @@ export default function EditProfilePage() {
             emptyMessage="아직 인용을 남긴 기록이 없습니다. 문장을 남기면 여기서 고를 수 있어요."
             searchPlaceholder="책 제목이나 문장 검색"
             filterByBook
-            loading={choicesLoading}
-            error={choicesError}
+            loading={quotesLoading}
+            error={quotesError}
             disabled={updating}
           />
         </section>
