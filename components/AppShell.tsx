@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import clsx from 'clsx';
 import { createSupabaseClient } from '@/lib/supabase/client';
+import { sweepLegacyPrivateCaches } from '@/lib/pwa/clear-caches';
 import { useUnreadNotifications } from '@/hooks/useUnreadNotifications';
 import Header from '@/components/Header';
 import Navbar from '@/components/Navbar';
@@ -50,6 +51,11 @@ export default function AppShell({ initialLoggedIn, initialUnread, children }: A
       setLoggedIn(!!session);
     });
     return () => listener.subscription.unsubscribe();
+  }, []);
+
+  // 캐시 규칙을 바꾸기 전에 설치된 기기에 남은 옛 비공개 캐시(로그인 뒤 화면·API 응답)를 한 번 비운다
+  useEffect(() => {
+    void sweepLegacyPrivateCaches();
   }, []);
 
   const bare = BARE_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { createSupabaseClient } from '@/lib/supabase/client';
+import { clearPwaCaches } from '@/lib/pwa/clear-caches';
 import Button from '@/components/ui/Button';
 import BackButton from '@/components/ui/BackButton';
 import FormGroup from '@/components/ui/FormGroup';
@@ -77,6 +78,7 @@ export default function UpdatePasswordPage() {
   const finish = async () => {
     toast.success('비밀번호를 바꿨습니다. 새 비밀번호로 다시 로그인해주세요.');
     await supabase.auth.signOut();
+    await clearPwaCaches();
     router.replace('/login');
     router.refresh();
   };

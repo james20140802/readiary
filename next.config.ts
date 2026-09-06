@@ -1,5 +1,6 @@
 import type { NextConfig } from 'next';
 import withPWA from 'next-pwa';
+import { buildRuntimeCaching } from './lib/pwa/runtime-caching';
 
 const nextConfig: NextConfig = {
   images: {
@@ -33,6 +34,8 @@ const pwaConfig = withPWA({
   register: true,
   skipWaiting: true,
   disable: process.env.NODE_ENV === 'development',
+  // 로그인 뒤 화면·/api·Supabase 응답은 기기에 캐시하지 않는다 — 개인정보처리방침 제7조 3항
+  runtimeCaching: buildRuntimeCaching(process.env.NEXT_PUBLIC_SUPABASE_URL),
 });
 
 export default pwaConfig(nextConfig);
