@@ -18,7 +18,7 @@
 
 ## 배포
 
-1. 선행 PR #95 위에서 시작한 `feat/web-push-reminders` 브랜치다. PR #95 머지 또는 base 조정 후 반영한다.
+1. PR #95와 #96은 main에 반영됐고, #96의 운영 배포는 한국시간 2026-09-08에 완료됐다.
 2. `supabase/migrations/20260907120231_web_push_reminders.sql` 적용. 기존 계정은 자동 동의되지 않는다.
 3. `node scripts/generate-push-keys.mjs`로 키를 한 번 생성한다. `.env.push.local`은 gitignore 대상이고 0600 권한이다. VAPID 키를 배포마다 재생성하면 기존 구독이 끊기므로 유지한다.
 4. 서버 환경변수: `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`(연락 가능한 mailto/https URL), `SUPABASE_SERVICE_ROLE_KEY`, `CRON_SECRET`, `PUSH_ENABLED=false`. 공개 키는 `NEXT_PUBLIC_VAPID_PUBLIC_KEY`. 기존 Supabase URL/anon 키도 필요하다. Preview에서는 항상 false로 유지한다.
@@ -26,6 +26,15 @@
 6. production build/HTTPS로 배포한다. next-pwa는 development에서 비활성이다. 생성된 `sw.js`가 `worker-*.js`를 import하고 push/notificationclick 핸들러가 있는지 확인한다. 기존 personalized NetworkOnly/cacheStartUrl=false 설정을 유지한다.
 7. Supabase에서 pg_cron/pg_net을 활성화한다. Vault에 `readiary_push_url`(운영 /api/cron/push 전체 HTTPS URL), `readiary_cron_secret`(서버와 동일)을 저장한다. `supabase/operations/enable-push-cron.sql`로 5분 간격 점검과 매일 이력 정리를 설치한다. Vercel Cron을 중복 예약하지 않는다.
 8. 사용자가 설정에서 종류를 선택하고 직접 알림 허용/구독한다. iPhone은 iOS 16.4 이상 홈 화면 웹앱, Android는 지원 브라우저가 필요하다.
+
+## 운영 준비 현황 (2026-09-08)
+
+- PR #96 운영 배포: `3c8f224`, Vercel READY.
+- 운영 DB Web Push 마이그레이션 적용 완료. 새 테이블의 RLS와 anon 접근 차단 확인. 기존 사용자의 구독은 자동 생성하지 않음.
+- pg_cron/pg_net 활성화 및 90일 초과 발송 이력의 일일 정리 등록 완료.
+- 실제 공개일에 맞춰 방침 공고일 9월 8일, 시행일 및 발송 가능일 9월 15일로 정정.
+- 남음: Vercel CLI 로그인 후 기존 VAPID 키/CRON_SECRET 등록, Vault 연결, 발송 cron 설치, 재배포. Preview 발송은 비활성 유지.
+- 시행일 이후 실기기 수신·클릭·해제 검증 후 운영 활성화. 아직 실제 발송 완료로 보지 않는다.
 
 ## 운영 특성
 
