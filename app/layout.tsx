@@ -1,3 +1,4 @@
+import PushAccountGuard from '@/components/PushAccountGuard';
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Toaster } from 'sonner';
@@ -51,6 +52,7 @@ export default async function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
       <body className="overflow-x-hidden bg-paper text-ink">
+        <PushAccountGuard />
         <AppShell initialLoggedIn={loggedIn} initialUnread={initialUnread}>
           {children}
         </AppShell>

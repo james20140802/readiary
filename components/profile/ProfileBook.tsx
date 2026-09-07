@@ -14,6 +14,7 @@ import RemoveFriendButton from '@/components/social/RemoveFriendButton';
 import ProfileColophon from '@/components/profile/ProfileColophon';
 import { SpineTitle } from '@/components/books/BookSpineShelf';
 import { createSupabaseClient } from '@/lib/supabase/client';
+import { disableDevicePush } from '@/lib/push/browser';
 import { clearPwaCaches } from '@/lib/pwa/clear-caches';
 import { buildInviteSlug } from '@/lib/social/invite';
 import { photoTilt } from '@/lib/books/openBook';
@@ -254,6 +255,8 @@ export default function ProfileBook({
   const handleSignOut = async () => {
     const supabase = createSupabaseClient();
     // 이 기기만 로그아웃 — 기본값(global)은 휴대폰에서 눌렀는데 데스크톱 세션까지 끊어 버린다
+    // Offline cleanup must never prevent ending the login session.
+    await disableDevicePush().catch(() => {});
     await supabase.auth.signOut({ scope: 'local' });
     // 공용 기기에 로그인한 뒤 본 화면이 남지 않게 PWA 캐시도 비운다
     await clearPwaCaches();
