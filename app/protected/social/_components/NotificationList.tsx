@@ -8,11 +8,14 @@ import type { NotificationItem } from '@/lib/notifications/types';
 
 interface Props {
   notifications: NotificationItem[];
+  /** SSR과 hydration이 같은 시각을 사용하고, 라이브 갱신마다 서버에서 새로 전달한다. */
+  referenceTime: string;
   /** 서버 조회 자체가 실패했는지 — true면 빈 상태 대신 에러 문구를 보여준다 */
   error?: boolean;
 }
 
-export default function NotificationList({ notifications, error = false }: Props) {
+export default function NotificationList({ notifications, referenceTime, error = false }: Props) {
+  const now = new Date(referenceTime);
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-2">
@@ -48,9 +51,9 @@ export default function NotificationList({ notifications, error = false }: Props
               <p className={`text-body-sm ${isUnread ? 'text-ink font-medium' : 'text-ink-sub'}`}>
                 {buildNotificationMessage(n.type, n.actorNickname)}
               </p>
-              <p className="text-caption text-ink-faint mt-0.5">
-                {formatRelativeTime(n.createdAt)}
-              </p>
+              <time dateTime={n.createdAt} className="block text-caption text-ink-faint mt-0.5">
+                {formatRelativeTime(n.createdAt, now)}
+              </time>
             </div>
             {isUnread && (
               <span aria-hidden className="h-[7px] w-[7px] shrink-0 rounded-full bg-accent" />

@@ -19,7 +19,11 @@ export default async function NotificationsPage() {
         <h1 className="text-page-title text-ink">알림</h1>
       </header>
 
-      <NotificationsView notifications={notifications} error={error} />
+      <NotificationsView
+        notifications={notifications}
+        error={error}
+        referenceTime={new Date().toISOString()}
+      />
     </div>
   );
 }
