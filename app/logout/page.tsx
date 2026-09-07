@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createSupabaseClient } from '@/lib/supabase/client';
+import { disableDevicePush } from '@/lib/push/browser';
 import { clearPwaCaches } from '@/lib/pwa/clear-caches';
 
 /** 링크로 로그아웃하는 경로 — 이 기기의 세션만 끊는다(다른 기기는 그대로) */
@@ -12,6 +13,8 @@ export default function LogoutPage() {
   useEffect(() => {
     const logout = async () => {
       const supabase = createSupabaseClient();
+      // Offline cleanup must never prevent ending the login session.
+      await disableDevicePush().catch(() => {});
       await supabase.auth.signOut({ scope: 'local' });
       // 공용 기기에 로그인한 뒤 본 화면이 남지 않게 PWA 캐시도 비운다
       await clearPwaCaches();

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { createSupabaseClient } from '@/lib/supabase/client';
+import { disableDevicePush } from '@/lib/push/browser';
 import { clearPwaCaches } from '@/lib/pwa/clear-caches';
 import Button from '@/components/ui/Button';
 import BackButton from '@/components/ui/BackButton';
@@ -77,6 +78,8 @@ export default function UpdatePasswordPage() {
   /** 바꾸기에 성공한 뒤 — 다른 기기의 세션도 모두 끊고(global) 다시 로그인하게 한다 */
   const finish = async () => {
     toast.success('비밀번호를 바꿨습니다. 새 비밀번호로 다시 로그인해주세요.');
+    // Offline cleanup must never prevent ending the login session.
+    await disableDevicePush().catch(() => {});
     await supabase.auth.signOut();
     await clearPwaCaches();
     router.replace('/login');

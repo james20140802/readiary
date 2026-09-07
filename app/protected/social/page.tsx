@@ -1,3 +1,4 @@
+import PushSeen from '@/components/PushSeen';
 import { getServerUser } from '@/lib/supabase/getServerUser';
 // app/protected/social/page.tsx
 import Link from 'next/link';
@@ -33,6 +34,7 @@ export default async function SocialPage({ searchParams }: SocialPageProps) {
 
   return (
     <div className="space-y-4">
+      <PushSeen kind="friends" />
       <header className="px-1 flex items-baseline justify-between">
         <h1 className="text-page-title text-ink">소셜</h1>
         <Link

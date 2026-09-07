@@ -53,3 +53,10 @@ public/sw.js.map
 # 로컬 전용 — 커밋 금지
 app/dev-preview/
 .playwright-mcp/
+
+public/worker-*.js
+public/worker-*.js.map
+
+/supabase/.temp/
+
+/output/playwright/

@@ -1,3 +1,4 @@
+import PushSeen from '@/components/PushSeen';
 import Link from 'next/link';
 import Card from '@/components/ui/Card';
 import Seal from '@/components/ui/Seal';
@@ -14,6 +15,7 @@ export function RecallCard({ recall }: { recall: RecallEntry }) {
   // 버튼은 그 형제로서 overlay 위(z-10)에 올려 서로 포함 관계가 아니게 한다.
   return (
     <Card hoverable variant="raised" className="relative px-[26px] pb-6 pt-[30px]">
+      <PushSeen kind="recall" />
       <Link
         href={`/protected/entry/${recall.id}`}
         aria-label={`${recall.bookTitle}의 기록 보기`}
