@@ -77,7 +77,9 @@ export default function UpdatePasswordPage() {
 
   /** 바꾸기에 성공한 뒤 — 다른 기기의 세션도 모두 끊고(global) 다시 로그인하게 한다 */
   const finish = async () => {
-    await disableAccountPush();
+    await disableAccountPush().catch(() => {
+      toast.warning('알림 해제를 완료하지 못했습니다. 다시 로그인한 뒤 알림 설정을 확인해 주세요.');
+    });
     toast.success('비밀번호를 바꿨습니다. 새 비밀번호로 다시 로그인해주세요.');
     // Offline cleanup must never prevent ending the login session.
     await disableDevicePush().catch(() => {});

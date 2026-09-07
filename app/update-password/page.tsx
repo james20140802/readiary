@@ -77,7 +77,11 @@ export default function UpdatePasswordPage() {
         setFormError(describeAuthError('updatePassword', error.message));
         return;
       }
-      await disableAccountPush();
+      await disableAccountPush().catch(() => {
+        toast.warning(
+          '알림 해제를 완료하지 못했습니다. 다시 로그인한 뒤 알림 설정을 확인해 주세요.'
+        );
+      });
       toast.success('비밀번호를 바꿨습니다. 새 비밀번호로 로그인해주세요.');
       // 재설정은 계정 탈취 뒤 되찾는 길이기도 하다 — 다른 기기의 세션까지 모두 끊는다(global)
       // Offline cleanup must never prevent ending the login session.

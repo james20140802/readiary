@@ -7,6 +7,32 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 describe('device opt-out', () => {
+  it('retains the endpoint and owner for retry when server deletion fails', async () => {
+    const unsubscribe = vi.fn().mockResolvedValue(true);
+    const removeItem = vi.fn();
+    vi.stubGlobal('navigator', {
+      serviceWorker: {
+        getRegistration: async () => ({
+          pushManager: {
+            getSubscription: async () => ({
+              endpoint: 'https://fcm.googleapis.com/test',
+              unsubscribe,
+            }),
+          },
+        }),
+      },
+    });
+    vi.stubGlobal('localStorage', { removeItem });
+    vi.mocked(apiFetch).mockResolvedValueOnce(new Response(null, { status: 500 }));
+    await expect(disableDevicePush()).rejects.toThrow();
+    expect(unsubscribe).not.toHaveBeenCalled();
+    expect(removeItem).not.toHaveBeenCalled();
+    vi.mocked(apiFetch).mockResolvedValueOnce(new Response(null, { status: 200 }));
+    await disableDevicePush();
+    expect(unsubscribe).toHaveBeenCalledOnce();
+    expect(removeItem).toHaveBeenCalledOnce();
+  });
+
   it('deletes the server subscription even if browser unsubscribe fails', async () => {
     const unsubscribe = vi.fn().mockRejectedValue(new Error('offline'));
     const close = vi.fn();
