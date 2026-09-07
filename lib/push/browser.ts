@@ -1,3 +1,4 @@
+import { DEFAULT_PUSH_PREFERENCES } from './types';
 import { apiFetch } from '@/lib/api/fetch';
 export const PUSH_OWNER_KEY = 'readiary:push-owner';
 export async function existingPush() {
@@ -63,4 +64,14 @@ export async function enableDevicePush(publicKey: string, userId: string) {
     throw new Error('이 기기를 등록하지 못했습니다. 다시 시도해 주세요.');
   }
   localStorage.setItem(PUSH_OWNER_KEY, userId);
+}
+
+// Revoke account-wide delivery before password changes end authenticated sessions.
+export async function disableAccountPush() {
+  const response = await apiFetch('/api/push/settings', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(DEFAULT_PUSH_PREFERENCES),
+  });
+  if (!response.ok) throw new Error('계정 알림을 해제하지 못했습니다. 다시 시도해 주세요.');
 }

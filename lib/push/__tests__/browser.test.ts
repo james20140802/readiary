@@ -1,6 +1,6 @@
 import { afterEach, describe, it, expect, vi } from 'vitest';
 import { apiFetch } from '@/lib/api/fetch';
-import { disableDevicePush } from '../browser';
+import { disableAccountPush, disableDevicePush } from '../browser';
 vi.mock('@/lib/api/fetch', () => ({ apiFetch: vi.fn() }));
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -32,5 +32,19 @@ describe('device opt-out', () => {
     );
     expect(unsubscribe).toHaveBeenCalledOnce();
     expect(close).toHaveBeenCalledOnce();
+  });
+});
+
+describe('account opt-out', () => {
+  it('disables all account delivery without depending on browser subscriptions', async () => {
+    vi.mocked(apiFetch).mockResolvedValue(new Response(null, { status: 200 }));
+    await disableAccountPush();
+    const [url, options] = vi.mocked(apiFetch).mock.calls[0];
+    expect(url).toBe('/api/push/settings');
+    expect(JSON.parse(options!.body as string).enabled).toBe(false);
+  });
+  it('does not proceed when account revocation fails', async () => {
+    vi.mocked(apiFetch).mockResolvedValue(new Response(null, { status: 500 }));
+    await expect(disableAccountPush()).rejects.toThrow();
   });
 });

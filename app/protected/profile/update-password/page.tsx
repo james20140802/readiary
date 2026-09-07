@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { createSupabaseClient } from '@/lib/supabase/client';
-import { disableDevicePush } from '@/lib/push/browser';
+import { disableAccountPush, disableDevicePush } from '@/lib/push/browser';
 import { clearPwaCaches } from '@/lib/pwa/clear-caches';
 import Button from '@/components/ui/Button';
 import BackButton from '@/components/ui/BackButton';
@@ -125,6 +125,7 @@ export default function UpdatePasswordPage() {
         return;
       }
 
+      await disableAccountPush();
       const { error } = await supabase.auth.updateUser({ password });
       if (error) {
         if (needsReauthentication(error)) {
@@ -157,6 +158,7 @@ export default function UpdatePasswordPage() {
     setFormError(null);
     setLoading(true);
     try {
+      await disableAccountPush();
       const { error } = await supabase.auth.updateUser({ password, nonce });
       if (error) {
         if (isReauthenticationCodeInvalid(error)) {

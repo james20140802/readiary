@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { createSupabaseClient } from '@/lib/supabase/client';
-import { disableDevicePush } from '@/lib/push/browser';
+import { disableAccountPush, disableDevicePush } from '@/lib/push/browser';
 import { clearPwaCaches } from '@/lib/pwa/clear-caches';
 import Button from '@/components/ui/Button';
 import FormGroup from '@/components/ui/FormGroup';
@@ -72,6 +72,7 @@ export default function UpdatePasswordPage() {
 
     setLoading(true);
     try {
+      await disableAccountPush();
       const { error } = await supabase.auth.updateUser({ password });
       if (error) {
         setFormError(describeAuthError('updatePassword', error.message));
