@@ -10,13 +10,19 @@ export async function disableDevicePush() {
   if (subscription) {
     // Browser unsubscribe works even when the login session has already ended.
     const endpoint = subscription.endpoint;
-    if (!(await subscription.unsubscribe()))
+    // Try both paths: a failed browser request must not leave the server subscription active.
+    const [serverRemoved, browserRemoved] = await Promise.all([
+      apiFetch('/api/push/subscription', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ endpoint }),
+      })
+        .then((response) => response.ok)
+        .catch(() => false),
+      subscription.unsubscribe().catch(() => false),
+    ]);
+    if (!serverRemoved && !browserRemoved)
       throw new Error('기기 알림을 해제하지 못했습니다. 다시 시도해 주세요.');
-    await apiFetch('/api/push/subscription', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ endpoint }),
-    }).catch(() => {});
   }
   try {
     localStorage.removeItem(PUSH_OWNER_KEY);

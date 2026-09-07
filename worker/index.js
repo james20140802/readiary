@@ -2,7 +2,7 @@
 self.addEventListener('push', (event) => {
   let message = {};
   try {
-    message = event.data ? event.data.json() : {};
+    message = event.data ? (event.data.json() ?? {}) : {};
   } catch {
     /* always show a generic visible notification */
   }
