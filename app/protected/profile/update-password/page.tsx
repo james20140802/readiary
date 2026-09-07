@@ -77,6 +77,7 @@ export default function UpdatePasswordPage() {
 
   /** 바꾸기에 성공한 뒤 — 다른 기기의 세션도 모두 끊고(global) 다시 로그인하게 한다 */
   const finish = async () => {
+    await disableAccountPush();
     toast.success('비밀번호를 바꿨습니다. 새 비밀번호로 다시 로그인해주세요.');
     // Offline cleanup must never prevent ending the login session.
     await disableDevicePush().catch(() => {});
@@ -125,7 +126,6 @@ export default function UpdatePasswordPage() {
         return;
       }
 
-      await disableAccountPush();
       const { error } = await supabase.auth.updateUser({ password });
       if (error) {
         if (needsReauthentication(error)) {
@@ -158,7 +158,6 @@ export default function UpdatePasswordPage() {
     setFormError(null);
     setLoading(true);
     try {
-      await disableAccountPush();
       const { error } = await supabase.auth.updateUser({ password, nonce });
       if (error) {
         if (isReauthenticationCodeInvalid(error)) {
