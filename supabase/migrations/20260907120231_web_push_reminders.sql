@@ -128,9 +128,9 @@ begin
  and not exists(select 1 from public.push_seen where user_id=p_user and kind='recall' and seen_at>p_now-interval '14 days')
  and not exists(select 1 from public.push_deliveries where user_id=p_user and created_at>p_now-interval '14 days' and items @> '[{"kind":"recall"}]') then
  select ent.id into recalled from public.entries ent join public.user_books ub on ub.id=ent.user_book_id
- where ub.user_id=p_user and ent.created_at<p_now-interval '30 days' and nullif(btrim(ent.quote),'') is not null
+ where ub.user_id=p_user and ent.date<=(p_now at time zone p.timezone)::date-30 and nullif(btrim(ent.quote),'') is not null
  and not exists(select 1 from public.push_deliveries d where d.user_id=p_user and d.items @> jsonb_build_array(jsonb_build_object('entry',ent.id)))
- order by ent.created_at,ent.id limit 1;
+ order by ent.date,ent.created_at,ent.id limit 1;
  if found then result=result||jsonb_build_array(jsonb_build_object('kind','recall','entry',recalled.id,'href','/protected/entry/'||recalled.id,'label','예전에 남긴 문장을 다시 만나보세요')); end if;
  end if;
  if 'friends'=any(p.kinds) and local_day=3
@@ -181,7 +181,7 @@ begin
  and (x->>'kind'<>'reminder' or (exists(select 1 from public.user_books where user_id=d.user_id and not is_finished) and not exists(select 1 from public.entries e join public.user_books ub on ub.id=e.user_book_id where ub.user_id=d.user_id and e.created_at>now()-interval '3 days')))
  and (x->>'kind'<>'finished' or exists(select 1 from public.user_books ub where ub.id=(x->>'book')::uuid and ub.user_id=d.user_id and ub.is_finished and ub.finished_at>=p.consent_at and ub.finished_at<=now()-interval '7 days' and not exists(select 1 from public.entries e where e.user_book_id=ub.id and e.created_at>=ub.finished_at and nullif(btrim(e.note),'') is not null)))
  and (x->>'kind'<>'weekly' or (exists(select 1 from public.entries e join public.user_books ub on ub.id=e.user_book_id where ub.user_id=d.user_id and e.created_at>now()-interval '7 days') and not exists(select 1 from public.push_seen where user_id=d.user_id and kind='weekly' and seen_at>now()-interval '1 day')))
- and (x->>'kind'<>'recall' or (not exists(select 1 from public.push_seen where user_id=d.user_id and kind='recall' and seen_at>now()-interval '14 days') and exists(select 1 from public.entries e join public.user_books ub on ub.id=e.user_book_id where e.id=(x->>'entry')::uuid and ub.user_id=d.user_id)));
+ and (x->>'kind'<>'recall' or (not exists(select 1 from public.push_seen where user_id=d.user_id and kind='recall' and seen_at>now()-interval '14 days') and exists(select 1 from public.entries e join public.user_books ub on ub.id=e.user_book_id where e.id=(x->>'entry')::uuid and ub.user_id=d.user_id and e.date<=(now() at time zone p.timezone)::date-30 and nullif(btrim(e.quote),'') is not null)));
  if jsonb_array_length(authorized_items)=0 then return null; end if;
  update public.push_deliveries set items=authorized_items where id=p_id;
  return jsonb_build_object('items',authorized_items,'subscriptions',(select coalesce(jsonb_agg(s),'[]') from public.push_subscriptions s where s.user_id=d.user_id));

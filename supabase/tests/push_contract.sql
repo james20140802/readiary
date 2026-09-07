@@ -81,6 +81,8 @@ do $$declare w timestamptz;begin
  if public.push_candidates('00000000-0000-0000-0000-000000000001',w) @> '[{"kind":"friends"}]' then raise exception 'already seen digest';end if;
 end$$;
 insert into public.entries(user_book_id,date,quote,created_at) values('20000000-0000-0000-0000-000000000001',current_date,'Old quote',now()-interval '40 days');
+do $$begin if public.push_candidates('00000000-0000-0000-0000-000000000001',now()) @> '[{"kind":"recall"}]' then raise exception 'recent record date recalled';end if;end$$;
+update public.entries set date=current_date-31,created_at=now() where quote='Old quote';
 do $$begin if not public.push_candidates('00000000-0000-0000-0000-000000000001',now()) @> '[{"kind":"recall"}]' then raise exception 'recall missing';end if;end$$;
 insert into public.push_seen(user_id,kind) values('00000000-0000-0000-0000-000000000001','recall');
 do $$begin if public.push_candidates('00000000-0000-0000-0000-000000000001',now()) @> '[{"kind":"recall"}]' then raise exception 'seen recall';end if;end$$;
