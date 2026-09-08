@@ -82,12 +82,13 @@ export default function AppShell({ initialLoggedIn, initialUnread, children }: A
     <>
       <Header loggedIn={loggedIn} showNav={showNav} hasUnread={hasUnread} />
       <Navbar loggedIn={loggedIn} showNav={showNav} hasUnread={hasUnread} />
-      {/* 아래 여백은 하단 탭바가 실제로 있을 때만 — 비로그인·온보딩 화면에 빈 76px가 남지 않게 */}
+      {/* 고정 크롬의 실제 높이 + 본문 간격. 하단 탭바 여백은 탭바가 보일 때만 확보한다. */}
       <main
         className={clsx(
           'w-full',
-          !fullBleed && 'mx-auto max-w-screen-md px-4 pt-[4rem] md:pt-[6rem] md:pb-16',
-          !fullBleed && (showNav ? 'pb-[calc(4.75rem+env(safe-area-inset-bottom))]' : 'pb-8')
+          !fullBleed &&
+            'mx-auto max-w-screen-md px-4 pt-[calc(var(--app-mobile-header-height)+1.5rem)] md:pt-[6rem] md:pb-16',
+          !fullBleed && (showNav ? 'pb-[calc(var(--app-mobile-nav-height)+1.5rem)]' : 'pb-8')
         )}
       >
         {children}
