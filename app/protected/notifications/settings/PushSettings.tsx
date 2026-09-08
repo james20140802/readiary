@@ -2,7 +2,6 @@
 import Link from 'next/link';
 import { Bell, Check, Send } from 'lucide-react';
 import Button from '@/components/ui/Button';
-import Chip from '@/components/ui/Chip';
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/api/fetch';
 import { createSupabaseClient } from '@/lib/supabase/client';
@@ -43,7 +42,12 @@ export default function PushSettings() {
         setSupported(
           'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window
         );
-        setP({ ...data.preferences, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone });
+        setP({
+          ...data.preferences,
+          hour: 20,
+          weekdays: [...DEFAULT_PUSH_PREFERENCES.weekdays],
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        });
         setAvailable(data.available);
         setTestAvailable(data.testAvailable === true);
         setScheduledAvailable(data.scheduledAvailable === true);
@@ -58,7 +62,12 @@ export default function PushSettings() {
     })();
   }, []);
   async function persist(next: PushPreferences) {
-    next = { ...next, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone };
+    next = {
+      ...next,
+      hour: 20,
+      weekdays: [...DEFAULT_PUSH_PREFERENCES.weekdays],
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    };
     const r = await apiFetch('/api/push/settings', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -138,9 +147,7 @@ export default function PushSettings() {
         ? 'iPhone은 Safari에서 홈 화면에 추가한 앱으로 열어주세요.'
         : !p.kinds.length
           ? '받을 알림을 하나 이상 선택해 주세요.'
-          : !p.weekdays.length
-            ? '알림을 받을 요일을 하나 이상 선택해 주세요.'
-            : '';
+          : '';
   return (
     <div className="space-y-9 text-body-sm">
       <section className="border-b border-hairline pb-6">
@@ -153,7 +160,8 @@ export default function PushSettings() {
           알릴 내용이 있을 때만 찾아갈게요.
         </p>
         <p className="mt-2 text-caption text-ink-sub">
-          댓글과 친구 요청은 앱 안의 알림에서 확인할 수 있어요.
+          독서 알림은 기기 시간대 기준 저녁 8시쯤 보내요. 댓글과 친구 요청은 앱 안에서 확인할 수
+          있어요.
         </p>
         {loaded && (
           <p className="mt-4 text-caption text-accent" role="status">
@@ -205,60 +213,6 @@ export default function PushSettings() {
         </div>
       </fieldset>
 
-      <fieldset disabled={busy || !loaded} className="space-y-5">
-        <legend className="text-section-title mb-3">받기 좋은 시간</legend>
-        <div className="flex items-center justify-between gap-4 border-b border-hairline pb-3">
-          <label htmlFor="push-hour" className="font-medium">
-            알림 시간
-          </label>
-          <select
-            id="push-hour"
-            className="min-h-11 bg-paper text-ink text-right focus-visible:outline-accent"
-            value={p.hour}
-            onChange={(e) => setP({ ...p, hour: Number(e.target.value) })}
-          >
-            {Array.from({ length: 13 }, (_, i) => i + 9).map((h) => (
-              <option key={h} value={h}>
-                {h < 12 ? '오전' : '오후'} {h % 12 || 12}시쯤
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <p id="push-days" className="mb-3 font-medium">
-            받을 요일
-          </p>
-          <div role="group" aria-labelledby="push-days" className="flex flex-wrap gap-2">
-            {['일', '월', '화', '수', '목', '금', '토'].map((day, i) => (
-              <Chip
-                key={day}
-                selected={p.weekdays.includes(i)}
-                aria-pressed={p.weekdays.includes(i)}
-                aria-label={`${day}요일`}
-                className="min-h-11 min-w-11 justify-center"
-                onClick={() =>
-                  setP({
-                    ...p,
-                    weekdays: p.weekdays.includes(i)
-                      ? p.weekdays.filter((d) => d !== i)
-                      : [...p.weekdays, i],
-                  })
-                }
-              >
-                {day}
-              </Chip>
-            ))}
-          </div>
-          <p className="mt-3 text-caption text-ink-sub">
-            일요일을 끄면 주간 회고, 수요일을 끄면 친구 기록 알림도 쉬어요.
-          </p>
-        </div>
-        <p className="text-caption text-ink-sub">
-          알림 시간은 이 기기의 시간대를 기준으로 저장돼요. 밤 10시부터 아침 9시까지는 보내지
-          않아요.
-        </p>
-      </fieldset>
-
       <section className="space-y-4">
         <h2 className="text-section-title">이 기기에서 받기</h2>
         <p className="text-caption text-ink-sub">
@@ -289,7 +243,7 @@ export default function PushSettings() {
           <Button
             fullWidth
             variant="secondary"
-            disabled={busy || !loaded || !p.weekdays.length || (p.enabled && !p.kinds.length)}
+            disabled={busy || !loaded || (p.enabled && !p.kinds.length)}
             onClick={() => void save()}
           >
             설정 저장
