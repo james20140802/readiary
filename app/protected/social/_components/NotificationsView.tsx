@@ -2,6 +2,7 @@
 
 import { apiFetch } from '@/lib/api/fetch';
 import { useEffect, useRef } from 'react';
+import type { Delivery } from '@/lib/push/types';
 import NotificationList from './NotificationList';
 import { NOTIFICATIONS_LIMIT, type NotificationItem } from '@/lib/notifications/types';
 import { NOTIFICATIONS_READ_EVENT } from '@/hooks/useUnreadNotifications';
@@ -9,12 +10,20 @@ import { useLiveRefresh } from '@/hooks/useLiveRefresh';
 
 interface Props {
   notifications: NotificationItem[];
+  deliveries?: Delivery[];
+  deliveriesError?: boolean;
   referenceTime: string;
   /** 서버 조회 자체가 실패했는지 — true면 "알림 없음" 대신 에러 문구를 보여준다 */
   error?: boolean;
 }
 
-export default function NotificationsView({ notifications, referenceTime, error = false }: Props) {
+export default function NotificationsView({
+  notifications,
+  referenceTime,
+  error = false,
+  deliveries = [],
+  deliveriesError = false,
+}: Props) {
   // 열어 둔 채 써도 새 알림이 새로고침 없이 도착하도록
   useLiveRefresh();
 
@@ -71,6 +80,12 @@ export default function NotificationsView({ notifications, referenceTime, error 
   }, [notifications]);
 
   return (
-    <NotificationList notifications={notifications} referenceTime={referenceTime} error={error} />
+    <NotificationList
+      notifications={notifications}
+      referenceTime={referenceTime}
+      error={error}
+      deliveries={deliveries}
+      deliveriesError={deliveriesError}
+    />
   );
 }

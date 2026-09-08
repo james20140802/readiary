@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import type { PushDatabase } from '@/lib/push/types';
 import { createSupabaseClient } from '@/lib/supabase/client';
 
 /** 알림을 읽음 처리한 쪽이 쏘는 신호 — 뱃지 인스턴스들이 듣고 즉시 다시 센다 */
@@ -13,7 +15,7 @@ export const NOTIFICATIONS_READ_EVENT = 'readiary:notifications-read';
  * 다시 세어, 열어 둔 채 쓰는 웹앱에서도 뱃지가 스스로 켜지고 꺼진다.
  *
  * initialUnread는 선택적 서버 초기값. 루트는 본문을 막지 않도록 null을 보내며
- * hydration 뒤 최대 한 행만 읽어 뱃지를 갱신한다.
+ * hydration 뒤 RPC 한 번으로 두 종류의 알림 유무를 확인한다.
  * null은 서버 조회 실패(모름) — 그때는 클라이언트가 세어 둔 값을 그대로 둔다.
  */
 export function useUnreadNotifications(enabled: boolean, initialUnread: number | null = 0) {
@@ -29,19 +31,14 @@ export function useUnreadNotifications(enabled: boolean, initialUnread: number |
 
   useEffect(() => {
     if (!enabled) return;
-    const supabase = createSupabaseClient();
+    const supabase = createSupabaseClient() as unknown as SupabaseClient<PushDatabase>;
     let cancelled = false;
 
     const check = () => {
       if (document.visibilityState !== 'visible') return;
-      supabase
-        .from('notifications')
-        .select('id')
-        .is('read_at', null)
-        .limit(1)
-        .then(({ data, error }) => {
-          if (!cancelled && !error) setHasUnread((data?.length ?? 0) > 0);
-        });
+      supabase.rpc('has_unread_notifications').then(({ data, error }) => {
+        if (!cancelled && !error) setHasUnread(data === true);
+      });
     };
 
     check();

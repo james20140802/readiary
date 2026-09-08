@@ -1,6 +1,6 @@
 # Web Push
 
-기존 좋아요·댓글·친구 요청·수락 인앱 알림은 그대로 둔다. 이 기능은 사용자가 별도로 선택한 독서 소식을 휴대폰으로 보낸다.
+좋아요·댓글·친구 요청·수락과 독서 소식은 `/protected/social/notifications`의 알림 목록에서 시간순으로 함께 확인한다. 제목 오른쪽 설정 아이콘으로 수신 설정에 들어간다. 휴대폰 발송은 사용자가 별도로 선택한 독서 소식에만 적용된다. 기존 `/protected/notifications/inbox` 링크는 통합 알림으로 이동한다.
 
 ## 정책
 
@@ -33,7 +33,7 @@
 - 운영 DB Web Push 마이그레이션 적용 완료. 새 테이블의 RLS와 anon 접근 차단 확인. 기존 사용자의 구독은 자동 생성하지 않음.
 - pg_cron/pg_net 활성화 및 90일 초과 발송 이력의 일일 정리 등록 완료.
 - 실제 공개일에 맞춰 방침 공고일 9월 8일, 시행일 및 발송 가능일 9월 15일로 정정.
-- 남음: Vercel CLI 로그인 후 기존 VAPID 키/CRON_SECRET 등록, Vault 연결, 발송 cron 설치, 재배포. Preview 발송은 비활성 유지.
+- 기존 VAPID/CRON_SECRET 환경변수와 Vault 연결, 발송 cron 설치는 완료됐다. 발송 cron은 비활성, 이력 정리 cron만 활성이다. Preview 발송은 비활성 유지.
 - 시행일 이후 실기기 수신·클릭·해제 검증 후 운영 활성화. 아직 실제 발송 완료로 보지 않는다.
 
 ## 운영 특성
@@ -58,3 +58,16 @@ npm run build
 실기기 확인: 앱 닫힘/잠금 수신, 탭 시 본인 소식함, 종류/요일/시간대 변경, 기기별·전체 해제, 로그아웃·계정 교체, 만료 구독, cron 중복 실행, 권한 거절, iOS 홈 화면 미설치 안내. 운영 마이그레이션·설정·실기기 전송은 로컬/모의 테스트만으로 완료라 표시하지 않는다.
 
 참고: [Supabase Cron](https://supabase.com/docs/guides/cron/quickstart), [pg_net](https://supabase.com/docs/guides/database/extensions/pg_net), [web-push](https://github.com/web-push-libs/web-push), [WebKit iOS Push](https://webkit.org/blog/13878/web-push-for-web-apps-on-ios-and-ipados/).
+
+## 알림 통합과 본인 계정 테스트 (2026-09-08)
+
+- 목록은 반응 알림 최대 50건과 독서 소식 최대 20건을 시간순으로 합친다. 한쪽 조회가 실패해도 다른 쪽을 표시한다. 읽음 처리·라이브 갱신을 유지하며 뱃지도 두 종류를 함께 확인한다. 읽음 뱃지는 열람 가능한 최근 독서 소식 20건만 대상으로 한다.
+- 설정 UI는 `docs/ui-guidelines.md`의 먹과 종이 토큰, 구분선, 공통 Button·Chip·괘선 Input을 사용한다. 미지원 환경·미선택·준비 중·조회 실패 이유를 표시한다.
+- 마이그레이션 `20260908115156_notification_center_test.sql`은 운영 DB 적용 및 권한 확인 완료. `claim_push_test`는 service_role만 실행할 수 있다. 사용자용 뱃지 RPC는 security invoker와 본인 ID 조건을 사용한다.
+- 서버 전용 `PUSH_TEST_USER_IDS`(쉼표로 구분한 검증된 사용자 UUID), `PUSH_TEST_UNTIL`(ISO 만료 시각)을 모두 설정해야 테스트가 열린다. 이메일·요청 본문의 사용자 ID로 권한을 판단하지 않는다. 허용 계정에만 설정 API가 `testAvailable:true`를 반환하며 기기 등록과 직접 테스트를 허용한다.
+- 운영 테스트 허용 목록/만료 시각 등록은 Vercel 재로그인 후 완료해야 한다. Preview에는 테스트 허용 목록이나 운영 발송 키를 추가하지 않는다. 코드 머지·운영 배포 후 아이폰에서 확인한다.
+- `POST /api/push/test`는 로그인, 동일 출처, 서버 허용 목록, 본인 기기, 현재 수신 동의를 확인한다. 계정당 1분에 한 번이며 DB 행 잠금으로 동시 요청도 제한한다. 마지막 테스트 시각은 알림 설정과 함께 보관하며 계정 삭제 시 제거한다. 테스트는 일반 알림의 주간 한도를 소비하지 않는다.
+- 테스트는 선택한 시간/요일과 무관하게 사용자가 누른 현재 기기 한 대에만 발송한다. 모호한 실패는 자동 재시도하지 않으며 만료(404/410) 구독은 삭제한다. 접수 성공과 실제 아이폰 수신은 별도로 확인한다.
+- `PUSH_ENABLED=false`와 발송 cron 비활성은 유지한다. 테스트 기능을 추가해도 전체 사용자 발송은 켜지지 않는다.
+
+추가 검증: `PGLITE_MODULE=/absolute/path/to/pglite/dist/index.js node supabase/tests/run-notification-center-contract.mjs`.

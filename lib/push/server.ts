@@ -23,3 +23,20 @@ export function sameOrigin(request: Request) {
   const origin = request.headers.get('origin');
   return !origin || origin === new URL(request.url).origin;
 }
+
+/** Server-only, expiring allowlist. Never inferred from a client-supplied email. */
+export function pushTestAllowed(userId: string) {
+  const until = Date.parse(process.env.PUSH_TEST_UNTIL ?? '');
+  return (
+    Number.isFinite(until) &&
+    Date.now() < until &&
+    (process.env.PUSH_TEST_USER_IDS ?? '')
+      .split(',')
+      .map((id) => id.trim())
+      .includes(userId) &&
+    !!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY &&
+    !!process.env.VAPID_PRIVATE_KEY &&
+    !!process.env.VAPID_SUBJECT &&
+    !!process.env.SUPABASE_SERVICE_ROLE_KEY
+  );
+}

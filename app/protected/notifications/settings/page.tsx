@@ -5,7 +5,7 @@ export default function Page() {
     <div className="max-w-xl mx-auto space-y-6">
       <header className="flex items-center gap-2">
         <BackButton />
-        <h1 className="text-page-title">휴대폰 알림 설정</h1>
+        <h1 className="text-page-title">알림 설정</h1>
       </header>
       <PushSettings />
     </div>
