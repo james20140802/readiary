@@ -1,3 +1,4 @@
+import { unauthorized } from '@/lib/api/auth';
 // /app/api/friends/accept/route.ts
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { notifyFriendEvent, retractFriendRequestNotification } from '@/lib/notifications/notify';
@@ -12,7 +13,7 @@ export async function POST(req: Request) {
   } = await supabase.auth.getUser();
 
   const myId = user?.id;
-  if (!myId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!myId) return unauthorized();
 
   const { data, error } = await supabase
     .from('friends')

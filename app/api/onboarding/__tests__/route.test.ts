@@ -334,6 +334,6 @@ describe('POST /api/onboarding', () => {
     const json = await res.json();
 
     expect(res.status).toBe(401);
-    expect(json).toEqual({ error: 'Unauthorized' });
+    expect(json).toEqual({ error: 'Unauthorized', code: 'session_expired' });
   });
 });

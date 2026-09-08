@@ -18,19 +18,19 @@ let redirecting = false;
 
 /** 브라우저에서 `/api/*` 를 부를 때 쓰는 공용 fetch.
  *
- *  401 이면 세션 갱신을 한 번 시도하고 같은 요청을 다시 보낸다 — 백그라운드 탭에서 access token 만
- *  만료된 경우는 여기서 살아난다. 그래도 401 이면 세션이 진짜로 끊긴 것이므로 현재 경로를
+ *  401 + session_expired 응답이면 세션 갱신을 한 번 시도하고 같은 요청을 다시 보낸다 — 백그라운드 탭에서 access token 만
+ *  만료된 경우는 여기서 살아난다. 재시도도 session_expired 이면 세션이 진짜로 끊긴 것이므로 현재 경로를
  *  `redirect` 에 실어 `/login` 으로 보내고 `SessionExpiredError` 를 던진다.
  *  그 외 응답은 `fetch` 와 똑같이 그대로 돌려준다 */
 export async function apiFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
   // Request 객체의 본문은 첫 fetch 가 읽어 버리므로, 재시도에 쓸 복제본을 보내기 전에 떼어 둔다
   const spare = isRequest(input) ? input.clone() : input;
   const res = await fetch(input, init);
-  if (res.status !== 401) return res;
+  if (!(await isSessionExpiredResponse(res))) return res;
 
   if (canRetry(init) && (await refreshSession())) {
     const retried = await fetch(spare, init);
-    if (retried.status !== 401) return retried;
+    if (!(await isSessionExpiredResponse(retried))) return retried;
   }
 
   redirectToLogin();
@@ -63,4 +63,17 @@ function redirectToLogin() {
   const href = authHrefWithRedirect('/login', here);
   const separator = href.includes('?') ? '&' : '?';
   window.location.assign(`${href}${separator}error=${SESSION_EXPIRED_ERROR_PARAM}`);
+}
+
+/** 복제본만 읽어 일반 401의 본문을 호출자가 그대로 사용할 수 있게 한다. */
+async function isSessionExpiredResponse(response: Response): Promise<boolean> {
+  if (response.status !== 401) return false;
+  try {
+    const body: unknown = await response.clone().json();
+    return (
+      typeof body === 'object' && body !== null && 'code' in body && body.code === 'session_expired'
+    );
+  } catch {
+    return false;
+  }
 }

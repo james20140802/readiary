@@ -1,3 +1,4 @@
+import { unauthorized } from '@/lib/api/auth';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { type NextRequest, NextResponse } from 'next/server';
 
@@ -13,7 +14,7 @@ export async function POST(req: NextRequest) {
     error: userError,
   } = await supabase.auth.getUser();
   if (!user || userError) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return unauthorized();
   }
 
   // 1. 해당 유저 찾기

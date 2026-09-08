@@ -84,10 +84,48 @@ describe('apiFetch', () => {
     expect(assign).not.toHaveBeenCalled();
   });
 
+  it.each([{}, { code: 'invalid_token' }, null, 'session_expired'])(
+    '일반 401은 원본 본문과 함께 반환한다: %j',
+    async (body) => {
+      const original = jsonResponse(401, body);
+      const { apiFetch, refreshSession, assign, fetchMock } = await loadModule({
+        responses: [original],
+      });
+      const response = await apiFetch('/api/likes');
+      expect(response).toBe(original);
+      expect(await response.json()).toEqual(body);
+      expect(refreshSession).not.toHaveBeenCalled();
+      expect(assign).not.toHaveBeenCalled();
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    }
+  );
+
+  it('JSON이 아닌 401도 본문을 소비하지 않고 반환한다', async () => {
+    const original = new Response('Unauthorized', { status: 401 });
+    const { apiFetch, refreshSession, assign } = await loadModule({ responses: [original] });
+    expect(await (await apiFetch('/api/likes')).text()).toBe('Unauthorized');
+    expect(refreshSession).not.toHaveBeenCalled();
+    expect(assign).not.toHaveBeenCalled();
+  });
+
+  it('갱신 뒤 일반 401은 로그인 이동 없이 반환한다', async () => {
+    const original = jsonResponse(401, { code: 'invalid_token' });
+    const { apiFetch, refreshSession, assign } = await loadModule({
+      responses: [jsonResponse(401, { code: 'session_expired' }), original],
+    });
+    expect(await apiFetch('/api/likes')).toBe(original);
+    expect(await original.json()).toEqual({ code: 'invalid_token' });
+    expect(refreshSession).toHaveBeenCalledTimes(1);
+    expect(assign).not.toHaveBeenCalled();
+  });
+
   it('401 이면 세션을 한 번 갱신하고 같은 요청을 다시 보낸다 — 성공하면 그 응답을 돌려준다', async () => {
     const init = { method: 'POST', body: JSON.stringify({ entryId: 'e1' }) };
     const { apiFetch, fetchMock, assign, refreshSession } = await loadModule({
-      responses: [jsonResponse(401, { error: 'Unauthorized' }), jsonResponse(200, { liked: true })],
+      responses: [
+        jsonResponse(401, { error: 'Unauthorized', code: 'session_expired' }),
+        jsonResponse(200, { liked: true }),
+      ],
     });
 
     const res = await apiFetch('/api/likes', init);
@@ -104,13 +142,16 @@ describe('apiFetch', () => {
     const body = JSON.stringify({ entryId: 'e1' });
     const request = new Request('http://localhost/api/likes', { method: 'POST', body });
     const { apiFetch, fetchMock, assign } = await loadModule({
-      responses: [jsonResponse(401), jsonResponse(200, { liked: true })],
+      responses: [
+        jsonResponse(401, { code: 'session_expired' }),
+        jsonResponse(200, { liked: true }),
+      ],
     });
 
     // 진짜 fetch 처럼 첫 호출이 본문을 소비한다
     fetchMock.mockImplementationOnce(async (input: Request) => {
       await input.text();
-      return jsonResponse(401);
+      return jsonResponse(401, { code: 'session_expired' });
     });
 
     const res = await apiFetch(request);
@@ -129,7 +170,7 @@ describe('apiFetch', () => {
 
   it('갱신이 실패하면 현재 경로를 redirect 에 실어 /login 으로 보내고 SessionExpiredError 를 던진다', async () => {
     const { apiFetch, SessionExpiredError, fetchMock, assign } = await loadModule({
-      responses: [jsonResponse(401, { error: 'Unauthorized' })],
+      responses: [jsonResponse(401, { error: 'Unauthorized', code: 'session_expired' })],
       refresh: REFRESH_FAIL,
     });
 
@@ -145,7 +186,10 @@ describe('apiFetch', () => {
 
   it('갱신은 됐는데 재시도도 401 이면 로그인으로 보낸다', async () => {
     const { apiFetch, SessionExpiredError, fetchMock, assign } = await loadModule({
-      responses: [jsonResponse(401), jsonResponse(401)],
+      responses: [
+        jsonResponse(401, { code: 'session_expired' }),
+        jsonResponse(401, { code: 'session_expired' }),
+      ],
     });
 
     await expect(apiFetch('/api/likes')).rejects.toBeInstanceOf(SessionExpiredError);
@@ -156,7 +200,7 @@ describe('apiFetch', () => {
 
   it('복귀 경로가 기본 홈이면 redirect 없이 안내 파라미터만 붙인다', async () => {
     const { apiFetch, assign } = await loadModule({
-      responses: [jsonResponse(401)],
+      responses: [jsonResponse(401, { code: 'session_expired' })],
       refresh: REFRESH_FAIL,
       pathname: '/protected/dashboard',
       search: '',
@@ -169,7 +213,11 @@ describe('apiFetch', () => {
 
   it('여러 요청이 동시에 401 을 받아도 이동은 한 번만 한다', async () => {
     const { apiFetch, SessionExpiredError, assign } = await loadModule({
-      responses: [jsonResponse(401), jsonResponse(401), jsonResponse(401)],
+      responses: [
+        jsonResponse(401, { code: 'session_expired' }),
+        jsonResponse(401, { code: 'session_expired' }),
+        jsonResponse(401, { code: 'session_expired' }),
+      ],
       refresh: REFRESH_FAIL,
     });
 

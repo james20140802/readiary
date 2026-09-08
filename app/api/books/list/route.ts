@@ -1,3 +1,4 @@
+import { unauthorized } from '@/lib/api/auth';
 import { fetchMyBooksData } from '@/lib/queries/fetchBooks';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
@@ -9,7 +10,7 @@ export async function GET() {
   } = await supabase.auth.getUser();
 
   if (!user || userError) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+    return unauthorized();
   }
 
   try {

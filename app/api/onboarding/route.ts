@@ -1,3 +1,4 @@
+import { unauthorized } from '@/lib/api/auth';
 import { NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { classifyProfileInsertError } from '@/lib/onboarding/classifyProfileInsertError';
@@ -20,7 +21,7 @@ export async function POST(req: Request) {
     } = await supabase.auth.getUser();
 
     if (!user || userError) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return unauthorized();
     }
 
     let body;

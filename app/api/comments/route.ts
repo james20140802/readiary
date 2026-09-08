@@ -1,3 +1,4 @@
+import { unauthorized } from '@/lib/api/auth';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { notifyEntryEvent } from '@/lib/notifications/notify';
 import { NextResponse } from 'next/server';
@@ -18,7 +19,7 @@ export async function GET(request: Request) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: '인증되지 않은 유저입니다.' }, { status: 401 });
+  if (!user) return unauthorized();
 
   const { data: entry } = await supabase
     .from('entries')
@@ -55,7 +56,7 @@ export async function POST(request: Request) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: '인증되지 않은 유저입니다.' }, { status: 401 });
+  if (!user) return unauthorized();
 
   const { data, error } = await supabase
     .from('comments')
@@ -95,7 +96,7 @@ export async function DELETE(request: Request) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: '인증되지 않은 유저입니다.' }, { status: 401 });
+  if (!user) return unauthorized();
 
   // 2. 삭제 시도 (RLS 정책에 의해 본인 것만 삭제됨)
   const { error } = await supabase

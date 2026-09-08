@@ -1,3 +1,4 @@
+import { unauthorized } from '@/lib/api/auth';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { notifyEntryEvent, retractLikeNotification } from '@/lib/notifications/notify';
 import { NextResponse } from 'next/server';
@@ -18,7 +19,7 @@ export async function GET(request: Request) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: '인증되지 않은 사용자입니다.' }, { status: 401 });
+    return unauthorized();
   }
 
   const { data: likes, error: likesError } = await supabase
@@ -88,7 +89,7 @@ export async function POST(request: Request) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: '인증되지 않은 사용자입니다.' }, { status: 401 });
+    return unauthorized();
   }
 
   // 2. 이미 좋아요를 눌렀는지 확인

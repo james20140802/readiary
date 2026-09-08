@@ -175,6 +175,7 @@ describe('POST /api/books/new', () => {
     const res = await POST(makeRequest(validBody));
 
     expect(res.status).toBe(401);
+    expect(await res.json()).toEqual({ error: 'Unauthorized', code: 'session_expired' });
   });
 
   it('제목이나 저자가 없으면 400', async () => {

@@ -1,3 +1,4 @@
+import { unauthorized } from '@/lib/api/auth';
 // /app/api/friends/remove/route.ts
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
@@ -16,7 +17,7 @@ export async function DELETE(req: Request) {
   } = await supabase.auth.getUser();
 
   const myId = user?.id;
-  if (!myId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!myId) return unauthorized();
 
   const { error } = await supabase
     .from('friends')

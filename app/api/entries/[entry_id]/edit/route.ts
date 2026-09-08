@@ -1,3 +1,4 @@
+import { unauthorized } from '@/lib/api/auth';
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { isFutureKSTDate } from '@/lib/entries/validation';
@@ -20,7 +21,7 @@ export async function PATCH(
   } = await supabase.auth.getUser();
 
   if (!user || userError) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return unauthorized();
   }
 
   // 내 기록만 고친다 — 삭제 라우트와 같은 소유권 대조

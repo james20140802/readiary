@@ -1,3 +1,4 @@
+import { unauthorized } from '@/lib/api/auth';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { isAvatarPath } from '@/lib/profile/avatarPath';
 
@@ -16,7 +17,7 @@ export async function GET(request: Request) {
     data: { user },
     error: authError,
   } = await supabase.auth.getUser();
-  if (authError || !user) return new Response(null, { status: 401, headers });
+  if (authError || !user) return unauthorized(headers);
 
   // 저장하지 않았거나 삭제한 사진은 주소를 알아도 서비스에서 전달하지 않는다.
   const { data: profile, error: profileError } = await supabase
