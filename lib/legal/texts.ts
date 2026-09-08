@@ -15,9 +15,9 @@ export const LEGAL_FIRST_EFFECTIVE = '2025년 7월 25일';
 export const LEGAL_ANNOUNCED = '2026년 9월 6일';
 /** 이용 약관 개정판 시행일 — 공고 뒤 7일 */
 export const TERMS_EFFECTIVE = '2026년 9월 13일';
-/** 선택 Web Push 항목 추가 — 9월 7일 공고 기준. 실제 배포 시 공고 일정을 함께 확인한다. */
-export const PRIVACY_EFFECTIVE = '2026년 9월 14일';
-export const PUSH_PRIVACY_EFFECTIVE_AT = '2026-09-14T00:00:00+09:00';
+/** 선택 Web Push 항목 추가 — 9월 8일 공고 기준. 실제 배포 시 공고 일정을 함께 확인한다. */
+export const PRIVACY_EFFECTIVE = '2026년 9월 15일';
+export const PUSH_PRIVACY_EFFECTIVE_AT = '2026-09-15T00:00:00+09:00';
 
 const CONTACT = describeSupportContact();
 
@@ -190,4 +190,4 @@ Google 계정 로그인으로 받은 정보의 이용과 다른 앱으로의 전
 이 방침이 바뀌면 시행일 7일 전부터 서비스 화면에 알립니다. 수집 항목이나 목적이 이용자에게 불리하게 바뀌는 경우에는 30일 전에 알리고, 필요하면 다시 동의를 받습니다.
 
 부칙
-이 개정 방침은 2026년 9월 7일 공고하며 ${PRIVACY_EFFECTIVE}부터 시행합니다. (최초 시행 ${LEGAL_FIRST_EFFECTIVE})`;
+이 개정 방침은 2026년 9월 8일 공고하며 ${PRIVACY_EFFECTIVE}부터 시행합니다. (최초 시행 ${LEGAL_FIRST_EFFECTIVE})`;
