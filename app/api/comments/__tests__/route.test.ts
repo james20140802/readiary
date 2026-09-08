@@ -82,6 +82,7 @@ describe('POST /api/comments', () => {
     const res = await POST(postRequest({ entryId: 'entry-1', content: '좋다' }));
 
     expect(res.status).toBe(401);
+    expect(await res.json()).toEqual({ error: 'Unauthorized', code: 'session_expired' });
     expect(mockedNotify).not.toHaveBeenCalled();
   });
 

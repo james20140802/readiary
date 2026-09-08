@@ -1,3 +1,4 @@
+import { unauthorized } from '@/lib/api/auth';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { updateProgress } from '@/utils/sync';
 import { NextResponse } from 'next/server';
@@ -12,7 +13,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ entry
   } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return unauthorized();
   }
   const { searchParams } = new URL(req.url);
   const book_id = searchParams.get('book_id');

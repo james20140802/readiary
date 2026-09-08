@@ -1,3 +1,4 @@
+import { unauthorized } from '@/lib/api/auth';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { hasEntryContent, isFutureKSTDate } from '@/lib/entries/validation';
 import { updateProgress } from '@/utils/sync';
@@ -13,7 +14,7 @@ export async function POST(req: Request) {
     } = await supabase.auth.getUser();
 
     if (!user || userError) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return unauthorized();
     }
 
     const body = await req.json();

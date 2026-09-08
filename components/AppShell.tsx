@@ -23,7 +23,6 @@ const BARE_PREFIXES = [
   '/signup',
   '/onboarding',
   '/auth',
-  '/logout',
   '/reset-password',
   '/update-password',
 ];

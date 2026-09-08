@@ -1,3 +1,4 @@
+import { unauthorized } from '@/lib/api/auth';
 import { pushClient, pushReady, pushTestAllowed, reply, sameOrigin } from '@/lib/push/server';
 import { validEndpoint, validSubscription } from '@/lib/push/validation';
 export async function POST(request: Request) {
@@ -6,7 +7,7 @@ export async function POST(request: Request) {
   const {
     data: { user },
   } = await db.auth.getUser();
-  if (!user) return reply({ error: '로그인이 필요합니다.' }, 401);
+  if (!user) return unauthorized();
   if (!pushReady() && !pushTestAllowed(user.id))
     return reply({ error: '푸시 알림을 준비 중입니다.' }, 503);
   const s = await request.json().catch(() => null);
@@ -26,7 +27,7 @@ export async function DELETE(request: Request) {
   const {
     data: { user },
   } = await db.auth.getUser();
-  if (!user) return reply({ error: '로그인이 필요합니다.' }, 401);
+  if (!user) return unauthorized();
   const s = await request.json().catch(() => null);
   if (!validEndpoint(s?.endpoint)) return reply({ error: '잘못된 구독입니다.' }, 400);
   const { error } = await db

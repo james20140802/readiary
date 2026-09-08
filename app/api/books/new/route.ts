@@ -1,3 +1,4 @@
+import { unauthorized } from '@/lib/api/auth';
 import { revalidatePath } from 'next/cache';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { Database } from '@/types/supabase';
@@ -13,7 +14,7 @@ export async function POST(req: Request) {
     } = await supabase.auth.getUser();
 
     if (!user || authError) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+      return unauthorized();
     }
 
     const { title, author, total_pages, isbn, cover_url } = await req.json();

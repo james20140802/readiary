@@ -1,3 +1,4 @@
+import { unauthorized } from '@/lib/api/auth';
 import { pushClient, reply, sameOrigin } from '@/lib/push/server';
 export async function POST(request: Request) {
   if (!sameOrigin(request)) return reply({ error: 'Forbidden' }, 403);
@@ -5,7 +6,7 @@ export async function POST(request: Request) {
   const {
     data: { user },
   } = await db.auth.getUser();
-  if (!user) return reply({ error: 'Unauthorized' }, 401);
+  if (!user) return unauthorized();
   const b = await request.json().catch(() => null);
   if (
     !b ||

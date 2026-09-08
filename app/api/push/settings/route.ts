@@ -1,3 +1,4 @@
+import { unauthorized } from '@/lib/api/auth';
 import { pushClient, pushReady, pushTestAllowed, reply, sameOrigin } from '@/lib/push/server';
 import { DEFAULT_PUSH_PREFERENCES } from '@/lib/push/types';
 import { validPreferences } from '@/lib/push/validation';
@@ -6,7 +7,7 @@ export async function GET() {
   const {
     data: { user },
   } = await db.auth.getUser();
-  if (!user) return reply({ error: '로그인이 필요합니다.' }, 401);
+  if (!user) return unauthorized();
   const { data, error } = await db
     .from('push_preferences')
     .select('*')
@@ -28,7 +29,7 @@ export async function PUT(request: Request) {
   const {
     data: { user },
   } = await db.auth.getUser();
-  if (!user) return reply({ error: '로그인이 필요합니다.' }, 401);
+  if (!user) return unauthorized();
   const p = await request.json().catch(() => null);
   if (!validPreferences(p))
     return reply({ error: '알림 종류, 시간대와 요일을 확인해 주세요.' }, 400);

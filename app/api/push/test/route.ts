@@ -1,3 +1,4 @@
+import { unauthorized } from '@/lib/api/auth';
 import { createClient } from '@supabase/supabase-js';
 import webpush from 'web-push';
 import { pushClient, pushTestAllowed, reply, sameOrigin } from '@/lib/push/server';
@@ -13,7 +14,7 @@ export async function POST(request: Request) {
   const {
     data: { user },
   } = await db.auth.getUser();
-  if (!user) return reply({ error: '로그인이 필요합니다.' }, 401);
+  if (!user) return unauthorized();
   if (!pushTestAllowed(user.id)) return reply({ error: '테스트가 허용되지 않은 계정입니다.' }, 403);
   const body = await request.json().catch(() => null);
   if (!validEndpoint(body?.endpoint)) return reply({ error: '잘못된 기기입니다.' }, 400);

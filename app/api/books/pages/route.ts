@@ -1,3 +1,4 @@
+import { unauthorized } from '@/lib/api/auth';
 // app/api/books/pages/route.ts
 import { NextResponse } from 'next/server';
 import * as cheerio from 'cheerio';
@@ -23,7 +24,7 @@ export async function POST(req: Request) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!user) return unauthorized();
 
   const body = await req.json().catch(() => null);
   const url = parseAllowedUrl(body?.url);

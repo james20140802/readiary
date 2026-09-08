@@ -1,3 +1,4 @@
+import { unauthorized } from '@/lib/api/auth';
 import { NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
@@ -7,7 +8,7 @@ export async function GET(req: Request) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!user) return unauthorized();
 
   const { searchParams } = new URL(req.url);
   const query = searchParams.get('q');

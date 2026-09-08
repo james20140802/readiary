@@ -1,3 +1,4 @@
+import { unauthorized } from '@/lib/api/auth';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { validateNotificationIds } from '@/lib/notifications/validateNotificationIds';
 import { NextRequest, NextResponse } from 'next/server';
@@ -10,7 +11,7 @@ export async function POST(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: '인증되지 않은 사용자입니다.' }, { status: 401 });
+    return unauthorized();
   }
 
   let body: unknown;
