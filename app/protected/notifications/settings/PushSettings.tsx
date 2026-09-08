@@ -2,7 +2,6 @@
 import Link from 'next/link';
 import { Bell, Check, Send } from 'lucide-react';
 import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
 import Chip from '@/components/ui/Chip';
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/api/fetch';
@@ -44,7 +43,7 @@ export default function PushSettings() {
         setSupported(
           'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window
         );
-        setP(data.preferences);
+        setP({ ...data.preferences, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone });
         setAvailable(data.available);
         setTestAvailable(data.testAvailable === true);
         setScheduledAvailable(data.scheduledAvailable === true);
@@ -59,6 +58,7 @@ export default function PushSettings() {
     })();
   }, []);
   async function persist(next: PushPreferences) {
+    next = { ...next, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone };
     const r = await apiFetch('/api/push/settings', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -253,29 +253,9 @@ export default function PushSettings() {
             일요일을 끄면 주간 회고, 수요일을 끄면 친구 기록 알림도 쉬어요.
           </p>
         </div>
-        <details className="border-b border-hairline pb-3">
-          <summary className="cursor-pointer py-2 text-ink-sub">시간대 · {p.timezone}</summary>
-          <div className="pt-2 space-y-2">
-            <Input
-              variant="line"
-              label="시간대"
-              value={p.timezone}
-              onChange={(e) => setP({ ...p, timezone: e.target.value })}
-              placeholder="Asia/Seoul"
-            />
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() =>
-                setP({ ...p, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone })
-              }
-            >
-              이 기기의 시간대 사용
-            </Button>
-          </div>
-        </details>
         <p className="text-caption text-ink-sub">
-          밤 10시부터 아침 9시까지는 보내지 않아요. 휴대폰 설정에 따라 도착이 늦어질 수 있어요.
+          알림 시간은 이 기기의 시간대를 기준으로 저장돼요. 밤 10시부터 아침 9시까지는 보내지
+          않아요.
         </p>
       </fieldset>
 
