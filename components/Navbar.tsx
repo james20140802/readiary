@@ -45,13 +45,13 @@ export default function Navbar({ loggedIn, showNav, hasUnread }: NavbarProps) {
 
   return (
     <>
-      {/* Mobile Bottom Navbar — 홈 인디케이터 영역만큼 아래 여백(safe-area) */}
+      {/* 기본 여백과 홈 인디케이터 안전 영역 중 큰 값만 적용해 하단 여백의 중복을 피한다. */}
       {showNav && (
         <nav
           aria-label="주요 메뉴"
-          className="fixed inset-x-0 bottom-0 z-50 block border-t border-hairline bg-paper/90 px-4 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 backdrop-blur-md md:hidden"
+          className="fixed inset-x-0 bottom-0 z-50 block border-t border-hairline bg-paper/90 px-4 pb-[var(--app-mobile-nav-padding)] pt-2 backdrop-blur-md md:hidden"
         >
-          <div className="mx-auto flex max-w-screen-md justify-around text-xs">
+          <div className="mx-auto flex h-12 max-w-screen-md justify-around text-xs">
             {navItems.map((item) => {
               const active = isActive(pathname, item);
               return (

@@ -7,6 +7,12 @@
    rgb(var(--x) / <alpha-value>) 알파 변조를 지원한다.
    시안: docs/superpowers/specs/... §6, 아티팩트 "먹과 종이" */
 :root {
+  /* 고정 헤더·탭바와 본문이 같은 높이를 사용한다. 안전 영역은 OS가 제공한 값만 반영한다. */
+  --app-safe-top: env(safe-area-inset-top, 0px);
+  --app-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --app-mobile-header-height: calc(3.5rem + var(--app-safe-top));
+  --app-mobile-nav-padding: max(0.5rem, var(--app-safe-bottom));
+  --app-mobile-nav-height: calc(3rem + 0.5rem + var(--app-mobile-nav-padding) + 1px);
   --paper: 247 243 236; /* #F7F3EC 종이 */
   --card: 253 251 247; /* #FDFBF7 카드 */
   --card-raised: 242 236 225; /* #F2ECE1 돌출 표면 */

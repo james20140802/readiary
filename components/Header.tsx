@@ -13,7 +13,7 @@ interface HeaderProps {
 /** 모바일 전역 상단 헤더 — 로고와 알림 종. 데스크톱은 Navbar의 상단 바가 담당(md:hidden) */
 export default function Header({ loggedIn, showNav, hasUnread }: HeaderProps) {
   return (
-    <header className="fixed left-0 top-0 z-50 flex w-full items-center justify-between border-b border-hairline bg-paper/90 px-4 py-3 backdrop-blur-md md:hidden">
+    <header className="fixed left-0 top-0 z-50 flex h-[var(--app-mobile-header-height)] w-full items-center justify-between border-b border-hairline bg-paper/90 px-4 pt-[var(--app-safe-top)] backdrop-blur-md md:hidden">
       {/* 프리페치는 GNB가 보이는 화면에서만 — 온보딩처럼 프로필이 아직 없는 화면에서 /protected 를 미리
           받아오면 proxy 가 /onboarding 으로 돌려보낸 결과가 라우터 캐시에 5분간 남아, 프로필을 만든 뒤
           router.push('/protected/dashboard') 가 서버에 가지 않고 온보딩 화면을 다시 그린다 */}

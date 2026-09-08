@@ -118,7 +118,7 @@ export default function Slide({ label, children, className }: SlideProps) {
           style={reduced ? undefined : { scale, opacity, y }}
           className={clsx(
             // my-auto — 들어맞으면 세로 가운데, 넘치면 위부터(justify-center는 넘친 윗부분을 닿을 수 없게 만든다)
-            'mx-auto my-auto flex w-full max-w-screen-md flex-col px-5 pb-12 pt-16 md:px-4 md:pb-14 md:pt-[6rem]',
+            'mx-auto my-auto flex w-full max-w-screen-md flex-col px-5 pb-12 pt-[calc(var(--app-mobile-header-height)+1rem)] md:px-4 md:pb-14 md:pt-[6rem]',
             className
           )}
         >
