@@ -28,14 +28,30 @@ export async function disableDevicePush() {
   const notifications = await registration?.getNotifications?.();
   notifications?.forEach((n) => n.close());
 }
+// Explicit registration also covers App Router pages, where next-pwa's legacy
+// main.js registration entry is not loaded. Registering the same scope is idempotent.
+export async function readyPushWorker() {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      (async () => {
+        await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+        return await navigator.serviceWorker.ready;
+      })(),
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(
+          () => reject(new Error('알림 연결 준비가 지연되고 있어요. 잠시 후 다시 시도해 주세요.')),
+          10000
+        );
+      }),
+    ]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
 export async function enableDevicePush(publicKey: string, userId: string) {
   // Called only from a click, after Notification.requestPermission has resolved.
-  const registration = await Promise.race([
-    navigator.serviceWorker.ready,
-    new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error('앱 설치를 마친 뒤 다시 시도해 주세요.')), 10000)
-    ),
-  ]);
+  const registration = await readyPushWorker();
   let subscription = await registration.pushManager.getSubscription();
   if (localStorage.getItem(PUSH_OWNER_KEY) !== userId && subscription) {
     await subscription.unsubscribe();
