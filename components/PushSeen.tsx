@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef } from 'react';
+import { NOTIFICATIONS_READ_EVENT } from '@/hooks/useUnreadNotifications';
 import { apiFetch } from '@/lib/api/fetch';
 export default function PushSeen({
   kind,
@@ -22,6 +23,7 @@ export default function PushSeen({
         })
           .then((r) => {
             if (!r.ok) marked = false;
+            else if (kind === 'inbox') window.dispatchEvent(new Event(NOTIFICATIONS_READ_EVENT));
           })
           .catch(() => {
             marked = false;

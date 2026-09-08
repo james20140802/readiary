@@ -1,5 +1,7 @@
 'use client';
 import Link from 'next/link';
+import { Bell, Check, Send } from 'lucide-react';
+import Button from '@/components/ui/Button';
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/api/fetch';
 import { createSupabaseClient } from '@/lib/supabase/client';
@@ -10,15 +12,20 @@ import {
   type PushKind,
 } from '@/lib/push/types';
 import { disableDevicePush, enableDevicePush, existingPush } from '@/lib/push/browser';
-const labels: Record<PushKind, string> = {
-  reminder: '기록 리마인드 · 3일 쉬었을 때, 주 1회 이하',
-  finished: '완독 후 감상 · 완독 7일 후 한 번',
-  weekly: '주간 회고 · 일요일',
-  recall: '지난 문장 다시 보기 · 격주 이하',
-  friends: '친구 새 기록 모아보기 · 수요일',
+const labels: Record<PushKind, { title: string; description: string }> = {
+  reminder: { title: '기록 리마인드', description: '읽는 책에 기록을 3일 쉬었을 때 · 주 1회 이하' },
+  finished: { title: '완독 후 감상', description: '완독하고 7일 뒤, 감상이 없다면 · 책마다 한 번' },
+  weekly: { title: '주간 회고', description: '이번 주에 남긴 기록 돌아보기 · 일요일' },
+  recall: {
+    title: '지난 문장 다시 보기',
+    description: '오래전 남긴 문장과 다시 만나기 · 격주 이하',
+  },
+  friends: { title: '친구의 새 기록', description: '친구들의 기록을 한 번에 모아서 · 수요일' },
 };
 export default function PushSettings() {
   const [p, setP] = useState<PushPreferences>(DEFAULT_PUSH_PREFERENCES);
+  const [testAvailable, setTestAvailable] = useState(false);
+  const [scheduledAvailable, setScheduledAvailable] = useState(false);
   const [key, setKey] = useState('');
   const [available, setAvailable] = useState(false);
   const [supported, setSupported] = useState(false);
@@ -35,8 +42,15 @@ export default function PushSettings() {
         setSupported(
           'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window
         );
-        setP(data.preferences);
+        setP({
+          ...data.preferences,
+          hour: 20,
+          weekdays: [...DEFAULT_PUSH_PREFERENCES.weekdays],
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        });
         setAvailable(data.available);
+        setTestAvailable(data.testAvailable === true);
+        setScheduledAvailable(data.scheduledAvailable === true);
         setKey(data.publicKey ?? '');
         setDevice(!!(await existingPush()));
         setLoaded(true);
@@ -48,6 +62,12 @@ export default function PushSettings() {
     })();
   }, []);
   async function persist(next: PushPreferences) {
+    next = {
+      ...next,
+      hour: 20,
+      weekdays: [...DEFAULT_PUSH_PREFERENCES.weekdays],
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    };
     const r = await apiFetch('/api/push/settings', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -85,6 +105,7 @@ export default function PushSettings() {
   }
   async function stop(all: boolean) {
     setBusy(true);
+    setMessage('');
     try {
       if (all) await persist({ ...p, enabled: false });
       await disableDevicePush();
@@ -96,137 +117,175 @@ export default function PushSettings() {
       setBusy(false);
     }
   }
+  async function testPush() {
+    setBusy(true);
+    setMessage('');
+    try {
+      const subscription = await existingPush();
+      if (!subscription) throw new Error('먼저 이 기기의 알림을 켜주세요.');
+      const response = await apiFetch('/api/push/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ endpoint: subscription.endpoint }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error ?? '테스트 발송에 실패했습니다.');
+      setMessage('테스트 알림 발송을 접수했어요. 아이폰 알림 센터에서 도착 여부를 확인해 주세요.');
+    } catch (e) {
+      setMessage((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  const disabledReason = !loaded
+    ? busy
+      ? '설정을 불러오는 중이에요.'
+      : '설정을 불러오지 못했어요. 새로고침해 주세요.'
+    : !available
+      ? '휴대폰 알림은 아직 준비 중이에요. 정식 제공 전에는 켤 수 없어요.'
+      : !supported
+        ? 'iPhone은 Safari에서 홈 화면에 추가한 앱으로 열어주세요.'
+        : !p.kinds.length
+          ? '받을 알림을 하나 이상 선택해 주세요.'
+          : '';
   return (
-    <div className="space-y-5 text-body-sm">
-      <p>
-        원하는 소식만 골라 받아보세요. 모두 합쳐 최근 7일 동안 최대 2번, 최소 48시간 간격으로
-        보내요. 소식이 겹치면 한 번에 모으고, 기록하거나 확인한 내용은 건너뛰어요.
-      </p>
-      <p className="text-ink-sub">
-        iPhone에서는 Safari의 공유 메뉴에서 ‘홈 화면에 추가’한 뒤 앱을 열어주세요. 알림은 선택
-        사항이며, 끄더라도 독서 기록을 이용할 수 있어요.
-      </p>
-      {!available && loaded && (
-        <p role="status">휴대폰 알림을 준비 중입니다. 설정은 둘러볼 수 있어요.</p>
-      )}
-      {!supported && loaded && (
-        <p>이 환경에서는 푸시를 사용할 수 없어요. 홈 화면 앱 또는 지원 브라우저로 열어주세요.</p>
-      )}
-      <fieldset disabled={busy || !loaded} className="space-y-3">
-        <legend className="font-medium mb-3">받을 소식 선택</legend>
-        {PUSH_KINDS.map((k) => (
-          <label key={k} className="flex items-start gap-3">
-            <input
-              type="checkbox"
-              checked={p.kinds.includes(k)}
-              onChange={(e) =>
-                setP({
-                  ...p,
-                  kinds: e.target.checked ? [...p.kinds, k] : p.kinds.filter((x) => x !== k),
-                })
-              }
-            />
-            <span>{labels[k]}</span>
-          </label>
-        ))}
-      </fieldset>
-      <fieldset disabled={busy || !loaded} className="space-y-3">
-        <legend className="font-medium mb-3">받을 시간</legend>
-        <label className="block">
-          시간대
-          <input
-            className="block border rounded p-2 w-full"
-            value={p.timezone}
-            onChange={(e) => setP({ ...p, timezone: e.target.value })}
-            placeholder="Asia/Seoul"
-          />
-        </label>
-        <button
-          type="button"
-          className="underline"
-          onClick={() => setP({ ...p, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone })}
-        >
-          이 기기의 시간대 사용
-        </button>
-        <label className="block">
-          알림 시간
-          <select
-            className="ml-3 border rounded p-2"
-            value={p.hour}
-            onChange={(e) => setP({ ...p, hour: Number(e.target.value) })}
-          >
-            {Array.from({ length: 13 }, (_, i) => i + 9).map((h) => (
-              <option key={h} value={h}>
-                {h}시쯤
-              </option>
-            ))}
-          </select>
-        </label>
-        <div className="flex flex-wrap gap-3">
-          {['일', '월', '화', '수', '목', '금', '토'].map((day, i) => (
-            <label key={day}>
-              <input
-                type="checkbox"
-                checked={p.weekdays.includes(i)}
-                onChange={(e) =>
-                  setP({
-                    ...p,
-                    weekdays: e.target.checked
-                      ? [...p.weekdays, i]
-                      : p.weekdays.filter((d) => d !== i),
-                  })
-                }
-              />{' '}
-              {day}
+    <div className="space-y-9 text-body-sm">
+      <section className="border-b border-hairline pb-6">
+        <div className="flex items-center gap-2 text-ink">
+          <Bell size={18} strokeWidth={1.75} aria-hidden />
+          <h2 className="font-semibold">책 밖에서도, 가끔 안부를</h2>
+        </div>
+        <p className="mt-3 text-ink-sub leading-relaxed">
+          받고 싶은 알림만 골라주세요. 모두 합쳐 일주일에 최대 두 번, 적어도 이틀 간격으로 보내요.
+          알릴 내용이 있을 때만 찾아갈게요.
+        </p>
+        <p className="mt-2 text-caption text-ink-sub">
+          독서 알림은 기기 시간대 기준 저녁 8시쯤 보내요. 댓글과 친구 요청은 앱 안에서 확인할 수
+          있어요.
+        </p>
+        {loaded && (
+          <p className="mt-4 text-caption text-accent" role="status">
+            {device && p.enabled ? '이 기기 알림 켜짐' : '이 기기 알림 꺼짐'}
+            {testAvailable && !scheduledAvailable
+              ? ' · 본인 계정 테스트 중, 자동 발송은 꺼져 있어요.'
+              : ''}
+          </p>
+        )}
+      </section>
+
+      <fieldset disabled={busy || !loaded}>
+        <legend className="text-section-title mb-2">받을 알림</legend>
+        <div className="divide-y divide-hairline">
+          {PUSH_KINDS.map((kind) => (
+            <label
+              key={kind}
+              className="flex min-h-20 cursor-pointer items-center justify-between gap-4 py-4"
+            >
+              <span>
+                <span className="block font-medium text-ink">{labels[kind].title}</span>
+                <span className="mt-1 block text-caption text-ink-sub">
+                  {labels[kind].description}
+                </span>
+              </span>
+              <span className="relative shrink-0">
+                <input
+                  type="checkbox"
+                  className="peer absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                  checked={p.kinds.includes(kind)}
+                  onChange={(e) =>
+                    setP({
+                      ...p,
+                      kinds: e.target.checked
+                        ? [...p.kinds, kind]
+                        : p.kinds.filter((k) => k !== kind),
+                    })
+                  }
+                />
+                <span
+                  className="flex h-6 w-6 items-center justify-center rounded-full border border-hairline-strong text-transparent peer-checked:border-ink peer-checked:bg-ink peer-checked:text-ink-invert peer-focus-visible:ring-2 peer-focus-visible:ring-accent peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-paper peer-disabled:opacity-50"
+                  aria-hidden
+                >
+                  <Check size={14} strokeWidth={2} />
+                </span>
+              </span>
             </label>
           ))}
         </div>
-        <p className="text-caption text-ink-sub">
-          밤 10시~아침 9시에는 보내지 않아요. 일요일을 끄면 주간 회고, 수요일을 끄면 친구 소식도
-          쉬어요. 휴대폰 설정에 따라 도착이 늦어질 수 있어요.
-        </p>
       </fieldset>
-      <p className="text-caption text-ink-sub">
-        알림을 켜면 선택한 알림 발송을 위해 기기 푸시 주소·암호화 키·선택 종류·시간대·동의 시각을
-        저장해요. 구독은 해제·만료·탈퇴 시 삭제하고 발송 이력은 90일 보관해요.{' '}
-        <Link href="/privacy" className="underline">
-          개인정보처리방침
-        </Link>
-      </p>
-      <div className="flex flex-wrap gap-3">
-        <button
-          className="rounded bg-ink text-paper p-3 disabled:opacity-40"
-          disabled={
-            busy || !loaded || !available || !supported || !p.kinds.length || !p.weekdays.length
-          }
-          onClick={() => void save(true)}
-        >
-          {device ? '이 기기 알림 다시 연결' : '동의하고 이 기기 알림 켜기'}
-        </button>
-        <button
-          className="rounded border p-3 disabled:opacity-40"
-          disabled={busy || !loaded || !p.weekdays.length || (p.enabled && !p.kinds.length)}
-          onClick={() => void save()}
-        >
-          설정 저장
-        </button>
-        {device && (
-          <button className="underline" disabled={busy} onClick={() => void stop(false)}>
-            이 기기만 끄기
-          </button>
+
+      <section className="space-y-4">
+        <h2 className="text-section-title">이 기기에서 받기</h2>
+        <p className="text-caption text-ink-sub">
+          iPhone에서는 Safari의 공유 메뉴에서 ‘홈 화면에 추가’한 뒤, 홈 화면의 앱을 열어주세요.
+        </p>
+        <p className="text-caption text-ink-sub leading-relaxed">
+          알림을 켜면 선택한 알림 발송을 위해 기기 푸시 주소·암호화 키·선택 종류·시간대·동의 시각을
+          저장해요. 구독은 해제·만료·탈퇴 시 삭제하고 발송 이력은 90일 보관해요. 알림은 선택
+          사항이에요.{' '}
+          <Link href="/privacy" className="underline underline-offset-4">
+            개인정보처리방침
+          </Link>
+        </p>
+        {disabledReason && (
+          <p id="push-disabled-reason" className="text-caption text-ink-sub">
+            {disabledReason}
+          </p>
         )}
-        {p.enabled && (
-          <button className="underline" disabled={busy} onClick={() => void stop(true)}>
-            모든 기기 알림 끄기
-          </button>
+        <div className="space-y-3">
+          <Button
+            fullWidth
+            disabled={busy || !!disabledReason}
+            aria-describedby={disabledReason ? 'push-disabled-reason' : undefined}
+            onClick={() => void save(true)}
+          >
+            {device ? '이 기기 알림 다시 연결' : '동의하고 이 기기 알림 켜기'}
+          </Button>
+          <Button
+            fullWidth
+            variant="secondary"
+            disabled={busy || !loaded || (p.enabled && !p.kinds.length)}
+            onClick={() => void save()}
+          >
+            설정 저장
+          </Button>
+        </div>
+        {(device || p.enabled) && (
+          <div className="flex flex-wrap justify-center gap-2">
+            {device && (
+              <Button variant="ghost" disabled={busy} onClick={() => void stop(false)}>
+                이 기기만 끄기
+              </Button>
+            )}
+            {p.enabled && (
+              <Button variant="ghost" disabled={busy} onClick={() => void stop(true)}>
+                모든 기기 알림 끄기
+              </Button>
+            )}
+          </div>
         )}
-      </div>
-      <p role="status" aria-live="polite">
+      </section>
+      {testAvailable && (
+        <section className="border-t border-hairline pt-6 space-y-3">
+          <h2 className="font-semibold">내 기기로 테스트</h2>
+          <p className="text-caption text-ink-sub">
+            이 계정에서만 사용할 수 있어요. 위에서 알림을 켠 뒤 눌러주세요. 선택한 시간과 관계없이
+            지금 이 기기에 한 번 보내요. 중복 방지를 위해 마지막 테스트 시각을 저장하며, 1분 뒤 다시
+            보낼 수 있어요.
+          </p>
+          <Button
+            variant="secondary"
+            fullWidth
+            disabled={busy || !device || !p.enabled}
+            onClick={() => void testPush()}
+          >
+            <Send size={16} strokeWidth={1.75} aria-hidden />
+            테스트 알림 보내기
+          </Button>
+        </section>
+      )}
+      <p role="status" aria-live="polite" className="text-body-sm text-ink">
         {message}
       </p>
-      <Link className="underline" href="/protected/notifications/inbox">
-        받은 독서 소식 보기
-      </Link>
     </div>
   );
 }

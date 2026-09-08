@@ -1,4 +1,4 @@
-import { pushClient, pushReady, reply, sameOrigin } from '@/lib/push/server';
+import { pushClient, pushReady, pushTestAllowed, reply, sameOrigin } from '@/lib/push/server';
 import { DEFAULT_PUSH_PREFERENCES } from '@/lib/push/types';
 import { validPreferences } from '@/lib/push/validation';
 export async function GET() {
@@ -16,7 +16,9 @@ export async function GET() {
     ? reply({ error: '알림 설정을 불러오지 못했습니다.' }, 503)
     : reply({
         preferences: data ?? DEFAULT_PUSH_PREFERENCES,
-        available: pushReady(),
+        available: pushReady() || pushTestAllowed(user.id),
+        testAvailable: pushTestAllowed(user.id),
+        scheduledAvailable: pushReady(),
         publicKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? null,
       });
 }
@@ -30,7 +32,8 @@ export async function PUT(request: Request) {
   const p = await request.json().catch(() => null);
   if (!validPreferences(p))
     return reply({ error: '알림 종류, 시간대와 요일을 확인해 주세요.' }, 400);
-  if (p.enabled && !pushReady()) return reply({ error: '푸시 알림을 준비 중입니다.' }, 503);
+  if (p.enabled && !pushReady() && !pushTestAllowed(user.id))
+    return reply({ error: '푸시 알림을 준비 중입니다.' }, 503);
   const { error } = await db.rpc('save_push_preferences', {
     p_enabled: p.enabled,
     p_kinds: p.kinds,

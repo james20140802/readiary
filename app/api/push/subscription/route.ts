@@ -1,4 +1,4 @@
-import { pushClient, pushReady, reply, sameOrigin } from '@/lib/push/server';
+import { pushClient, pushReady, pushTestAllowed, reply, sameOrigin } from '@/lib/push/server';
 import { validEndpoint, validSubscription } from '@/lib/push/validation';
 export async function POST(request: Request) {
   if (!sameOrigin(request)) return reply({ error: '허용되지 않은 요청입니다.' }, 403);
@@ -7,7 +7,8 @@ export async function POST(request: Request) {
     data: { user },
   } = await db.auth.getUser();
   if (!user) return reply({ error: '로그인이 필요합니다.' }, 401);
-  if (!pushReady()) return reply({ error: '푸시 알림을 준비 중입니다.' }, 503);
+  if (!pushReady() && !pushTestAllowed(user.id))
+    return reply({ error: '푸시 알림을 준비 중입니다.' }, 503);
   const s = await request.json().catch(() => null);
   if (!validSubscription(s)) return reply({ error: '지원하지 않는 푸시 구독입니다.' }, 400);
   const { error } = await db.rpc('save_push_subscription', {

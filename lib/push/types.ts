@@ -64,6 +64,8 @@ export type PushDatabase = Omit<Database, 'public'> & {
         Returns: undefined;
       };
       mark_push_seen: { Args: { p_kind: string; p_delivery?: string }; Returns: undefined };
+      has_unread_notifications: { Args: Record<string, never>; Returns: boolean };
+      claim_push_test: { Args: { p_user: string; p_endpoint: string }; Returns: Json };
       claim_push_batch: { Args: { p_limit: number }; Returns: Delivery[] };
       authorize_push_delivery: { Args: { p_id: string }; Returns: Json };
     };
