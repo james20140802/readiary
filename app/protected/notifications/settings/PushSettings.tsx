@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import { toast } from 'sonner';
 import { Bell, Check, Send } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { useEffect, useState } from 'react';
@@ -32,7 +33,6 @@ export default function PushSettings() {
   const [device, setDevice] = useState(false);
   const [busy, setBusy] = useState(true);
   const [loaded, setLoaded] = useState(false);
-  const [message, setMessage] = useState('');
   useEffect(() => {
     void (async () => {
       try {
@@ -55,7 +55,7 @@ export default function PushSettings() {
         setDevice(!!(await existingPush()));
         setLoaded(true);
       } catch (e) {
-        setMessage((e as Error).message);
+        toast.error((e as Error).message);
       } finally {
         setBusy(false);
       }
@@ -83,7 +83,6 @@ export default function PushSettings() {
     // Permission request must be directly attached to the user gesture (before any network await).
     const permission = enable ? Notification.requestPermission() : Promise.resolve('granted');
     setBusy(true);
-    setMessage('');
     try {
       if ((await permission) !== 'granted')
         throw new Error('알림이 허용되지 않았습니다. 휴대폰 설정에서 권한을 확인해 주세요.');
@@ -96,30 +95,28 @@ export default function PushSettings() {
         await enableDevicePush(key, user.id);
         setDevice(true);
       }
-      setMessage(enable ? '이 기기에서 알림을 받을 준비가 됐어요.' : '알림 설정을 저장했어요.');
+      toast.success(enable ? '이 기기에서 알림을 받을 준비가 됐어요.' : '알림 설정을 저장했어요.');
     } catch (e) {
-      setMessage((e as Error).message);
+      toast.error((e as Error).message);
     } finally {
       setBusy(false);
     }
   }
   async function stop(all: boolean) {
     setBusy(true);
-    setMessage('');
     try {
       if (all) await persist({ ...p, enabled: false });
       await disableDevicePush();
       setDevice(false);
-      setMessage(all ? '모든 기기의 알림을 껐어요.' : '이 기기 알림을 껐어요.');
+      toast.success(all ? '모든 기기의 알림을 껐어요.' : '이 기기 알림을 껐어요.');
     } catch (e) {
-      setMessage((e as Error).message);
+      toast.error((e as Error).message);
     } finally {
       setBusy(false);
     }
   }
   async function testPush() {
     setBusy(true);
-    setMessage('');
     try {
       const subscription = await existingPush();
       if (!subscription) throw new Error('먼저 이 기기의 알림을 켜주세요.');
@@ -130,9 +127,11 @@ export default function PushSettings() {
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error ?? '테스트 발송에 실패했습니다.');
-      setMessage('테스트 알림 발송을 접수했어요. 아이폰 알림 센터에서 도착 여부를 확인해 주세요.');
+      toast.success(
+        '테스트 알림 발송을 접수했어요. 아이폰 알림 센터에서 도착 여부를 확인해 주세요.'
+      );
     } catch (e) {
-      setMessage((e as Error).message);
+      toast.error((e as Error).message);
     } finally {
       setBusy(false);
     }
@@ -283,9 +282,6 @@ export default function PushSettings() {
           </Button>
         </section>
       )}
-      <p role="status" aria-live="polite" className="text-body-sm text-ink">
-        {message}
-      </p>
     </div>
   );
 }
