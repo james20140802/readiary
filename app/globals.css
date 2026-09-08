@@ -49,6 +49,22 @@
   }
 }
 
+/* 짧은 책장도 문서가 화면 전체를 채워 iOS의 하단 고정 메뉴 기준이 흔들리지 않게 한다. */
+html,
+body {
+  min-height: 100vh;
+  min-height: 100svh;
+}
+
+/* 설치형 iOS 앱은 svh에서 안전 영역을 빼는 경우가 있어 전체 화면 단위를 사용한다.
+   https://bugs.webkit.org/show_bug.cgi?id=254868 */
+@media (display-mode: standalone) {
+  html,
+  body {
+    min-height: 100vh;
+  }
+}
+
 body {
   font-family: 'Pretendard', var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   background-color: rgb(var(--paper));
