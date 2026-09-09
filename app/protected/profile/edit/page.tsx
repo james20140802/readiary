@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Camera, Loader2, X } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -27,6 +27,7 @@ interface FinishedOption {
 
 export default function EditProfilePage() {
   const router = useRouter();
+  const avatarInputRef = useRef<HTMLInputElement>(null);
   const supabase = createSupabaseClient();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [nickname, setNickname] = useState('');
@@ -189,16 +190,27 @@ export default function EditProfilePage() {
                 </div>
               )}
             </div>
-            <label className="absolute bottom-0 right-0 p-2.5 bg-ink text-ink-invert rounded-2xl cursor-pointer border border-hairline-strong hover:scale-110 transition-transform">
-              <Camera size={18} strokeWidth={2.5} />
-              <input
-                type="file"
-                className="hidden"
-                accept="image/*"
-                onChange={(e) => e.target.files?.[0] && handleUploadAvatar(e.target.files[0])}
-                disabled={uploading || updating}
-              />
-            </label>
+            <button
+              type="button"
+              aria-label="프로필 사진 변경"
+              onClick={() => avatarInputRef.current?.click()}
+              disabled={uploading || updating}
+              className="absolute bottom-0 right-0 p-2.5 bg-ink text-ink-invert rounded-2xl border border-hairline-strong hover:scale-110 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-paper disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Camera size={18} strokeWidth={2.5} aria-hidden="true" />
+            </button>
+            <input
+              ref={avatarInputRef}
+              type="file"
+              className="hidden"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                e.target.value = '';
+                if (file) void handleUploadAvatar(file);
+              }}
+              disabled={uploading || updating}
+            />
           </div>
           <div className="text-center sm:text-left">
             <h3 className="font-bold text-ink">프로필 사진</h3>

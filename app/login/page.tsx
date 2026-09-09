@@ -117,9 +117,14 @@ export default function LoginPage() {
       title="로그인"
       lead="이어서 오늘의 문장을 남겨 보세요."
       footer={
-        <p>
-          아직 회원이 아니신가요? <Link href={signupHref}>가입하기</Link>
-        </p>
+        <>
+          <p>
+            비밀번호를 잊으셨나요? <Link href="/reset-password">비밀번호 찾기</Link>
+          </p>
+          <p>
+            아직 회원이 아니신가요? <Link href={signupHref}>가입하기</Link>
+          </p>
+        </>
       }
     >
       {isGoogleLoginEnabled() && (
@@ -169,17 +174,9 @@ export default function LoginPage() {
         </FormGroup>
 
         <FormGroup>
-          <div className="flex items-baseline justify-between">
-            <FormLabel variant="line" htmlFor="login-password">
-              비밀번호
-            </FormLabel>
-            <Link
-              href="/reset-password"
-              className="text-caption text-ink-sub underline underline-offset-4 hover:text-ink"
-            >
-              잊으셨나요?
-            </Link>
-          </div>
+          <FormLabel variant="line" htmlFor="login-password">
+            비밀번호
+          </FormLabel>
           <PasswordInput
             variant="line"
             id="login-password"
