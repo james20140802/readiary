@@ -28,7 +28,8 @@ export interface ShelfSource {
 export function toShelfBook(
   ub: ShelfSource,
   stats: Record<string, BookReadingStat> | null | undefined,
-  href: string
+  href: string,
+  entryHref?: string
 ): ShelfBook {
   const stat = stats?.[ub.id];
   return {
@@ -40,6 +41,7 @@ export function toShelfBook(
     lastReadPage: ub.last_read_page,
     isFinished: ub.is_finished ?? false,
     href,
+    entryHref,
     readingPeriod: stat ? formatReadingPeriod([stat.firstDate, stat.lastDate]) : null,
     entryCount: stats ? (stat?.entryCount ?? 0) : null,
   };

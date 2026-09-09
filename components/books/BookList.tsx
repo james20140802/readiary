@@ -114,8 +114,16 @@ export default function BookList({ books, stats, isFriend = false, nicknameAndTa
 
   // 책장에 넘길 목록은 고정해 둔다 — 꺼내고 덮는 동안 책장이 리렌더되지 않도록(BookSpineShelf memo)
   const shelfBooks = useMemo<ShelfBook[]>(
-    () => processed.map((ub) => toShelfBook(ub, stats, getDetailHref(ub))),
-    [processed, stats, getDetailHref]
+    () =>
+      processed.map((ub) =>
+        toShelfBook(
+          ub,
+          stats,
+          getDetailHref(ub),
+          isFriend ? undefined : `/protected/books/${ub.book_id}/entry/new`
+        )
+      ),
+    [processed, stats, getDetailHref, isFriend]
   );
 
   // 빈 책장 — 선반 한 칸만 비워 두고 한 줄

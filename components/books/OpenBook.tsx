@@ -223,11 +223,11 @@ export default function OpenBook({ book, slotOpen, onClose, onReturn, onClosed }
                   </dl>
                   <div className="mt-auto flex items-center justify-between gap-3 pt-3 text-[12.5px] sm:text-[13px]">
                     <Link
-                      href={`${shown.href}/entry/new`}
+                      href={shown.entryHref ?? shown.href}
                       tabIndex={isOpen ? undefined : -1}
                       className="font-serif text-accent hover:underline"
                     >
-                      기록 남기기 →
+                      {shown.entryHref ? '기록 남기기 →' : '책 상세 →'}
                     </Link>
                     <button
                       ref={closeButtonRef}
