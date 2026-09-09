@@ -176,7 +176,7 @@ export default function OpenBook({ book, slotOpen, onClose, onReturn, onClosed }
                   className="relative flex h-full flex-col px-4 py-4 sm:px-5 sm:py-5"
                 >
                   <Seal>{shown.isFinished ? '완독' : '읽는 중'}</Seal>
-                  {/* 제목도 상세로 가는 문 — 아래 "책 상세 →"와 같은 곳 */}
+                  {/* 제목은 책 상세로, 하단 링크는 기록 작성으로 이동한다. */}
                   <p className="mt-2 line-clamp-3 font-serif text-[15px] font-bold leading-snug text-ink sm:text-[18px]">
                     <Link
                       href={shown.href}
@@ -223,11 +223,11 @@ export default function OpenBook({ book, slotOpen, onClose, onReturn, onClosed }
                   </dl>
                   <div className="mt-auto flex items-center justify-between gap-3 pt-3 text-[12.5px] sm:text-[13px]">
                     <Link
-                      href={shown.href}
+                      href={shown.entryHref ?? shown.href}
                       tabIndex={isOpen ? undefined : -1}
                       className="font-serif text-accent hover:underline"
                     >
-                      책 상세 →
+                      {shown.entryHref ? '기록 남기기 →' : '책 상세 →'}
                     </Link>
                     <button
                       ref={closeButtonRef}
@@ -379,6 +379,13 @@ export default function OpenBook({ book, slotOpen, onClose, onReturn, onClosed }
               </motion.div>
             )}
           </AnimatePresence>
+          {shown && isOpen && (
+            <Link
+              href={shown.href}
+              aria-label={`${shown.title} 책 상세 보기`}
+              className="absolute inset-y-0 left-0 w-1/2 rounded-l-[5px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+            />
+          )}
         </div>
       </div>
     </motion.section>

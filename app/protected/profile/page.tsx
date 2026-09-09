@@ -42,7 +42,14 @@ export default async function ProfilePage() {
 
   const shelfBooks = userBooks
     .slice(0, PROFILE_SHELF_LIMIT)
-    .map((ub) => toShelfBook(ub, readingStats, `/protected/books/${ub.book_id}`));
+    .map((ub) =>
+      toShelfBook(
+        ub,
+        readingStats,
+        `/protected/books/${ub.book_id}`,
+        `/protected/books/${ub.book_id}/entry/new`
+      )
+    );
   const finishedBooks = retrospect?.finishedBooks ?? [];
 
   return (

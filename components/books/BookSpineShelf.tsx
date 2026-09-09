@@ -14,6 +14,8 @@ export interface ShelfBook {
   lastReadPage: number | null;
   isFinished: boolean;
   href: string;
+  /** 내 책에만 제공하는 기록 작성 주소 */
+  entryHref?: string;
   /** '2026. 6. 3. — 8. 12.' — 기록이 없으면 null */
   readingPeriod: string | null;
   /** 통계를 모르면 null — 0(기록 없음)과 구분한다 */

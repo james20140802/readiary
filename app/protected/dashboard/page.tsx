@@ -59,7 +59,12 @@ export default async function DashboardPage() {
         <Suspense fallback={null}>
           <RecapWidget result={recap} />
         </Suspense>
-        <Composer books={books} recentUserBookId={recentUserBookId} />
+        <Composer
+          key={user.id}
+          userId={user.id}
+          books={books}
+          recentUserBookId={recentUserBookId}
+        />
         <Suspense fallback={<WidgetSkeleton />}>
           <RecallWidget result={recall} />
         </Suspense>
