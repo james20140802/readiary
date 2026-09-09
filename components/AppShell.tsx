@@ -7,6 +7,7 @@ import { createSupabaseClient } from '@/lib/supabase/client';
 import { sweepLegacyPrivateCaches } from '@/lib/pwa/clear-caches';
 import { useUnreadNotifications } from '@/hooks/useUnreadNotifications';
 import Header from '@/components/Header';
+import { readComposerDraft, clearComposerDraft } from '@/lib/entries/composerDraft';
 import Navbar from '@/components/Navbar';
 
 interface AppShellProps {
@@ -47,6 +48,14 @@ export default function AppShell({ initialLoggedIn, initialUnread, children }: A
     const supabase = createSupabaseClient();
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setLoggedIn(!!session);
+      if (!session) clearComposerDraft();
+      else {
+        try {
+          readComposerDraft(sessionStorage, session.user.id);
+        } catch {
+          /* Storage unavailable. */
+        }
+      }
     });
     return () => listener.subscription.unsubscribe();
   }, []);
