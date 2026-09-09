@@ -1,15 +1,12 @@
 'use client';
 
 import { apiFetch } from '@/lib/api/fetch';
-import { useCallback, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { clearSubmittedComposerDraft } from '@/lib/entries/composerDraft';
 import { useComposerDraft } from '@/hooks/useComposerDraft';
-import ComposerBookSelection, {
-  type ComposerBook,
-} from '@/components/entries/ComposerBookSelection';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { Lock } from 'lucide-react';
+import { LibraryBig, Lock } from 'lucide-react';
 import { MyBook } from '@/types/book';
 import Link from 'next/link';
 import Card from '@/components/ui/Card';
@@ -49,8 +46,6 @@ export default function Composer({ userId, books, recentUserBookId }: ComposerPr
   } = useComposerDraft(userId, initialSelected);
   const { selectedId, mode, isPrivate } = draft;
   const text = draft[mode];
-  const [resolvedBook, setResolvedBook] = useState<ComposerBook>();
-  const onResolved = useCallback((book: ComposerBook) => setResolvedBook(book), []);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const submitLock = useRef(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -62,9 +57,12 @@ export default function Composer({ userId, books, recentUserBookId }: ComposerPr
   const [fromPage, setFromPage] = useState('');
   const [toPage, setToPage] = useState('');
 
-  const selectedBook =
-    books.find((b) => b.id === selectedId) ??
-    (resolvedBook?.id === selectedId ? resolvedBook : null);
+  const chipBooks = useMemo(() => {
+    const first = books.find((b) => b.id === initialSelected);
+    const ordered = first ? [first, ...books.filter((b) => b.id !== first.id)] : books;
+    return ordered.slice(0, 3);
+  }, [books, initialSelected]);
+  const selectedBook = books.find((b) => b.id === selectedId) ?? null;
 
   const handleSave = async () => {
     if (
@@ -286,7 +284,8 @@ export default function Composer({ userId, books, recentUserBookId }: ComposerPr
     );
   }
 
-  // 책 선택은 작성 화면 안에서, 기록 도구는 한 줄에 유지한다.
+  // 기존 책 칩과 내 책장 이동을 유지하며 입력만 자동 보관한다.
+  if (books.length === 0 && !draft.quote && !draft.note) return null;
   return (
     <Card hoverable={false}>
       <textarea
@@ -303,80 +302,75 @@ export default function Composer({ userId, books, recentUserBookId }: ComposerPr
         className="block w-full resize-none bg-transparent font-serif text-[17px] leading-relaxed text-ink placeholder:text-ink-faint focus:outline-none"
       />
 
-      <ComposerBookSelection
-        userId={userId}
-        value={selectedId}
-        initialBooks={
-          draft.submission && selectedId
-            ? [...books, { id: selectedId, books: { title: draft.submission.bookTitle } }]
-            : books
-        }
-        onChange={(id) => update({ selectedId: id })}
-        onResolved={onResolved}
-        disabled={!ready || locked}
-        initialSelectedId={initialSelected}
-      >
-        <Chip
-          selected={mode === 'quote'}
-          disabled={!ready || locked}
-          onClick={() => update({ mode: 'quote' })}
-        >
-          문장
-        </Chip>
-        <Chip
-          selected={mode === 'note'}
-          disabled={!ready || locked}
-          onClick={() => update({ mode: 'note' })}
-        >
-          생각
-        </Chip>
-        <span aria-hidden className="h-4 w-px shrink-0 bg-hairline" />
-        <Chip
-          selected={isPrivate}
-          aria-pressed={isPrivate}
-          disabled={!ready || locked}
-          onClick={() => update({ isPrivate: !isPrivate })}
-        >
-          <Lock size={12} strokeWidth={1.75} aria-hidden />
-          비공개
-        </Chip>
-        {!draft.submission && (
-          <Button
-            size="sm"
-            className="ml-auto"
-            onClick={handleSave}
-            disabled={
-              !ready || isSubmitting || !selectedBook || (!draft.quote.trim() && !draft.note.trim())
-            }
-          >
-            남기기
-          </Button>
-        )}
-      </ComposerBookSelection>
-      {(draft.quote || draft.note) && (
-        <div className="mt-2 flex items-center justify-between gap-2">
-          <p role="status" className="text-caption text-ink-faint">
-            {storageError
-              ? '초안을 보관하지 못했어요. 브라우저 저장 공간을 확인해 주세요.'
-              : '이 탭에 초안을 보관했어요.'}
-          </p>
-          <Button
-            size="sm"
-            variant="ghost"
-            disabled={!ready || isSubmitting}
-            onClick={() => {
-              const message = draft.submission
-                ? '저장된 기록이 이미 있을 수 있어요. 초안을 버려도 서버의 기록은 삭제되지 않습니다. 초안을 버릴까요?'
-                : '작성 중인 문장과 생각을 버릴까요?';
-              if (window.confirm(message)) {
-                discard();
-                setSaveError(null);
-              }
-            }}
-          >
-            초안 버리기
-          </Button>
+      <div className="mt-3.5 overflow-x-clip border-t border-hairline pt-3.5">
+        <div className="-ml-[17px] flex flex-wrap items-center gap-y-2.5">
+          <div className="ml-[17px] flex flex-wrap items-center gap-2">
+            {chipBooks.map((b, i) => (
+              <Chip
+                key={b.id}
+                selected={b.id === selectedId}
+                dot={b.id === selectedId}
+                disabled={!ready || locked}
+                aria-pressed={b.id === selectedId}
+                onClick={() => update({ selectedId: b.id })}
+                // 좁은 폭에선 2권까지만 — 단 선택된 칩은 순서와 무관하게 항상 남긴다
+                className={i >= 2 && b.id !== selectedId ? 'hidden sm:inline-flex' : undefined}
+              >
+                <span className="max-w-[8rem] truncate">{b.books.title}</span>
+              </Chip>
+            ))}
+            {/* 칩은 진행 중인 책 일부만 보여주므로, 전체 목록(내 책)으로 가는 문을 둔다 */}
+            <Chip onClick={() => router.push('/protected/books')} aria-label="내 책 전체 보기">
+              <LibraryBig size={12} strokeWidth={1.75} aria-hidden />내 책
+            </Chip>
+          </div>
+          <div className="relative ml-[17px] flex flex-1 items-center gap-2 before:absolute before:-left-[9px] before:top-1/2 before:h-4 before:w-px before:-translate-y-1/2 before:bg-hairline">
+            <Chip
+              selected={mode === 'quote'}
+              disabled={!ready || locked}
+              onClick={() => update({ mode: 'quote' })}
+            >
+              문장
+            </Chip>
+            <Chip
+              selected={mode === 'note'}
+              disabled={!ready || locked}
+              onClick={() => update({ mode: 'note' })}
+            >
+              생각
+            </Chip>
+            <span aria-hidden className="h-4 w-px shrink-0 bg-hairline" />
+            <Chip
+              selected={isPrivate}
+              aria-pressed={isPrivate}
+              disabled={!ready || locked}
+              onClick={() => update({ isPrivate: !isPrivate })}
+            >
+              <Lock size={12} strokeWidth={1.75} aria-hidden />
+              비공개
+            </Chip>
+            {!draft.submission && (
+              <Button
+                size="sm"
+                className="ml-auto"
+                onClick={handleSave}
+                disabled={
+                  !ready ||
+                  isSubmitting ||
+                  !selectedBook ||
+                  (!draft.quote.trim() && !draft.note.trim())
+                }
+              >
+                남기기
+              </Button>
+            )}
+          </div>
         </div>
+      </div>
+      {storageError && (draft.quote || draft.note) && (
+        <p role="alert" className="mt-2 text-caption text-ink-sub">
+          초안을 보관하지 못했어요. 브라우저 저장 공간을 확인해 주세요.
+        </p>
       )}
       {(draft.submission || saveError) && (
         <div className="mt-3 space-y-3 border-t border-hairline pt-3">
