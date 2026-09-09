@@ -1,3 +1,4 @@
+import { isEntrySubmission, type EntrySubmission } from './saveRequest';
 /** One draft per tab. Never sent to a server before the reader saves it. */
 export const COMPOSER_DRAFT_KEY = 'readiary:composer-draft:v1';
 export const COMPOSER_SAVED_EVENT = 'readiary:composer-saved';
@@ -8,6 +9,7 @@ export interface ComposerDraft {
   quote: string;
   note: string;
   isPrivate: boolean;
+  submission?: EntrySubmission;
 }
 export function readComposerDraft(storage: Storage, userId: string): ComposerDraft | null {
   const raw = storage.getItem(COMPOSER_DRAFT_KEY);
@@ -26,7 +28,11 @@ export function readComposerDraft(storage: Storage, userId: string): ComposerDra
       !['quote', 'note'].includes(value.mode) ||
       typeof value.quote !== 'string' ||
       typeof value.note !== 'string' ||
-      typeof value.isPrivate !== 'boolean'
+      typeof value.isPrivate !== 'boolean' ||
+      (value.submission !== undefined &&
+        (!isEntrySubmission(value.submission) ||
+          !value.selectedId ||
+          (!value.quote.trim() && !value.note.trim())))
     ) {
       storage.removeItem(COMPOSER_DRAFT_KEY);
       return null;

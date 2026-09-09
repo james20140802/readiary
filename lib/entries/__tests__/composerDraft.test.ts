@@ -70,6 +70,28 @@ describe('composer draft lifecycle', () => {
     writeComposerDraft(storage, { ...draft, quote: '', note: '' });
     expect(storage.length).toBe(0);
   });
+  it('restores the exact submission identity, original date and title after refresh', () => {
+    const pending = {
+      ...draft,
+      submission: {
+        id: '013b161a-70dc-4a6d-9c40-0ddf087fa2fa',
+        date: '2026-09-01',
+        bookTitle: '책',
+      },
+    };
+    writeComposerDraft(storage, pending);
+    expect(readComposerDraft(storage, 'alice')).toEqual(pending);
+    clearSubmittedComposerDraft(draft);
+    expect(readComposerDraft(storage, 'alice')).toEqual(pending);
+    clearSubmittedComposerDraft(pending);
+    expect(storage.length).toBe(0);
+  });
+  it('rejects corrupt pending requests rather than sending a fresh request for them', () => {
+    for (const submission of [null, {}, { id: 'bad', date: '2026-09-01', bookTitle: '책' }]) {
+      storage.setItem(COMPOSER_DRAFT_KEY, JSON.stringify({ ...draft, submission }));
+      expect(readComposerDraft(storage, 'alice')).toBeNull();
+    }
+  });
   it('reports blocked storage to callers rather than claiming persistence', () => {
     const blocked = {
       ...storage,

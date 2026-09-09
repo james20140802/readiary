@@ -1,5 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import { todayKST } from '@/lib/dates';
+import { toast } from 'sonner';
 import { createSupabaseClient } from '@/lib/supabase/client';
 import {
   COMPOSER_SAVED_EVENT,
@@ -33,8 +35,10 @@ export function useComposerDraft(userId: string, selectedId: string | null) {
         note: '',
         mode: 'quote',
         isPrivate: false,
+        submission: undefined,
       };
       setDraft(current.current);
+      toast.success('기록을 남겼어요.');
     };
     window.addEventListener(COMPOSER_SAVED_EVENT, onSaved);
     const {
@@ -85,7 +89,7 @@ export function useComposerDraft(userId: string, selectedId: string | null) {
     };
   }, [userId]);
   function update(patch: Partial<Omit<ComposerDraft, 'userId'>>) {
-    if (!active.current) return;
+    if (!active.current || current.current.submission) return;
     const next = { ...current.current, ...patch, userId };
     current.current = next;
     setDraft(next);
@@ -96,9 +100,57 @@ export function useComposerDraft(userId: string, selectedId: string | null) {
       setStorageError(true);
     }
   }
+  // Persist the stable request ID before sending anything. React state alone cannot guard two clicks in one tick.
+  function beginSubmission(bookTitle: string): ComposerDraft | null {
+    if (!active.current) return null;
+    if (current.current.submission) return current.current;
+    let next: ComposerDraft;
+    try {
+      next = {
+        ...current.current,
+        submission: { id: crypto.randomUUID(), date: todayKST(), bookTitle },
+      };
+      writeComposerDraft(sessionStorage, next);
+    } catch {
+      setStorageError(true);
+      return null;
+    }
+    current.current = next;
+    setDraft(next);
+    setStorageError(false);
+    return next;
+  }
+  function releaseSubmission(submitted: ComposerDraft) {
+    if (!active.current || current.current.submission?.id !== submitted.submission?.id) return;
+    current.current = { ...current.current, submission: undefined };
+    setDraft(current.current);
+    try {
+      writeComposerDraft(sessionStorage, current.current);
+    } catch {
+      setStorageError(true);
+    }
+  }
   function discard() {
-    update({ quote: '', note: '', mode: 'quote', isPrivate: false });
+    if (!active.current) return;
+    current.current = {
+      ...current.current,
+      quote: '',
+      note: '',
+      mode: 'quote',
+      isPrivate: false,
+      submission: undefined,
+    };
+    setDraft(current.current);
     clearComposerDraft();
   }
-  return { draft, update, discard, ready, storageError, isActive: () => active.current };
+  return {
+    draft,
+    update,
+    discard,
+    beginSubmission,
+    releaseSubmission,
+    ready,
+    storageError,
+    isActive: () => active.current,
+  };
 }

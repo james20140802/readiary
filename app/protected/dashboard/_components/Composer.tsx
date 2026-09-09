@@ -1,7 +1,7 @@
 'use client';
 
 import { apiFetch } from '@/lib/api/fetch';
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { clearSubmittedComposerDraft } from '@/lib/entries/composerDraft';
 import { useComposerDraft } from '@/hooks/useComposerDraft';
 import ComposerBookSelection, {
@@ -11,7 +11,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Lock } from 'lucide-react';
 import { MyBook } from '@/types/book';
-import { todayKST } from '@/lib/dates';
+import Link from 'next/link';
 import Card from '@/components/ui/Card';
 import Chip from '@/components/ui/Chip';
 import Button from '@/components/ui/Button';
@@ -37,15 +37,24 @@ export default function Composer({ userId, books, recentUserBookId }: ComposerPr
   const router = useRouter();
   const initialSelected = books.find((b) => b.id === recentUserBookId)?.id ?? books[0]?.id ?? null;
 
-  const { draft, update, discard, ready, storageError, isActive } = useComposerDraft(
-    userId,
-    initialSelected
-  );
+  const {
+    draft,
+    update,
+    discard,
+    beginSubmission,
+    releaseSubmission,
+    ready,
+    storageError,
+    isActive,
+  } = useComposerDraft(userId, initialSelected);
   const { selectedId, mode, isPrivate } = draft;
   const text = draft[mode];
   const [resolvedBook, setResolvedBook] = useState<ComposerBook>();
   const onResolved = useCallback((book: ComposerBook) => setResolvedBook(book), []);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const submitLock = useRef(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const locked = isSubmitting || Boolean(draft.submission);
   const [savedEntry, setSavedEntry] = useState<SavedEntry | null>(null);
   const [showExtraText, setShowExtraText] = useState(false);
   const [showPages, setShowPages] = useState(false);
@@ -61,50 +70,78 @@ export default function Composer({ userId, books, recentUserBookId }: ComposerPr
     if (
       !ready ||
       !isActive() ||
-      !selectedBook ||
-      (!draft.quote.trim() && !draft.note.trim()) ||
-      isSubmitting
+      submitLock.current ||
+      (!draft.submission && (!selectedBook || (!draft.quote.trim() && !draft.note.trim())))
     )
       return;
+    submitLock.current = true;
+    setSaveError(null);
+    const submitted = beginSubmission(selectedBook?.books.title ?? '선택한 책');
+    if (!submitted?.submission) {
+      submitLock.current = false;
+      setSaveError('저장 준비를 보관하지 못했어요. 브라우저 저장 공간을 확인해 주세요.');
+      return;
+    }
+    const submission = submitted.submission;
     setIsSubmitting(true);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
     try {
       const res = await apiFetch('/api/entries/new', {
         method: 'POST',
+        signal: controller.signal,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          user_book_id: selectedBook.id,
-          quote: draft.quote.trim() || null,
-          note: draft.note.trim() || null,
-          date: todayKST(),
-          is_private: isPrivate,
+          client_entry_id: submission.id,
+          user_book_id: submitted.selectedId,
+          quote: submitted.quote.trim() || null,
+          note: submitted.note.trim() || null,
+          date: submission.date,
+          is_private: submitted.isPrivate,
         }),
       });
       const data = await res.json().catch(() => null);
-      if (!res.ok || !data?.id) {
-        toast.error(data?.error ?? '저장에 실패했어요.');
+      if (!res.ok || data?.id !== submission.id) {
+        if (!isActive()) return;
+        if ([400, 403].includes(res.status)) {
+          releaseSubmission(submitted);
+          setSaveError(data?.error ?? '저장하지 못했어요. 입력을 확인하고 다시 남겨 주세요.');
+        } else {
+          setSaveError(
+            '저장 결과를 확인하지 못했어요. 같은 기록으로 안전하게 다시 시도할 수 있어요.'
+          );
+        }
+        toast.error(data?.error ?? '저장 결과를 확인하지 못했어요.');
         return;
       }
-      clearSubmittedComposerDraft(draft);
+      clearSubmittedComposerDraft(submitted);
       if (!isActive()) return;
       setSavedEntry({
         id: data.id,
-        mode: draft.quote.trim() ? 'quote' : 'note',
-        text: draft.quote.trim() || draft.note.trim(),
-        bookTitle: selectedBook.books.title,
+        mode: submitted.quote.trim() ? 'quote' : 'note',
+        text: submitted.quote.trim() || submitted.note.trim(),
+        bookTitle: submission.bookTitle,
       });
-      setExtraText(draft.quote.trim() ? draft.note : '');
-      setShowExtraText(Boolean(draft.quote.trim() && draft.note.trim()));
+      setExtraText(submitted.quote.trim() ? submitted.note : '');
+      setShowExtraText(Boolean(submitted.quote.trim() && submitted.note.trim()));
       discard();
       router.refresh();
     } catch {
-      toast.error('서버와 통신 중 오류가 발생했습니다.');
+      if (!isActive()) return;
+      setSaveError(
+        '응답을 받지 못했어요. 기록이 이미 남겨졌을 수 있으니 저장 확인·재시도를 눌러 주세요.'
+      );
+      toast.error('저장 결과를 확인하지 못했어요.');
     } finally {
+      clearTimeout(timeout);
+      submitLock.current = false;
       setIsSubmitting(false);
     }
   };
 
   const resetAll = () => {
     setSavedEntry(null);
+    setSaveError(null);
     setShowExtraText(false);
     setShowPages(false);
     setExtraText('');
@@ -161,6 +198,15 @@ export default function Composer({ userId, books, recentUserBookId }: ComposerPr
     return (
       <Card hoverable={false}>
         <Seal>오늘의 기록</Seal>
+        <p role="status" className="mt-2 text-caption text-ink-sub">
+          기록을 남겼어요.
+        </p>
+        <Link
+          className="text-caption text-accent underline"
+          href={`/protected/entry/${savedEntry.id}`}
+        >
+          남긴 기록 보기
+        </Link>
         <p className="mt-2 whitespace-pre-wrap font-serif text-quote text-ink">{savedEntry.text}</p>
         <p className="mt-1 text-caption text-ink-sub">{savedEntry.bookTitle}</p>
 
@@ -246,7 +292,7 @@ export default function Composer({ userId, books, recentUserBookId }: ComposerPr
       <textarea
         value={text}
         onChange={(e) => update({ [mode]: e.target.value })}
-        disabled={!ready || isSubmitting}
+        disabled={!ready || locked}
         placeholder={
           mode === 'quote'
             ? '오늘 마음에 남은 문장을 남겨보세요'
@@ -260,16 +306,20 @@ export default function Composer({ userId, books, recentUserBookId }: ComposerPr
       <ComposerBookSelection
         userId={userId}
         value={selectedId}
-        initialBooks={books}
+        initialBooks={
+          draft.submission && selectedId
+            ? [...books, { id: selectedId, books: { title: draft.submission.bookTitle } }]
+            : books
+        }
         onChange={(id) => update({ selectedId: id })}
         onResolved={onResolved}
-        disabled={!ready || isSubmitting}
+        disabled={!ready || locked}
       />
       {(draft.quote || draft.note) && (
         <div className="mt-2 flex items-center justify-between gap-2">
           <p role="status" className="text-caption text-ink-faint">
             {storageError
-              ? '초안을 보관하지 못했어요. 화면을 떠나기 전에 남겨 주세요.'
+              ? '초안을 보관하지 못했어요. 브라우저 저장 공간을 확인해 주세요.'
               : '이 탭에 초안을 보관했어요.'}
           </p>
           <Button
@@ -277,11 +327,37 @@ export default function Composer({ userId, books, recentUserBookId }: ComposerPr
             variant="ghost"
             disabled={!ready || isSubmitting}
             onClick={() => {
-              if (window.confirm('작성 중인 문장과 생각을 버릴까요?')) discard();
+              const message = draft.submission
+                ? '저장된 기록이 이미 있을 수 있어요. 초안을 버려도 서버의 기록은 삭제되지 않습니다. 초안을 버릴까요?'
+                : '작성 중인 문장과 생각을 버릴까요?';
+              if (window.confirm(message)) {
+                discard();
+                setSaveError(null);
+              }
             }}
           >
             초안 버리기
           </Button>
+        </div>
+      )}
+      {(draft.submission || saveError) && (
+        <div className="mt-3 space-y-3 border-t border-hairline pt-3">
+          <p role={saveError ? 'alert' : 'status'} className="text-caption text-ink-sub">
+            {isSubmitting
+              ? '기록을 남기는 중이에요.'
+              : (saveError ??
+                '이전에 요청한 저장 결과를 확인해 주세요. 다시 시도해도 같은 기록으로 처리됩니다.')}
+          </p>
+          {draft.submission && !isSubmitting && (
+            <div className="flex flex-wrap items-center gap-3">
+              <Button size="sm" onClick={handleSave} disabled={!ready}>
+                저장 확인·재시도
+              </Button>
+              <Link href="/protected/books" className="text-caption text-accent underline">
+                내 책장에서 확인
+              </Link>
+            </div>
+          )}
         </div>
       )}
       <div className="mt-3.5 border-t border-hairline pt-3.5">
@@ -289,14 +365,14 @@ export default function Composer({ userId, books, recentUserBookId }: ComposerPr
           <div className="flex flex-1 items-center gap-2">
             <Chip
               selected={mode === 'quote'}
-              disabled={!ready || isSubmitting}
+              disabled={!ready || locked}
               onClick={() => update({ mode: 'quote' })}
             >
               문장
             </Chip>
             <Chip
               selected={mode === 'note'}
-              disabled={!ready || isSubmitting}
+              disabled={!ready || locked}
               onClick={() => update({ mode: 'note' })}
             >
               생각
@@ -305,25 +381,27 @@ export default function Composer({ userId, books, recentUserBookId }: ComposerPr
             <Chip
               selected={isPrivate}
               aria-pressed={isPrivate}
-              disabled={!ready || isSubmitting}
+              disabled={!ready || locked}
               onClick={() => update({ isPrivate: !isPrivate })}
             >
               <Lock size={12} strokeWidth={1.75} aria-hidden />
               비공개
             </Chip>
-            <Button
-              size="sm"
-              className="ml-auto"
-              onClick={handleSave}
-              disabled={
-                !ready ||
-                isSubmitting ||
-                !selectedBook ||
-                (!draft.quote.trim() && !draft.note.trim())
-              }
-            >
-              {isSubmitting ? '남기는 중...' : '남기기'}
-            </Button>
+            {!draft.submission && (
+              <Button
+                size="sm"
+                className="ml-auto"
+                onClick={handleSave}
+                disabled={
+                  !ready ||
+                  isSubmitting ||
+                  !selectedBook ||
+                  (!draft.quote.trim() && !draft.note.trim())
+                }
+              >
+                남기기
+              </Button>
+            )}
           </div>
         </div>
       </div>
