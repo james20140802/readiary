@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { AnimatePresence, motion } from 'framer-motion';
 import Seal from '@/components/ui/Seal';
+import Button from '@/components/ui/Button';
 import {
   STACK_MAX,
   pageStackShadow,
@@ -139,7 +140,11 @@ export default function OpenBook({ book, slotOpen, onClose, onReturn, onClosed }
     >
       <div ref={stageRef} className="mx-auto w-[min(100%,480px)] py-6">
         {/* 책 한 권의 자리 — 왼쪽 절반은 넘어간 표지, 오른쪽 절반은 남은 종이 */}
-        <div ref={bookRef} className="relative aspect-[10/7]" style={{ perspective: 1600 }}>
+        <div
+          ref={bookRef}
+          className="relative h-[360px] w-full sm:aspect-[10/7] sm:h-auto"
+          style={{ perspective: 1600 }}
+        >
           {shown && stacks && (
             <motion.div
               key={`right-${shown.id}`}
@@ -221,23 +226,30 @@ export default function OpenBook({ book, slotOpen, onClose, onReturn, onClosed }
                       </div>
                     )}
                   </dl>
-                  <div className="mt-auto flex items-center justify-between gap-3 pt-3 text-[12.5px] sm:text-[13px]">
-                    <Link
-                      href={shown.href}
-                      tabIndex={isOpen ? undefined : -1}
-                      className="font-serif text-accent hover:underline"
-                    >
-                      책 상세 →
-                    </Link>
-                    <button
-                      ref={closeButtonRef}
-                      type="button"
-                      onClick={onClose}
-                      tabIndex={isOpen ? undefined : -1}
-                      className="text-ink-faint transition-colors hover:text-ink-sub focus-visible:text-ink focus-visible:outline-none"
-                    >
-                      덮기
-                    </button>
+                  <div className="mt-auto space-y-1 pt-3">
+                    <Button asChild fullWidth className="min-h-11 px-2">
+                      <Link href={`${shown.href}/entry/new`} tabIndex={isOpen ? undefined : -1}>
+                        기록 남기기
+                      </Link>
+                    </Button>
+                    <div className="flex items-center justify-between gap-2 text-[12.5px] sm:text-[13px]">
+                      <Link
+                        href={shown.href}
+                        tabIndex={isOpen ? undefined : -1}
+                        className="inline-flex min-h-11 items-center text-accent hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+                      >
+                        책 상세 →
+                      </Link>
+                      <button
+                        ref={closeButtonRef}
+                        type="button"
+                        onClick={onClose}
+                        tabIndex={isOpen ? undefined : -1}
+                        className="inline-flex min-h-11 min-w-11 items-center justify-center text-ink-sub transition-colors hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+                      >
+                        덮기
+                      </button>
+                    </div>
                   </div>
                 </motion.div>
               </div>
