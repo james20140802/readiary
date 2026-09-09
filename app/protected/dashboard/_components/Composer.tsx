@@ -60,8 +60,14 @@ export default function Composer({ userId, books, recentUserBookId }: ComposerPr
   const chipBooks = useMemo(() => {
     const first = books.find((b) => b.id === initialSelected);
     const ordered = first ? [first, ...books.filter((b) => b.id !== first.id)] : books;
-    return ordered.slice(0, 3);
-  }, [books, initialSelected]);
+    const preview = ordered.slice(0, 3);
+    const restored = books.find((b) => b.id === selectedId);
+    // 최근 기록 책이 달라져도 초안의 저장 대상은 칩에서 확인할 수 있어야 한다.
+    if (restored && !preview.some((b) => b.id === restored.id)) {
+      return [...preview.slice(0, 2), restored];
+    }
+    return preview;
+  }, [books, initialSelected, selectedId]);
   const selectedBook = books.find((b) => b.id === selectedId) ?? null;
 
   const handleSave = async () => {
