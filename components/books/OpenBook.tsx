@@ -137,7 +137,7 @@ export default function OpenBook({ book, slotOpen, onClose, onReturn, onClosed }
       }}
       className={slotOpen ? 'overflow-visible' : 'pointer-events-none overflow-hidden'}
     >
-      <div ref={stageRef} className="mx-auto w-[min(100%,480px)] pb-20 pt-6">
+      <div ref={stageRef} className="mx-auto w-[min(100%,480px)] py-6">
         {/* 책 한 권의 자리 — 왼쪽 절반은 넘어간 표지, 오른쪽 절반은 남은 종이 */}
         <div ref={bookRef} className="relative aspect-[10/7]" style={{ perspective: 1600 }}>
           {shown && stacks && (
@@ -173,11 +173,11 @@ export default function OpenBook({ book, slotOpen, onClose, onReturn, onClosed }
                   initial={{ opacity: 0 }}
                   animate={{ opacity: isOpen ? 1 : 0 }}
                   transition={{ duration: 0.3, delay: isOpen ? FLIP * 0.45 : 0 }}
-                  className="relative flex h-full flex-col px-3 py-3 sm:px-5 sm:py-5"
+                  className="relative flex h-full flex-col px-4 py-4 sm:px-5 sm:py-5"
                 >
                   <Seal>{shown.isFinished ? '완독' : '읽는 중'}</Seal>
-                  {/* 제목도 상세로 가는 문 — 아래 "책 상세 →"와 같은 곳 */}
-                  <p className="mt-1 shrink-0 line-clamp-2 sm:mt-2 sm:line-clamp-3 font-serif text-[15px] font-bold leading-snug text-ink sm:text-[18px]">
+                  {/* 제목은 책 상세로, 하단 링크는 기록 작성으로 이동한다. */}
+                  <p className="mt-2 line-clamp-3 font-serif text-[15px] font-bold leading-snug text-ink sm:text-[18px]">
                     <Link
                       href={shown.href}
                       tabIndex={isOpen ? undefined : -1}
@@ -191,7 +191,7 @@ export default function OpenBook({ book, slotOpen, onClose, onReturn, onClosed }
                       {shown.author}
                     </p>
                   )}
-                  <div className="my-1 w-6 border-t border-hairline-strong sm:my-4 sm:w-7" />
+                  <div className="my-3 w-6 border-t border-hairline-strong sm:my-4 sm:w-7" />
                   <dl className="space-y-0.5 font-serif text-[12px] tabular-nums leading-relaxed text-ink-sub sm:text-[12.5px]">
                     <div>
                       <dt className="sr-only">진행</dt>
@@ -221,6 +221,24 @@ export default function OpenBook({ book, slotOpen, onClose, onReturn, onClosed }
                       </div>
                     )}
                   </dl>
+                  <div className="mt-auto flex items-center justify-between gap-3 pt-3 text-[12.5px] sm:text-[13px]">
+                    <Link
+                      href={`${shown.href}/entry/new`}
+                      tabIndex={isOpen ? undefined : -1}
+                      className="font-serif text-accent hover:underline"
+                    >
+                      기록 남기기 →
+                    </Link>
+                    <button
+                      ref={closeButtonRef}
+                      type="button"
+                      onClick={onClose}
+                      tabIndex={isOpen ? undefined : -1}
+                      className="text-ink-faint transition-colors hover:text-ink-sub focus-visible:text-ink focus-visible:outline-none"
+                    >
+                      덮기
+                    </button>
+                  </div>
                 </motion.div>
               </div>
             </motion.div>
@@ -361,34 +379,12 @@ export default function OpenBook({ book, slotOpen, onClose, onReturn, onClosed }
               </motion.div>
             )}
           </AnimatePresence>
-          {shown && (
-            <div
-              className={`absolute top-full mt-3 flex w-full items-center justify-end gap-5 text-[12.5px] sm:text-[13px] ${isOpen ? '' : 'invisible'}`}
-            >
-              <Link
-                href={`${shown.href}/entry/new`}
-                tabIndex={isOpen ? undefined : -1}
-                className="inline-flex min-h-11 items-center text-accent hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
-              >
-                기록 남기기 →
-              </Link>
-              <Link
-                href={shown.href}
-                tabIndex={isOpen ? undefined : -1}
-                className="inline-flex min-h-11 items-center text-ink-sub hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
-              >
-                책 상세 →
-              </Link>
-              <button
-                ref={closeButtonRef}
-                type="button"
-                onClick={onClose}
-                tabIndex={isOpen ? undefined : -1}
-                className="inline-flex min-h-11 min-w-11 items-center justify-center text-ink-sub hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
-              >
-                덮기
-              </button>
-            </div>
+          {shown && isOpen && (
+            <Link
+              href={shown.href}
+              aria-label={`${shown.title} 책 상세 보기`}
+              className="absolute inset-y-0 left-0 w-1/2 rounded-l-[5px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+            />
           )}
         </div>
       </div>
