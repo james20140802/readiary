@@ -314,7 +314,45 @@ export default function Composer({ userId, books, recentUserBookId }: ComposerPr
         onChange={(id) => update({ selectedId: id })}
         onResolved={onResolved}
         disabled={!ready || locked}
-      />
+        initialSelectedId={initialSelected}
+      >
+        <Chip
+          selected={mode === 'quote'}
+          disabled={!ready || locked}
+          onClick={() => update({ mode: 'quote' })}
+        >
+          문장
+        </Chip>
+        <Chip
+          selected={mode === 'note'}
+          disabled={!ready || locked}
+          onClick={() => update({ mode: 'note' })}
+        >
+          생각
+        </Chip>
+        <span aria-hidden className="h-4 w-px shrink-0 bg-hairline" />
+        <Chip
+          selected={isPrivate}
+          aria-pressed={isPrivate}
+          disabled={!ready || locked}
+          onClick={() => update({ isPrivate: !isPrivate })}
+        >
+          <Lock size={12} strokeWidth={1.75} aria-hidden />
+          비공개
+        </Chip>
+        {!draft.submission && (
+          <Button
+            size="sm"
+            className="ml-auto"
+            onClick={handleSave}
+            disabled={
+              !ready || isSubmitting || !selectedBook || (!draft.quote.trim() && !draft.note.trim())
+            }
+          >
+            남기기
+          </Button>
+        )}
+      </ComposerBookSelection>
       {(draft.quote || draft.note) && (
         <div className="mt-2 flex items-center justify-between gap-2">
           <p role="status" className="text-caption text-ink-faint">
@@ -360,51 +398,6 @@ export default function Composer({ userId, books, recentUserBookId }: ComposerPr
           )}
         </div>
       )}
-      <div className="mt-3.5 border-t border-hairline pt-3.5">
-        <div className="flex items-center gap-2">
-          <div className="flex flex-1 items-center gap-2">
-            <Chip
-              selected={mode === 'quote'}
-              disabled={!ready || locked}
-              onClick={() => update({ mode: 'quote' })}
-            >
-              문장
-            </Chip>
-            <Chip
-              selected={mode === 'note'}
-              disabled={!ready || locked}
-              onClick={() => update({ mode: 'note' })}
-            >
-              생각
-            </Chip>
-            <span aria-hidden className="h-4 w-px shrink-0 bg-hairline" />
-            <Chip
-              selected={isPrivate}
-              aria-pressed={isPrivate}
-              disabled={!ready || locked}
-              onClick={() => update({ isPrivate: !isPrivate })}
-            >
-              <Lock size={12} strokeWidth={1.75} aria-hidden />
-              비공개
-            </Chip>
-            {!draft.submission && (
-              <Button
-                size="sm"
-                className="ml-auto"
-                onClick={handleSave}
-                disabled={
-                  !ready ||
-                  isSubmitting ||
-                  !selectedBook ||
-                  (!draft.quote.trim() && !draft.note.trim())
-                }
-              >
-                남기기
-              </Button>
-            )}
-          </div>
-        </div>
-      </div>
     </Card>
   );
 }
