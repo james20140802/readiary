@@ -44,7 +44,7 @@ export default function ConsentFieldset({
   return (
     <>
       <fieldset className="space-y-2 pt-1">
-        <legend className="sr-only">동의</legend>
+        <legend className="sr-only">가입을 위한 필수 확인</legend>
         <label htmlFor={ageId} className="flex items-center gap-2 text-body-sm text-ink-sub">
           <input
             type="checkbox"
@@ -53,7 +53,7 @@ export default function ConsentFieldset({
             onChange={(e) => onChange({ ...value, age: e.target.checked })}
             className="h-4 w-4 accent-accent"
           />
-          <span>만 14세 이상입니다</span>
+          <span>만 14세 이상입니다 (필수)</span>
         </label>
         <label htmlFor={privacyId} className="flex items-center gap-2 text-body-sm text-ink-sub">
           <input
@@ -71,7 +71,7 @@ export default function ConsentFieldset({
             >
               개인정보 수집 및 이용
             </button>
-            에 동의합니다
+            에 동의합니다 (필수)
           </span>
         </label>
         <label htmlFor={termsId} className="flex items-center gap-2 text-body-sm text-ink-sub">
@@ -90,7 +90,7 @@ export default function ConsentFieldset({
             >
               서비스 이용 약관
             </button>
-            에 동의합니다
+            에 동의합니다 (필수)
           </span>
         </label>
       </fieldset>
