@@ -120,7 +120,7 @@ export default function OnboardingForm({
       title="프로필 설정"
       lead={
         requireConsent
-          ? '이름과 닉네임을 정하고 약관에 동의하면 책장이 열립니다.'
+          ? '이름과 닉네임을 정하고, 만 14세 이상 확인과 필수 동의를 마치면 책장이 열립니다.'
           : '이름과 닉네임을 정하면 책장이 열립니다.'
       }
     >

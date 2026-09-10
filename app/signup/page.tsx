@@ -220,7 +220,7 @@ export default function SignupPage() {
           </GoogleSignInButton>
           {!consented && (
             <p className="mt-2 text-center text-caption text-ink-faint">
-              위 두 항목에 동의하면 Google 계정으로도 가입할 수 있습니다.
+              위 필수 항목을 모두 확인하면 Google 계정으로 가입할 수 있습니다.
             </p>
           )}
         </>
