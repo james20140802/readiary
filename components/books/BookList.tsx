@@ -65,7 +65,7 @@ function TextToggle<T extends string>({
           className={`transition-colors ${
             value === opt.value
               ? 'text-ink underline decoration-accent underline-offset-4'
-              : 'text-ink-faint hover:text-ink-sub'
+              : 'text-ink-sub hover:text-ink'
           }`}
         >
           {opt.label}
@@ -163,7 +163,7 @@ export default function BookList({ books, stats, isFriend = false, nicknameAndTa
               resetOpen();
               setSort((v) => (v === 'recent' ? 'title' : 'recent'));
             }}
-            className="text-ink-faint transition-colors hover:text-ink-sub"
+            className="text-ink-sub transition-colors hover:text-ink"
           >
             {sort === 'recent' ? '최근 등록순' : '제목순'} ↕
           </button>
@@ -181,7 +181,7 @@ export default function BookList({ books, stats, isFriend = false, nicknameAndTa
       </div>
 
       {processed.length === 0 ? (
-        <p className="py-12 text-center font-serif text-[14px] text-ink-faint">
+        <p className="py-12 text-center font-serif text-[14px] text-ink-sub">
           {filter === 'finished' ? '아직 완독한 책이 없습니다.' : '읽는 중인 책이 없습니다.'}
         </p>
       ) : viewMode === 'shelf' ? (
@@ -219,11 +219,11 @@ export default function BookList({ books, stats, isFriend = false, nicknameAndTa
                     <p className="truncate font-serif text-[15px] leading-snug text-ink group-hover:underline group-hover:decoration-hairline-strong group-hover:underline-offset-4">
                       {book.title}
                     </p>
-                    <p className="mt-0.5 truncate text-caption text-ink-faint">{book.author}</p>
+                    <p className="mt-0.5 truncate text-caption text-ink-sub">{book.author}</p>
                   </div>
                   <span
                     className={`shrink-0 text-[12.5px] tabular-nums ${
-                      isFinished ? 'font-serif text-accent' : 'text-ink-faint'
+                      isFinished ? 'font-serif text-accent' : 'text-ink-sub'
                     }`}
                   >
                     {progressLine(ub)}
@@ -232,7 +232,7 @@ export default function BookList({ books, stats, isFriend = false, nicknameAndTa
                 {!isFriend && !isFinished && (
                   <Link
                     href={`/protected/books/${ub.book_id}/entry/new`}
-                    className="shrink-0 text-[12.5px] text-ink-faint transition-colors hover:text-accent"
+                    className="shrink-0 text-[12.5px] text-ink-sub transition-colors hover:text-accent"
                   >
                     기록 →
                   </Link>
