@@ -125,15 +125,7 @@ export default function SignupPage() {
   }
 
   return (
-    <AuthFrame
-      title="가입"
-      lead="하루 한 문장으로 시작하세요."
-      footer={
-        <p>
-          이미 회원이신가요? <Link href={loginHref}>로그인</Link>
-        </p>
-      }
-    >
+    <AuthFrame title="가입" lead="하루 한 문장으로 시작하세요.">
       <form onSubmit={handleSignup} noValidate className="space-y-5">
         {formError && <FormAlert>{formError}</FormAlert>}
 
@@ -211,6 +203,12 @@ export default function SignupPage() {
           {isSubmitting ? '가입 중...' : '가입하기'}
         </Button>
       </form>
+      <p className="mt-3 text-center text-body-sm text-ink-sub">
+        이미 회원이신가요?{' '}
+        <Link href={loginHref} className="underline underline-offset-4 hover:text-ink">
+          로그인
+        </Link>
+      </p>
 
       {googleEnabled && (
         <>
@@ -220,7 +218,7 @@ export default function SignupPage() {
           </GoogleSignInButton>
           {!consented && (
             <p className="mt-2 text-center text-caption text-ink-faint">
-              위 두 항목에 동의하면 Google 계정으로도 가입할 수 있습니다.
+              위 필수 항목을 모두 확인하면 Google 계정으로 가입할 수 있습니다.
             </p>
           )}
         </>

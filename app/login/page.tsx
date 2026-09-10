@@ -113,20 +113,7 @@ export default function LoginPage() {
   const signupHref = authHrefWithRedirect('/signup', redirectParam);
 
   return (
-    <AuthFrame
-      title="로그인"
-      lead="이어서 오늘의 문장을 남겨 보세요."
-      footer={
-        <>
-          <p>
-            비밀번호를 잊으셨나요? <Link href="/reset-password">비밀번호 찾기</Link>
-          </p>
-          <p>
-            아직 회원이 아니신가요? <Link href={signupHref}>가입하기</Link>
-          </p>
-        </>
-      }
-    >
+    <AuthFrame title="로그인" lead="이어서 오늘의 문장을 남겨 보세요.">
       {isGoogleLoginEnabled() && (
         <>
           <GoogleSignInButton redirectParam={redirectParam} />
@@ -197,6 +184,14 @@ export default function LoginPage() {
           {isSubmitting ? '로그인 중...' : '로그인'}
         </Button>
       </form>
+      <div className="mt-3 space-y-2 text-center text-body-sm text-ink-sub [&_a]:underline [&_a]:underline-offset-4 [&_a:hover]:text-ink">
+        <p>
+          비밀번호를 잊으셨나요? <Link href="/reset-password">비밀번호 찾기</Link>
+        </p>
+        <p>
+          아직 회원이 아니신가요? <Link href={signupHref}>가입하기</Link>
+        </p>
+      </div>
     </AuthFrame>
   );
 }
