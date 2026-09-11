@@ -384,7 +384,7 @@ export default function Composer({ userId, books, recentUserBookId }: ComposerPr
               <LibraryBig size={12} strokeWidth={1.75} aria-hidden />내 책
             </Chip>
           </div>
-          <div className="flex min-w-max flex-auto items-center gap-1 whitespace-nowrap [&>button]:shrink-0 [&>button]:px-2">
+          <div className="flex min-w-max flex-auto items-center gap-1 whitespace-nowrap [&>button]:shrink-0 [&>button:nth-child(n+3)]:px-2">
             <Chip
               selected={mode === 'quote'}
               disabled={!ready || locked}
