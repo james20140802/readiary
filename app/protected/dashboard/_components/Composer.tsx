@@ -1,7 +1,7 @@
 'use client';
 
 import { apiFetch } from '@/lib/api/fetch';
-import { useMemo, useRef, useState } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { clearSubmittedComposerDraft } from '@/lib/entries/composerDraft';
 import { useComposerDraft } from '@/hooks/useComposerDraft';
 import { useRouter } from 'next/navigation';
@@ -69,6 +69,38 @@ export default function Composer({ userId, books, recentUserBookId }: ComposerPr
     return preview;
   }, [books, initialSelected, selectedId]);
   const selectedBook = books.find((b) => b.id === selectedId) ?? null;
+  const controlsRef = useRef<HTMLDivElement>(null);
+  const booksRef = useRef<HTMLDivElement>(null);
+  const [visibleBookIds, setVisibleBookIds] = useState<string[] | null>(null);
+
+  useLayoutEffect(() => {
+    const controls = controlsRef.current;
+    const row = booksRef.current;
+    if (!controls || !row) return;
+    const fitBooks = () => {
+      const chips = Array.from(row.querySelectorAll<HTMLButtonElement>('[data-book-id]'));
+      const allBooks = row.querySelector<HTMLButtonElement>('[data-all-books]');
+      if (!allBooks) return;
+      let remaining = controls.clientWidth - allBooks.offsetWidth;
+      const priority = [...chips].sort(
+        (a, b) => Number(b.dataset.bookId === selectedId) - Number(a.dataset.bookId === selectedId)
+      );
+      const visible: string[] = [];
+      for (const chip of priority) {
+        const width = chip.offsetWidth + 8;
+        if (width <= remaining || visible.length === 0) {
+          visible.push(chip.dataset.bookId!);
+          remaining -= width;
+        }
+      }
+      setVisibleBookIds((previous) => (previous?.join() === visible.join() ? previous : visible));
+    };
+    const observer = new ResizeObserver(fitBooks);
+    observer.observe(controls);
+    for (const child of row.children) observer.observe(child);
+    fitBooks();
+    return () => observer.disconnect();
+  }, [chipBooks, selectedId, savedEntry]);
 
   const handleSave = async () => {
     if (
@@ -308,10 +340,16 @@ export default function Composer({ userId, books, recentUserBookId }: ComposerPr
         className="block w-full resize-none bg-transparent font-serif text-[17px] leading-relaxed text-ink placeholder:text-ink-faint focus:outline-none"
       />
 
-      <div className="mt-3.5 overflow-x-clip border-t border-hairline pt-3.5">
-        <div className="-ml-[17px] flex flex-wrap items-center gap-y-2.5">
-          <div className="ml-[17px] flex flex-wrap items-center gap-2">
-            {chipBooks.map((b, i) => (
+      <div className="mt-3.5 border-t border-hairline pt-3.5">
+        <div
+          ref={controlsRef}
+          className="flex flex-wrap items-center gap-x-4 gap-y-2.5 [container-type:inline-size]"
+        >
+          <div
+            ref={booksRef}
+            className="relative flex max-w-full flex-none items-center gap-2 whitespace-nowrap"
+          >
+            {chipBooks.map((b) => (
               <Chip
                 key={b.id}
                 selected={b.id === selectedId}
@@ -319,18 +357,34 @@ export default function Composer({ userId, books, recentUserBookId }: ComposerPr
                 disabled={!ready || locked}
                 aria-pressed={b.id === selectedId}
                 onClick={() => update({ selectedId: b.id })}
-                // 좁은 폭에선 2권까지만 — 단 선택된 칩은 순서와 무관하게 항상 남긴다
-                className={i >= 2 && b.id !== selectedId ? 'hidden sm:inline-flex' : undefined}
+                data-book-id={b.id}
+                aria-hidden={visibleBookIds !== null && !visibleBookIds.includes(b.id)}
+                tabIndex={
+                  visibleBookIds !== null && !visibleBookIds.includes(b.id) ? -1 : undefined
+                }
+                className="shrink-0"
+                style={
+                  visibleBookIds !== null && !visibleBookIds.includes(b.id)
+                    ? { position: 'absolute', visibility: 'hidden', pointerEvents: 'none' }
+                    : undefined
+                }
               >
-                <span className="max-w-[8rem] truncate">{b.books.title}</span>
+                <span className="max-w-[min(8rem,calc(100cqw-7.5rem))] truncate">
+                  {b.books.title}
+                </span>
               </Chip>
             ))}
             {/* 칩은 진행 중인 책 일부만 보여주므로, 전체 목록(내 책)으로 가는 문을 둔다 */}
-            <Chip onClick={() => router.push('/protected/books')} aria-label="내 책 전체 보기">
+            <Chip
+              data-all-books
+              className="shrink-0"
+              onClick={() => router.push('/protected/books')}
+              aria-label="내 책 전체 보기"
+            >
               <LibraryBig size={12} strokeWidth={1.75} aria-hidden />내 책
             </Chip>
           </div>
-          <div className="relative ml-[17px] flex flex-1 items-center gap-2 before:absolute before:-left-[9px] before:top-1/2 before:h-4 before:w-px before:-translate-y-1/2 before:bg-hairline">
+          <div className="flex min-w-max flex-auto items-center gap-1 whitespace-nowrap [&>button]:shrink-0 [&>button]:px-2">
             <Chip
               selected={mode === 'quote'}
               disabled={!ready || locked}
