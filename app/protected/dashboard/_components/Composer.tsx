@@ -310,8 +310,8 @@ export default function Composer({ userId, books, recentUserBookId }: ComposerPr
 
       <div className="mt-3.5 border-t border-hairline pt-3.5">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2.5">
-          <div className="flex min-w-0 max-w-full items-center gap-2 overflow-x-auto py-0.5">
-            {chipBooks.map((b, i) => (
+          <div className="flex w-full min-w-0 max-w-full items-center gap-2 py-0.5 sm:w-auto">
+            {chipBooks.map((b) => (
               <Chip
                 key={b.id}
                 selected={b.id === selectedId}
@@ -319,9 +319,11 @@ export default function Composer({ userId, books, recentUserBookId }: ComposerPr
                 disabled={!ready || locked}
                 aria-pressed={b.id === selectedId}
                 onClick={() => update({ selectedId: b.id })}
-                // 좁은 폭에선 2권까지만 — 단 선택된 칩은 순서와 무관하게 항상 남긴다
+                // 모바일은 선택한 책 한 권만 남긴다. 초안 복원 전에는 첫 후보를 보여준다.
                 className={
-                  i >= 2 && b.id !== selectedId ? 'hidden shrink-0 sm:inline-flex' : 'shrink-0'
+                  b.id === (selectedBook?.id ?? chipBooks[0]?.id)
+                    ? 'min-w-0'
+                    : 'hidden min-w-0 sm:inline-flex'
                 }
               >
                 <span className="max-w-[8rem] truncate">{b.books.title}</span>
