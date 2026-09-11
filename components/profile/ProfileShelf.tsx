@@ -25,10 +25,10 @@ export default function ProfileShelf({ books, total, shelfHref, isOwnProfile }: 
   return (
     <section className="mt-12">
       <div className="mb-5 flex items-baseline justify-between">
-        <h2 className="font-serif text-section-title font-bold text-ink">
+        <h2 className="font-serif text-[17px] font-bold text-ink">
           책장
           {total > 0 && (
-            <span className="ml-2 font-sans text-caption font-normal tabular-nums text-ink-faint">
+            <span className="ml-2 font-sans text-[12.5px] font-normal tabular-nums text-ink-faint">
               {total}권
             </span>
           )}
@@ -36,7 +36,7 @@ export default function ProfileShelf({ books, total, shelfHref, isOwnProfile }: 
         {total > books.length && (
           <Link
             href={shelfHref}
-            className="text-button-sm text-ink-faint transition-colors hover:text-accent"
+            className="text-[13px] text-ink-faint transition-colors hover:text-accent"
           >
             책장 전체 →
           </Link>
@@ -45,11 +45,11 @@ export default function ProfileShelf({ books, total, shelfHref, isOwnProfile }: 
 
       {books.length === 0 ? (
         <div className="border-b-4 border-hairline-strong px-3 pb-6 pt-14 text-center">
-          <p className="font-serif text-body text-ink-sub">아직 빈 책장입니다.</p>
+          <p className="font-serif text-[15px] text-ink-sub">아직 빈 책장입니다.</p>
           {isOwnProfile && (
             <Link
               href="/protected/books/new"
-              className="mt-2 inline-block font-serif text-button-sm text-accent hover:underline"
+              className="mt-2 inline-block font-serif text-[13.5px] text-accent hover:underline"
             >
               첫 책 꽂기 →
             </Link>

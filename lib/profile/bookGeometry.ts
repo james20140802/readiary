@@ -4,7 +4,7 @@
 
 /** 표지 폭·높이(px). 좁은 화면에서도 인덱스가 오른쪽으로 삐져나올 자리를 남긴 값 */
 export const BOOK_W = 300;
-export const BOOK_H = 520;
+export const BOOK_H = 430;
 
 /** 두께 — 완독 권수에 비례한다. 한 권도 없어도 얇은 책 한 권은 된다 */
 export const THICKNESS_MIN = 12;
@@ -54,8 +54,8 @@ export const BOOKMARK_H = 184;
 export const BOOKMARK_EXPOSED = 84;
 /** 인덱스 탭 치수 — 앞마구리 밖으로 (INDEX_W - INDEX_OVERLAP)만큼 나오고, OVERLAP만큼은 종이 위에 붙어 있다.
  *  덮으면 그 부분이 책 안에 숨고, 펼치면 오른쪽 면 위로 이어져 보인다 */
-export const INDEX_W = 104;
-export const INDEX_H = 28;
+export const INDEX_W = 92;
+export const INDEX_H = 20;
 export const INDEX_OVERLAP = 28;
 export const INDEX_GAP = 8;
 

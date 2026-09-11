@@ -305,12 +305,12 @@ export default function Composer({ userId, books, recentUserBookId }: ComposerPr
         }
         rows={3}
         aria-label="기록 입력"
-        className="block w-full resize-none bg-transparent font-serif text-input leading-relaxed text-ink placeholder:text-ink-faint focus:outline-none"
+        className="block w-full resize-none bg-transparent font-serif text-input leading-relaxed text-ink placeholder:text-body placeholder:text-ink-sub focus:outline-none"
       />
 
-      <div className="mt-3.5 overflow-x-clip border-t border-hairline pt-3.5">
-        <div className="-ml-[17px] flex flex-wrap items-center gap-y-2.5">
-          <div className="ml-[17px] flex flex-wrap items-center gap-2">
+      <div className="mt-3.5 border-t border-hairline pt-3.5">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2.5">
+          <div className="flex min-w-0 max-w-full items-center gap-2 overflow-x-auto py-0.5">
             {chipBooks.map((b, i) => (
               <Chip
                 key={b.id}
@@ -320,17 +320,23 @@ export default function Composer({ userId, books, recentUserBookId }: ComposerPr
                 aria-pressed={b.id === selectedId}
                 onClick={() => update({ selectedId: b.id })}
                 // 좁은 폭에선 2권까지만 — 단 선택된 칩은 순서와 무관하게 항상 남긴다
-                className={i >= 2 && b.id !== selectedId ? 'hidden sm:inline-flex' : undefined}
+                className={
+                  i >= 2 && b.id !== selectedId ? 'hidden shrink-0 sm:inline-flex' : 'shrink-0'
+                }
               >
                 <span className="max-w-[8rem] truncate">{b.books.title}</span>
               </Chip>
             ))}
             {/* 칩은 진행 중인 책 일부만 보여주므로, 전체 목록(내 책)으로 가는 문을 둔다 */}
-            <Chip onClick={() => router.push('/protected/books')} aria-label="내 책 전체 보기">
+            <Chip
+              className="shrink-0 whitespace-nowrap"
+              onClick={() => router.push('/protected/books')}
+              aria-label="내 책 전체 보기"
+            >
               <LibraryBig size={12} strokeWidth={1.75} aria-hidden />내 책
             </Chip>
           </div>
-          <div className="relative ml-[17px] flex flex-1 items-center gap-2 before:absolute before:-left-[9px] before:top-1/2 before:h-4 before:w-px before:-translate-y-1/2 before:bg-hairline">
+          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
             <Chip
               selected={mode === 'quote'}
               disabled={!ready || locked}
