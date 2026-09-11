@@ -67,7 +67,7 @@ export default function NotificationList({
                         <li key={i}>
                           <Link
                             href={item.href}
-                            className={`block text-body-sm hover:underline focus-visible:outline-accent ${unread ? 'font-medium text-ink' : 'text-ink-sub'}`}
+                            className={`block text-button-sm hover:underline focus-visible:outline-accent ${unread ? 'font-medium text-ink' : 'text-ink-sub'}`}
                           >
                             {item.label}
                           </Link>

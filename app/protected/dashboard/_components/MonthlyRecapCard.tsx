@@ -14,7 +14,7 @@ export function MonthlyRecapCard({ recap }: { recap: MonthlyRecap }) {
         <Seal>지난달의 기록</Seal>
       </div>
       <p className="font-serif text-ink">{headline}</p>
-      <p className="mt-1 text-sm text-ink-sub">
+      <p className="mt-1 text-caption text-ink-sub">
         기록 {recap.entryCount}개 · 책 {recap.bookCount}권
       </p>
     </Card>

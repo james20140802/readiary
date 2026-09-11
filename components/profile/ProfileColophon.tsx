@@ -25,8 +25,8 @@ export default function ProfileColophon({ stats, className }: Props) {
           key={item.label}
           className="flex items-baseline justify-between border-b border-hairline py-3.5 first:border-t"
         >
-          <dt className="text-[13px] text-ink-faint">{item.label}</dt>
-          <dd className="font-serif text-[22px] leading-none tabular-nums text-accent">
+          <dt className="text-caption text-ink-faint">{item.label}</dt>
+          <dd className="font-serif text-quote leading-none tabular-nums text-accent">
             {item.n.toLocaleString('ko-KR')}
           </dd>
         </div>

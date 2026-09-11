@@ -35,9 +35,9 @@ export default function ProfileExcerpts({ books, hrefFor }: Props) {
 
   return (
     <section className="mt-12">
-      <h2 className="mb-6 font-serif text-[17px] font-bold text-ink">
+      <h2 className="mb-6 font-serif text-section-title font-bold text-ink">
         발췌집
-        <span className="ml-2 font-sans text-[12.5px] font-normal tabular-nums text-ink-faint">
+        <span className="ml-2 font-sans text-caption font-normal tabular-nums text-ink-faint">
           {books.length}권
         </span>
       </h2>
@@ -102,10 +102,10 @@ export default function ProfileExcerpts({ books, hrefFor }: Props) {
                       className="absolute inset-0 flex items-center justify-between gap-3 rounded-l-[6px] border px-5"
                       style={{ ...face, color: tone.fg }}
                     >
-                      <span className="min-w-0 truncate font-serif text-[14.5px] tracking-[0.02em] group-hover:underline group-hover:decoration-1 group-hover:underline-offset-4">
+                      <span className="min-w-0 truncate font-serif text-body tracking-[0.02em] group-hover:underline group-hover:decoration-1 group-hover:underline-offset-4">
                         {book.title}
                       </span>
-                      <span className="shrink-0 font-sans text-[11px] tabular-nums opacity-70">
+                      <span className="shrink-0 font-sans text-caption tabular-nums opacity-70">
                         {book.quoteCount}
                       </span>
                     </span>

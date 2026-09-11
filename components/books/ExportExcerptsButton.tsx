@@ -41,10 +41,10 @@ function pixelRatioFor(el: HTMLElement): number {
 function quoteSizeClass(quote: string): string {
   const length = quote.length;
   const lines = quote.split('\n').length;
-  if (length <= 80 && lines <= 4) return 'text-[21px] leading-[1.9] line-clamp-[10]';
-  if (length <= 200 && lines <= 9) return 'text-[18px] leading-[1.85] line-clamp-[13]';
-  if (length <= 420 && lines <= 14) return 'text-[15.5px] leading-[1.8] line-clamp-[16]';
-  return 'text-[13.5px] leading-[1.75] line-clamp-[20]';
+  if (length <= 80 && lines <= 4) return 'text-quote leading-[1.9] line-clamp-[10]';
+  if (length <= 200 && lines <= 9) return 'text-section-title leading-[1.85] line-clamp-[13]';
+  if (length <= 420 && lines <= 14) return 'text-body leading-[1.8] line-clamp-[16]';
+  return 'text-caption leading-[1.75] line-clamp-[20]';
 }
 
 /**
@@ -192,7 +192,7 @@ export default function ExportExcerptsButton(props: ExcerptBookletProps) {
     <>
       <button
         onClick={() => setStage('choose')}
-        className="font-serif text-[12.5px] text-accent transition-colors hover:underline"
+        className="font-serif text-button-sm text-accent transition-colors hover:underline"
       >
         이미지로 내보내기 →
       </button>
@@ -208,7 +208,7 @@ export default function ExportExcerptsButton(props: ExcerptBookletProps) {
           <div className="relative flex max-h-[85vh] w-full max-w-lg flex-col rounded-t-md border border-hairline bg-paper p-5 sm:rounded-md">
             {stage === 'choose' && (
               <>
-                <p className="font-serif text-[15px] font-bold text-ink">이미지로 내보내기</p>
+                <p className="font-serif text-body font-bold text-ink">이미지로 내보내기</p>
                 <div className="mt-4 space-y-3">
                   <button
                     onClick={() => {
@@ -217,8 +217,8 @@ export default function ExportExcerptsButton(props: ExcerptBookletProps) {
                     }}
                     className="w-full rounded-md border border-hairline px-4 py-3 text-left transition-colors hover:border-hairline-strong"
                   >
-                    <p className="font-serif text-[14px] text-ink">한 장으로</p>
-                    <p className="mt-0.5 text-[12px] text-ink-faint">
+                    <p className="font-serif text-body text-ink">한 장으로</p>
+                    <p className="mt-0.5 text-caption text-ink-faint">
                       표지부터 판권장까지 세로로 긴 이미지 하나
                     </p>
                   </button>
@@ -229,8 +229,8 @@ export default function ExportExcerptsButton(props: ExcerptBookletProps) {
                     }}
                     className="w-full rounded-md border border-hairline px-4 py-3 text-left transition-colors hover:border-hairline-strong"
                   >
-                    <p className="font-serif text-[14px] text-ink">카드로 나누어</p>
-                    <p className="mt-0.5 text-[12px] text-ink-faint">
+                    <p className="font-serif text-body text-ink">카드로 나누어</p>
+                    <p className="mt-0.5 text-caption text-ink-faint">
                       표지·문장·판권장을 4:5 카드 {quotes.length + 2}장으로 — 스토리·피드용
                     </p>
                   </button>
@@ -238,7 +238,7 @@ export default function ExportExcerptsButton(props: ExcerptBookletProps) {
                 <div className="mt-4 text-right">
                   <button
                     onClick={close}
-                    className="text-[12.5px] text-ink-faint transition-colors hover:text-ink-sub"
+                    className="text-button-sm text-ink-faint transition-colors hover:text-ink-sub"
                   >
                     닫기
                   </button>
@@ -247,20 +247,20 @@ export default function ExportExcerptsButton(props: ExcerptBookletProps) {
             )}
 
             {stage === 'generating' && (
-              <p className="py-10 text-center font-serif text-[13.5px] text-ink-faint">
+              <p className="py-10 text-center font-serif text-caption text-ink-faint">
                 발췌집을 조판하는 중…
               </p>
             )}
 
             {stage === 'preview' && (
               <>
-                <p className="font-serif text-[14px] text-ink">
+                <p className="font-serif text-body text-ink">
                   {previewUrls.length === 1
                     ? '이미지가 준비됐습니다'
                     : `카드 ${previewUrls.length}장이 준비됐습니다`}
                 </p>
                 {!canUseShareSheet && (
-                  <p className="mt-1 text-[12px] leading-relaxed text-ink-faint">
+                  <p className="mt-1 text-caption leading-relaxed text-ink-faint">
                     이 환경에서는 공유 시트를 열 수 없어요. 아이패드·아이폰에서는 이미지를 길게 눌러
                     &lsquo;사진에 저장&rsquo;을 선택하세요.
                   </p>
@@ -281,7 +281,7 @@ export default function ExportExcerptsButton(props: ExcerptBookletProps) {
                 <div className="mt-4 flex items-center justify-end gap-4">
                   <button
                     onClick={close}
-                    className="text-[12.5px] text-ink-faint transition-colors hover:text-ink-sub"
+                    className="text-button-sm text-ink-faint transition-colors hover:text-ink-sub"
                   >
                     닫기
                   </button>
@@ -289,7 +289,7 @@ export default function ExportExcerptsButton(props: ExcerptBookletProps) {
                     <>
                       <button
                         onClick={handleSave}
-                        className="text-[12.5px] text-ink-sub transition-colors hover:text-ink"
+                        className="text-button-sm text-ink-sub transition-colors hover:text-ink"
                       >
                         저장
                       </button>
@@ -330,12 +330,12 @@ export default function ExportExcerptsButton(props: ExcerptBookletProps) {
             <div className="h-full w-full border border-hairline p-1.5">
               <div className="flex h-full w-full flex-col items-center justify-center border border-hairline px-8 text-center">
                 <Seal>발췌집</Seal>
-                <h2 className="mt-5 font-serif text-[28px] font-bold leading-snug text-ink">
+                <h2 className="mt-5 font-serif text-page-title font-bold leading-snug text-ink">
                   {bookTitle}
                 </h2>
-                {author && <p className="mt-3 font-serif text-[14px] text-ink-sub">{author}</p>}
+                {author && <p className="mt-3 font-serif text-body text-ink-sub">{author}</p>}
                 {readingPeriod && (
-                  <p className="mt-8 text-[12px] tabular-nums text-ink-faint">{readingPeriod}</p>
+                  <p className="mt-8 text-caption tabular-nums text-ink-faint">{readingPeriod}</p>
                 )}
               </div>
             </div>
@@ -351,7 +351,7 @@ export default function ExportExcerptsButton(props: ExcerptBookletProps) {
               className="bg-paper"
             >
               <div className="flex h-full w-full flex-col px-12 py-10">
-                <div className="text-center font-serif text-[13px] tabular-nums text-accent">
+                <div className="text-center font-serif text-caption tabular-nums text-accent">
                   {i + 1}
                 </div>
                 <div className="flex min-h-0 flex-1 items-center justify-center">
@@ -364,7 +364,7 @@ export default function ExportExcerptsButton(props: ExcerptBookletProps) {
                   </blockquote>
                 </div>
                 <div className="text-center">
-                  <p className="truncate font-serif text-[12.5px] text-ink-sub">
+                  <p className="truncate font-serif text-caption text-ink-sub">
                     『{bookTitle}』{author ? ` — ${author}` : ''}
                   </p>
                   <p className="mt-2 whitespace-nowrap font-sans text-seal uppercase text-ink-faint">
@@ -383,14 +383,14 @@ export default function ExportExcerptsButton(props: ExcerptBookletProps) {
             className="bg-paper p-8"
           >
             <div className="flex h-full w-full flex-col items-center justify-center px-10 text-center">
-              <p className="font-serif text-[15px] text-ink">
+              <p className="font-serif text-body text-ink">
                 『{bookTitle}』{author ? ` — ${author}` : ''}
               </p>
-              <p className="mt-3 font-serif text-[13.5px] text-ink-sub">
+              <p className="mt-3 font-serif text-body text-ink-sub">
                 {koreanCount(quotes.length)} 문장을 옮겨 적다
               </p>
               {readingPeriod && (
-                <p className="mt-1.5 text-[12px] tabular-nums text-ink-faint">{readingPeriod}</p>
+                <p className="mt-1.5 text-caption tabular-nums text-ink-faint">{readingPeriod}</p>
               )}
               <p className="mt-10 whitespace-nowrap font-sans text-seal uppercase text-ink-faint">
                 READIARY

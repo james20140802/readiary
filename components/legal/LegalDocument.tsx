@@ -38,10 +38,12 @@ export default function LegalDocument({
         {blocks.map((block, i) => (
           <section key={i}>
             {block.heading && (
-              <h2 className="mb-2 font-sans text-body font-bold text-ink">{block.heading}</h2>
+              <h2 className="mb-2 font-sans text-section-title font-bold text-ink">
+                {block.heading}
+              </h2>
             )}
             {block.body && (
-              <p className="whitespace-pre-wrap text-body-sm leading-relaxed text-ink-sub">
+              <p className="whitespace-pre-wrap text-body leading-relaxed text-ink-sub">
                 {block.body}
               </p>
             )}

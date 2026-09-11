@@ -157,7 +157,7 @@ export default function EntryEditSheet({
               >
                 {/* 헤더 */}
                 <div className="flex items-center justify-between border-b border-hairline px-5 py-4">
-                  <DialogTitle as="h3" className="font-serif text-[16px] font-bold text-ink">
+                  <DialogTitle as="h3" className="font-serif text-body font-bold text-ink">
                     기록 고치기
                   </DialogTitle>
                   <button
@@ -189,7 +189,7 @@ export default function EntryEditSheet({
                       <button
                         type="button"
                         onClick={() => setIsDeleteOpen(true)}
-                        className="text-[12.5px] text-ink-faint transition-colors hover:text-danger"
+                        className="text-button-sm text-ink-faint transition-colors hover:text-danger"
                       >
                         삭제
                       </button>
@@ -210,9 +210,9 @@ export default function EntryEditSheet({
         }}
       >
         <div className="space-y-4">
-          <h2 className="text-lg font-bold text-ink">정말 삭제하시겠어요?</h2>
-          <p className="text-sm text-ink-sub">이 작업은 되돌릴 수 없습니다.</p>
-          {deleteError && <p className="text-sm text-danger">{deleteError}</p>}
+          <h2 className="text-section-title font-bold text-ink">정말 삭제하시겠어요?</h2>
+          <p className="text-caption text-ink-sub">이 작업은 되돌릴 수 없습니다.</p>
+          {deleteError && <p className="text-caption text-danger">{deleteError}</p>}
           <div className="flex justify-end gap-2 pt-2">
             {/* 지우는 중엔 취소도 막는다 — Modal.onClose의 isDeleting 가드와 같은 규칙. 여기서 빠져나가
                 시트를 닫고 같은 기록을 다시 열면, 늦게 성공한 DELETE가 이미 지워진 기록의 시트를 남긴다 */}

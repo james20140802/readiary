@@ -43,7 +43,7 @@ export default function EntryForm({
               className="rounded border border-hairline object-cover"
             />
             <div className="min-w-0">
-              <strong className="block truncate font-serif text-lg leading-tight text-ink">
+              <strong className="block truncate font-serif text-section-title leading-tight text-ink">
                 {book.title ?? '제목 없음'}
               </strong>
               <span className="mt-1 block text-caption text-ink-sub">

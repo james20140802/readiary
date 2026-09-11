@@ -55,19 +55,12 @@ interface Props {
 type Page = 'colophon' | 'bookmark' | `month:${string}`;
 const monthPage = (label: string): Page => `month:${label}`;
 
-const W = BOOK_W;
 const H = BOOK_H;
 /** 띠지 — 표지 아래쪽을 감싸는 별지. 띠지 아래로 표지가 OBI_BOTTOM만큼 보인다 */
 const OBI_H = 100;
 const OBI_BOTTOM = 18;
-/** 무대 폭 — 인덱스가 오른쪽으로 삐져나올 자리까지 */
-const STAGE_W = W + INDEX_W - INDEX_OVERLAP;
 /** 위쪽 여백 — 꽂힌 책갈피가 삐져나올 자리. 들어 올리면 그만큼 여백이 늘어 책이 내려앉는다 */
 const TOP_PAD = BOOKMARK_EXPOSED + 12;
-/** 책갈피 자리 — 사진처럼 가운데보다 조금 오른쪽 */
-const BOOKMARK_LEFT = Math.round(W * 0.6);
-/** 책갈피가 얹히는 오른쪽 위를 발췌집 면의 제목이 피해 가도록 비워 두는 폭 */
-const BOOKMARK_CLEAR = W - BOOKMARK_LEFT - 28 + 8;
 
 const FACE = 'absolute inset-0 [backface-visibility:hidden]';
 const TURN =
@@ -178,7 +171,7 @@ export default function ProfileBook({
   // 펼치면 표지가 왼쪽으로 한 권 폭만큼 눕는다. 자리가 있으면 펼친 전체를 가운데에,
   // 없으면 줄이지 않고 본문을 그대로 둔 채 표지가 화면 밖으로 나간다
   const wrapRef = useRef<HTMLDivElement>(null);
-  const [wrapW, setWrapW] = useState<number>(STAGE_W);
+  const [wrapW, setWrapW] = useState<number>(BOOK_W + INDEX_W - INDEX_OVERLAP);
   useEffect(() => {
     const el = wrapRef.current;
     if (!el) return;
@@ -188,10 +181,13 @@ export default function ProfileBook({
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
+  const W = Math.min(BOOK_W, Math.max(180, wrapW - (INDEX_W - INDEX_OVERLAP)));
+  const STAGE_W = W + INDEX_W - INDEX_OVERLAP;
+  const BOOKMARK_LEFT = Math.round(W * 0.6);
+  const BOOKMARK_CLEAR = W - BOOKMARK_LEFT - 28 + 8;
   const stageLeft = Math.max(0, (wrapW - STAGE_W) / 2);
   const shiftX = open ? Math.min(W / 2, stageLeft) : 0;
-  // 래퍼가 무대보다 좁으면(320px 화면 등) 무대를 통째로 줄인다 — 인덱스·차례가 화면 밖으로 나가지 않도록
-  const stageScale = Math.min(1, wrapW / STAGE_W);
+  // 좁은 화면에서는 책 폭을 조정하고 활자 크기는 유지한다.
 
   const swipeStart = useRef<{ x: number; y: number } | null>(null);
   // 마우스로 문질러 뒤집으면 브라우저가 같은 자리에 click도 보낸다 — 표지 클릭이 한 번 더 뒤집지 않도록
@@ -322,7 +318,7 @@ export default function ProfileBook({
   const renderContents = () => (
     <>
       <Seal>차례</Seal>
-      <p className="mt-1 font-serif text-[15px] font-bold text-ink">{displayName}</p>
+      <p className="mt-1 font-serif text-body font-bold text-ink">{displayName}</p>
       <ol className="mt-5 border-t border-hairline">
         {contents.map((c) => {
           const current = page === c.key;
@@ -336,9 +332,9 @@ export default function ProfileBook({
                   current ? 'text-accent' : 'text-ink hover:text-accent'
                 }`}
               >
-                <span className="min-w-0 truncate font-serif text-[13.5px]">{c.title}</span>
+                <span className="min-w-0 truncate font-serif text-caption">{c.title}</span>
                 {c.note && (
-                  <span className="shrink-0 font-sans text-[11px] tabular-nums text-ink-faint">
+                  <span className="shrink-0 font-sans text-caption tabular-nums text-ink-faint">
                     {c.note}
                   </span>
                 )}
@@ -355,28 +351,28 @@ export default function ProfileBook({
   const renderRecto = (p: Page, m: MonthlySummary | null) => (
     <>
       {m ? (
-        <div className="flex h-full flex-col px-7 pb-6 pt-8">
+        <div className="flex h-full flex-col overflow-y-auto px-5 pb-6 pt-8">
           <Seal>{indexLabel(m.label)}</Seal>
-          <p className="mt-1 font-serif text-[15px] font-bold leading-snug text-ink">
+          <p className="mt-1 font-serif text-body font-bold leading-snug text-ink">
             {m.label}
-            <span className="ml-2 font-sans text-[12px] font-normal tabular-nums text-ink-faint">
+            <span className="ml-2 font-sans text-caption font-normal tabular-nums text-ink-faint">
               기록 {m.count}
             </span>
           </p>
           {m.books.length > 0 && (
-            <p className="mt-3 line-clamp-3 break-keep text-[12.5px] leading-relaxed text-ink-sub">
+            <p className="mt-3 line-clamp-3 break-keep text-caption leading-relaxed text-ink-sub">
               {m.books.map((t) => `『${t}』`).join(' ')}
             </p>
           )}
           {m.quotes.length === 0 ? (
-            <p className="mt-5 font-serif text-[13.5px] text-ink-faint">
+            <p className="mt-5 font-serif text-caption text-ink-faint">
               이 달에는 옮겨 적은 문장이 없습니다.
             </p>
           ) : (
             <ul className="mt-4 divide-y divide-hairline border-t border-hairline">
               {m.quotes.map((q, i) => (
                 <li key={i} className="py-3">
-                  <p className="line-clamp-3 break-keep font-serif text-[13px] leading-relaxed text-ink">
+                  <p className="line-clamp-3 break-keep font-serif text-body leading-relaxed text-ink">
                     {q}
                   </p>
                 </li>
@@ -385,23 +381,23 @@ export default function ProfileBook({
           )}
         </div>
       ) : p === 'bookmark' && bookmark ? (
-        <div className="flex h-full flex-col px-7 pb-6 pt-8">
+        <div className="flex h-full flex-col overflow-y-auto px-5 pb-6 pt-8">
           {/* 오른쪽 위에는 책갈피가 얹혀 있다 */}
           <div style={{ paddingRight: BOOKMARK_CLEAR }}>
             <Seal>발췌집</Seal>
-            <p className="mt-1 text-balance break-keep font-serif text-[15px] font-bold leading-snug text-ink">
+            <p className="mt-1 text-balance break-keep font-serif text-body font-bold leading-snug text-ink">
               {bookmark.title}
             </p>
           </div>
           {bookmark.quotes.length === 0 ? (
-            <p className="mt-5 font-serif text-[13.5px] text-ink-faint">
+            <p className="mt-5 font-serif text-caption text-ink-faint">
               아직 옮겨 적은 문장이 없습니다.
             </p>
           ) : (
             <ul className="mt-4 divide-y divide-hairline border-t border-hairline">
               {bookmark.quotes.map((q, i) => (
                 <li key={i} className="py-3">
-                  <p className="line-clamp-3 break-keep font-serif text-[13px] leading-relaxed text-ink">
+                  <p className="line-clamp-3 break-keep font-serif text-body leading-relaxed text-ink">
                     {q}
                   </p>
                 </li>
@@ -411,22 +407,22 @@ export default function ProfileBook({
           {bookmarkHref && (
             <Link
               href={bookmarkHref}
-              className="mt-auto self-end text-[12.5px] text-ink-faint transition-colors hover:text-accent"
+              className="mt-auto self-end text-button-sm text-ink-faint transition-colors hover:text-accent"
             >
               발췌집 전체 <span className="tabular-nums">{bookmark.quoteCount}</span> →
             </Link>
           )}
         </div>
       ) : (
-        <div className="flex h-full flex-col px-7 pb-6 pt-8">
+        <div className="flex h-full flex-col overflow-y-auto px-5 pb-6 pt-8">
           <Seal>판권</Seal>
-          <p className="mt-1 font-serif text-[15px] font-bold text-ink">{displayName}</p>
+          <p className="mt-1 font-serif text-body font-bold text-ink">{displayName}</p>
           {stats ? (
             <ProfileColophon stats={stats} className="mt-5" />
           ) : (
             <p className="mt-5 text-body-sm text-ink-faint">통계 정보를 불러올 수 없습니다.</p>
           )}
-          <p className="mt-auto text-[12px] leading-relaxed text-ink-faint">
+          <p className="mt-auto text-caption leading-relaxed text-ink-faint">
             {finished > 0
               ? `완독 ${finished}권만큼 두꺼워진 책 — 한 권 읽을 때마다 조금씩 두꺼워집니다.`
               : '아직 얇은 책 — 완독할 때마다 조금씩 두꺼워집니다.'}
@@ -480,7 +476,7 @@ export default function ProfileBook({
               }}
             >
               <span
-                className="absolute left-1/2 top-[18px] -translate-x-1/2 overflow-hidden whitespace-nowrap font-serif text-[12px] tracking-[0.08em] text-ink group-hover:text-accent"
+                className="absolute left-1/2 top-[18px] -translate-x-1/2 overflow-hidden whitespace-nowrap font-serif text-caption tracking-[0.08em] text-ink group-hover:text-accent"
                 style={{
                   writingMode: 'vertical-rl',
                   maxHeight: onPage ? BOOKMARK_H - 60 : BOOKMARK_EXPOSED + 60,
@@ -489,7 +485,7 @@ export default function ProfileBook({
                 <SpineTitle title={bookmark.title} />
               </span>
               {onPage && (
-                <span className="absolute inset-x-0 bottom-2.5 font-sans text-[10px] tabular-nums text-ink-sub">
+                <span className="absolute inset-x-0 bottom-2.5 font-sans text-caption tabular-nums text-ink-sub">
                   {bookmark.quoteCount}
                 </span>
               )}
@@ -508,7 +504,7 @@ export default function ProfileBook({
               }}
             >
               <span
-                className="absolute left-1/2 top-[18px] -translate-x-1/2 overflow-hidden whitespace-nowrap font-serif text-[12px] tracking-[0.08em] text-ink group-hover:text-accent"
+                className="absolute left-1/2 top-[18px] -translate-x-1/2 overflow-hidden whitespace-nowrap font-serif text-caption tracking-[0.08em] text-ink group-hover:text-accent"
                 style={{ writingMode: 'vertical-rl', maxHeight: BOOKMARK_EXPOSED + 60 }}
               >
                 <SpineTitle title={bookmark.title} />
@@ -519,7 +515,7 @@ export default function ProfileBook({
           <Link
             href="/protected/profile/edit#bookmark"
             inert={isFlipped || turned}
-            className={`${FACE} flex justify-center rounded-[3px] border border-dashed border-hairline-strong pt-6 font-serif text-[12px] tracking-[0.08em] text-ink-faint transition-colors hover:border-accent hover:text-accent`}
+            className={`${FACE} flex justify-center rounded-[3px] border border-dashed border-hairline-strong pt-6 font-serif text-button-sm tracking-[0.08em] text-ink-faint transition-colors hover:border-accent hover:text-accent`}
             style={{ writingMode: 'vertical-rl', clipPath: clip, transition: faceTransition }}
           >
             책갈피 꽂기
@@ -541,7 +537,7 @@ export default function ProfileBook({
     const turned = open && order.indexOf(monthPage(m.label)) < leafIndex;
     const timing = `0s linear ${active ? 0 : moveMs}ms`;
     const face =
-      'absolute inset-0 flex items-center justify-end rounded-r-[3px] pr-2 font-sans text-[10px] font-medium tabular-nums leading-none tracking-[0.04em] text-ink [backface-visibility:hidden] hover:brightness-95 motion-reduce:!duration-0';
+      'absolute inset-0 flex items-center justify-end rounded-r-[3px] pr-2 font-sans text-button-sm font-medium tabular-nums leading-none tracking-[0.04em] text-ink [backface-visibility:hidden] hover:brightness-95 motion-reduce:!duration-0';
     const go = () => (active ? close() : goTo(monthPage(m.label)));
     return (
       <div
@@ -586,15 +582,14 @@ export default function ProfileBook({
 
   return (
     <div ref={wrapRef} className="w-full" style={{ overflowX: 'clip' }}>
-      {/* 무대 상자 — 무대를 축소해도 흐름에서는 원래 높이를 차지하므로, 줄인 높이만큼만 자리를 잡는다 */}
-      <div style={{ height: (TOP_PAD + H) * stageScale, overflow: 'clip' }}>
+      {/* 무대 상자 — 화면 폭에 맞춘 책을 원래 활자 크기로 펼친다 */}
+      <div style={{ height: TOP_PAD + H, overflow: 'clip' }}>
         <div
           className="relative mx-auto [perspective:1800px] [touch-action:pan-y]"
           style={{
             width: STAGE_W,
             paddingTop: TOP_PAD,
             height: TOP_PAD + H,
-            transform: stageScale < 1 ? `scale(${stageScale})` : undefined,
             transformOrigin: 'top left',
           }}
           onPointerDown={handlePointerDown}
@@ -672,7 +667,7 @@ export default function ProfileBook({
                               priority
                             />
                           ) : (
-                            <div className="flex h-full w-full select-none items-center justify-center font-serif text-4xl text-ink-faint">
+                            <div className="flex h-full w-full select-none items-center justify-center font-serif text-monogram text-ink-faint">
                               {profile.nickname?.at(0)?.toUpperCase() ?? 'U'}
                             </div>
                           )}
@@ -681,19 +676,19 @@ export default function ProfileBook({
 
                       <div className="min-w-0 max-w-full">
                         <Seal>讀者</Seal>
-                        <h1 className="mt-1.5 text-balance break-keep font-serif text-[27px] font-bold leading-tight text-ink">
+                        <h1 className="mt-1.5 text-balance break-keep font-serif text-page-title font-bold leading-tight text-ink">
                           {displayName}
                         </h1>
                         <button
                           type="button"
                           onClick={handleCopyTag}
                           title="닉네임#태그 복사"
-                          className="relative mt-2 inline-block font-sans text-[12.5px] tabular-nums text-ink-faint transition-colors hover:text-ink-sub"
+                          className="relative mt-2 inline-block font-sans text-button-sm tabular-nums text-ink-faint transition-colors hover:text-ink-sub"
                         >
                           @{handle}
                           <span
                             aria-live="polite"
-                            className={`absolute left-full top-1/2 ml-2 -translate-y-1/2 whitespace-nowrap text-[11px] transition-opacity ${
+                            className={`absolute left-full top-1/2 ml-2 -translate-y-1/2 whitespace-nowrap text-caption transition-opacity ${
                               copied ? 'text-accent opacity-100' : 'opacity-0'
                             }`}
                           >
@@ -708,7 +703,7 @@ export default function ProfileBook({
                   {obiBand(
                     profile.bio ? (
                       <>
-                        <p className="line-clamp-3 text-balance break-keep font-serif text-[14px] leading-relaxed text-ink">
+                        <p className="line-clamp-3 text-balance break-keep font-serif text-body leading-relaxed text-ink">
                           {profile.bio}
                         </p>
                         <Seal className="opacity-70">Readiary</Seal>
@@ -717,7 +712,7 @@ export default function ProfileBook({
                       <>
                         <Link
                           href="/protected/profile/edit"
-                          className="font-serif text-[13.5px] text-ink-faint transition-colors hover:text-accent"
+                          className="font-serif text-button-sm text-ink-faint transition-colors hover:text-accent"
                         >
                           띠지에 한 줄 소개를 써 두세요 →
                         </Link>
@@ -759,11 +754,11 @@ export default function ProfileBook({
                   >
                     {featuredQuote ? (
                       <blockquote className="min-w-0 max-w-full">
-                        <p className="line-clamp-[9] text-balance break-keep font-serif text-[16.5px] leading-[1.75] text-ink">
+                        <p className="line-clamp-[9] text-balance break-keep font-serif text-body leading-[1.75] text-ink">
                           {featuredQuote.quote}
                         </p>
                         {(featuredQuote.bookTitle || featuredQuote.author) && (
-                          <footer className="mt-4 text-[12.5px] text-ink-sub">
+                          <footer className="mt-4 text-caption text-ink-sub">
                             {featuredQuote.bookTitle && `『${featuredQuote.bookTitle}』`}
                             {featuredQuote.bookTitle && featuredQuote.author && ', '}
                             {featuredQuote.author}
@@ -773,14 +768,14 @@ export default function ProfileBook({
                     ) : isOwnProfile ? (
                       <Link
                         href="/protected/profile/edit#featured-quote"
-                        className="font-serif text-[14px] leading-relaxed text-ink-faint transition-colors hover:text-accent"
+                        className="font-serif text-button-sm leading-relaxed text-ink-faint transition-colors hover:text-accent"
                       >
                         뒷표지에 실을 문장을
                         <br />
                         골라 두세요 →
                       </Link>
                     ) : (
-                      <p className="font-serif text-[14px] text-ink-faint">
+                      <p className="font-serif text-caption text-ink-faint">
                         아직 뒷표지에 실린 문장이 없습니다.
                       </p>
                     )}
@@ -788,7 +783,7 @@ export default function ProfileBook({
                 </div>
                 {obiBand(
                   <>
-                    <span className="font-sans text-[12px] tabular-nums text-ink-sub">
+                    <span className="font-sans text-caption tabular-nums text-ink-sub">
                       @{handle}
                     </span>
                     <Seal className="opacity-70">Readiary</Seal>
@@ -808,7 +803,7 @@ export default function ProfileBook({
               >
                 {T >= 18 && (
                   <div
-                    className="absolute inset-x-0 top-6 flex justify-center font-serif text-[11px] tracking-[0.1em] text-ink"
+                    className="absolute inset-x-0 top-6 flex justify-center font-serif text-caption tracking-[0.1em] text-ink"
                     style={{ writingMode: 'vertical-rl', height: H - OBI_H - OBI_BOTTOM - 40 }}
                   >
                     <SpineTitle title={displayName} />
@@ -900,7 +895,7 @@ export default function ProfileBook({
       {/* 조작 — 왼쪽은 책을 다루는 것, 오른쪽은 계정을 다루는 것. 좁으면 두 줄로 나뉜다 */}
       <div
         ref={controlsRef}
-        className="mt-4 flex flex-col items-center gap-2 whitespace-nowrap text-[15px] text-ink-faint sm:flex-row sm:justify-between sm:gap-5"
+        className="mt-4 flex flex-col items-center gap-2 text-button-sm text-ink-faint sm:flex-row sm:flex-wrap sm:justify-between sm:gap-5"
       >
         <div className="flex items-center justify-center gap-4">
           <button

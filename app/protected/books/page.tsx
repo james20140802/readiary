@@ -15,7 +15,7 @@ export default async function MyBooksPage() {
         <div>
           <h1 className="text-page-title text-ink">내 책장</h1>
           {books.length > 0 && (
-            <p className="mt-1 text-[12.5px] tabular-nums text-ink-faint">
+            <p className="mt-1 text-caption tabular-nums text-ink-faint">
               읽는 중 {readingCount}
               <span className="mx-2 text-hairline-strong">·</span>
               완독 {finishedCount}

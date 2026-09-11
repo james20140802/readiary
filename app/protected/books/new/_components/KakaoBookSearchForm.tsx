@@ -135,7 +135,7 @@ export default function KakaoBookSearchForm() {
           }}
           placeholder="책 제목이나 ISBN"
           aria-label="책 검색"
-          className="min-w-0 flex-1 bg-transparent py-2.5 font-serif text-[17px] text-ink placeholder:text-ink-faint focus:outline-none"
+          className="min-w-0 flex-1 bg-transparent py-2.5 font-serif text-input text-ink placeholder:text-ink-faint focus:outline-none"
         />
         <button
           type="submit"
@@ -148,7 +148,7 @@ export default function KakaoBookSearchForm() {
       </form>
 
       {results.length === 0 && !loading && query !== '' && hasSearched && (
-        <p className="py-10 text-center font-serif text-[14px] text-ink-faint">
+        <p className="py-10 text-center font-serif text-caption text-ink-faint">
           검색 결과가 없습니다.
         </p>
       )}
@@ -179,7 +179,7 @@ export default function KakaoBookSearchForm() {
                   className="h-14 w-10 shrink-0 rounded-sm border border-hairline object-cover"
                 />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-serif text-[15px] leading-snug text-ink group-hover:underline group-hover:decoration-hairline-strong group-hover:underline-offset-4">
+                  <p className="truncate font-serif text-body leading-snug text-ink group-hover:underline group-hover:decoration-hairline-strong group-hover:underline-offset-4">
                     {book.title}
                   </p>
                   <p className="mt-0.5 truncate text-caption text-ink-faint">{meta}</p>
@@ -200,17 +200,17 @@ export default function KakaoBookSearchForm() {
             className="h-24 w-16 shrink-0 rounded-sm border border-hairline object-cover"
           />
           <div className="min-w-0 flex-1 pt-0.5">
-            <p className="font-serif text-[17px] font-bold leading-snug text-ink">
+            <p className="font-serif text-body font-bold leading-snug text-ink">
               {selectedBook?.title}
             </p>
-            <p className="mt-1 font-serif text-[13px] text-ink-sub">
+            <p className="mt-1 font-serif text-body text-ink-sub">
               {selectedBook?.authors?.join(', ')}
             </p>
             {totalPages ? (
-              <p className="mt-4 text-[12.5px] tabular-nums text-ink-faint">총 {totalPages}쪽</p>
+              <p className="mt-4 text-caption tabular-nums text-ink-faint">총 {totalPages}쪽</p>
             ) : (
               <div className="mt-4">
-                <label className="flex items-center gap-1 text-[12.5px] tabular-nums text-ink-sub">
+                <label className="flex items-center gap-1 text-caption tabular-nums text-ink-sub">
                   <span className="text-ink-faint">총</span>
                   <input
                     type="number"
@@ -224,7 +224,7 @@ export default function KakaoBookSearchForm() {
                   />
                   <span className="text-ink-faint">쪽</span>
                 </label>
-                <p className="mt-1.5 text-[11.5px] text-ink-faint">
+                <p className="mt-1.5 text-caption text-ink-faint">
                   쪽수를 찾지 못했어요. 몰라도 꽂을 수 있습니다.
                 </p>
               </div>

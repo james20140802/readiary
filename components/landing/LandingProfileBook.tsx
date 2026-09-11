@@ -14,8 +14,6 @@ const H = BOOK_H;
 /** 띠지 — 표지 아래쪽을 감싸는 별지 (프로필 책과 같은 치수) */
 const OBI_H = 100;
 const OBI_BOTTOM = 18;
-/** 좁은 화면에서는 책을 줄여 한 장(100svh)에 들어가게 한다 */
-const SCALE_SM = 0.7;
 
 const FACE = 'absolute inset-0 [backface-visibility:hidden]';
 const TURN =
@@ -56,14 +54,8 @@ export default function LandingProfileBook() {
 
       <SlideBody className="mt-6 md:mt-0">
         {/* 자리 상자 — 줄인 책이 차지하는 만큼만 흐름에서 자리를 잡는다 */}
-        <div
-          className="mx-auto h-[301px] w-[210px] sm:h-[430px] sm:w-[300px]"
-          style={{ ['--book-scale' as string]: SCALE_SM }}
-        >
-          <div
-            className="origin-top-left scale-[var(--book-scale)] sm:scale-100 [perspective:1800px]"
-            style={{ width: W, height: H }}
-          >
+        <div className="mx-auto max-w-full" style={{ width: W, height: H }}>
+          <div className="[perspective:1800px]" style={{ width: '100%', height: H }}>
             <section
               aria-label={`${p.name}의 프로필 책`}
               onClick={(e) => {
@@ -103,16 +95,16 @@ export default function LandingProfileBook() {
                           '0 1px 1px rgb(var(--ink) / 0.12), 0 5px 12px rgb(var(--ink) / 0.10)',
                       }}
                     >
-                      <div className="flex aspect-square select-none items-center justify-center bg-card-raised font-serif text-4xl text-ink-faint">
+                      <div className="flex aspect-square select-none items-center justify-center bg-card-raised font-serif text-monogram text-ink-faint">
                         {p.initial}
                       </div>
                     </div>
                     <div className="min-w-0 max-w-full">
                       <Seal>讀者</Seal>
-                      <p className="mt-1.5 text-balance break-keep font-serif text-[27px] font-bold leading-tight text-ink">
+                      <p className="mt-1.5 text-balance break-keep font-serif text-page-title font-bold leading-tight text-ink">
                         {p.name}
                       </p>
-                      <p className="mt-2 font-sans text-[12.5px] tabular-nums text-ink-faint">
+                      <p className="mt-2 font-sans text-caption tabular-nums text-ink-faint">
                         @{p.handle}
                       </p>
                     </div>
@@ -120,7 +112,7 @@ export default function LandingProfileBook() {
                 </div>
                 {obiBand(
                   <>
-                    <p className="line-clamp-3 text-balance break-keep font-serif text-[14px] leading-relaxed text-ink">
+                    <p className="line-clamp-3 text-balance break-keep font-serif text-body leading-relaxed text-ink">
                       {p.bio}
                     </p>
                     <Seal className="opacity-70">Readiary</Seal>
@@ -144,10 +136,10 @@ export default function LandingProfileBook() {
                     style={{ height: H - OBI_H - OBI_BOTTOM - 10 }}
                   >
                     <blockquote className="min-w-0 max-w-full">
-                      <p className="text-balance break-keep font-serif text-[16.5px] leading-[1.75] text-ink">
+                      <p className="text-balance break-keep font-serif text-body leading-[1.75] text-ink">
                         {p.featuredQuote.quote}
                       </p>
-                      <footer className="mt-4 text-[12.5px] text-ink-sub">
+                      <footer className="mt-4 text-caption text-ink-sub">
                         『{p.featuredQuote.bookTitle}』, {p.featuredQuote.author}
                       </footer>
                     </blockquote>
@@ -155,7 +147,7 @@ export default function LandingProfileBook() {
                 </div>
                 {obiBand(
                   <>
-                    <span className="font-sans text-[12px] tabular-nums text-ink-sub">
+                    <span className="font-sans text-caption tabular-nums text-ink-sub">
                       @{p.handle}
                     </span>
                     <Seal className="opacity-70">Readiary</Seal>
@@ -174,7 +166,7 @@ export default function LandingProfileBook() {
                 }}
               >
                 <div
-                  className="absolute inset-x-0 top-6 flex justify-center font-serif text-[11px] tracking-[0.1em] text-ink"
+                  className="absolute inset-x-0 top-6 flex justify-center font-serif text-caption tracking-[0.1em] text-ink"
                   style={{ writingMode: 'vertical-rl', height: H - OBI_H - OBI_BOTTOM - 40 }}
                 >
                   <SpineTitle title={p.name} />
@@ -222,7 +214,7 @@ export default function LandingProfileBook() {
           </div>
         </div>
 
-        <div className="mt-3 flex items-center justify-center gap-4 text-[15px] text-ink-faint">
+        <div className="mt-3 flex items-center justify-center gap-4 text-body text-ink-faint">
           <button
             type="button"
             onClick={flip}

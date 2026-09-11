@@ -74,7 +74,7 @@ export default function LandingComposer() {
           <Card hoverable={false}>
             <div
               aria-live="polite"
-              className="min-h-[5.4rem] whitespace-pre-wrap font-serif text-[17px] leading-relaxed text-ink"
+              className="min-h-[5.4rem] whitespace-pre-wrap font-serif text-body leading-relaxed text-ink"
             >
               {typed === 0 ? (
                 <span className="text-ink-faint">오늘 마음에 남은 문장을 남겨보세요</span>

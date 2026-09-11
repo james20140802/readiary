@@ -71,7 +71,7 @@ export default function SocialActionBar({
                 onLikeCountClick();
               }}
               aria-label="좋아요 명단 보기"
-              className={`text-caption font-medium tabular-nums transition-colors ${
+              className={`text-button-sm font-medium tabular-nums transition-colors ${
                 isLiked ? 'text-accent' : 'text-ink-faint hover:text-ink-sub'
               }`}
             >

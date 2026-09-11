@@ -18,7 +18,7 @@ export default function AuthFrame({ title, lead, children, footer }: AuthFramePr
   return (
     <section className="mx-auto w-full max-w-sm pb-4 pt-4 md:pt-10">
       <header className="text-center">
-        <h1 className="font-serif text-2xl font-bold leading-snug text-ink">{title}</h1>
+        <h1 className="font-serif text-page-title font-bold leading-snug text-ink">{title}</h1>
         {lead && <p className="mt-2 break-keep text-body-sm text-ink-sub">{lead}</p>}
       </header>
       <AnimatedSection>

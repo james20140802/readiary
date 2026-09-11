@@ -16,7 +16,7 @@ export default function Chip({ selected, dot, className, children, ...props }: C
       type="button"
       className={clsx(
         'inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5',
-        'font-sans text-caption font-medium transition-colors',
+        'font-sans text-button-sm font-medium transition-colors',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-paper',
         selected
           ? 'border-ink bg-ink text-ink-invert'

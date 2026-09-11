@@ -139,7 +139,11 @@ export default function OpenBook({ book, slotOpen, onClose, onReturn, onClosed }
     >
       <div ref={stageRef} className="mx-auto w-[min(100%,480px)] py-6">
         {/* 책 한 권의 자리 — 왼쪽 절반은 넘어간 표지, 오른쪽 절반은 남은 종이 */}
-        <div ref={bookRef} className="relative aspect-[10/7]" style={{ perspective: 1600 }}>
+        <div
+          ref={bookRef}
+          className="relative min-h-[360px] sm:min-h-[380px]"
+          style={{ perspective: 1600 }}
+        >
           {shown && stacks && (
             <motion.div
               key={`right-${shown.id}`}
@@ -177,7 +181,7 @@ export default function OpenBook({ book, slotOpen, onClose, onReturn, onClosed }
                 >
                   <Seal>{shown.isFinished ? '완독' : '읽는 중'}</Seal>
                   {/* 제목은 책 상세로, 하단 링크는 기록 작성으로 이동한다. */}
-                  <p className="mt-2 line-clamp-3 font-serif text-[15px] font-bold leading-snug text-ink sm:text-[18px]">
+                  <p className="mt-2 line-clamp-3 font-serif text-body font-bold leading-snug text-ink">
                     <Link
                       href={shown.href}
                       tabIndex={isOpen ? undefined : -1}
@@ -187,12 +191,12 @@ export default function OpenBook({ book, slotOpen, onClose, onReturn, onClosed }
                     </Link>
                   </p>
                   {shown.author && (
-                    <p className="mt-1 truncate font-serif text-[12px] text-ink-sub sm:text-[13px]">
+                    <p className="mt-1 truncate font-serif text-caption text-ink-sub">
                       {shown.author}
                     </p>
                   )}
                   <div className="my-3 w-6 border-t border-hairline-strong sm:my-4 sm:w-7" />
-                  <dl className="space-y-0.5 font-serif text-[12px] tabular-nums leading-relaxed text-ink-sub sm:text-[12.5px]">
+                  <dl className="space-y-0.5 font-serif text-caption tabular-nums leading-relaxed text-ink-sub">
                     <div>
                       <dt className="sr-only">진행</dt>
                       <dd className={shown.isFinished ? 'text-accent' : undefined}>
@@ -202,9 +206,9 @@ export default function OpenBook({ book, slotOpen, onClose, onReturn, onClosed }
                     {shown.readingPeriod && (
                       <div>
                         <dt className="sr-only">읽은 기간</dt>
-                        {/* 해를 넘긴 기간은 연도가 두 번 들어가 길다 — 그때만 반 단계 줄인다 */}
+                        {/* 해를 넘긴 기간도 같은 크기로 읽고 어절 단위로 줄바꿈한다 */}
                         <dd
-                          className={spansYears(shown.readingPeriod) ? 'text-[11.5px]' : undefined}
+                          className={spansYears(shown.readingPeriod) ? 'text-caption' : undefined}
                         >
                           <PeriodText period={shown.readingPeriod} />
                         </dd>
@@ -221,7 +225,7 @@ export default function OpenBook({ book, slotOpen, onClose, onReturn, onClosed }
                       </div>
                     )}
                   </dl>
-                  <div className="mt-auto flex items-center justify-between gap-3 pt-3 text-[12.5px] sm:text-[13px]">
+                  <div className="mt-auto flex flex-wrap items-center justify-between gap-3 pt-3 text-button-sm">
                     <Link
                       href={shown.entryHref ?? shown.href}
                       tabIndex={isOpen ? undefined : -1}
@@ -288,20 +292,20 @@ export default function OpenBook({ book, slotOpen, onClose, onReturn, onClosed }
                       transition={{ opacity: { duration: 0.2, delay: 0.05 } }}
                       className="flex h-full flex-col items-center justify-center px-5 text-center"
                     >
-                      <p className="line-clamp-3 font-serif text-[15px] font-bold leading-snug text-ink sm:text-[17px]">
+                      <p className="line-clamp-3 font-serif text-body font-bold leading-snug text-ink">
                         {shown.title}
                       </p>
                       {shown.author && (
-                        <p className="mt-1.5 truncate font-serif text-[11.5px] text-ink-sub sm:text-[12.5px]">
+                        <p className="mt-1.5 max-w-full truncate font-serif text-caption text-ink-sub">
                           {shown.author}
                         </p>
                       )}
                       <span aria-hidden className="my-4 w-6 border-t border-hairline-strong" />
-                      <p className="font-serif text-[11px] tabular-nums text-ink-sub sm:text-[12px]">
+                      <p className="font-serif text-caption tabular-nums text-ink-sub">
                         {progressText(shown)}
                       </p>
                       {shown.readingPeriod && (
-                        <p className="mt-0.5 font-serif text-[11px] tabular-nums text-ink-sub sm:text-[12px]">
+                        <p className="mt-0.5 font-serif text-caption tabular-nums text-ink-sub">
                           <PeriodText period={shown.readingPeriod} />
                         </p>
                       )}
@@ -358,14 +362,14 @@ export default function OpenBook({ book, slotOpen, onClose, onReturn, onClosed }
                         /* 표지가 없으면 속표지처럼 — 제목을 세로로 */
                         <div className="absolute inset-0 flex items-center justify-center gap-3 py-6">
                           <span
-                            className="max-h-full overflow-hidden text-ellipsis whitespace-nowrap font-serif text-[15px] tracking-[0.1em] text-ink"
+                            className="max-h-full overflow-hidden text-ellipsis whitespace-nowrap font-serif text-body tracking-[0.1em] text-ink"
                             style={{ writingMode: 'vertical-rl' }}
                           >
                             {shown.title}
                           </span>
                           {shown.author && (
                             <span
-                              className="max-h-full overflow-hidden text-ellipsis whitespace-nowrap font-serif text-[11.5px] tracking-[0.08em] text-ink-sub"
+                              className="max-h-full overflow-hidden text-ellipsis whitespace-nowrap font-serif text-caption tracking-[0.08em] text-ink-sub"
                               style={{ writingMode: 'vertical-rl' }}
                             >
                               {shown.author}

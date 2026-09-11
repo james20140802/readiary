@@ -36,11 +36,28 @@
 - `font-serif` — 마루 부리(셀프호스팅, `app/fonts.ts`). 인용문, 책 제목, 워드마크, 회고 카피.
 - `font-sans` — Pretendard. UI 크롬, 버튼, 라벨, 메타데이터. (기본값)
 
-크기 토큰: `text-page-title`(24) `text-section-title`(18) `text-body`(15) `text-body-sm`(14) `text-button`(14) `text-caption`(12) `text-overline`(11) 그리고:
+크기는 역할별로 통일한다. 아래 px는 루트 16px 기준이며 토큰은 rem으로 정의한다.
 
-- `text-quote` — 20px/1.85. 인용 문장 전용(`font-serif`와 함께).
-- `text-note` — 13.5px/1.8. 인용에 딸린 짧은 단상·주석(시안 .note).
-- `text-seal` — 10.5px/굵게/자간 0.16em. 날짜·상태 표식 전용.
+| 역할 | 토큰 | 크기 / 줄 높이 |
+| --- | --- | --- |
+| 페이지 제목 | `text-page-title` | 26 / 34px |
+| 섹션 제목 | `text-section-title` | 20 / 28px |
+| 독립 인용 | `text-quote` | 22px / 1.85 |
+| 본문·생각·짧은 문장 미리보기 | `text-body`, `text-note` | 16px / 1.75 |
+| 입력값 | `text-input` | 16 / 24px |
+| 기본 버튼·탭·필터·정렬·데스크톱 내비게이션 | `text-button` | 15 / 22px |
+| 작은 버튼·행 안의 링크·모바일 내비게이션 | `text-button-sm` | 14 / 20px |
+| 큰 버튼 | `text-button-lg` | 16 / 24px |
+| 라벨·저자·날짜·진도·안내·오류 | `text-caption`, `text-body-sm` | 14 / 22px |
+| 구분 라벨·날짜/상태 표식 | `text-overline`, `text-seal` | 14 / 22px |
+| 비조작 장식 표식만 | `text-ornament` | 12 / 16px |
+
+- 작은 버튼도 설명용 caption 대신 `button-sm`을 쓴다. Button sm/md/lg의 최소 높이는 36/40/48px이며 글자가 여러 줄이면 높이가 늘어난다. variant는 색과 표면의 차이이며 크기와 독립적이다.
+- 같은 역할은 모바일·데스크톱 및 기본·선택·hover 상태에서 같은 크기를 쓴다. 11.5·12.5·13.5px 등 개별 크기와 크기 클래스 중복은 추가하지 않는다.
+- 책 제목은 목록에서 16px 부리, 페이지 제목이면 26px다. 조작 가능한 책갈피·월 인덱스와 읽어야 할 날짜는 장식 예외가 아니다.
+- 책·엽서 안에서도 글자를 줄여 끼워 넣지 않는다. 책 폭/높이와 여백을 조정하고, 긴 문장 미리보기에는 기존 더 보기 또는 스크롤을 제공한다. 목록의 긴 제목은 두 줄 말줄임 후 상세에서 읽는다.
+- 랜딩의 큰 제목(`display-sm` 32px / `display` 48px), 장식용 인용부호(`quote-mark` 40px / `display-lg` 60px), 이니셜(`monogram` 36px)은 일반 UI와 다른 표현용 토큰이다.
+- 발췌집의 고정 비율 내보내기 이미지는 화면 조작 UI와 별개다. 기존 길이에 따른 축약은 유지하되 크기는 공용 토큰을 사용한다. OG 이미지의 픽셀 좌표계도 화면 크기 규칙과 구분한다.
 
 ## 표면 규칙 (Surfaces)
 

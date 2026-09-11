@@ -63,7 +63,7 @@ export default async function RootLayout({
           closeButton
           toastOptions={{
             className:
-              'text-sm font-sans text-ink bg-card rounded-md border border-hairline px-4 py-3',
+              'text-caption font-sans text-ink bg-card rounded-md border border-hairline px-4 py-3',
           }}
         />
       </body>

@@ -12,7 +12,7 @@ export default function FormLabel({ className, variant = 'default', ...props }: 
       {...props}
       className={clsx(
         'block font-medium',
-        variant === 'line' ? 'text-[11.5px] text-ink-sub' : 'text-sm text-ink mb-1',
+        variant === 'line' ? 'text-caption text-ink-sub' : 'text-caption text-ink mb-1',
         className
       )}
     />

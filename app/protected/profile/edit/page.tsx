@@ -180,7 +180,7 @@ export default function EditProfilePage() {
                   </button>
                 </>
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-ink-faint font-black text-4xl uppercase">
+                <div className="w-full h-full flex items-center justify-center text-ink-faint font-black text-monogram uppercase">
                   {nickname?.at(0) || 'U'}
                 </div>
               )}
@@ -321,7 +321,7 @@ export default function EditProfilePage() {
           <div className="text-center">
             <button
               onClick={() => router.push('/protected/profile/update-password')}
-              className="text-sm font-semibold text-ink-sub hover:text-ink transition-colors underline underline-offset-4"
+              className="text-button-sm font-semibold text-ink-sub hover:text-ink transition-colors underline underline-offset-4"
             >
               비밀번호 변경
             </button>

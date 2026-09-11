@@ -84,7 +84,7 @@ export default function ShareEntryButton({
       <button
         onClick={handleShare}
         disabled={isSharing}
-        className="flex items-center gap-1.5 text-caption font-medium text-ink-faint hover:text-ink-sub transition-colors disabled:opacity-50"
+        className="flex items-center gap-1.5 text-button-sm font-medium text-ink-faint hover:text-ink-sub transition-colors disabled:opacity-50"
         title="문장 카드 공유"
       >
         <Share2 size={16} />

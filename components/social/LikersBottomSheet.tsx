@@ -65,7 +65,7 @@ export default function LikersBottomSheet({ entryId, isOpen, onClose }: Props) {
             className="fixed bottom-0 left-0 right-0 z-[70] bg-card border border-hairline max-h-[90vh] rounded-t-[20px] flex flex-col w-full mx-auto sm:max-w-[480px] sm:bottom-4 sm:rounded-[24px]"
           >
             <div className="flex items-center justify-between px-5 pt-4 pb-1">
-              <h3 className="text-[16px] font-bold">
+              <h3 className="text-section-title font-bold">
                 좋아요 {likerRows.length > 0 ? likerRows.length : ''}
               </h3>
               <button

@@ -50,15 +50,15 @@ export default function CommentItem({
       <div className="flex-1 min-w-0 space-y-1">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-[13.5px] font-bold text-ink">{comment.profile.name}</span>
+            <span className="text-caption font-bold text-ink">{comment.profile.name}</span>
             {/* 닉네임과 태그 */}
-            <span className="text-[12px] text-ink-faint font-medium">
+            <span className="text-caption text-ink-faint font-medium">
               @{comment.profile.nickname}
               {comment.profile.tag && (
-                <span className="text-[10px] opacity-70">#{comment.profile.tag}</span>
+                <span className="text-caption opacity-70">#{comment.profile.tag}</span>
               )}
             </span>
-            <span className="text-[11px] text-ink-faint tabular-nums" suppressHydrationWarning>
+            <span className="text-caption text-ink-faint tabular-nums" suppressHydrationWarning>
               {timeAgo}
             </span>
           </div>
@@ -75,7 +75,7 @@ export default function CommentItem({
           )}
         </div>
 
-        <p className="text-[14.5px] text-ink-sub leading-relaxed whitespace-pre-wrap">
+        <p className="text-body text-ink-sub leading-relaxed whitespace-pre-wrap">
           {comment.content}
         </p>
 
@@ -83,7 +83,7 @@ export default function CommentItem({
         {!isReply && (
           <button
             onClick={onReplyClick}
-            className="text-[11px] font-bold text-ink-faint hover:text-accent mt-1"
+            className="text-button-sm font-bold text-ink-faint hover:text-accent mt-1"
           >
             답글 달기
           </button>

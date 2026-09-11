@@ -41,14 +41,14 @@ export default function CommentInput({
       {/* 답글 모드일 때 상단에 표시되는 바 */}
       {replyingTo && (
         <div className="flex items-center justify-between pb-1 animate-in fade-in slide-in-from-top-1">
-          <p className="text-[12px] text-ink-sub">
+          <p className="text-caption text-ink-sub">
             <span className="font-bold text-accent">@{replyingTo.profile.nickname}</span>님에게 답글
             남기는 중
           </p>
           <button
             type="button"
             onClick={onCancelReply}
-            className="text-[11px] text-ink-faint hover:text-ink-sub"
+            className="text-button-sm text-ink-faint hover:text-ink-sub"
           >
             취소
           </button>
@@ -60,7 +60,7 @@ export default function CommentInput({
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="칭찬과 응원은 큰 힘이 됩니다"
-          className="flex-1 bg-transparent border-none outline-none text-[14px] py-2.5 text-ink placeholder:text-ink-faint"
+          className="flex-1 bg-transparent border-none outline-none text-input py-2.5 text-ink placeholder:text-ink-faint"
           disabled={isSubmitting}
         />
 

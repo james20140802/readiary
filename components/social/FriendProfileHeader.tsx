@@ -24,8 +24,8 @@ export default function FriendProfileHeader({ profile, showBackButton = true }: 
           size="md"
         />
         <div className={`${showBackButton && 'flex items-center gap-3'}`}>
-          <p className="text-lg font-semibold text-ink">{profile.name}</p>
-          <p className="text-sm text-ink-sub">
+          <p className="text-section-title font-semibold text-ink">{profile.name}</p>
+          <p className="text-caption text-ink-sub">
             {profile.nickname}#{profile.tag}
           </p>
         </div>

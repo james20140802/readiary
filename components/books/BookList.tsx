@@ -130,11 +130,11 @@ export default function BookList({ books, stats, isFriend = false, nicknameAndTa
   if (books.length === 0) {
     return (
       <div className="border-b-4 border-hairline-strong px-3 pb-6 pt-16 text-center">
-        <p className="font-serif text-[15px] text-ink-sub">아직 빈 책장입니다.</p>
+        <p className="font-serif text-body text-ink-sub">아직 빈 책장입니다.</p>
         {!isFriend && (
           <Link
             href="/protected/books/new"
-            className="mt-2 inline-block font-serif text-[13.5px] text-accent hover:underline"
+            className="mt-2 inline-block font-serif text-button-sm text-accent hover:underline"
           >
             첫 책 꽂기 →
           </Link>
@@ -146,7 +146,7 @@ export default function BookList({ books, stats, isFriend = false, nicknameAndTa
   return (
     <div>
       {/* 컨트롤 행 — pill·드롭다운 대신 밑줄 텍스트 */}
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-[13.5px]">
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-button">
         <TextToggle
           label="책 상태"
           options={FILTER_OPTIONS}
@@ -156,7 +156,7 @@ export default function BookList({ books, stats, isFriend = false, nicknameAndTa
             setFilter(v);
           }}
         />
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           <button
             type="button"
             onClick={() => {
@@ -181,7 +181,7 @@ export default function BookList({ books, stats, isFriend = false, nicknameAndTa
       </div>
 
       {processed.length === 0 ? (
-        <p className="py-12 text-center font-serif text-[14px] text-ink-sub">
+        <p className="py-12 text-center font-serif text-body text-ink-sub">
           {filter === 'finished' ? '아직 완독한 책이 없습니다.' : '읽는 중인 책이 없습니다.'}
         </p>
       ) : viewMode === 'shelf' ? (
@@ -203,26 +203,26 @@ export default function BookList({ books, stats, isFriend = false, nicknameAndTa
             const book = ub.books;
             const isFinished = ub.is_finished ?? false;
             return (
-              <li key={ub.id} className="flex items-center gap-4 py-3.5">
+              <li key={ub.id} className="flex items-center gap-3 py-3.5">
                 <Link
                   href={getDetailHref(ub)}
-                  className="group flex min-w-0 flex-1 items-center gap-4"
+                  className="group grid min-w-0 flex-1 grid-cols-[40px_minmax(0,1fr)] items-center gap-x-3 gap-y-1"
                 >
                   <Image
                     src={book.cover_url ?? '/images/default-book-cover.png'}
                     alt=""
                     width={40}
                     height={56}
-                    className="h-14 w-10 shrink-0 rounded-sm border border-hairline object-cover"
+                    className="row-span-2 h-14 w-10 shrink-0 rounded-sm border border-hairline object-cover"
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-serif text-[15px] leading-snug text-ink group-hover:underline group-hover:decoration-hairline-strong group-hover:underline-offset-4">
+                    <p className="line-clamp-2 font-serif text-body leading-snug text-ink group-hover:underline group-hover:decoration-hairline-strong group-hover:underline-offset-4">
                       {book.title}
                     </p>
                     <p className="mt-0.5 truncate text-caption text-ink-sub">{book.author}</p>
                   </div>
                   <span
-                    className={`shrink-0 text-[12.5px] tabular-nums ${
+                    className={`col-start-2 text-caption tabular-nums ${
                       isFinished ? 'font-serif text-accent' : 'text-ink-sub'
                     }`}
                   >
@@ -232,7 +232,7 @@ export default function BookList({ books, stats, isFriend = false, nicknameAndTa
                 {!isFriend && !isFinished && (
                   <Link
                     href={`/protected/books/${ub.book_id}/entry/new`}
-                    className="shrink-0 text-[12.5px] text-ink-sub transition-colors hover:text-accent"
+                    className="shrink-0 text-button-sm text-ink-sub transition-colors hover:text-accent"
                   >
                     기록 →
                   </Link>

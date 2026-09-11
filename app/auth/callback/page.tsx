@@ -52,7 +52,7 @@ export default function AuthCallbackPage() {
 
   return (
     <div className="flex min-h-[60vh] items-center justify-center text-ink">
-      <p className="text-center text-sm">
+      <p className="text-center text-caption">
         {destination ? MESSAGES[destination] : '이메일 인증을 확인하는 중...'}
       </p>
     </div>

@@ -63,7 +63,7 @@ export default function NewBookForm() {
     <form onSubmit={handleSubmit}>
       <div className="space-y-6">
         <div>
-          <label htmlFor="new-book-title" className="text-[11.5px] font-medium text-ink-faint">
+          <label htmlFor="new-book-title" className="text-caption font-medium text-ink-faint">
             제목
           </label>
           <input
@@ -73,12 +73,12 @@ export default function NewBookForm() {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
-            className={`${fieldClass} font-serif text-[17px]`}
+            className={`${fieldClass} font-serif text-input`}
           />
         </div>
 
         <div>
-          <label htmlFor="new-book-author" className="text-[11.5px] font-medium text-ink-faint">
+          <label htmlFor="new-book-author" className="text-caption font-medium text-ink-faint">
             저자
           </label>
           <input
@@ -88,15 +88,15 @@ export default function NewBookForm() {
             value={author}
             onChange={(e) => setAuthor(e.target.value)}
             required
-            className={`${fieldClass} font-serif text-[15px]`}
+            className={`${fieldClass} font-serif text-input`}
           />
         </div>
 
         <div>
-          <label htmlFor="new-book-pages" className="text-[11.5px] font-medium text-ink-faint">
+          <label htmlFor="new-book-pages" className="text-caption font-medium text-ink-faint">
             총 쪽수 <span className="font-normal">(선택)</span>
           </label>
-          <div className="mt-1.5 flex items-center gap-1 text-[13px] tabular-nums text-ink-sub">
+          <div className="mt-1.5 flex items-center gap-1 text-caption tabular-nums text-ink-sub">
             <span className="text-ink-faint">총</span>
             <input
               id="new-book-pages"
@@ -117,7 +117,7 @@ export default function NewBookForm() {
         {error ? (
           <p className="text-caption font-medium text-danger">{error}</p>
         ) : (
-          <span className="text-[11.5px] text-ink-faint">쪽수는 나중에 채워도 됩니다.</span>
+          <span className="text-caption text-ink-faint">쪽수는 나중에 채워도 됩니다.</span>
         )}
         <Button type="submit" size="sm" disabled={loading}>
           {loading ? '꽂는 중...' : '책장에 꽂기'}

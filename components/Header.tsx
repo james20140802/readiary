@@ -23,7 +23,7 @@ export default function Header({ loggedIn, showNav, hasUnread }: HeaderProps) {
         prefetch={showNav}
       >
         <BookMarked size={24} />
-        <span className="font-serif text-lg font-bold tracking-wide">Readiary</span>
+        <span className="font-serif text-section-title font-bold tracking-wide">Readiary</span>
       </Link>
 
       {/* 알림 종 — 모바일은 전역 상단 헤더에 상주. 터치 영역 44px */}

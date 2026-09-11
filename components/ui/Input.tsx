@@ -26,7 +26,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className={clsx(fullWidth && 'w-full')}>
         {label && (
-          <label htmlFor={inputId} className="block mb-1 text-sm font-medium text-ink">
+          <label htmlFor={inputId} className="block mb-1 text-caption font-medium text-ink">
             {label}
           </label>
         )}
@@ -40,13 +40,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               'w-full text-ink placeholder:text-ink-faint transition-colors focus:outline-none',
               line
                 ? [
-                    'border-b border-hairline bg-transparent px-0 py-2 text-[15px]',
+                    'border-b border-hairline bg-transparent px-0 py-2 text-input',
                     'focus:border-hairline-strong',
                     error && 'border-danger focus:border-danger',
                     trailing && 'pr-9',
                   ]
                 : [
-                    'rounded-md px-4 py-2 text-sm border bg-card',
+                    'rounded-md px-4 py-2 text-input border bg-card',
                     'border-hairline-strong focus:border-accent focus:ring-1 focus:ring-accent',
                     error && 'border-danger focus:ring-danger focus:border-danger',
                     trailing && 'pr-11',
@@ -69,7 +69,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           )}
         </div>
         {error && (
-          <p id={errorId} className="mt-1 text-xs text-danger">
+          <p id={errorId} className="mt-1 text-caption text-danger">
             {error}
           </p>
         )}

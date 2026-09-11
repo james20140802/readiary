@@ -36,7 +36,7 @@ export default function AcceptFriendRequestButton({ friendUserId, onSuccess }: P
     <button
       onClick={handleAccept}
       disabled={isPending}
-      className="px-3 py-2 text-body-sm font-semibold text-accent hover:text-accent-hover disabled:opacity-40 transition-colors"
+      className="px-3 py-2 text-button-sm font-semibold text-accent hover:text-accent-hover disabled:opacity-40 transition-colors"
     >
       수락
     </button>

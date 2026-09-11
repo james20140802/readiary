@@ -57,14 +57,14 @@ export default function RemoveFriendButton({ friendId }: Props) {
             <div className="flex gap-2">
               <button
                 onClick={() => setShowConfirm(false)}
-                className="flex-1 py-2.5 rounded-xl border border-hairline text-body-sm font-bold text-ink-sub hover:bg-card-raised transition-colors"
+                className="flex-1 py-2.5 rounded-xl border border-hairline text-button-sm font-bold text-ink-sub hover:bg-card-raised transition-colors"
               >
                 취소
               </button>
               <button
                 onClick={handleRemove}
                 disabled={isPending}
-                className="flex-1 py-2.5 rounded-xl bg-danger text-ink-invert text-body-sm font-bold hover:bg-danger/90 transition-colors disabled:opacity-50"
+                className="flex-1 py-2.5 rounded-xl bg-danger text-ink-invert text-button-sm font-bold hover:bg-danger/90 transition-colors disabled:opacity-50"
               >
                 {isPending ? '삭제 중...' : '삭제'}
               </button>

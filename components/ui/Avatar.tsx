@@ -12,9 +12,9 @@ interface AvatarProps {
 }
 
 const sizeClasses = {
-  sm: 'w-6 h-6 text-xs',
-  md: 'w-10 h-10 text-sm',
-  lg: 'w-16 h-16 text-base',
+  sm: 'w-6 h-6 text-caption',
+  md: 'w-10 h-10 text-caption',
+  lg: 'w-16 h-16 text-body',
 };
 
 export function Avatar({
