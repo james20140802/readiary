@@ -11,6 +11,7 @@ import type { FeaturedBookmark, FeaturedQuote, Profile, Stats } from '@/types/pr
 import type { MonthlySummary } from '@/lib/profile/monthlySummary';
 import Seal from '@/components/ui/Seal';
 import RemoveFriendButton from '@/components/social/RemoveFriendButton';
+import MonthlyEntryReader from '@/components/profile/MonthlyEntryReader';
 import ProfileColophon from '@/components/profile/ProfileColophon';
 import { SpineTitle } from '@/components/books/BookSpineShelf';
 import { createSupabaseClient } from '@/lib/supabase/client';
@@ -105,6 +106,7 @@ export default function ProfileBook({
 }: Props) {
   const router = useRouter();
   const isOwnProfile = user.id === profile.id;
+  const [readingEntryId, setReadingEntryId] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const photoUrl = getImageUrl(profile.profile_image);
   const handle = `${profile.nickname}#${profile.tag || '0000'}`;
@@ -165,7 +167,7 @@ export default function ProfileBook({
     closeRef.current = close;
   });
   useEffect(() => {
-    if (!open) return;
+    if (!open || readingEntryId) return;
     const onPointerDown = (e: PointerEvent) => {
       const target = e.target as Node;
       if (bookRef.current?.contains(target) || controlsRef.current?.contains(target)) return;
@@ -173,7 +175,7 @@ export default function ProfileBook({
     };
     document.addEventListener('pointerdown', onPointerDown);
     return () => document.removeEventListener('pointerdown', onPointerDown);
-  }, [open]);
+  }, [open, readingEntryId]);
 
   // 펼치면 표지가 왼쪽으로 한 권 폭만큼 눕는다. 자리가 있으면 펼친 전체를 가운데에,
   // 없으면 줄이지 않고 본문을 그대로 둔 채 표지가 화면 밖으로 나간다
@@ -355,7 +357,7 @@ export default function ProfileBook({
   const renderRecto = (p: Page, m: MonthlySummary | null) => (
     <>
       {m ? (
-        <div className="flex h-full flex-col px-7 pb-6 pt-8">
+        <div className="flex h-full flex-col overflow-y-auto overscroll-contain px-7 pb-6 pt-8 [&>*]:shrink-0">
           <Seal>{indexLabel(m.label)}</Seal>
           <p className="mt-1 font-serif text-[15px] font-bold leading-snug text-ink">
             {m.label}
@@ -374,11 +376,31 @@ export default function ProfileBook({
             </p>
           ) : (
             <ul className="mt-4 divide-y divide-hairline border-t border-hairline">
-              {m.quotes.map((q, i) => (
-                <li key={i} className="py-3">
-                  <p className="line-clamp-3 break-keep font-serif text-[13px] leading-relaxed text-ink">
-                    {q}
-                  </p>
+              {(m.quotePreviews?.length === m.quotes.length
+                ? m.quotePreviews
+                : m.quotes.map((quote) => ({ quote, entryId: null }))
+              ).map((q, i) => (
+                <li key={q.entryId ?? i} className="py-3">
+                  {q.entryId ? (
+                    <button
+                      type="button"
+                      onClick={() => setReadingEntryId(q.entryId)}
+                      aria-haspopup="dialog"
+                      aria-label={`원문 읽기: ${q.quote.slice(0, 60)}${q.quote.length > 60 ? '…' : ''}`}
+                      className="block w-full rounded-sm text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                    >
+                      <span className="line-clamp-3 break-keep font-serif text-[13px] leading-relaxed text-ink">
+                        {q.quote}
+                      </span>
+                      <span className="mt-1 block font-sans text-caption text-accent">
+                        원문 읽기 →
+                      </span>
+                    </button>
+                  ) : (
+                    <p className="line-clamp-3 break-keep font-serif text-[13px] leading-relaxed text-ink">
+                      {q.quote}
+                    </p>
+                  )}
                 </li>
               ))}
             </ul>
@@ -586,6 +608,13 @@ export default function ProfileBook({
 
   return (
     <div ref={wrapRef} className="w-full" style={{ overflowX: 'clip' }}>
+      {readingEntryId && (
+        <MonthlyEntryReader
+          key={readingEntryId}
+          entryId={readingEntryId}
+          onClose={() => setReadingEntryId(null)}
+        />
+      )}
       {/* 무대 상자 — 무대를 축소해도 흐름에서는 원래 높이를 차지하므로, 줄인 높이만큼만 자리를 잡는다 */}
       <div style={{ height: (TOP_PAD + H) * stageScale, overflow: 'clip' }}>
         <div

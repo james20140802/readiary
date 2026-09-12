@@ -96,3 +96,21 @@ complete rendering), and separately measure Auth/proxy, RPC, and browser timings
 Rollback: deploy the previous application first. The additive RPCs/indexes can
 remain without changing old application behavior; do not remove RPCs while this
 application revision still uses them.
+
+## 월별 회고 원문 읽기 (2026-09-13)
+
+프로필 월별 회고는 `quotePreviews`의 기록 ID로 읽기 창을 연다. 기존 `quotes`
+문자열 배열도 유지하며, ID가 없는 이전 RPC 응답에서는 텍스트만 표시한다.
+`20260912161000_monthly_quote_previews.sql`은 최근 6개월·월별 최대 3문장과
+호출자 RLS를 유지하는 추가 마이그레이션이다. 이전 앱과도 호환된다.
+
+창을 열 때만 `GET /api/entries/[entry_id]/read`로 해당 기록 한 건을 조회한다.
+본인 기록 또는 현재 친구의 공개 기록만 반환한다. 삭제·비공개 전환·친구 해제로
+접근할 수 없으면 동일한 404 안내를 반환한다. 원문 응답은 `private, no-store`이며
+기존 `/api/` NetworkOnly 규칙을 따른다. 닫으면 내용을 버리고 다시 열 때 재조회한다.
+창을 이미 열어 둔 상태의 권한 변경을 실시간 구독하는 기능은 포함하지 않는다.
+
+로컬 SQL 검증은 기존 `run-performance-contract.mjs`가 새 마이그레이션과
+`monthly-quote-previews.sql`을 함께 실행한다. 운영 DB 적용과 실제 로그인 계정의
+통합 검증은 별도다. DB 변경 전에는 원문 버튼이 나타나지 않으므로 배포 시
+마이그레이션 적용 여부를 확인한다. 앱 롤백 시 추가된 RPC 필드는 남겨도 된다.

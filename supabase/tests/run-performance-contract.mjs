@@ -9,10 +9,12 @@ try {
     '20260904000000_reclaim_rls_policies.sql',
     '20260906111737_page_loading_rpcs.sql',
     '20260906112509_rpc_quote_whitespace.sql',
+    '20260912161000_monthly_quote_previews.sql',
   ]) {
     await db.exec(await readFile(new URL(`migrations/${name}`, root), 'utf8'));
   }
   await db.exec(await readFile(new URL('tests/performance_contract.sql', root), 'utf8'));
+  await db.exec(await readFile(new URL('tests/monthly-quote-previews.sql', root), 'utf8'));
   process.stdout.write('PASS: page RPC aggregates, pagination, recall, and caller RLS isolation\n');
 } catch (error) {
   console.error(error.message, error.code, error.where ?? '');

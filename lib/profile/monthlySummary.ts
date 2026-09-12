@@ -1,3 +1,8 @@
+export interface QuotePreview {
+  entryId: string;
+  quote: string;
+}
+
 export interface MonthlySummary {
   label: string;
   count: number;
@@ -5,9 +10,12 @@ export interface MonthlySummary {
   books: string[];
   /** 그 달의 인용 — 최근 것부터, MONTH_PAGE_QUOTES개까지 */
   quotes: string[];
+  /** Older RPC responses contain only quotes. */
+  quotePreviews?: QuotePreview[];
 }
 
 export interface MonthEntry {
+  id?: string;
   /** yyyy-MM-dd */
   date: string;
   quote?: string | null;
@@ -48,15 +56,19 @@ export function summarizeByMonth(
 
     const books: string[] = [];
     const quotes: string[] = [];
+    const quotePreviews: QuotePreview[] = [];
     for (let j = bucket.length - 1; j >= 0; j -= 1) {
-      const { quote, bookTitle } = bucket[j];
+      const { id, quote, bookTitle } = bucket[j];
       const trimmedQuote = quote?.trim();
-      if (trimmedQuote && quotes.length < MONTH_PAGE_QUOTES) quotes.push(trimmedQuote);
+      if (trimmedQuote && quotes.length < MONTH_PAGE_QUOTES) {
+        quotes.push(trimmedQuote);
+        if (id) quotePreviews.push({ entryId: id, quote: trimmedQuote });
+      }
       if (bookTitle && books.length < MONTH_PAGE_BOOKS && !books.includes(bookTitle)) {
         books.push(bookTitle);
       }
     }
 
-    return { label: `${year}년 ${month}월`, count: bucket.length, books, quotes };
+    return { label: `${year}년 ${month}월`, count: bucket.length, books, quotes, quotePreviews };
   });
 }
