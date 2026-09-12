@@ -32,7 +32,7 @@ export default function SlideHeading({
       className={clsx(align === 'center' && 'flex flex-col items-center text-center', className)}
     >
       <p className="text-overline text-accent">{eyebrow}</p>
-      <h2 className="mt-3 text-balance font-serif text-2xl font-bold leading-snug text-ink md:text-[2rem] md:leading-snug">
+      <h2 className="mt-3 text-balance font-serif text-page-title font-bold leading-snug text-ink md:text-display-sm md:leading-snug">
         {title}
       </h2>
       {body && <p className="mt-3 max-w-prose text-body leading-relaxed text-ink-sub">{body}</p>}

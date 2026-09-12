@@ -73,18 +73,16 @@ export function InProgressBooksStack({ myBooks, initialTopId, latestTexts }: Pro
                       </div>
                       <div className="min-w-0 flex-1">
                         <Seal className="mb-1 block">읽던 책</Seal>
-                        <p className="truncate font-serif text-[17px] font-bold text-ink">
-                          {title}
-                        </p>
+                        <p className="truncate font-serif text-body font-bold text-ink">{title}</p>
                         <p className="truncate text-caption text-ink-faint">
                           {[b.books.author, progressLabel(b)].filter(Boolean).join(' · ')}
                         </p>
                         {latestText && (
-                          <p className="mt-2 line-clamp-2 font-serif text-[13px] leading-relaxed text-ink-sub">
+                          <p className="mt-2 line-clamp-2 font-serif text-body leading-relaxed text-ink-sub">
                             “{latestText}”
                           </p>
                         )}
-                        <span className="mt-2 inline-block text-[13px] text-accent">
+                        <span className="mt-2 inline-block text-caption text-accent">
                           이어서 읽기 →
                         </span>
                       </div>
@@ -98,8 +96,8 @@ export function InProgressBooksStack({ myBooks, initialTopId, latestTexts }: Pro
                   aria-label={`${title} 펼치기`}
                   className="flex h-8 w-full items-center justify-between gap-3 rounded-[3px] border border-hairline bg-card-raised px-4 transition-colors hover:border-hairline-strong"
                 >
-                  <span className="truncate font-serif text-[12.5px] text-ink">{title}</span>
-                  <span className="shrink-0 font-serif text-[11px] text-ink-faint">
+                  <span className="truncate font-serif text-caption text-ink">{title}</span>
+                  <span className="shrink-0 font-serif text-caption text-ink-faint">
                     {progressLabel(b) ?? ''}
                   </span>
                 </button>

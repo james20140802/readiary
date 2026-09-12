@@ -173,7 +173,7 @@ export default function OpenBook({ book, slotOpen, onClose, onReturn, onClosed }
                   initial={{ opacity: 0 }}
                   animate={{ opacity: isOpen ? 1 : 0 }}
                   transition={{ duration: 0.3, delay: isOpen ? FLIP * 0.45 : 0 }}
-                  className="relative flex h-full flex-col px-4 py-4 sm:px-5 sm:py-5"
+                  className="relative flex h-full flex-col overflow-y-auto px-4 py-4 sm:px-5 sm:py-5 [&>*]:shrink-0"
                 >
                   <Seal>{shown.isFinished ? '완독' : '읽는 중'}</Seal>
                   {/* 제목은 책 상세로, 하단 링크는 기록 작성으로 이동한다. */}
@@ -221,7 +221,7 @@ export default function OpenBook({ book, slotOpen, onClose, onReturn, onClosed }
                       </div>
                     )}
                   </dl>
-                  <div className="mt-auto flex items-center justify-between gap-3 pt-3 text-[12.5px] sm:text-[13px]">
+                  <div className="mt-auto flex flex-wrap items-center justify-between gap-3 pt-3 text-[12.5px] sm:text-[13px]">
                     <Link
                       href={shown.entryHref ?? shown.href}
                       tabIndex={isOpen ? undefined : -1}
@@ -292,7 +292,7 @@ export default function OpenBook({ book, slotOpen, onClose, onReturn, onClosed }
                         {shown.title}
                       </p>
                       {shown.author && (
-                        <p className="mt-1.5 truncate font-serif text-[11.5px] text-ink-sub sm:text-[12.5px]">
+                        <p className="mt-1.5 max-w-full truncate font-serif text-[11.5px] text-ink-sub sm:text-[12.5px]">
                           {shown.author}
                         </p>
                       )}

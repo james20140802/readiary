@@ -42,7 +42,7 @@ export default function LandingPostcard() {
       type="button"
       onClick={() => flip(1)}
       aria-label={label}
-      className="flex shrink-0 items-center gap-1 text-caption font-medium text-ink-faint transition-colors hover:text-accent"
+      className="flex shrink-0 items-center gap-1 text-button-sm font-medium text-ink-faint transition-colors hover:text-accent"
     >
       <Repeat size={13} /> 뒤집기
     </button>
@@ -75,10 +75,10 @@ export default function LandingPostcard() {
 
   const frontFace = (
     <div className="flex flex-1 flex-col px-6 pb-4 pt-5">
-      <span aria-hidden className="font-serif text-[40px] leading-none text-accent">
+      <span aria-hidden className="font-serif text-quote-mark leading-none text-accent">
         “
       </span>
-      <blockquote className="mt-1 text-pretty font-serif text-[20px] leading-[1.7] text-ink sm:text-[22px]">
+      <blockquote className="mt-1 text-pretty font-serif text-quote leading-[1.7] text-ink">
         {d.quote}
       </blockquote>
       <div className="mt-auto flex items-end justify-between gap-3 pt-6">

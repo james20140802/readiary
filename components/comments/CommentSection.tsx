@@ -100,9 +100,9 @@ export default function CommentSection({
     <div className="mt-10 space-y-6">
       <div className="flex items-center justify-between px-1">
         {/* 책 상세의 '독서 기록' 헤딩과 같은 문법 */}
-        <h3 className="font-serif text-[17px] font-bold text-ink">
+        <h3 className="font-serif text-section-title font-bold text-ink">
           댓글{' '}
-          <span className="ml-1 text-[13px] font-normal tabular-nums text-ink-faint">
+          <span className="ml-1 text-caption font-normal tabular-nums text-ink-faint">
             {comments.length}
           </span>
         </h3>
@@ -110,7 +110,7 @@ export default function CommentSection({
 
       <div className="min-h-[100px]">
         {isLoading ? (
-          <div className="py-10 text-center text-ink-faint text-sm">기록을 불러오는 중...</div>
+          <div className="py-10 text-center text-ink-faint text-caption">기록을 불러오는 중...</div>
         ) : comments.length > 0 ? (
           <div className="divide-y divide-hairline">
             {comments
@@ -143,7 +143,7 @@ export default function CommentSection({
               ))}
           </div>
         ) : (
-          <div className="py-12 text-center text-ink-faint text-[14px]">
+          <div className="py-12 text-center text-ink-faint text-caption">
             아직 댓글이 없어요. 첫 인사를 남겨보세요!
           </div>
         )}
@@ -162,8 +162,8 @@ export default function CommentSection({
       {/* 삭제 확인 모달 */}
       <Modal isOpen={!!deleteModalCommentId} onClose={() => setDeleteModalCommentId(null)}>
         <div className="space-y-4">
-          <h2 className="text-lg font-bold text-ink">정말 삭제하시겠어요?</h2>
-          <p className="text-sm text-ink-sub">이 작업은 되돌릴 수 없습니다.</p>
+          <h2 className="text-section-title font-bold text-ink">정말 삭제하시겠어요?</h2>
+          <p className="text-caption text-ink-sub">이 작업은 되돌릴 수 없습니다.</p>
           <div className="flex justify-end gap-2 pt-2">
             <Button size="sm" onClick={() => setDeleteModalCommentId(null)}>
               취소
@@ -178,8 +178,8 @@ export default function CommentSection({
       {/* 에러 모달 */}
       <Modal isOpen={!!errorModalMessage} onClose={() => setErrorModalMessage(null)}>
         <div className="space-y-4">
-          <h2 className="text-lg font-bold text-ink">알림</h2>
-          <p className="text-sm text-ink-sub">{errorModalMessage}</p>
+          <h2 className="text-section-title font-bold text-ink">알림</h2>
+          <p className="text-caption text-ink-sub">{errorModalMessage}</p>
           <div className="flex justify-end gap-2 pt-2">
             <Button size="sm" onClick={() => setErrorModalMessage(null)}>
               확인

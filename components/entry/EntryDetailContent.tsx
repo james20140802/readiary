@@ -91,10 +91,10 @@ export default function EntryDetailContent({
             className="rounded border border-hairline object-cover"
           />
           <div>
-            <h2 className="font-serif text-xl leading-tight text-ink transition-colors group-hover:text-accent">
+            <h2 className="font-serif text-section-title leading-tight text-ink transition-colors group-hover:text-accent">
               {book.title ?? '제목 없음'}
             </h2>
-            <p className="mt-1 text-sm text-ink-sub">{book.author ?? '저자 미상'}</p>
+            <p className="mt-1 text-caption text-ink-sub">{book.author ?? '저자 미상'}</p>
           </div>
         </Link>
 
@@ -112,11 +112,11 @@ export default function EntryDetailContent({
                   <div>
                     <span
                       aria-hidden
-                      className="block font-serif text-[40px] leading-none text-accent"
+                      className="block font-serif text-quote-mark leading-none text-accent"
                     >
                       &ldquo;
                     </span>
-                    <blockquote className="mt-1 whitespace-pre-wrap font-serif text-[19px] leading-[1.9] text-ink sm:text-[21px]">
+                    <blockquote className="mt-1 whitespace-pre-wrap font-serif text-quote leading-[1.9] text-ink">
                       {entry.quote}
                     </blockquote>
                   </div>
@@ -124,7 +124,7 @@ export default function EntryDetailContent({
                 {entry.note && (
                   <p
                     className={`whitespace-pre-wrap font-serif leading-[1.9] ${
-                      entry.quote ? 'mt-6 text-[15px] text-ink-sub' : 'text-[17px] text-ink'
+                      entry.quote ? 'mt-6 text-body text-ink-sub' : 'text-body text-ink'
                     }`}
                   >
                     {entry.note}
@@ -135,7 +135,7 @@ export default function EntryDetailContent({
 
             {/* 여백의 기록 — 날짜·쪽수·공개 여부와 조용한 행동들 */}
             <footer className="mt-8 flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-t border-hairline pt-4">
-              <div className="flex items-center gap-3 text-[11.5px] tabular-nums text-ink-faint">
+              <div className="flex items-center gap-3 text-caption tabular-nums text-ink-faint">
                 <time>{formatKoreanDate(entry.date) ?? entry.date}</time>
                 {pages && <span>{pages}</span>}
                 {entry.is_private && (
@@ -171,13 +171,13 @@ export default function EntryDetailContent({
                     <span aria-hidden className="h-4 w-px bg-hairline" />
                     <Link
                       href={`/protected/entry/${entry.id}/edit`}
-                      className="text-[11.5px] text-ink-faint transition-colors hover:text-accent"
+                      className="text-button-sm text-ink-faint transition-colors hover:text-accent"
                     >
                       수정
                     </Link>
                     <button
                       onClick={() => setIsDeleteDialogOpen(true)}
-                      className="text-[11.5px] text-ink-faint transition-colors hover:text-danger"
+                      className="text-button-sm text-ink-faint transition-colors hover:text-danger"
                     >
                       삭제
                     </button>
@@ -207,9 +207,9 @@ export default function EntryDetailContent({
       {/* 삭제 확인 모달 */}
       <Modal isOpen={isDeleteDialogOpen} onClose={() => setIsDeleteDialogOpen(false)}>
         <div className="space-y-4">
-          <h2 className="text-lg font-bold text-ink">정말 삭제하시겠어요?</h2>
-          <p className="text-sm text-ink-sub">이 작업은 되돌릴 수 없습니다.</p>
-          {deleteError && <p className="text-sm text-danger">{deleteError}</p>}
+          <h2 className="text-section-title font-bold text-ink">정말 삭제하시겠어요?</h2>
+          <p className="text-caption text-ink-sub">이 작업은 되돌릴 수 없습니다.</p>
+          {deleteError && <p className="text-caption text-danger">{deleteError}</p>}
           <div className="flex justify-end gap-2 pt-2">
             <Button size="sm" variant="ghost" onClick={() => setIsDeleteDialogOpen(false)}>
               취소

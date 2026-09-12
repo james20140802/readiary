@@ -136,15 +136,15 @@ function ConsentDocument({
   const blocks = splitLegalBlocks(body);
   return (
     <div className="max-h-[60vh] space-y-4 overflow-y-auto px-2 py-4">
-      <h2 className="text-lg font-semibold">{title}</h2>
+      <h2 className="text-section-title font-semibold">{title}</h2>
       <div className="space-y-4">
         {blocks.map((block, i) => (
           <section key={i}>
             {block.heading && (
-              <h3 className="mb-1 text-body-sm font-bold text-ink">{block.heading}</h3>
+              <h3 className="mb-1 text-body font-bold text-ink">{block.heading}</h3>
             )}
             {block.body && (
-              <p className="whitespace-pre-wrap text-sm leading-relaxed text-ink-sub">
+              <p className="whitespace-pre-wrap text-body leading-relaxed text-ink-sub">
                 {block.body}
               </p>
             )}
@@ -156,7 +156,7 @@ function ConsentDocument({
           href={fullHref}
           target="_blank"
           rel="noopener"
-          className="text-body-sm text-ink-sub underline underline-offset-4 hover:text-ink"
+          className="text-button-sm text-ink-sub underline underline-offset-4 hover:text-ink"
         >
           {fullLabel}
         </Link>

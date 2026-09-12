@@ -40,12 +40,12 @@ export default function ExcerptBooklet({
       <section className="border border-hairline p-1.5">
         <div className="flex flex-col items-center border border-hairline px-6 py-14 text-center sm:py-16">
           <Seal>발췌집</Seal>
-          <h1 className="mt-5 font-serif text-[26px] font-bold leading-snug text-ink sm:text-3xl">
+          <h1 className="mt-5 font-serif text-page-title font-bold leading-snug text-ink">
             {bookTitle}
           </h1>
-          {author && <p className="mt-3 font-serif text-[14px] text-ink-sub">{author}</p>}
+          {author && <p className="mt-3 font-serif text-body text-ink-sub">{author}</p>}
           {readingPeriod && (
-            <p className="mt-8 text-[12px] tabular-nums text-ink-faint">{readingPeriod}</p>
+            <p className="mt-8 text-caption tabular-nums text-ink-faint">{readingPeriod}</p>
           )}
         </div>
       </section>
@@ -56,7 +56,7 @@ export default function ExcerptBooklet({
           <div className="space-y-14 py-14">
             {quotes.map((q, i) => (
               <figure key={q.id} className="text-center">
-                <div aria-hidden className="font-serif text-[13px] tabular-nums text-accent">
+                <div aria-hidden className="font-serif text-caption tabular-nums text-accent">
                   {i + 1}
                 </div>
                 <blockquote className="mt-3 whitespace-pre-wrap font-serif text-quote text-ink">
@@ -68,14 +68,14 @@ export default function ExcerptBooklet({
 
           {/* 판권장 */}
           <footer className="border-t border-hairline pb-4 pt-10 text-center">
-            <p className="font-serif text-[14px] text-ink">
+            <p className="font-serif text-body text-ink">
               『{bookTitle}』{author ? ` — ${author}` : ''}
             </p>
-            <p className="mt-2 font-serif text-[13px] text-ink-sub">
+            <p className="mt-2 font-serif text-body text-ink-sub">
               {koreanCount(quotes.length)} 문장을 옮겨 적다
             </p>
             {readingPeriod && (
-              <p className="mt-1 text-[12px] tabular-nums text-ink-faint">{readingPeriod}</p>
+              <p className="mt-1 text-caption tabular-nums text-ink-faint">{readingPeriod}</p>
             )}
             <p className="mt-8 whitespace-nowrap font-sans text-seal uppercase text-ink-faint">
               READIARY
@@ -83,7 +83,7 @@ export default function ExcerptBooklet({
           </footer>
         </>
       ) : (
-        <p className="py-12 text-center font-serif text-[13.5px] text-ink-faint">
+        <p className="py-12 text-center font-serif text-caption text-ink-faint">
           옮겨 적은 문장이 없어요. 기록의 생각들은 책 상세에서 다시 볼 수 있어요.
         </p>
       )}

@@ -39,7 +39,7 @@ export default async function SocialPage({ searchParams }: SocialPageProps) {
         <h1 className="text-page-title text-ink">소셜</h1>
         <Link
           href="/protected/social/friends"
-          className="text-caption text-ink-faint hover:text-ink transition-colors"
+          className="text-button-sm text-ink-faint hover:text-ink transition-colors"
         >
           친구 {friendCount}명
           {pendingCount > 0 && (
@@ -56,7 +56,7 @@ export default async function SocialPage({ searchParams }: SocialPageProps) {
           <p className="text-caption text-ink-faint">친구를 추가하면 피드가 채워져요</p>
           <Link
             href="/protected/social/friends"
-            className="mt-1 text-caption font-semibold text-accent bg-accent-soft px-3 py-1.5 rounded-full border border-accent/20"
+            className="mt-1 text-button-sm font-semibold text-accent bg-accent-soft px-3 py-1.5 rounded-full border border-accent/20"
           >
             친구 찾기
           </Link>

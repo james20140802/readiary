@@ -56,7 +56,7 @@ export function QuoteBoard({ notes }: { notes: StickyNote[] }) {
               type="button"
               onClick={() => setActive(n)}
               className={clsx(
-                'relative aspect-square flex-col rounded-[2px] border border-hairline p-4 text-left shadow-[1px_2px_6px_rgba(62,58,52,0.12)] transition-transform duration-200 hover:-translate-y-1 hover:rotate-0',
+                'relative min-h-56 min-w-0 flex-col rounded-[2px] border border-hairline p-4 text-left shadow-[1px_2px_6px_rgba(62,58,52,0.12)] transition-transform duration-200 hover:-translate-y-1 hover:rotate-0',
                 TILTS[i % TILTS.length],
                 n.kind === 'friend' ? 'bg-accent-soft' : 'bg-card',
                 n.narrowHidden ? 'hidden sm:flex' : 'flex'
@@ -68,15 +68,15 @@ export function QuoteBoard({ notes }: { notes: StickyNote[] }) {
                 className="absolute -top-[7px] left-1/2 h-[14px] w-11 -translate-x-1/2 -rotate-2 border border-ink/10 bg-ink/[0.06]"
               />
               <div className="flex items-start justify-between">
-                <span aria-hidden className="font-serif text-[22px] leading-none text-accent">
+                <span aria-hidden className="font-serif text-quote leading-none text-accent">
                   “
                 </span>
-                {n.kind === 'friend' && <Seal className="text-[10px]">친구</Seal>}
+                {n.kind === 'friend' && <Seal className="text-caption">친구</Seal>}
               </div>
-              <p className="mt-1 line-clamp-4 flex-1 font-serif text-[13px] leading-relaxed text-ink">
+              <p className="mt-1 line-clamp-4 h-24 flex-none font-serif text-body leading-relaxed text-ink">
                 {text}
               </p>
-              <div className="mt-2">
+              <div className="mt-auto pt-2">
                 <p className="truncate text-caption text-ink-faint">
                   {n.kind === 'friend' && n.friendName ? `${n.friendName} · ` : ''}
                   {n.bookTitle}
@@ -100,7 +100,7 @@ export function QuoteBoard({ notes }: { notes: StickyNote[] }) {
               <>
                 <span
                   aria-hidden
-                  className="mb-2 block font-serif text-[40px] leading-none text-accent"
+                  className="mb-2 block font-serif text-quote-mark leading-none text-accent"
                 >
                   “
                 </span>
@@ -111,7 +111,7 @@ export function QuoteBoard({ notes }: { notes: StickyNote[] }) {
                 {active.note && (
                   <div className="mt-4 border-t border-hairline pt-3">
                     <p className="mb-1 text-caption text-ink-faint">남긴 생각</p>
-                    <p className="line-clamp-3 font-serif text-[14px] leading-relaxed text-ink-sub">
+                    <p className="line-clamp-3 font-serif text-body leading-relaxed text-ink-sub">
                       {active.note}
                     </p>
                   </div>
@@ -122,14 +122,14 @@ export function QuoteBoard({ notes }: { notes: StickyNote[] }) {
             )}
             <div className="mt-[18px] flex items-baseline justify-between gap-3 border-t border-hairline pt-[14px]">
               <div className="min-w-0">
-                <span className="font-serif text-[13px] font-bold text-ink">
+                <span className="font-serif text-caption font-bold text-ink">
                   {active.bookTitle}
                 </span>
                 <span className="ml-2 text-caption text-ink-faint">
                   {[active.bookAuthor, formatDate(active.date)].filter(Boolean).join(' · ')}
                 </span>
               </div>
-              <Link href={active.href} className="shrink-0 text-[13px] text-accent">
+              <Link href={active.href} className="shrink-0 text-button-sm text-accent">
                 자세히 →
               </Link>
             </div>

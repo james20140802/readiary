@@ -61,7 +61,7 @@ export default function ClampedText({
             setIsExpanded((v) => !v);
           }}
           // relative z-10: 카드 전체를 덮는 overlay 링크(회상 카드) 위에 올라와야 눌린다
-          className="relative z-10 mt-2 font-serif text-[12.5px] text-ink-faint transition-colors hover:text-accent"
+          className="relative z-10 mt-2 font-serif text-button-sm text-ink-faint transition-colors hover:text-accent"
         >
           {isExpanded ? '접기 ↑' : '계속 읽기 ↓'}
         </button>

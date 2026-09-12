@@ -127,11 +127,9 @@ export default function BookDetailContent({
             className="w-20 shrink-0 rounded object-cover shadow-sm sm:w-24"
           />
           <div className="min-w-0 pt-1">
-            <h1 className="font-serif text-[24px] font-bold leading-snug text-ink sm:text-3xl">
-              {title}
-            </h1>
-            <p className="mt-2 font-serif text-[14px] text-ink-sub">{author}</p>
-            <p className="mt-5 text-[12.5px] tabular-nums text-ink-faint">
+            <h1 className="font-serif text-page-title font-bold leading-snug text-ink">{title}</h1>
+            <p className="mt-2 font-serif text-body text-ink-sub">{author}</p>
+            <p className="mt-5 text-caption tabular-nums text-ink-faint">
               {progressLine}
               {!isFriend && !isFinished && (
                 <>
@@ -141,7 +139,7 @@ export default function BookDetailContent({
               )}
             </p>
             {readingPeriod && (
-              <p className="mt-1 text-[12px] tabular-nums text-ink-faint">{readingPeriod}</p>
+              <p className="mt-1 text-caption tabular-nums text-ink-faint">{readingPeriod}</p>
             )}
           </div>
         </section>
@@ -149,13 +147,13 @@ export default function BookDetailContent({
         {/* 완독한 책은 hairline 사이에 한 줄로 */}
         {!isFriend && isFinished && (
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-y border-hairline py-3">
-            <p className="font-serif text-[13.5px] text-ink">
+            <p className="font-serif text-body text-ink">
               <span className="font-bold text-accent">완독</span>한 책입니다
             </p>
             <div className="flex items-center gap-2">
               <Link
                 href={`/protected/books/${book_id}/excerpts`}
-                className="font-serif text-[12.5px] text-accent hover:underline"
+                className="font-serif text-button-sm text-accent hover:underline"
               >
                 발췌집 보기 →
               </Link>
@@ -167,10 +165,10 @@ export default function BookDetailContent({
         {/* 이 책에 남긴 문장들 */}
         <section>
           <div className="flex items-center justify-between gap-4">
-            <h2 className="font-serif text-[19px] font-bold text-ink">
+            <h2 className="font-serif text-section-title font-bold text-ink">
               독서 기록
               {entryList && entryList.length > 0 && (
-                <span className="ml-2 text-[13px] font-normal tabular-nums text-ink-faint">
+                <span className="ml-2 text-caption font-normal tabular-nums text-ink-faint">
                   {entryList.length}
                 </span>
               )}
@@ -183,7 +181,7 @@ export default function BookDetailContent({
           </div>
 
           {entryList && entryList.length > 1 && (
-            <div className="mt-3 flex items-center justify-between text-[13.5px]">
+            <div className="mt-3 flex items-center justify-between text-caption">
               {!isFriend ? (
                 <div className="flex items-center gap-3">
                   {FILTER_OPTIONS.map((opt) => (
@@ -238,7 +236,7 @@ export default function BookDetailContent({
               ))}
             </div>
           ) : (
-            <p className="mt-6 font-serif text-[13.5px] text-ink-faint">
+            <p className="mt-6 font-serif text-caption text-ink-faint">
               아직 이 책에 남긴 문장이 없습니다.
             </p>
           )}

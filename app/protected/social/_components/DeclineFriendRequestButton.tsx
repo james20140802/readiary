@@ -36,7 +36,7 @@ export default function DeclineFriendRequestButton({ friendUserId, onSuccess }: 
     <button
       onClick={handleDecline}
       disabled={isPending}
-      className="px-3 py-2 text-body-sm font-medium text-ink-faint hover:text-ink-sub disabled:opacity-40 transition-colors"
+      className="px-3 py-2 text-button-sm font-medium text-ink-faint hover:text-ink-sub disabled:opacity-40 transition-colors"
     >
       거절
     </button>

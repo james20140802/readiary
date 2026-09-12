@@ -22,9 +22,9 @@ export function WeeklyStreakSection({ weeklyCount, weekActivity, todayKst }: Pro
           const dayLabel = format(parseISO(d), 'EE', { locale: ko })[0];
 
           return (
-            <div key={d} className="text-center text-[10px] text-ink-faint">
+            <div key={d} className="text-center text-caption text-ink-faint">
               <span
-                className={`mb-1 flex h-[22px] w-[22px] items-center justify-center rounded-full border font-serif text-[11px] sm:h-7 sm:w-7 ${
+                className={`mb-1 flex h-[22px] w-[22px] items-center justify-center rounded-full border font-serif text-caption sm:h-7 sm:w-7 ${
                   didWrite
                     ? 'border-ink bg-ink text-card'
                     : isToday
@@ -39,8 +39,8 @@ export function WeeklyStreakSection({ weeklyCount, weekActivity, todayKst }: Pro
           );
         })}
       </div>
-      <div className="text-right font-serif text-[13px] leading-normal text-ink">
-        <b className="text-lg text-accent">{weeklyCount}</b>
+      <div className="text-right font-serif text-caption leading-normal text-ink">
+        <b className="text-section-title text-accent">{weeklyCount}</b>
         <br />
         이번 주 문장
       </div>

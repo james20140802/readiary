@@ -51,7 +51,7 @@ export default function Navbar({ loggedIn, showNav, hasUnread }: NavbarProps) {
           aria-label="주요 메뉴"
           className="fixed inset-x-0 bottom-0 z-50 block border-t border-hairline bg-paper/90 px-4 pb-[var(--app-mobile-nav-padding)] pt-2 backdrop-blur-md md:hidden"
         >
-          <div className="mx-auto flex h-12 max-w-screen-md justify-around text-xs">
+          <div className="mx-auto flex h-12 max-w-screen-md justify-around text-button-sm">
             {navItems.map((item) => {
               const active = isActive(pathname, item);
               return (
@@ -79,11 +79,11 @@ export default function Navbar({ loggedIn, showNav, hasUnread }: NavbarProps) {
         aria-label="주요 메뉴"
         className="fixed inset-x-0 top-0 z-50 hidden border-b border-hairline bg-paper/90 px-8 py-5 backdrop-blur-md md:flex"
       >
-        <div className="mx-auto flex w-full max-w-screen-md items-center justify-between text-sm text-ink-sub">
+        <div className="mx-auto flex w-full max-w-screen-md items-center justify-between text-button text-ink-sub">
           {/* Header 의 로고와 같은 이유로 GNB 가 보일 때만 프리페치 (온보딩 등 bare 화면 제외) */}
           <Link
             href={loggedIn ? '/protected/dashboard' : '/'}
-            className="flex items-center gap-2 font-serif text-lg font-bold tracking-wide text-ink"
+            className="flex items-center gap-2 font-serif text-section-title font-bold tracking-wide text-ink"
             prefetch={showNav}
           >
             <BookMarked size={20} />

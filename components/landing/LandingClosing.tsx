@@ -11,8 +11,8 @@ export default function LandingClosing() {
       <section className="w-full max-w-md rounded-sm border border-hairline-strong bg-card p-[5px]">
         <div className="rounded-[2px] border border-hairline px-6 py-10">
           <Seal>Ex Libris</Seal>
-          <p className="mt-1 font-serif text-[15px] font-bold text-ink">당신의 서재</p>
-          <p className="mt-6 text-balance font-serif text-xl leading-relaxed text-ink md:text-2xl md:leading-relaxed">
+          <p className="mt-1 font-serif text-body font-bold text-ink">당신의 서재</p>
+          <p className="mt-6 text-balance font-serif text-section-title leading-relaxed text-ink md:leading-relaxed">
             첫 문장을 옮겨 적는 순간부터
             <br />
             서재가 시작됩니다

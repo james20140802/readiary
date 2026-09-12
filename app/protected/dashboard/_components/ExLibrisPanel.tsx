@@ -21,13 +21,13 @@ export function ExLibrisPanel({ name, stats }: Props) {
     <section className="rounded-sm border border-hairline-strong bg-card p-[5px]">
       <div className="rounded-[2px] border border-hairline px-6 py-7 text-center">
         <Seal>Ex Libris</Seal>
-        <p className="mt-1 font-serif text-[15px] font-bold text-ink">
+        <p className="mt-1 font-serif text-body font-bold text-ink">
           {name ? `${name}의 서재` : '나의 서재'}
         </p>
         <div className="mx-auto mt-5 flex max-w-[360px] items-start justify-between">
           {items.map((item) => (
             <div key={item.label} className="min-w-[72px]">
-              <p className="font-serif text-xl leading-none text-accent">{item.n}</p>
+              <p className="font-serif text-section-title leading-none text-accent">{item.n}</p>
               <p className="mt-1.5 text-caption text-ink-faint">{item.label}</p>
             </div>
           ))}

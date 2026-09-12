@@ -99,7 +99,7 @@ export default function EntryFormBody({
       {/* 원고 — 투명 텍스트 영역 두 장, 사이는 헤어라인 한 줄 */}
       <div className="divide-y divide-hairline">
         <div className="py-5">
-          <label htmlFor="entry-quote" className="text-[11.5px] font-medium text-ink-faint">
+          <label htmlFor="entry-quote" className="text-caption font-medium text-ink-faint">
             문장
           </label>
           <textarea
@@ -109,11 +109,11 @@ export default function EntryFormBody({
             placeholder="책에서 마음에 남은 문장을 옮겨 적어보세요"
             rows={4}
             autoFocus={autoFocus}
-            className="mt-2 block w-full resize-none border-b border-transparent bg-transparent font-serif text-[17px] leading-relaxed text-ink transition-colors placeholder:text-ink-faint focus:border-hairline-strong focus:outline-none"
+            className="mt-2 block w-full resize-none border-b border-transparent bg-transparent font-serif text-input leading-relaxed text-ink transition-colors placeholder:text-ink-faint focus:border-hairline-strong focus:outline-none"
           />
         </div>
         <div className="py-5">
-          <label htmlFor="entry-note" className="text-[11.5px] font-medium text-ink-faint">
+          <label htmlFor="entry-note" className="text-caption font-medium text-ink-faint">
             생각
           </label>
           <textarea
@@ -122,7 +122,7 @@ export default function EntryFormBody({
             onChange={(e) => setNote(e.target.value)}
             placeholder="이 문장에 대한 생각, 혹은 오늘의 감상"
             rows={4}
-            className="mt-2 block w-full resize-none border-b border-transparent bg-transparent font-serif text-[15px] leading-relaxed text-ink transition-colors placeholder:text-ink-faint focus:border-hairline-strong focus:outline-none"
+            className="mt-2 block w-full resize-none border-b border-transparent bg-transparent font-serif text-input leading-relaxed text-ink transition-colors placeholder:text-ink-faint focus:border-hairline-strong focus:outline-none"
           />
         </div>
       </div>
@@ -134,7 +134,7 @@ export default function EntryFormBody({
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4">
           {/* 좁은 화면에선 쪽수 왼끝·날짜 오른끝, 넓어지면 붙어서 구분선 하나로 나뉜다 */}
           <div className="flex items-center justify-between sm:justify-start sm:gap-4">
-            <div className="flex items-center gap-1 text-[13px] tabular-nums text-ink-sub">
+            <div className="flex items-center gap-1 text-caption tabular-nums text-ink-sub">
               <span className="text-ink-faint">p.</span>
               <input
                 type="number"
@@ -166,7 +166,7 @@ export default function EntryFormBody({
               value={date}
               max={todayKST()}
               onChange={(e) => setDate(e.target.value)}
-              className="border-b border-transparent bg-transparent text-[13px] tabular-nums text-ink-sub transition-colors focus:border-hairline-strong focus:outline-none"
+              className="border-b border-transparent bg-transparent text-input tabular-nums text-ink-sub transition-colors focus:border-hairline-strong focus:outline-none"
             />
           </div>
 
@@ -189,7 +189,7 @@ export default function EntryFormBody({
           <Button
             type="submit"
             size="md"
-            className="w-full sm:ml-auto sm:h-8 sm:w-auto sm:px-4 sm:text-caption"
+            className="w-full sm:ml-auto sm:min-h-9 sm:w-auto sm:px-4"
             disabled={isSubmitting}
           >
             {isSubmitting ? '남기는 중...' : submitLabel}

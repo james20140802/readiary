@@ -38,14 +38,17 @@ export default function LandingRecall() {
       <SlideBody className="mt-6 grid gap-4 md:mt-8 md:grid-cols-[3fr_2fr] md:items-start">
         <Card hoverable={false} variant="raised" className="px-[26px] pb-6 pt-[30px]">
           <Seal className="mb-3 block">1년 전 오늘</Seal>
-          <span aria-hidden className="mb-2 block font-serif text-[40px] leading-none text-accent">
+          <span
+            aria-hidden
+            className="mb-2 block font-serif text-quote-mark leading-none text-accent"
+          >
             “
           </span>
           <blockquote className="whitespace-pre-wrap font-serif text-quote text-ink">
             {RECALL_DEMO.quote}
           </blockquote>
           <div className="mt-[18px] flex items-baseline gap-2 border-t border-hairline pt-[14px]">
-            <span className="font-serif text-[13px] font-bold text-ink">
+            <span className="font-serif text-caption font-bold text-ink">
               {RECALL_DEMO.bookTitle}
             </span>
             <span className="text-caption text-ink-faint">

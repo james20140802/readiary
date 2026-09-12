@@ -24,7 +24,7 @@ export function Textarea({
   return (
     <div className={clsx('space-y-1', fullWidth && 'w-full')}>
       {label && (
-        <label htmlFor={props.id} className="block text-sm font-medium text-ink">
+        <label htmlFor={props.id} className="block text-caption font-medium text-ink">
           {label}
         </label>
       )}
@@ -33,12 +33,12 @@ export function Textarea({
           'block leading-relaxed text-ink placeholder:text-ink-faint transition-colors focus:outline-none',
           line
             ? [
-                'border-b border-hairline bg-transparent px-0 py-2 text-[15px]',
+                'border-b border-hairline bg-transparent px-0 py-2 text-input',
                 'focus:border-hairline-strong',
                 error && 'border-danger focus:border-danger',
               ]
             : [
-                'px-4 py-3 rounded-md border text-sm bg-card',
+                'px-4 py-3 rounded-md border text-input bg-card',
                 'border-hairline-strong focus:border-accent focus:ring-1 focus:ring-accent',
                 error && 'border-danger',
               ],
@@ -47,7 +47,7 @@ export function Textarea({
         )}
         {...props}
       />
-      {error && <p className="text-sm text-danger">{error}</p>}
+      {error && <p className="text-caption text-danger">{error}</p>}
     </div>
   );
 }

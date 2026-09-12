@@ -57,12 +57,12 @@ export default function UnfinishBookButton({ userBookId, onUnfinish }: UnfinishB
         }}
       >
         <div className="space-y-4">
-          <h2 className="text-lg font-bold text-ink">완독을 취소할까요?</h2>
-          <p className="text-sm text-ink-sub">
+          <h2 className="text-section-title font-bold text-ink">완독을 취소할까요?</h2>
+          <p className="text-caption text-ink-sub">
             이 책은 다시 읽는 중으로 돌아가고, 발췌집은 다음 완독까지 잠겨요. 기록과 문장은 그대로
             남습니다.
           </p>
-          {error && <p className="text-sm text-danger">{error}</p>}
+          {error && <p className="text-caption text-danger">{error}</p>}
           <div className="flex justify-end gap-2 pt-2">
             <Button
               size="sm"

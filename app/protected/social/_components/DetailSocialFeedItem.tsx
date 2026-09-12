@@ -120,7 +120,7 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
       {clamped && !expanded && (
         <button
           onClick={() => setExpanded(true)}
-          className="mt-2 self-start text-caption font-bold text-accent hover:text-accent-hover transition-colors"
+          className="mt-2 self-start text-button-sm font-bold text-accent hover:text-accent-hover transition-colors"
         >
           ...더 보기
         </button>
@@ -128,7 +128,7 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
       {expanded && (
         <button
           onClick={() => setExpanded(false)}
-          className="mt-2 self-start text-caption font-medium text-ink-faint hover:text-ink-sub transition-colors"
+          className="mt-2 self-start text-button-sm font-medium text-ink-faint hover:text-ink-sub transition-colors"
         >
           접기
         </button>
@@ -158,7 +158,7 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
     <button
       onClick={() => flip(1)}
       aria-label={label}
-      className="flex shrink-0 items-center gap-1 text-caption font-medium text-ink-faint hover:text-accent transition-colors"
+      className="flex shrink-0 items-center gap-1 text-button-sm font-medium text-ink-faint hover:text-accent transition-colors"
     >
       <Repeat size={13} /> 뒤집기
     </button>
@@ -186,7 +186,7 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
                     router.push(userProfilePath);
                     setIsMenuOpen(false);
                   }}
-                  className="flex items-center gap-2 w-full px-3 py-2 text-caption font-medium text-ink-sub hover:bg-card-raised transition-colors"
+                  className="flex items-center gap-2 w-full px-3 py-2 text-button-sm font-medium text-ink-sub hover:bg-card-raised transition-colors"
                 >
                   <User size={13} className="text-ink-faint" /> 프로필 방문
                 </button>
@@ -195,7 +195,7 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
                     router.push(bookDetailPath);
                     setIsMenuOpen(false);
                   }}
-                  className="flex items-center gap-2 w-full px-3 py-2 text-caption font-medium text-ink-sub hover:bg-card-raised transition-colors"
+                  className="flex items-center gap-2 w-full px-3 py-2 text-button-sm font-medium text-ink-sub hover:bg-card-raised transition-colors"
                 >
                   <BookOpen size={13} className="text-ink-faint" /> 도서 정보
                 </button>
@@ -204,7 +204,7 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
                     router.push(entryDetailPath);
                     setIsMenuOpen(false);
                   }}
-                  className="flex items-center gap-2 w-full px-3 py-2 text-caption font-semibold text-accent hover:bg-accent-soft border-t border-hairline transition-colors"
+                  className="flex items-center gap-2 w-full px-3 py-2 text-button-sm font-semibold text-accent hover:bg-accent-soft border-t border-hairline transition-colors"
                 >
                   <Maximize2 size={13} /> 상세 보기
                 </button>
@@ -220,7 +220,7 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
           {entry.note && (
             <p
               ref={noteRef}
-              className={`text-body-sm text-pretty text-ink-sub whitespace-pre-wrap ${
+              className={`text-body text-pretty text-ink-sub whitespace-pre-wrap ${
                 isBackExpanded ? '' : 'line-clamp-4 sm:line-clamp-5'
               }`}
             >
@@ -250,7 +250,7 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
             </div>
           </div>
           <div className="mt-4 sm:mt-auto sm:pt-5">
-            <p className="truncate border-b border-hairline-strong pb-1.5 font-serif text-body-sm font-semibold text-ink">
+            <p className="truncate border-b border-hairline-strong pb-1.5 font-serif text-body font-semibold text-ink">
               『{book.title}』
             </p>
             <p className="line-clamp-2 border-b border-hairline-strong pb-1.5 pt-2 text-caption text-ink-faint">
@@ -285,18 +285,16 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
   // 앞면 — 그림 대신 문장이 실린 면
   const frontFace = hasQuote ? (
     <div className="flex flex-1 flex-col px-6 pt-5 pb-4">
-      <span aria-hidden className="font-serif text-[40px] leading-none text-accent">
+      <span aria-hidden className="font-serif text-quote-mark leading-none text-accent">
         “
       </span>
       <blockquote className="mt-1">
         <FitText
           text={entry.quote ?? ''}
-          maxPx={24}
-          minPx={14}
           capPx={170}
           capPxSm={220}
           expanded={isFrontExpanded}
-          className="font-serif text-pretty text-ink whitespace-pre-wrap"
+          className="font-serif text-quote text-pretty text-ink whitespace-pre-wrap"
           onClampedChange={setIsFrontClamped}
         />
       </blockquote>
@@ -362,15 +360,18 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
               onPointerUp={handlePointerUp}
             >
               <div
-                className="grid transition-transform duration-500 motion-reduce:duration-0 [transform-style:preserve-3d]"
+                className="grid min-w-0 grid-cols-[minmax(0,1fr)] transition-transform duration-500 motion-reduce:duration-0 [transform-style:preserve-3d]"
                 style={{ transform: `rotateY(${flipAngle}deg)` }}
               >
-                <div inert={isFlipped} className="[grid-area:1/1] [backface-visibility:hidden]">
+                <div
+                  inert={isFlipped}
+                  className="min-w-0 [grid-area:1/1] [backface-visibility:hidden]"
+                >
                   {postcard(frontFace)}
                 </div>
                 <div
                   inert={!isFlipped}
-                  className="[grid-area:1/1] [backface-visibility:hidden] [transform:rotateY(180deg)]"
+                  className="min-w-0 [grid-area:1/1] [backface-visibility:hidden] [transform:rotateY(180deg)]"
                 >
                   {postcard(backFace)}
                 </div>
@@ -401,10 +402,6 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
 
 interface FitTextProps {
   text: string;
-  /** 시작(최대) 글자 크기 px */
-  maxPx: number;
-  /** 이 크기까지 줄여도 안 들어가면 잘라내고 "더 보기"에 맡긴다 */
-  minPx: number;
   /** 본문 상한 높이 px (모바일) */
   capPx: number;
   /** 본문 상한 높이 px (sm 이상) */
@@ -416,15 +413,13 @@ interface FitTextProps {
 }
 
 /**
- * 정해진 상한 높이에 들어갈 때까지 글자를 줄여 가며 맞춘다.
+ * 토큰의 글자 크기를 유지하고, 정해진 상한 높이에서 접는다.
  * 상한에는 10% 여유를 두고, 줄 높이의 배수로 스냅해 반쯤 잘린 줄이 생기지 않으며,
- * 최소 크기로도 넘치는 글만 잘라내고 onClampedChange(true)로 알린다.
+ * 넘치는 글은 onClampedChange(true)로 알려 "더 보기"에서 모두 읽게 한다.
  * 펼치면(expanded) 크기는 유지한 채 잘라내지만 않는다 — 크기가 튀지 않게.
  */
 function FitText({
   text,
-  maxPx,
-  minPx,
   capPx,
   capPxSm,
   expanded = false,
@@ -436,37 +431,28 @@ function FitText({
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const lineHeightFor = (px: number) => (px >= 20 ? 1.7 : 1.6);
-
     const fit = () => {
       const cap = (window.innerWidth >= 640 ? capPxSm : capPx) * 1.1;
       el.style.maxHeight = 'none';
-      let size = maxPx;
-      for (; size > minPx; size -= 1) {
-        el.style.fontSize = `${size}px`;
-        el.style.lineHeight = `${lineHeightFor(size)}`;
-        if (el.scrollHeight <= cap + 1) break;
-      }
-      const lh = lineHeightFor(size);
-      el.style.fontSize = `${size}px`;
-      el.style.lineHeight = `${lh}`;
-      const linePx = size * lh;
+      const style = getComputedStyle(el);
+      const linePx = parseFloat(style.lineHeight);
       const snappedCap = Math.max(1, Math.floor(cap / linePx)) * linePx;
       onClampedChange(el.scrollHeight > snappedCap + 1);
       el.style.maxHeight = expanded ? 'none' : `${snappedCap}px`;
     };
 
     fit();
+    const observer = new ResizeObserver(fit);
+    observer.observe(el);
     window.addEventListener('resize', fit);
-    return () => window.removeEventListener('resize', fit);
-  }, [text, maxPx, minPx, capPx, capPxSm, expanded, onClampedChange]);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', fit);
+    };
+  }, [text, capPx, capPxSm, expanded, onClampedChange]);
 
   return (
-    <div
-      ref={ref}
-      className={`overflow-hidden ${className ?? ''}`}
-      style={{ fontSize: maxPx, lineHeight: 1.7 }}
-    >
+    <div ref={ref} className={`overflow-hidden ${className ?? ''}`}>
       {text}
     </div>
   );

@@ -30,7 +30,7 @@ export default function MarkAsFinishedButton({ userBookId, onFinish }: MarkAsFin
   return (
     <button
       onClick={handleMarkAsFinished}
-      className="font-serif text-[12.5px] text-accent transition-colors hover:underline"
+      className="font-serif text-button-sm text-accent transition-colors hover:underline"
     >
       다 읽었어요 →
     </button>

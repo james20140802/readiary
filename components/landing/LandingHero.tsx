@@ -5,15 +5,15 @@ import Button from '@/components/ui/Button';
 export default function LandingHero() {
   return (
     <div className="flex flex-col items-center text-center">
-      <span aria-hidden className="font-serif text-5xl text-ink-faint md:text-6xl">
+      <span aria-hidden className="font-serif text-display text-ink-faint md:text-display-lg">
         讀
       </span>
-      <h1 className="mt-7 text-balance font-serif text-[2rem] font-bold leading-snug text-ink md:text-5xl md:leading-tight">
+      <h1 className="mt-7 text-balance font-serif text-display-sm font-bold leading-snug text-ink md:text-display md:leading-tight">
         하루 한 문장이면
         <br />
         충분한 독서 기록
       </h1>
-      <p className="mt-6 text-body leading-relaxed text-ink-sub md:text-lg md:leading-relaxed">
+      <p className="mt-6 text-body leading-relaxed text-ink-sub md:leading-relaxed">
         오늘 마음에 남은 문장 하나를 옮겨 적으세요.
         <br />
         문장이 쌓여 책장이 되고, 회고가 됩니다.

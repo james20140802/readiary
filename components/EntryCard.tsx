@@ -90,7 +90,7 @@ export default function EntryCard({
       <div className="mb-2 sm:mb-0">
         <Link
           href={targetHref}
-          className="flex items-center gap-2 text-[11.5px] tabular-nums text-ink-faint transition-colors hover:text-accent sm:flex-col sm:items-end sm:gap-0.5 sm:text-right"
+          className="flex items-center gap-2 text-button-sm tabular-nums text-ink-faint transition-colors hover:text-accent sm:flex-col sm:items-end sm:gap-0.5 sm:text-right"
         >
           <time>{formatKoreanDate(date) ?? date}</time>
           {pages && <span>{pages}</span>}
@@ -102,7 +102,10 @@ export default function EntryCard({
         <ClampedText>
           {quote && (
             <div>
-              <span aria-hidden className="block font-serif text-[32px] leading-none text-accent">
+              <span
+                aria-hidden
+                className="block font-serif text-display-sm leading-none text-accent"
+              >
                 &ldquo;
               </span>
               <blockquote className="mt-1 whitespace-pre-wrap font-serif text-quote text-ink">
@@ -112,7 +115,7 @@ export default function EntryCard({
           )}
           {note && (
             <p
-              className={`whitespace-pre-wrap font-serif text-[14px] leading-[1.85] text-ink-sub ${
+              className={`whitespace-pre-wrap font-serif text-body leading-[1.85] text-ink-sub ${
                 quote ? 'mt-4' : ''
               }`}
             >
@@ -130,21 +133,21 @@ export default function EntryCard({
               } ${isLikeLoading ? 'cursor-progress' : ''}`}
             >
               <Heart size={12} fill={isLiked ? 'currentColor' : 'none'} strokeWidth={2} />
-              <span className="text-[11.5px] tabular-nums">{likeCount}</span>
+              <span className="text-caption tabular-nums">{likeCount}</span>
             </button>
             <button
               onClick={() => setIsCommentOpen(true)}
               className="flex items-center gap-1 text-ink-faint transition-colors hover:text-accent active:scale-95"
             >
               <MessageCircle size={12} strokeWidth={2} />
-              <span className="text-[11.5px] tabular-nums">{commentCount}</span>
+              <span className="text-caption tabular-nums">{commentCount}</span>
             </button>
           </div>
           {/* 내 기록은 그 자리에서(시트) 또는 수정 페이지로, 친구 기록은 상세로 — 상세(공유)는 날짜 링크로도 열린다 */}
           {href ? (
             <Link
               href={targetHref}
-              className="text-[11.5px] text-ink-faint transition-colors hover:text-accent"
+              className="text-button-sm text-ink-faint transition-colors hover:text-accent"
             >
               상세 →
             </Link>
@@ -152,14 +155,14 @@ export default function EntryCard({
             <button
               type="button"
               onClick={onEdit}
-              className="text-[11.5px] text-ink-faint transition-colors hover:text-accent"
+              className="text-button-sm text-ink-faint transition-colors hover:text-accent"
             >
               수정 →
             </button>
           ) : (
             <Link
               href={`/protected/entry/${id}/edit`}
-              className="text-[11.5px] text-ink-faint transition-colors hover:text-accent"
+              className="text-button-sm text-ink-faint transition-colors hover:text-accent"
             >
               수정 →
             </Link>

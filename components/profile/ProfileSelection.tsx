@@ -99,7 +99,7 @@ export default function ProfileSelection({
       <div className="flex items-start gap-4 py-4">
         <div className="min-w-0 flex-1" aria-live="polite">
           <p className="mb-2 text-caption text-ink-faint">현재 선택</p>
-          <p className="whitespace-pre-wrap break-words font-serif text-[15px] leading-relaxed text-ink">
+          <p className="whitespace-pre-wrap break-words font-serif text-body leading-relaxed text-ink">
             {selected?.title ??
               (value
                 ? (selectedLoading ?? loading)
@@ -131,7 +131,7 @@ export default function ProfileSelection({
             setSearch('');
             setBookId('');
           }}
-          className="flex min-h-11 shrink-0 items-center gap-1 px-2 text-caption font-semibold text-ink-sub hover:text-ink focus-visible:outline focus-visible:outline-accent disabled:opacity-50"
+          className="flex min-h-11 shrink-0 items-center gap-1 px-2 text-button-sm font-semibold text-ink-sub hover:text-ink focus-visible:outline focus-visible:outline-accent disabled:opacity-50"
         >
           {open ? '닫기' : '변경'}
           <ChevronDown size={14} aria-hidden className={open ? 'rotate-180' : ''} />
@@ -190,7 +190,7 @@ export default function ProfileSelection({
                       setBookId(e.target.value);
                       remote?.onBook(e.target.value);
                     }}
-                    className="min-h-11 w-full border-b border-hairline bg-paper py-2 text-sm text-ink focus-visible:outline focus-visible:outline-accent"
+                    className="min-h-11 w-full border-b border-hairline bg-paper py-2 text-input text-ink focus-visible:outline focus-visible:outline-accent"
                   >
                     <option value="">모든 책</option>
                     {groups.map(([groupId, title]) => (
@@ -221,7 +221,7 @@ export default function ProfileSelection({
                         {value === option.id && <Check size={16} aria-hidden />}
                       </span>
                       <span className="min-w-0">
-                        <span className="block whitespace-pre-wrap break-words font-serif text-[14px] leading-relaxed text-ink">
+                        <span className="block whitespace-pre-wrap break-words font-serif text-caption leading-relaxed text-ink">
                           {option.title}
                         </span>
                         {option.subtitle && (
@@ -235,13 +235,13 @@ export default function ProfileSelection({
                 ))}
               </ul>
               {visible.length === 0 && !loading && !error && (
-                <p className="py-4 text-sm text-ink-sub">
+                <p className="py-4 text-caption text-ink-sub">
                   검색 결과가 없습니다. 검색어나 책을 바꿔 보세요.
                 </p>
               )}
             </>
           ) : (
-            <p className="py-3 text-sm text-ink-sub">{emptyMessage}</p>
+            <p className="py-3 text-caption text-ink-sub">{emptyMessage}</p>
           )}
           {remote && (
             <div className="mt-3 flex items-center justify-between gap-2">
