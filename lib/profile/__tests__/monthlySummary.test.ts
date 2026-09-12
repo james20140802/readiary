@@ -5,9 +5,9 @@ describe('summarizeByMonth', () => {
   it('최근 N개월을 최신순으로, 기록 없는 달은 0', () => {
     const entries = [{ date: '2026-06-15' }, { date: '2026-08-01' }, { date: '2026-08-27' }];
     expect(summarizeByMonth(entries, '2026-08-27', 3)).toEqual([
-      { label: '2026년 8월', count: 2, books: [], quotes: [] },
-      { label: '2026년 7월', count: 0, books: [], quotes: [] },
-      { label: '2026년 6월', count: 1, books: [], quotes: [] },
+      { label: '2026년 8월', count: 2, books: [], quotes: [], quotePreviews: [] },
+      { label: '2026년 7월', count: 0, books: [], quotes: [], quotePreviews: [] },
+      { label: '2026년 6월', count: 1, books: [], quotes: [], quotePreviews: [] },
     ]);
   });
   it('연 경계를 넘어간다', () => {
@@ -30,4 +30,17 @@ describe('summarizeByMonth', () => {
     expect(aug.books.slice(0, 3)).toEqual(['책 1', '책 0', '책 7']);
     expect(new Set(aug.books).size).toBe(aug.books.length);
   });
+});
+
+it('keeps identical quotes attached to distinct records within the preview limit', () => {
+  const entries = Array.from({ length: 5 }, (_, i) => ({
+    id: `entry-${i}`,
+    date: '2026-09-12',
+    quote: ' 같은 문장 ',
+  }));
+  const [month] = summarizeByMonth(entries, '2026-09-12', 1);
+  expect(month.quotePreviews).toEqual(
+    [4, 3, 2].map((i) => ({ entryId: `entry-${i}`, quote: '같은 문장' }))
+  );
+  expect(month.quotes).toEqual(month.quotePreviews?.map((q) => q.quote));
 });
