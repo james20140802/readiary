@@ -137,7 +137,7 @@ DB 집계·Supabase RPC·상한 있는 미리보기로 왕복과 전송량을 �
 사용자가 열어 볼 서버는 도구 실행 세션과 분리된 백그라운드 프로세스로 실행한다. 단순 `exec` 세션 ID나 시작 로그만으로 계속 켜져 있다고 보고하지 않는다.
 
 - 재시작 전에 해당 worktree·포트·PID·실행 명령을 확인한다. 다른 작업의 서버를 종료하거나 포트를 덮어쓰지 않는다.
-- Next.js는 `.cjs` 실행 파일에서 승인된 환경 파일을 `process.loadEnvFile()`로 읽고 CLI를 실행한다. `node -e`/`--env-file` 직접 실행은 자식 프로세스의 `NODE_OPTIONS` 오류가 재현되어 지속 서버의 기본 방식으로 쓰지 않는다. 환경 파일 복사·비밀값 출력은 하지 않는다.
+- 실행할 Node가 `process.loadEnvFile`을 제공하는지 먼저 확인한다(Node 20 계열은 20.12.0 이상). 지원하지 않으면 환경을 읽거나 서버를 띄우기 전에 종료하고 지원되는 Node 실행 경로를 선택한다. Next.js는 `.cjs` 실행 파일에서 승인된 환경 파일을 `process.loadEnvFile()`로 읽고 CLI를 실행한다. `node -e`/`--env-file` 직접 실행은 자식 프로세스의 `NODE_OPTIONS` 오류가 재현되어 지속 서버의 기본 방식으로 쓰지 않는다. 환경 파일 복사·비밀값 출력은 하지 않는다.
 - stdin을 닫고 stdout/stderr를 전용 로그로 보내며, 새 세션으로 분리해 실행한다. PID·로그·작업 경로를 남긴다. macOS에서는 부모 PID가 1인지 확인하고, 최초 실행 명령 종료 후 별도 호출로 포트와 실제 미리보기 URL의 HTTP 응답을 확인한다.
 - Watchpack `EMFILE` 또는 수정 미반영이 생기면 `WATCHPACK_POLLING=1000`으로 재시작한다. 오래된 화면으로 최신 코드 검증을 완료했다고 보고하지 않는다.
 - Tailscale 접속 요청에는 기존 Serve 설정을 먼저 확인하고, 충돌 없는 별도 HTTPS 포트에 `serve --bg`로 연결한다. 기존 경로를 reset하거나 Funnel로 인터넷에 공개하지 않는다. 기기에는 localhost 대신 확인된 tailnet URL을 전달한다.

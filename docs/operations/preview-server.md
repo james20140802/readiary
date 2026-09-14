@@ -21,6 +21,9 @@ Watchpack의 `EMFILE` 때문에 파일 이동·수정이 감지되지 않아 예
 2. `lsof -nP -iTCP:<포트> -sTCP:LISTEN`으로 점유 여부를 확인한다. 점유 중이면
    프로세스 명령과 worktree를 대조한다. 정상인 같은 작업 서버는 재사용한다.
 3. 의존성과 실제 미리보기 파일, 승인된 환경 공급 경로가 있는지 확인한다.
+   아래 실행 예제는 `process.loadEnvFile`을 제공하는 Node가 필요하다(Node 20 계열은
+   20.12.0 이상). 서버에 사용할 Node 실행 파일의 `--version`과 해당 함수 제공 여부를
+   확인한다. Next 자체의 최소 버전과 이 예제의 요구 조건은 다르다.
 4. 아래 예시의 경로와 포트를 실제 확인한 값으로 바꾼다. 임시 파일·로그 이름도
    작업별로 다르게 정한다. 비밀값이나 실제 계정 기록을 로그에 쓰지 않는다.
 
@@ -30,6 +33,10 @@ Watchpack의 `EMFILE` 때문에 파일 이동·수정이 감지되지 않아 예
 
 ```js
 // /private/tmp/<작업명>-server.cjs
+if (typeof process.loadEnvFile !== 'function') {
+  console.error('이 실행 예제는 process.loadEnvFile을 지원하는 Node가 필요합니다. Node 20 계열은 20.12.0 이상을 사용하세요.');
+  process.exit(1);
+}
 process.loadEnvFile('/승인된/환경파일/경로');
 process.env.WATCHPACK_POLLING = '1000';
 const cli = '/작업/worktree/node_modules/next/dist/bin/next';
