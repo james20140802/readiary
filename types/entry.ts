@@ -49,3 +49,14 @@ export type EntryDetailData = {
   initialLikeCount: number;
   initialCommentCount: number;
 };
+
+/** Minimal on-demand reading payload, with no social or account metadata. */
+export interface EntryReadData {
+  id: string;
+  bookTitle: string;
+  date: string;
+  fromPage: number | null;
+  toPage: number | null;
+  quote: string | null;
+  note: string | null;
+}
