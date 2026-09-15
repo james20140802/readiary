@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Search } from 'lucide-react';
+import { ChevronDown, SlidersHorizontal, X } from 'lucide-react';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import { createSupabaseClient } from '@/lib/supabase/client';
@@ -59,7 +59,7 @@ export default function LibrarySearch({ userId }: { userId: string }) {
   const tab = (value: SearchTab) => setDraft((d) => ({ ...d, tab: value }));
   if (!allowed) return <p role="status">로그인 상태가 바뀌었습니다. 검색을 다시 열어 주세요.</p>;
   return (
-    <div className="w-full">
+    <div className="w-full max-w-2xl mx-auto">
       <h1 className="text-page-title text-ink mb-6">책과 기록 찾기</h1>
       <form
         role="search"
@@ -67,69 +67,89 @@ export default function LibrarySearch({ userId }: { userId: string }) {
           event.preventDefault();
           if (!composing) setQuery(draft.query.trim());
         }}
-        className="flex items-end gap-3"
+        className="space-y-2"
       >
-        <Input
-          ref={searchInput}
-          variant="line"
-          label="책 제목, 저자, 문장과 생각 검색"
-          placeholder="기억나는 표현을 입력하세요"
-          maxLength={200}
-          value={draft.query}
-          onChange={(event) => setDraft((d) => ({ ...d, query: event.target.value }))}
-          onCompositionStart={() => setComposing(true)}
-          onCompositionEnd={() => setComposing(false)}
-        />
-        <Button type="submit" variant="ghost" className="shrink-0" aria-label="검색">
-          <Search size={20} strokeWidth={1.75} />
-        </Button>
-      </form>
-      {draft.query && (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="mt-2"
-          onClick={() => {
-            setDraft((d) => ({ ...d, query: '' }));
-            setQuery('');
-            searchInput.current?.focus();
-          }}
-        >
-          검색어 지우기
-        </Button>
-      )}
-      <div aria-label="검색 대상" className="flex gap-2 mt-6 mb-4">
-        {(
-          [
-            ['all', '전체'],
-            ['books', '책'],
-            ['entries', '기록'],
-          ] as const
-        ).map(([value, label]) => (
-          <Button
-            key={value}
-            size="sm"
-            variant={draft.tab === value ? 'primary' : 'secondary'}
-            aria-pressed={draft.tab === value}
-            onClick={() => tab(value)}
-          >
-            {label}
+        <label htmlFor="library-search" className="block text-caption text-ink-sub">
+          책 제목, 저자, 문장과 생각 검색
+        </label>
+        <div className="flex items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <Input
+              id="library-search"
+              ref={searchInput}
+              variant="line"
+              placeholder="기억나는 표현"
+              enterKeyHint="search"
+              autoComplete="off"
+              className="min-h-12 !pr-12 placeholder:text-ink-sub"
+              trailing={
+                draft.query ? (
+                  <button
+                    type="button"
+                    aria-label="검색어 지우기"
+                    className="flex size-11 items-center justify-center rounded-full text-ink-sub hover:bg-card-raised hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+                    onClick={() => {
+                      setDraft((d) => ({ ...d, query: '' }));
+                      setQuery('');
+                      searchInput.current?.focus();
+                    }}
+                  >
+                    <X size={18} strokeWidth={1.75} aria-hidden="true" />
+                  </button>
+                ) : undefined
+              }
+              maxLength={200}
+              value={draft.query}
+              onChange={(event) => setDraft((d) => ({ ...d, query: event.target.value }))}
+              onCompositionStart={() => setComposing(true)}
+              onCompositionEnd={() => setComposing(false)}
+            />
+          </div>
+          <Button type="submit" className="shrink-0 min-h-12">
+            검색
           </Button>
-        ))}
-      </div>
-      {draft.tab !== 'books' && (
-        <div className="border-b border-hairline pb-4 mb-6">
+        </div>
+      </form>
+      <div className="flex items-center justify-between gap-1 border-b border-hairline mt-5 mb-6">
+        <div role="group" aria-label="검색 대상" className="flex">
+          {(
+            [
+              ['all', '전체'],
+              ['books', '책'],
+              ['entries', '기록'],
+            ] as const
+          ).map(([value, label]) => (
+            <Button
+              key={value}
+              size="sm"
+              variant="ghost"
+              className={`!min-h-11 ${draft.tab === value ? 'text-ink underline decoration-accent decoration-2 underline-offset-8' : ''}`}
+              aria-pressed={draft.tab === value}
+              onClick={() => tab(value)}
+            >
+              {label}
+            </Button>
+          ))}
+        </div>
+        {draft.tab !== 'books' && (
           <Button
             size="sm"
             variant="ghost"
+            className="!min-h-11 shrink-0 !px-3"
+            aria-label={`기록 필터${draft.book || draft.from || draft.to ? ' · 적용 중' : ''}`}
             aria-expanded={draft.filtersOpen}
             aria-controls="record-filters"
             onClick={() => setDraft((d) => ({ ...d, filtersOpen: !d.filtersOpen }))}
           >
-            기록 필터{draft.book || draft.from || draft.to ? ' · 적용 중' : ''}
+            <SlidersHorizontal size={16} strokeWidth={1.75} aria-hidden="true" />
+            필터{draft.book || draft.from || draft.to ? ' ·' : ''}
           </Button>
+        )}
+      </div>
+      {draft.tab !== 'books' && (
+        <div>
           {draft.filtersOpen && (
-            <div id="record-filters" className="mt-3 space-y-4">
+            <div id="record-filters" className="border-b border-hairline pb-6 mb-6 space-y-4">
               <p className="text-caption text-ink-sub">
                 책과 날짜 필터는 기록 결과에만 적용됩니다.
               </p>
@@ -138,9 +158,18 @@ export default function LibrarySearch({ userId }: { userId: string }) {
                   size="sm"
                   variant="secondary"
                   aria-expanded={picker}
+                  className="!min-h-11 max-w-full text-left"
                   onClick={() => setPicker((v) => !v)}
                 >
-                  {draft.book ? `선택한 책: ${draft.book.title}` : '책 한 권 선택'}
+                  <span className="min-w-0 whitespace-normal break-words">
+                    {draft.book ? `선택한 책: ${draft.book.title}` : '책 한 권 선택'}
+                  </span>
+                  <ChevronDown
+                    size={16}
+                    strokeWidth={1.75}
+                    className="shrink-0"
+                    aria-hidden="true"
+                  />
                 </Button>
                 {draft.book && (
                   <Button
@@ -162,9 +191,10 @@ export default function LibrarySearch({ userId }: { userId: string }) {
                   }}
                 />
               )}
-              <div className="grid grid-cols-1 min-[360px]:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 min-[480px]:grid-cols-2 gap-4">
                 <Input
                   type="date"
+                  className="min-w-0 !min-h-11"
                   variant="line"
                   label="기록 시작일"
                   value={draft.from}
@@ -172,6 +202,7 @@ export default function LibrarySearch({ userId }: { userId: string }) {
                 />
                 <Input
                   type="date"
+                  className="min-w-0 !min-h-11"
                   variant="line"
                   label="기록 종료일"
                   value={draft.to}
@@ -193,7 +224,7 @@ export default function LibrarySearch({ userId }: { userId: string }) {
         </div>
       )}
       {!query ? (
-        <p className="py-10 font-serif text-body text-ink-sub">
+        <p className="py-8 font-serif text-body text-ink-sub leading-loose">
           기억나는 표현으로 책과 기록을 찾아보세요.
         </p>
       ) : (
@@ -217,7 +248,7 @@ export default function LibrarySearch({ userId }: { userId: string }) {
                       prefetch={false}
                       onClick={remember}
                       href={`/protected/books/${book.bookId}`}
-                      className="flex gap-4 py-4 focus-visible:outline-accent rounded-sm"
+                      className="flex gap-4 py-4 hover:bg-card focus-visible:outline-accent rounded-sm"
                     >
                       {book.coverUrl && (
                         <Image
@@ -269,7 +300,7 @@ export default function LibrarySearch({ userId }: { userId: string }) {
                       prefetch={false}
                       onClick={remember}
                       href={`/protected/entry/${entry.id}`}
-                      className="block py-6 focus-visible:outline-accent rounded-sm"
+                      className="block py-6 hover:bg-card focus-visible:outline-accent rounded-sm"
                     >
                       {entry.quote && (
                         <p className="font-serif text-quote whitespace-pre-wrap break-words">
@@ -367,7 +398,7 @@ function BookPicker({
           <li key={book.id}>
             <Button
               variant="ghost"
-              className="text-left justify-start h-auto rounded-md w-full"
+              className="text-left !justify-start !min-h-11 h-auto rounded-md w-full"
               onClick={() => onSelect(book)}
             >
               <span className="whitespace-normal break-words">
