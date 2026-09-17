@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { ChevronDown, SlidersHorizontal, X } from 'lucide-react';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
+import BackButton from '@/components/ui/BackButton';
 import { createSupabaseClient } from '@/lib/supabase/client';
 import { emptyDraft, readSearchDraft, saveSearchDraft, setSearchOwner } from '@/lib/search/memory';
 import { useSearchPage } from '@/lib/search/useSearchPage';
@@ -59,8 +60,11 @@ export default function LibrarySearch({ userId }: { userId: string }) {
   const tab = (value: SearchTab) => setDraft((d) => ({ ...d, tab: value }));
   if (!allowed) return <p role="status">로그인 상태가 바뀌었습니다. 검색을 다시 열어 주세요.</p>;
   return (
-    <div className="w-full max-w-2xl mx-auto">
-      <h1 className="text-page-title text-ink mb-6">책과 기록 찾기</h1>
+    <div className="w-full">
+      <header className="mb-6 flex items-center gap-2">
+        <BackButton />
+        <h1 className="text-page-title text-ink">책과 기록 찾기</h1>
+      </header>
       <form
         role="search"
         onSubmit={(event) => {
