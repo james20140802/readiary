@@ -35,6 +35,8 @@ do $$ declare a jsonb; b jsonb; begin
  assert jsonb_array_length(a->'items')=1, 'inclusive date range';
  assert length(a->'items'->0->>'quote')<400 and strpos(a->'items'->0->>'quote','기다림')>0, 'bounded contextual excerpt';
  assert a->'items'->0->>'note' is not null, 'both matching fields, one record';
+ assert not has_function_privilege('anon','public.search_excerpt(text,text)','execute'), 'anonymous excerpt denied';
+ assert has_function_privilege('authenticated','public.search_excerpt(text,text)','execute'), 'authenticated excerpt allowed';
  assert public.search_excerpt('HELLO','hello')='HELLO', 'case insensitive';
  assert not has_function_privilege('anon','public.search_library(text,text,uuid,date,date,jsonb)','execute'), 'anonymous denied';
 end $$;
