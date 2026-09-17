@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ChevronDown, SlidersHorizontal, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import BackButton from '@/components/ui/BackButton';
@@ -17,9 +17,7 @@ export default function LibrarySearch({ userId }: { userId: string }) {
   const [query, setQuery] = useState(draft.query.trim());
   const [composing, setComposing] = useState(false);
   const [allowed, setAllowed] = useState(true);
-  const [picker, setPicker] = useState(false);
   const searchInput = useRef<HTMLInputElement>(null);
-  const pickerTrigger = useRef<HTMLDivElement>(null);
   const initialScroll = useRef(draft.scroll);
   useEffect(() => {
     saveSearchDraft(userId, draft);
@@ -44,7 +42,6 @@ export default function LibrarySearch({ userId }: { userId: string }) {
     const timer = setTimeout(() => setQuery(draft.query.trim()), 300);
     return () => clearTimeout(timer);
   }, [draft.query, composing]);
-  const invalidDates = !!(draft.from && draft.to && draft.from > draft.to);
   const enabled = allowed && !!query;
   const books = useSearchPage<SearchBook>(
     userId,
@@ -53,8 +50,8 @@ export default function LibrarySearch({ userId }: { userId: string }) {
   );
   const entries = useSearchPage<SearchEntry>(
     userId,
-    { query, kind: 'entries', bookId: draft.book?.id, from: draft.from, to: draft.to },
-    enabled && draft.tab !== 'books' && !invalidDates
+    { query, kind: 'entries' },
+    enabled && draft.tab !== 'books'
   );
   const remember = () => saveSearchDraft(userId, { ...draft, scroll: window.scrollY });
   const tab = (value: SearchTab) => setDraft((d) => ({ ...d, tab: value }));
@@ -135,98 +132,7 @@ export default function LibrarySearch({ userId }: { userId: string }) {
             </Button>
           ))}
         </div>
-        {draft.tab !== 'books' && (
-          <Button
-            size="sm"
-            variant="ghost"
-            className="!min-h-11 shrink-0 !px-3"
-            aria-label={`기록 필터${draft.book || draft.from || draft.to ? ' · 적용 중' : ''}`}
-            aria-expanded={draft.filtersOpen}
-            aria-controls="record-filters"
-            onClick={() => setDraft((d) => ({ ...d, filtersOpen: !d.filtersOpen }))}
-          >
-            <SlidersHorizontal size={16} strokeWidth={1.75} aria-hidden="true" />
-            필터{draft.book || draft.from || draft.to ? ' ·' : ''}
-          </Button>
-        )}
       </div>
-      {draft.tab !== 'books' && (
-        <div>
-          {draft.filtersOpen && (
-            <div id="record-filters" className="border-b border-hairline pb-6 mb-6 space-y-4">
-              <p className="text-caption text-ink-sub">
-                책과 날짜 필터는 기록 결과에만 적용됩니다.
-              </p>
-              <div ref={pickerTrigger} className="flex flex-wrap items-center gap-2">
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  aria-expanded={picker}
-                  className="!min-h-11 max-w-full text-left"
-                  onClick={() => setPicker((v) => !v)}
-                >
-                  <span className="min-w-0 whitespace-normal break-words">
-                    {draft.book ? `선택한 책: ${draft.book.title}` : '책 한 권 선택'}
-                  </span>
-                  <ChevronDown
-                    size={16}
-                    strokeWidth={1.75}
-                    className="shrink-0"
-                    aria-hidden="true"
-                  />
-                </Button>
-                {draft.book && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setDraft((d) => ({ ...d, book: null }))}
-                  >
-                    책 선택 해제
-                  </Button>
-                )}
-              </div>
-              {picker && (
-                <BookPicker
-                  userId={userId}
-                  onSelect={(book) => {
-                    setDraft((d) => ({ ...d, book }));
-                    setPicker(false);
-                    pickerTrigger.current?.querySelector('button')?.focus();
-                  }}
-                />
-              )}
-              <div className="grid grid-cols-1 min-[480px]:grid-cols-2 gap-4">
-                <Input
-                  type="date"
-                  className="min-w-0 !min-h-11"
-                  variant="line"
-                  label="기록 시작일"
-                  value={draft.from}
-                  onChange={(e) => setDraft((d) => ({ ...d, from: e.target.value }))}
-                />
-                <Input
-                  type="date"
-                  className="min-w-0 !min-h-11"
-                  variant="line"
-                  label="기록 종료일"
-                  value={draft.to}
-                  error={invalidDates ? '종료일은 시작일 이후로 선택해 주세요.' : undefined}
-                  onChange={(e) => setDraft((d) => ({ ...d, to: e.target.value }))}
-                />
-              </div>
-              {(draft.from || draft.to) && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setDraft((d) => ({ ...d, from: '', to: '' }))}
-                >
-                  날짜 초기화
-                </Button>
-              )}
-            </div>
-          )}
-        </div>
-      )}
       {!query ? (
         <p className="py-8 font-serif text-body text-ink-sub leading-loose">
           기억나는 표현으로 책과 기록을 찾아보세요.
@@ -291,7 +197,7 @@ export default function LibrarySearch({ userId }: { userId: string }) {
               )}
             </section>
           )}
-          {draft.tab !== 'books' && !invalidDates && (
+          {draft.tab !== 'books' && (
             <section aria-labelledby="search-entries-heading">
               <h2 id="search-entries-heading" className="text-section-title mb-2">
                 기록
@@ -363,60 +269,7 @@ function SearchStatus({
       ) : result.items.length ? (
         `${label} ${result.items.length}개 표시`
       ) : (
-        `일치하는 ${label === '책' ? '책이' : '기록이'} 없습니다. 검색어나 필터를 바꿔 보세요.`
-      )}
-    </div>
-  );
-}
-function BookPicker({
-  userId,
-  onSelect,
-}: {
-  userId: string;
-  onSelect: (book: SearchBook) => void;
-}) {
-  const [input, setInput] = useState('');
-  const [query, setQuery] = useState('');
-  const [composing, setComposing] = useState(false);
-  useEffect(() => {
-    if (composing) return;
-    const timer = setTimeout(() => setQuery(input.trim()), 300);
-    return () => clearTimeout(timer);
-  }, [input, composing]);
-  const result = useSearchPage<SearchBook>(userId, { query, kind: 'candidates' }, true);
-  return (
-    <div className="border-l border-hairline pl-4 space-y-3">
-      <Input
-        variant="line"
-        label="필터할 책 검색"
-        placeholder="책 제목이나 저자"
-        maxLength={200}
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        onCompositionStart={() => setComposing(true)}
-        onCompositionEnd={() => setComposing(false)}
-      />
-      <SearchStatus result={result} label="책" />
-      <ul>
-        {result.items.map((book) => (
-          <li key={book.id}>
-            <Button
-              variant="ghost"
-              className="text-left !justify-start !min-h-11 h-auto rounded-md w-full"
-              onClick={() => onSelect(book)}
-            >
-              <span className="whitespace-normal break-words">
-                {book.title}
-                {book.author ? ` · ${book.author}` : ''}
-              </span>
-            </Button>
-          </li>
-        ))}
-      </ul>
-      {result.next && !result.error && (
-        <Button size="sm" variant="secondary" loading={result.loading} onClick={result.loadMore}>
-          선택할 책 더 보기
-        </Button>
+        `일치하는 ${label === '책' ? '책이' : '기록이'} 없습니다. 다른 표현으로 검색해 보세요.`
       )}
     </div>
   );

@@ -1,20 +1,12 @@
-import type { SearchBook, SearchTab } from './types';
+import type { SearchTab } from './types';
 export interface SearchDraft {
   query: string;
   tab: SearchTab;
-  book: SearchBook | null;
-  from: string;
-  to: string;
-  filtersOpen: boolean;
   scroll: number;
 }
 export const emptyDraft: SearchDraft = {
   query: '',
   tab: 'all',
-  book: null,
-  from: '',
-  to: '',
-  filtersOpen: false,
   scroll: 0,
 };
 let owner: string | null = null;
