@@ -133,11 +133,7 @@ export default function LibrarySearch({ userId }: { userId: string }) {
           ))}
         </div>
       </div>
-      {!query ? (
-        <p className="py-8 font-serif text-body text-ink-sub leading-loose">
-          기억나는 표현으로 책과 기록을 찾아보세요.
-        </p>
-      ) : (
+      {!!query && (
         <>
           {draft.tab !== 'entries' && (
             <section aria-labelledby="search-books-heading" className="mb-8">
