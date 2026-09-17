@@ -77,7 +77,7 @@
 | `Card` | 헤어라인 카드. `raised`는 진한 헤어라인(그림자 없음) |
 | `Input`/`Textarea` | 기본(`box`): 카드 표면 + strong 헤어라인, 포커스에 accent 1px. `variant="line"`: 상자 없이 괘선 위에, 포커스는 괘선만 짙게 — 기록·책 등록·인증 화면 |
 | `Modal` | `bg-ink/30` 스크림 + 헤어라인 패널 |
-| `Tabs` | 밑줄형, 활성=accent |
+| `Tabs` | 밑줄형, 활성=accent. 최소 높이 44px, 선택 여부는 aria-pressed로 제공하며 Tab·Enter/Space로 조작한다. 검색은 fullWidth로 균등 배치한다. |
 | `Seal` | 잉크색 날짜/상태 라벨 ("1년 전 오늘", "완독") |
 | `Chip` | 알약형 선택 칩, `dot`으로 잉크 점 |
 | `Avatar` | card-raised 배경 + 헤어라인 |

@@ -6,6 +6,7 @@ import { X } from 'lucide-react';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import BackButton from '@/components/ui/BackButton';
+import Tabs from '@/components/ui/Tabs';
 import { createSupabaseClient } from '@/lib/supabase/client';
 import { emptyDraft, readSearchDraft, saveSearchDraft, setSearchOwner } from '@/lib/search/memory';
 import { useSearchPage } from '@/lib/search/useSearchPage';
@@ -111,28 +112,18 @@ export default function LibrarySearch({ userId }: { userId: string }) {
           </Button>
         </div>
       </form>
-      <div className="flex items-center justify-between gap-1 border-b border-hairline mt-5 mb-6">
-        <div role="group" aria-label="검색 대상" className="flex">
-          {(
-            [
-              ['all', '전체'],
-              ['books', '책'],
-              ['entries', '기록'],
-            ] as const
-          ).map(([value, label]) => (
-            <Button
-              key={value}
-              size="sm"
-              variant="ghost"
-              className={`!min-h-11 ${draft.tab === value ? 'text-ink underline decoration-accent decoration-2 underline-offset-8' : ''}`}
-              aria-pressed={draft.tab === value}
-              onClick={() => tab(value)}
-            >
-              {label}
-            </Button>
-          ))}
-        </div>
-      </div>
+      <Tabs
+        tabs={[
+          { value: 'all', label: '전체' },
+          { value: 'books', label: '책' },
+          { value: 'entries', label: '기록' },
+        ]}
+        value={draft.tab}
+        onChange={(value) => tab(value as SearchTab)}
+        ariaLabel="검색 대상"
+        fullWidth
+        className="mt-6 mb-6"
+      />
       {!!query && (
         <>
           {draft.tab !== 'entries' && (
