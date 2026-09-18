@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Bell, BookMarked } from 'lucide-react';
+import { Bell, BookMarked, Search } from 'lucide-react';
 
 interface HeaderProps {
   loggedIn: boolean;
@@ -28,18 +28,27 @@ export default function Header({ loggedIn, showNav, hasUnread }: HeaderProps) {
 
       {/* 알림 종 — 모바일은 전역 상단 헤더에 상주. 터치 영역 44px */}
       {showNav && (
-        <Link
-          href="/protected/social/notifications"
-          className="relative -mr-3 p-3 text-ink-sub"
-          aria-label="알림"
-        >
-          <Bell size={20} strokeWidth={1.75} />
-          {hasUnread && (
-            <span className="absolute right-2.5 top-2.5 h-[7px] w-[7px] rounded-full bg-accent">
-              <span className="sr-only">읽지 않은 알림 있음</span>
-            </span>
-          )}
-        </Link>
+        <div className="flex items-center">
+          <Link
+            href="/protected/search"
+            aria-label="책과 기록 검색"
+            className="p-3 text-ink-sub focus-visible:outline-accent"
+          >
+            <Search size={20} strokeWidth={1.75} />
+          </Link>
+          <Link
+            href="/protected/social/notifications"
+            className="relative -mr-3 p-3 text-ink-sub"
+            aria-label="알림"
+          >
+            <Bell size={20} strokeWidth={1.75} />
+            {hasUnread && (
+              <span className="absolute right-2.5 top-2.5 h-[7px] w-[7px] rounded-full bg-accent">
+                <span className="sr-only">읽지 않은 알림 있음</span>
+              </span>
+            )}
+          </Link>
+        </div>
       )}
     </header>
   );

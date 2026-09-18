@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Search } from 'lucide-react';
 import { fetchBooksPage } from '@/lib/queries/fetchBooksPage';
 import Button from '@/components/ui/Button';
 import BookList from '@/components/books/BookList';
@@ -27,6 +28,13 @@ export default async function MyBooksPage() {
         </Button>
       </header>
 
+      <Link
+        href="/protected/search"
+        className="mb-6 flex min-h-11 items-center justify-between gap-3 border-b border-hairline py-3 text-ink-sub focus-visible:outline-accent"
+      >
+        <span>책과 기록 찾기</span>
+        <Search size={20} strokeWidth={1.75} />
+      </Link>
       <BookList books={books} stats={stats} />
     </div>
   );

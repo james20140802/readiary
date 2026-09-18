@@ -6,6 +6,7 @@ import clsx from 'clsx';
 import { createSupabaseClient } from '@/lib/supabase/client';
 import { sweepLegacyPrivateCaches } from '@/lib/pwa/clear-caches';
 import { useUnreadNotifications } from '@/hooks/useUnreadNotifications';
+import { setSearchOwner } from '@/lib/search/memory';
 import Header from '@/components/Header';
 import { readComposerDraft, clearComposerDraft } from '@/lib/entries/composerDraft';
 import Navbar from '@/components/Navbar';
@@ -48,6 +49,7 @@ export default function AppShell({ initialLoggedIn, initialUnread, children }: A
     const supabase = createSupabaseClient();
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setLoggedIn(!!session);
+      setSearchOwner(session?.user.id ?? null);
       if (!session) clearComposerDraft();
       else {
         try {

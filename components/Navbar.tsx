@@ -1,7 +1,7 @@
 'use client';
 import { Suspense } from 'react';
 import Link from 'next/link';
-import { Bell, BookMarked, Home, LibraryBig, Globe, UserRound } from 'lucide-react';
+import { Search, Bell, BookMarked, Home, LibraryBig, Globe, UserRound } from 'lucide-react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { authHrefWithRedirect } from '@/lib/auth/safeRedirect';
 import clsx from 'clsx';
@@ -21,7 +21,7 @@ const navItems: NavItem[] = [
     href: '/protected/books',
     label: '내 책',
     icon: <LibraryBig size={20} strokeWidth={1.75} />,
-    also: ['/protected/entry'],
+    also: ['/protected/entry', '/protected/search'],
   },
   { href: '/protected/social', label: '소셜', icon: <Globe size={20} strokeWidth={1.75} /> },
   { href: '/protected/profile', label: '프로필', icon: <UserRound size={20} strokeWidth={1.75} /> },
@@ -77,7 +77,7 @@ export default function Navbar({ loggedIn, showNav, hasUnread }: NavbarProps) {
       {/* Desktop Top Navbar */}
       <nav
         aria-label="주요 메뉴"
-        className="fixed inset-x-0 top-0 z-50 hidden border-b border-hairline bg-paper/90 px-8 py-5 backdrop-blur-md md:flex"
+        className="fixed inset-x-0 top-0 z-50 hidden border-b border-hairline bg-paper/90 px-4 lg:px-8 py-5 backdrop-blur-md md:flex"
       >
         <div className="mx-auto flex w-full max-w-screen-md items-center justify-between text-button text-ink-sub">
           {/* Header 의 로고와 같은 이유로 GNB 가 보일 때만 프리페치 (온보딩 등 bare 화면 제외) */}
@@ -109,6 +109,14 @@ export default function Navbar({ loggedIn, showNav, hasUnread }: NavbarProps) {
                   </Link>
                 );
               })}
+
+              <Link
+                href="/protected/search"
+                aria-label="책과 기록 검색"
+                className="rounded-md p-2 text-ink-sub focus-visible:outline-accent"
+              >
+                <Search size={20} strokeWidth={1.75} />
+              </Link>
 
               {/* 알림 종 — 데스크톱에서는 전역 크롬에 상주 (모바일은 Header가 담당) */}
               <Link

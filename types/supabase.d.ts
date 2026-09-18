@@ -403,6 +403,17 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      search_library: {
+        Args: {
+          p_query: string;
+          p_kind: string;
+          p_book_id?: string;
+          p_from?: string;
+          p_to?: string;
+          p_cursor?: Json;
+        };
+        Returns: Json;
+      };
       get_books_page: { Args: Record<string, never>; Returns: Json };
       get_profile_retrospect: {
         Args: { p_user_id: string; p_today: string; p_public_only?: boolean };
