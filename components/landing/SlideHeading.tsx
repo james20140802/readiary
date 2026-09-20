@@ -28,14 +28,14 @@ export default function SlideHeading({
 
   return (
     <motion.header
-      style={reduced ? undefined : { opacity, y }}
+      style={reduced ? { opacity: 1, y: 0 } : { opacity, y }}
       className={clsx(align === 'center' && 'flex flex-col items-center text-center', className)}
     >
       <p className="text-overline text-accent">{eyebrow}</p>
       <h2 className="mt-3 text-balance font-serif text-page-title font-bold leading-snug text-ink md:text-display-sm md:leading-snug">
         {title}
       </h2>
-      {body && <p className="mt-3 max-w-prose text-body leading-relaxed text-ink-sub">{body}</p>}
+      {body && <p className="mt-3 break-keep text-body leading-relaxed text-ink-sub">{body}</p>}
     </motion.header>
   );
 }

@@ -14,8 +14,11 @@ export function WeeklyStreakSection({ weeklyCount, weekActivity, todayKst }: Pro
   const weekDates = weekDatesKST(todayKst);
 
   return (
-    <Card hoverable={false} className="flex items-center justify-between gap-6 px-5 py-[18px]">
-      <div className="flex max-w-[440px] flex-1 justify-between gap-1.5">
+    <Card
+      hoverable={false}
+      className="flex flex-wrap items-center justify-between gap-3 px-5 sm:gap-6 py-[18px]"
+    >
+      <div className="flex min-w-[178px] max-w-[440px] flex-1 justify-between gap-1">
         {weekActivity.map((didWrite, index) => {
           const d = weekDates[index];
           const isToday = d === todayKst;
@@ -39,7 +42,7 @@ export function WeeklyStreakSection({ weeklyCount, weekActivity, todayKst }: Pro
           );
         })}
       </div>
-      <div className="text-right font-serif text-caption leading-normal text-ink">
+      <div className="ml-auto shrink-0 whitespace-nowrap text-right font-serif text-caption leading-normal text-ink">
         <b className="text-section-title text-accent">{weeklyCount}</b>
         <br />
         이번 주 문장

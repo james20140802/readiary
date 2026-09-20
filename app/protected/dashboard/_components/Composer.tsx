@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { LibraryBig, Lock } from 'lucide-react';
 import { MyBook } from '@/types/book';
 import Link from 'next/link';
+import ComposerControls from '@/components/ui/ComposerControls';
 import Card from '@/components/ui/Card';
 import Chip from '@/components/ui/Chip';
 import Button from '@/components/ui/Button';
@@ -340,15 +341,11 @@ export default function Composer({ userId, books, recentUserBookId }: ComposerPr
         className="block w-full resize-none bg-transparent font-serif text-[17px] leading-relaxed text-ink placeholder:text-ink-faint focus:outline-none"
       />
 
-      <div className="mt-3.5 border-t border-hairline pt-3.5">
-        <div
-          ref={controlsRef}
-          className="flex flex-wrap items-center gap-x-4 gap-y-2.5 [container-type:inline-size]"
-        >
-          <div
-            ref={booksRef}
-            className="relative flex max-w-full flex-none items-center gap-2 whitespace-nowrap"
-          >
+      <ComposerControls
+        controlsRef={controlsRef}
+        booksRef={booksRef}
+        books={
+          <>
             {chipBooks.map((b) => (
               <Chip
                 key={b.id}
@@ -383,50 +380,46 @@ export default function Composer({ userId, books, recentUserBookId }: ComposerPr
             >
               <LibraryBig size={12} strokeWidth={1.75} aria-hidden />내 책
             </Chip>
-          </div>
-          <div className="flex min-w-max flex-auto items-center gap-px whitespace-nowrap [@container(min-width:250px)]:gap-1 [&>button]:shrink-0 [&>button:nth-child(4)]:px-2">
-            <Chip
-              selected={mode === 'quote'}
-              disabled={!ready || locked}
-              onClick={() => update({ mode: 'quote' })}
-            >
-              문장
-            </Chip>
-            <Chip
-              selected={mode === 'note'}
-              disabled={!ready || locked}
-              onClick={() => update({ mode: 'note' })}
-            >
-              생각
-            </Chip>
-            <span aria-hidden className="h-4 w-px shrink-0 bg-hairline" />
-            <Chip
-              selected={isPrivate}
-              aria-pressed={isPrivate}
-              disabled={!ready || locked}
-              onClick={() => update({ isPrivate: !isPrivate })}
-            >
-              <Lock size={12} strokeWidth={1.75} aria-hidden />
-              비공개
-            </Chip>
-            {!draft.submission && (
-              <Button
-                size="sm"
-                className="ml-auto"
-                onClick={handleSave}
-                disabled={
-                  !ready ||
-                  isSubmitting ||
-                  !selectedBook ||
-                  (!draft.quote.trim() && !draft.note.trim())
-                }
-              >
-                남기기
-              </Button>
-            )}
-          </div>
-        </div>
-      </div>
+          </>
+        }
+      >
+        <Chip
+          selected={mode === 'quote'}
+          disabled={!ready || locked}
+          onClick={() => update({ mode: 'quote' })}
+        >
+          문장
+        </Chip>
+        <Chip
+          selected={mode === 'note'}
+          disabled={!ready || locked}
+          onClick={() => update({ mode: 'note' })}
+        >
+          생각
+        </Chip>
+        <span aria-hidden className="h-4 w-px shrink-0 bg-hairline" />
+        <Chip
+          selected={isPrivate}
+          aria-pressed={isPrivate}
+          disabled={!ready || locked}
+          onClick={() => update({ isPrivate: !isPrivate })}
+        >
+          <Lock size={12} strokeWidth={1.75} aria-hidden />
+          비공개
+        </Chip>
+        {!draft.submission && (
+          <Button
+            size="sm"
+            className="ml-auto"
+            onClick={handleSave}
+            disabled={
+              !ready || isSubmitting || !selectedBook || (!draft.quote.trim() && !draft.note.trim())
+            }
+          >
+            남기기
+          </Button>
+        )}
+      </ComposerControls>
       {storageError && (draft.quote || draft.note) && (
         <p role="alert" className="mt-2 text-caption text-ink-sub">
           초안을 보관하지 못했어요. 브라우저 저장 공간을 확인해 주세요.

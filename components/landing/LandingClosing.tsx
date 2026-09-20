@@ -20,7 +20,7 @@ export default function LandingClosing() {
           <p className="mt-3 text-body-sm text-ink-sub">가입은 이메일 하나면 충분합니다.</p>
           <div className="mt-8 flex justify-center gap-3">
             <Button asChild size="lg">
-              <Link href="/signup">Readiary 시작하기</Link>
+              <Link href="/signup">시작하기</Link>
             </Button>
             <Button asChild size="lg" variant="secondary">
               <Link href="/login">로그인</Link>
