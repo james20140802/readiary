@@ -235,23 +235,21 @@ export default function OpenBook({
                     )}
                   </dl>
                   <div className="mt-auto flex flex-wrap items-center justify-between gap-3 pt-3 text-[12.5px] sm:text-[13px]">
-                    <Link
-                      href={shown.entryHref ?? shown.href}
-                      tabIndex={isOpen ? undefined : -1}
-                      className="font-serif text-accent hover:underline"
-                    >
-                      {preview
-                        ? '가입하고 내 책장 만들기 →'
-                        : shown.entryHref
-                          ? '기록 남기기 →'
-                          : '책 상세 →'}
-                    </Link>
+                    {!preview && (
+                      <Link
+                        href={shown.entryHref ?? shown.href}
+                        tabIndex={isOpen ? undefined : -1}
+                        className="font-serif text-accent hover:underline"
+                      >
+                        {shown.entryHref ? '기록 남기기 →' : '책 상세 →'}
+                      </Link>
+                    )}
                     <button
                       ref={closeButtonRef}
                       type="button"
                       onClick={onClose}
                       tabIndex={isOpen ? undefined : -1}
-                      className="text-ink-faint transition-colors hover:text-ink-sub focus-visible:text-ink focus-visible:outline-none"
+                      className="ml-auto text-ink-faint transition-colors hover:text-ink-sub focus-visible:text-ink focus-visible:outline-none"
                     >
                       덮기
                     </button>

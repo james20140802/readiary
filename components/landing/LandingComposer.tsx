@@ -74,9 +74,6 @@ export default function LandingComposer() {
         body="길게 쓰지 않아도 됩니다. 오늘 마음에 남은 문장 하나가 기록의 시작이에요. 생각이 이어지면 그때 덧붙이면 됩니다."
       />
       <SlideBody className="mt-8">
-        <p id="landing-demo-notice" className="mb-3 text-caption text-ink-sub">
-          샘플 체험이에요. 입력한 내용은 계정에 저장되지 않고, 새로고침하면 사라져요.
-        </p>
         {view === 'compose' ? (
           <Card hoverable={false}>
             <form
@@ -88,7 +85,6 @@ export default function LandingComposer() {
               <textarea
                 id="landing-demo-entry"
                 aria-label={mode === 'quote' ? '책의 문장' : '나의 생각'}
-                aria-describedby="landing-demo-notice"
                 rows={3}
                 maxLength={3000}
                 className="block w-full resize-none bg-transparent font-serif text-[17px] leading-relaxed text-ink placeholder:text-ink-faint focus:outline-none"
