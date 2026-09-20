@@ -27,9 +27,10 @@ export async function updateEntry(
     if (error instanceof SessionExpiredError) throw error;
   }
   try {
-    const { data, error } = await createSupabaseClient()
+    const supabase = createSupabaseClient();
+    const { data, error } = await supabase
       .from('entries')
-      .select('quote,note,from_page,to_page,date,is_private')
+      .select('quote,note,from_page,to_page,date,is_private,user_books!inner(book_id,user_id)')
       .eq('id', entryId)
       .single();
     const expected = {
@@ -41,8 +42,18 @@ export async function updateEntry(
       !error &&
       data &&
       Object.entries(expected).every(([key, value]) => data[key as keyof typeof data] === value)
-    )
+    ) {
+      // The entry may have committed before the route's progress calculation failed.
+      // Recalculate from current records without replaying or overwriting the edit.
+      const book = Array.isArray(data.user_books) ? data.user_books[0] : data.user_books;
+      if (!book?.book_id || !book?.user_id) throw new UncertainMutationError();
+      const { error: progressError } = await supabase.rpc('update_user_book_progress', {
+        p_book_id: book.book_id,
+        p_user_id: book.user_id,
+      });
+      if (progressError) throw progressError;
       return null;
+    }
   } catch {
     /* Preserve the unknown outcome. */
   }

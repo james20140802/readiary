@@ -1,7 +1,6 @@
 'use client';
 import ActionNavigation from '@/components/ui/ActionNavigation';
 import { useActionLock } from '@/hooks/useActionLock';
-import { clearCreationSubmissions } from '@/lib/actions/creationSubmission';
 
 import Image from 'next/image';
 import Link from 'next/link';
@@ -260,11 +259,6 @@ export default function ProfileBook({
   const signOutLock = useActionLock();
   const handleSignOut = async () => {
     if (!signOutLock.acquire()) return;
-    try {
-      clearCreationSubmissions(sessionStorage);
-    } catch {
-      /* Unavailable storage. */
-    }
     let navigating = false;
     try {
       const supabase = createSupabaseClient();
