@@ -4,17 +4,33 @@ import {
   motion,
   MotionConfig,
   useMotionValue,
-  useReducedMotion,
   useScroll,
   useTransform,
   type MotionValue,
 } from 'framer-motion';
 import clsx from 'clsx';
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from 'react';
 
 /** 랜딩의 장 순서 — 접근성 라벨과 진행도 계산의 기준 */
 export const SLIDES = ['표지', '문장', '회고', '책장', '발췌집', '엽서', '프로필', '시작'] as const;
 export type SlideLabel = (typeof SLIDES)[number];
+
+const reducedMotionQuery = '(prefers-reduced-motion: reduce)';
+const subscribeReducedMotion = (notify: () => void) => {
+  const media = window.matchMedia(reducedMotionQuery);
+  media.addEventListener('change', notify);
+  return () => media.removeEventListener('change', notify);
+};
+const readReducedMotion = () => window.matchMedia(reducedMotionQuery).matches;
+const serverReducedMotion = () => false;
 
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 
@@ -42,7 +58,13 @@ const SlideContext = createContext<SlideContextValue | null>(null);
 export function SlideStack({ children }: { children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollY } = useScroll();
-  const reduced = useReducedMotion() ?? false;
+  // 서버와 첫 hydration의 값을 맞춘 뒤 OS 설정을 반영한다.
+  // 처음부터 reduce인 기기에서도 SSR의 opacity: 0이 남아 빈 화면이 되지 않는다.
+  const reduced = useSyncExternalStore(
+    subscribeReducedMotion,
+    readReducedMotion,
+    serverReducedMotion
+  );
   const [bounds, setBounds] = useState({ top: 0, span: 1 });
 
   useEffect(() => {
@@ -115,7 +137,7 @@ export default function Slide({ label, children, className }: SlideProps) {
         )}
       >
         <motion.div
-          style={reduced ? undefined : { scale, opacity, y }}
+          style={reduced ? { scale: 1, opacity: 1, y: 0 } : { scale, opacity, y }}
           className={clsx(
             // my-auto — 들어맞으면 세로 가운데, 넘치면 위부터(justify-center는 넘친 윗부분을 닿을 수 없게 만든다)
             'mx-auto my-auto flex w-full max-w-screen-md flex-col px-5 pb-12 pt-[calc(var(--app-mobile-header-height)+1rem)] md:px-4 md:pb-14 md:pt-[6rem]',
@@ -150,7 +172,7 @@ export function SlideBody({ children, className }: StageProps) {
   const opacity = useTransform(enter, [0.4, 0.85], [0, 1]);
   const y = useTransform(enter, [0.4, 1], [48, 0]);
   return (
-    <motion.div style={reduced ? undefined : { opacity, y }} className={className}>
+    <motion.div style={reduced ? { opacity: 1, y: 0 } : { opacity, y }} className={className}>
       {children}
     </motion.div>
   );

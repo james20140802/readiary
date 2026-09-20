@@ -16,6 +16,8 @@ import { spineLayoutId, type ShelfBook } from './BookSpineShelf';
 
 interface Props {
   book: ShelfBook | null;
+  /** 랜딩 견본: 상세 이동 대신 가입임을 명시한다. */
+  preview?: boolean;
   /** 책장 위 공간을 열어 둘지 — 책을 바꿔 열 때는 열린 채로 다음 책을 꺼낸다 */
   slotOpen: boolean;
   onClose: () => void;
@@ -59,7 +61,14 @@ function progressText(b: ShelfBook): string {
  * 오른쪽 면에는 서지와 읽기 기록. 읽은 만큼은 왼쪽에, 남은 만큼은 오른쪽에 종이가 쌓인다.
  * 덮으면 표지가 닫히고 책등 자리로 돌아간 뒤에야 자리가 닫힌다.
  */
-export default function OpenBook({ book, slotOpen, onClose, onReturn, onClosed }: Props) {
+export default function OpenBook({
+  book,
+  slotOpen,
+  onClose,
+  onReturn,
+  onClosed,
+  preview = false,
+}: Props) {
   const [stage, setStage] = useState<Stage>('idle');
   const [visible, setVisible] = useState<ShelfBook | null>(null);
   const [prevBook, setPrevBook] = useState<ShelfBook | null>(null);
@@ -114,7 +123,7 @@ export default function OpenBook({ book, slotOpen, onClose, onReturn, onClosed }
     };
     window.addEventListener('keydown', onKey);
     window.addEventListener('pointerdown', onPointerDown);
-    const t = setTimeout(() => closeButtonRef.current?.focus({ preventScroll: true }), FLIP * 1000);
+    const t = setTimeout(() => closeButtonRef.current?.focus(), FLIP * 1000);
     return () => {
       window.removeEventListener('keydown', onKey);
       window.removeEventListener('pointerdown', onPointerDown);
@@ -178,13 +187,17 @@ export default function OpenBook({ book, slotOpen, onClose, onReturn, onClosed }
                   <Seal>{shown.isFinished ? '완독' : '읽는 중'}</Seal>
                   {/* 제목은 책 상세로, 하단 링크는 기록 작성으로 이동한다. */}
                   <p className="mt-2 line-clamp-3 font-serif text-[15px] font-bold leading-snug text-ink sm:text-[18px]">
-                    <Link
-                      href={shown.href}
-                      tabIndex={isOpen ? undefined : -1}
-                      className="hover:underline hover:decoration-hairline-strong hover:underline-offset-4 focus-visible:underline focus-visible:outline-none"
-                    >
-                      {shown.title}
-                    </Link>
+                    {preview ? (
+                      shown.title
+                    ) : (
+                      <Link
+                        href={shown.href}
+                        tabIndex={isOpen ? undefined : -1}
+                        className="hover:underline hover:decoration-hairline-strong hover:underline-offset-4 focus-visible:underline focus-visible:outline-none"
+                      >
+                        {shown.title}
+                      </Link>
+                    )}
                   </p>
                   {shown.author && (
                     <p className="mt-1 truncate font-serif text-[12px] text-ink-sub sm:text-[13px]">
@@ -227,7 +240,11 @@ export default function OpenBook({ book, slotOpen, onClose, onReturn, onClosed }
                       tabIndex={isOpen ? undefined : -1}
                       className="font-serif text-accent hover:underline"
                     >
-                      {shown.entryHref ? '기록 남기기 →' : '책 상세 →'}
+                      {preview
+                        ? '가입하고 내 책장 만들기 →'
+                        : shown.entryHref
+                          ? '기록 남기기 →'
+                          : '책 상세 →'}
                     </Link>
                     <button
                       ref={closeButtonRef}
@@ -379,7 +396,7 @@ export default function OpenBook({ book, slotOpen, onClose, onReturn, onClosed }
               </motion.div>
             )}
           </AnimatePresence>
-          {shown && isOpen && (
+          {shown && isOpen && !preview && (
             <Link
               href={shown.href}
               aria-label={`${shown.title} 책 상세 보기`}
