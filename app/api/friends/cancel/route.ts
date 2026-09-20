@@ -13,14 +13,20 @@ export async function DELETE(req: Request) {
   const myId = user?.id;
   if (!myId) return unauthorized();
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('friends')
     .delete()
     .eq('user_id', myId)
     .eq('friend_id', friendUserId)
-    .eq('status', 'pending');
+    .eq('status', 'pending')
+    .select('id');
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
+  if (!data?.length)
+    return NextResponse.json(
+      { error: 'No matching pending friend request found' },
+      { status: 409 }
+    );
   return NextResponse.json({ success: true });
 }

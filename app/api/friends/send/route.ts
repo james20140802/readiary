@@ -39,6 +39,19 @@ export async function POST(req: Request) {
     status: 'pending',
   });
 
+  if (error?.code === '23505') {
+    const { data: existing, error: readError } = await supabase
+      .from('friends')
+      .select('status')
+      .eq('user_id', userId)
+      .eq('friend_id', friendId)
+      .maybeSingle();
+    if (readError) return NextResponse.json({ error: readError.message }, { status: 500 });
+    if (existing?.status === 'pending' || existing?.status === 'accepted') {
+      return NextResponse.json({ success: true, status: existing.status, already_exists: true });
+    }
+    return NextResponse.json({ error: 'Friend request state changed' }, { status: 409 });
+  }
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   await notifyFriendEvent(supabase, friendId, 'friend_request');

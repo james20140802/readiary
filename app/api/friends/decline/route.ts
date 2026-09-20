@@ -13,14 +13,21 @@ export async function DELETE(req: Request) {
   const myId = user?.id;
   if (!myId) return unauthorized();
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('friends')
     .delete()
     .eq('user_id', friendUserId)
     .eq('friend_id', myId)
-    .eq('status', 'pending');
+    .eq('status', 'pending')
+    .select('id');
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  if (!data?.length)
+    return NextResponse.json(
+      { error: 'No matching pending friend request found' },
+      { status: 409 }
+    );
 
   // 내게 온 friend_request 알림은 friends 행에 매달려 있어 행 삭제와 함께 DB에서 사라진다
 

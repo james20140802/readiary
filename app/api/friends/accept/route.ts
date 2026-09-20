@@ -23,10 +23,10 @@ export async function POST(req: Request) {
     .eq('status', 'pending')
     .select();
 
-  if (!error && data.length === 0) {
+  if (!error && !data?.length) {
     return NextResponse.json(
       { error: 'No matching pending friend request found' },
-      { status: 400 }
+      { status: 409 }
     );
   }
 

@@ -1,10 +1,9 @@
 import { unauthorized } from '@/lib/api/auth';
 import { revalidatePath } from 'next/cache';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { Database } from '@/types/supabase';
+import { isUuid } from '@/lib/share/validation';
+import { randomUUID } from 'node:crypto';
 
-type BookInsert = Database['public']['Tables']['books']['Insert'];
-type UserBookInsert = Database['public']['Tables']['user_books']['Insert'];
 export async function POST(req: Request) {
   try {
     const supabase = await createSupabaseServerClient();
@@ -17,77 +16,46 @@ export async function POST(req: Request) {
       return unauthorized();
     }
 
-    const { title, author, total_pages, isbn, cover_url } = await req.json();
-
-    if (!title || !author) {
-      // total_pages, isbn, cover_url are optional
-      return new Response(JSON.stringify({ error: 'Missing required fields' }), { status: 400 });
+    const { title, author, total_pages, isbn, cover_url, client_request_id } = await req.json();
+    if (
+      typeof title !== 'string' ||
+      !title.trim() ||
+      typeof author !== 'string' ||
+      !author.trim() ||
+      (client_request_id !== undefined && !isUuid(client_request_id)) ||
+      (total_pages != null && (!Number.isInteger(total_pages) || total_pages <= 0)) ||
+      (isbn != null && typeof isbn !== 'string') ||
+      (cover_url != null && typeof cover_url !== 'string')
+    ) {
+      return Response.json({ error: 'Invalid book fields' }, { status: 400 });
     }
-
-    // books는 ISBN으로 공유되는 공용 행 — 이미 있으면 그 행을 그대로 쓴다.
-    // 클라이언트는 books를 UPDATE하지 않는다(RLS에 UPDATE 정책 없음). 다른 사용자가 등록한
-    // 제목·저자·표지를 덮어쓰지 않기 위해서다.
-    const bookRow = {
-      title,
-      author,
-      total_pages: total_pages ?? null,
-      isbn,
-      cover_url,
-    } as BookInsert;
-    let bookId: string | null = null;
-
-    if (isbn) {
-      // INSERT … ON CONFLICT (isbn) DO NOTHING — 같은 ISBN을 동시에 등록해도 한쪽이 유니크 충돌로
-      // 실패하지 않는다. 충돌이면 행이 돌아오지 않으므로 기존 행의 id를 따로 읽는다.
-      const { data: inserted, error: insertError } = await supabase
-        .from('books')
-        .upsert(bookRow, { onConflict: 'isbn', ignoreDuplicates: true })
-        .select('id')
-        .maybeSingle();
-      if (insertError) {
-        return new Response(JSON.stringify({ error: 'Failed to create book' }), { status: 500 });
-      }
-      bookId = inserted?.id ?? null;
-
-      if (!bookId) {
-        const { data: existing, error: existingError } = await supabase
-          .from('books')
-          .select('id')
-          .eq('isbn', isbn)
-          .maybeSingle();
-        if (existingError || !existing) {
-          return new Response(JSON.stringify({ error: 'Failed to create book' }), { status: 500 });
-        }
-        bookId = existing.id;
-      }
-    } else {
-      const { data: book, error: bookError } = await supabase
-        .from('books')
-        .insert(bookRow)
-        .select('id')
-        .single();
-      if (!book || bookError) {
-        return new Response(JSON.stringify({ error: 'Failed to create book' }), { status: 500 });
-      }
-      bookId = book.id;
+    const { data, error } = await supabase.rpc('register_book_idempotently', {
+      p_request_id: client_request_id ?? randomUUID(),
+      p_title: title.trim(),
+      p_author: author.trim(),
+      p_total_pages: total_pages ?? null,
+      p_isbn: isbn?.trim() || null,
+      p_cover_url: cover_url?.trim() || null,
+    });
+    if (error || !data) {
+      return Response.json(
+        {
+          error:
+            error?.code === 'PT409'
+              ? '같은 요청 번호로 다른 책을 등록할 수 없습니다.'
+              : 'Failed to create book',
+        },
+        { status: error?.code === 'PT409' ? 409 : 500 }
+      );
     }
-
-    const { error: userBookError } = await supabase.from('user_books').insert({
-      user_id: user.id,
-      book_id: bookId,
-    } as UserBookInsert);
-
-    if (userBookError) {
-      return new Response(JSON.stringify({ error: 'Failed to link book to user' }), {
-        status: 500,
-      });
-    }
-
     // 등록 직후 목록·홈으로 돌아갔을 때 캐시된 화면이 새 책을 빠뜨리지 않도록
     revalidatePath('/protected/books');
     revalidatePath('/protected/dashboard');
 
-    return new Response(JSON.stringify({ success: true }), { status: 200 });
+    return Response.json({
+      success: true,
+      ...(data as { book_id: string; user_book_id: string; replayed: boolean }),
+    });
   } catch (err) {
     console.error('Unexpected error in POST /api/books/new:', err);
     return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500 });
