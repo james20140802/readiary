@@ -92,7 +92,13 @@ export default function UpdatePasswordPage() {
       // 재설정은 계정 탈취 뒤 되찾는 길이기도 하다 — 다른 기기의 세션까지 모두 끊는다(global)
       // Offline cleanup must never prevent ending the login session.
       await disableDevicePush().catch(() => {});
-      await supabase.auth.signOut();
+      const { error: signOutError } = await supabase.auth.signOut();
+      if (signOutError) {
+        setFormError(
+          '비밀번호는 변경됐지만 로그아웃하지 못했어요. 프로필에서 로그아웃한 뒤 새 비밀번호로 로그인해 주세요.'
+        );
+        return;
+      }
       await clearPwaCaches();
       navigating.current = true;
       action.navigate('/login');
