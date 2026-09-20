@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Lock } from 'lucide-react';
+import ComposerControls from '@/components/ui/ComposerControls';
 import Card from '@/components/ui/Card';
 import Chip from '@/components/ui/Chip';
 import Button from '@/components/ui/Button';
@@ -84,15 +85,13 @@ export default function LandingComposer() {
                 if (quote.trim() || note.trim()) setView('saved');
               }}
             >
-              <Textarea
+              <textarea
                 id="landing-demo-entry"
-                label={mode === 'quote' ? '책의 문장' : '나의 생각'}
+                aria-label={mode === 'quote' ? '책의 문장' : '나의 생각'}
                 aria-describedby="landing-demo-notice"
-                variant="line"
-                fullWidth
                 rows={3}
                 maxLength={3000}
-                className="font-serif"
+                className="block w-full resize-none bg-transparent font-serif text-[17px] leading-relaxed text-ink placeholder:text-ink-faint focus:outline-none"
                 value={mode === 'quote' ? quote : note}
                 onChange={(event) =>
                   mode === 'quote' ? setQuote(event.target.value) : setNote(event.target.value)
@@ -103,20 +102,23 @@ export default function LandingComposer() {
                     : '떠오른 생각을 남겨 보세요'
                 }
               />
-              <div className="mt-3.5 flex flex-wrap items-center gap-2">
-                {BOOKS.map((candidate) => (
-                  <Chip
-                    key={candidate.id}
-                    selected={book.id === candidate.id}
-                    aria-pressed={book.id === candidate.id}
-                    dot={book.id === candidate.id}
-                    onClick={() => setBook(candidate)}
-                  >
-                    {candidate.title}
-                  </Chip>
-                ))}
-              </div>
-              <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-hairline pt-3">
+              <ComposerControls
+                books={
+                  <>
+                    {BOOKS.map((candidate) => (
+                      <Chip
+                        key={candidate.id}
+                        selected={book.id === candidate.id}
+                        aria-pressed={book.id === candidate.id}
+                        dot={book.id === candidate.id}
+                        onClick={() => setBook(candidate)}
+                      >
+                        {candidate.title}
+                      </Chip>
+                    ))}
+                  </>
+                }
+              >
                 <Chip
                   selected={mode === 'quote'}
                   aria-pressed={mode === 'quote'}
@@ -131,6 +133,7 @@ export default function LandingComposer() {
                 >
                   생각
                 </Chip>
+                <span aria-hidden className="h-4 w-px shrink-0 bg-hairline" />
                 <Chip
                   selected={isPrivate}
                   aria-pressed={isPrivate}
@@ -147,7 +150,7 @@ export default function LandingComposer() {
                 >
                   남기기
                 </Button>
-              </div>
+              </ComposerControls>
             </form>
           </Card>
         ) : view === 'saved' ? (

@@ -372,19 +372,13 @@ export default function OpenBook({
                           </div>
                         </div>
                       ) : (
-                        /* 표지가 없으면 속표지처럼 — 제목을 세로로 */
-                        <div className="absolute inset-0 flex items-center justify-center gap-3 py-6">
-                          <span
-                            className="max-h-full overflow-hidden text-ellipsis whitespace-nowrap font-serif text-[15px] tracking-[0.1em] text-ink"
-                            style={{ writingMode: 'vertical-rl' }}
-                          >
+                        /* 표지가 없으면 속표지처럼 — 가로 제목과 저자를 가운데 정렬 */
+                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 overflow-hidden px-4 py-6 text-center sm:px-5">
+                          <span className="line-clamp-4 break-keep font-serif text-[15px] leading-relaxed text-ink">
                             {shown.title}
                           </span>
                           {shown.author && (
-                            <span
-                              className="max-h-full overflow-hidden text-ellipsis whitespace-nowrap font-serif text-[11.5px] tracking-[0.08em] text-ink-sub"
-                              style={{ writingMode: 'vertical-rl' }}
-                            >
+                            <span className="line-clamp-3 break-keep font-serif text-[11.5px] leading-relaxed text-ink-sub">
                               {shown.author}
                             </span>
                           )}

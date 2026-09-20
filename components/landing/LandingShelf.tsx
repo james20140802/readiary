@@ -54,9 +54,7 @@ export default function LandingShelf() {
             />
           </div>
         </LayoutGroup>
-        <p className="mt-6 text-caption text-ink-faint">
-          책등을 눌러 책을 펼쳐 보세요. 예시 책장으로, 내 계정에는 저장되지 않아요.
-        </p>
+        <p className="mt-6 text-caption text-ink-faint">책등을 눌러 책을 펼쳐 보세요.</p>
       </SlideBody>
     </div>
   );

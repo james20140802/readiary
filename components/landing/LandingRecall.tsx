@@ -35,7 +35,7 @@ export default function LandingRecall() {
         body="지난날 적어 둔 문장이 회상 카드로 돌아오고, 이번 주의 리듬은 도장 한 줄로 남습니다. 매월 첫날엔 지난달의 기록을 돌아봐요."
       />
 
-      <SlideBody className="mt-6 grid gap-4 md:mt-8 md:grid-cols-[3fr_2fr] md:items-start">
+      <SlideBody className="mt-6 flex flex-col gap-4 md:mt-8">
         <Card hoverable={false} variant="raised" className="px-[26px] pb-6 pt-[30px]">
           <Seal className="mb-3 block">1년 전 오늘</Seal>
           <span
@@ -47,7 +47,7 @@ export default function LandingRecall() {
           <blockquote className="whitespace-pre-wrap font-serif text-quote text-ink">
             {RECALL_DEMO.quote}
           </blockquote>
-          <div className="mt-[18px] flex items-baseline gap-2 border-t border-hairline pt-[14px]">
+          <div className="mt-[18px] flex flex-wrap items-baseline gap-x-2 gap-y-1 border-t border-hairline pt-[14px]">
             <span className="font-serif text-caption font-bold text-ink">
               {RECALL_DEMO.bookTitle}
             </span>
@@ -63,7 +63,7 @@ export default function LandingRecall() {
             weekActivity={weekActivity}
             todayKst={todayKst}
           />
-          <div className="hidden md:block">
+          <div>
             <MonthlyRecapCard
               recap={{ label: lastMonth, entryCount: 31, quoteCount: 23, bookCount: 4 }}
             />
