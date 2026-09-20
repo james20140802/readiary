@@ -1,5 +1,6 @@
 'use client';
 
+import { useActionLock } from '@/hooks/useActionLock';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createSupabaseClient } from '@/lib/supabase/client';
@@ -7,34 +8,46 @@ import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 
 interface UnfinishBookButtonProps {
+  action?: ReturnType<typeof useActionLock>;
   userBookId: string;
   onUnfinish: () => void;
 }
 
-export default function UnfinishBookButton({ userBookId, onUnfinish }: UnfinishBookButtonProps) {
+export default function UnfinishBookButton({
+  userBookId,
+  onUnfinish,
+  action: sharedAction,
+}: UnfinishBookButtonProps) {
   const router = useRouter();
   const supabase = createSupabaseClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const localAction = useActionLock();
+  const action = sharedAction ?? localAction;
+  const isSubmitting = action.busy;
   const [error, setError] = useState<string | null>(null);
 
   const handleUnfinish = async () => {
-    setIsSubmitting(true);
-    setError(null);
-    const { data, error: updateError } = await supabase
-      .from('user_books')
-      .update({ is_finished: false, finished_at: null })
-      .eq('id', userBookId)
-      .select('id');
+    if (!action.acquire()) return;
+    try {
+      setError(null);
+      const { data, error: updateError } = await supabase
+        .from('user_books')
+        .update({ is_finished: false, finished_at: null })
+        .eq('id', userBookId)
+        .select('id');
 
-    if (!updateError && data && data.length > 0) {
-      setIsDialogOpen(false);
-      setIsSubmitting(false);
-      onUnfinish();
-      router.refresh();
-    } else {
-      setError('완독 취소에 실패했어요. 잠시 후 다시 시도해 주세요.');
-      setIsSubmitting(false);
+      if (!updateError && data && data.length > 0) {
+        setIsDialogOpen(false);
+
+        onUnfinish();
+        router.refresh();
+      } else {
+        setError('완독 취소에 실패했어요. 잠시 후 다시 시도해 주세요.');
+      }
+    } catch {
+      setError('완독 취소 결과를 확인하지 못했어요. 새로고침해 주세요.');
+    } finally {
+      action.release();
     }
   };
 
@@ -43,6 +56,7 @@ export default function UnfinishBookButton({ userBookId, onUnfinish }: UnfinishB
       <Button
         size="sm"
         variant="ghost"
+        disabled={isSubmitting}
         onClick={() => {
           setError(null);
           setIsDialogOpen(true);
@@ -53,7 +67,7 @@ export default function UnfinishBookButton({ userBookId, onUnfinish }: UnfinishB
       <Modal
         isOpen={isDialogOpen}
         onClose={() => {
-          if (!isSubmitting) setIsDialogOpen(false);
+          if (!action.isLocked()) setIsDialogOpen(false);
         }}
       >
         <div className="space-y-4">

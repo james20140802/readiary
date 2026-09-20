@@ -1,7 +1,10 @@
 'use client';
+import ActionNavigation from '@/components/ui/ActionNavigation';
+
+import { useActionLock } from '@/hooks/useActionLock';
 
 import { apiFetch } from '@/lib/api/fetch';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
@@ -50,12 +53,15 @@ export default function OnboardingForm({
   const [consent, setConsent] = useState<Consent>(NO_CONSENT);
   const [nicknameError, setNicknameError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const action = useActionLock();
+  const loading = action.busy;
+  const setLoading = (value: boolean) => (value ? action.acquire() : action.release());
+  const navigating = useRef(false);
   const consented = !requireConsent || isConsentComplete(consent);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (loading) return;
+    if (action.isLocked()) return;
 
     const problem = validateNickname(nickname.trim());
     setNicknameError(problem);
@@ -88,6 +94,8 @@ export default function OnboardingForm({
           // 초대 링크로 가입했다면 서버가 복귀 경로를 함께 준다 — 없으면 홈
           const redirectTo =
             typeof result.redirectTo === 'string' ? sanitizeRedirectPath(result.redirectTo) : null;
+          navigating.current = true;
+          action.navigate(redirectTo ?? '/protected/dashboard');
           leaveOnboarding(redirectTo ?? '/protected/dashboard');
           return;
         }
@@ -97,6 +105,8 @@ export default function OnboardingForm({
           tries++;
         } else if (res.status === 409 && result.code === 'profile_exists') {
           toast.info(result.error || '이미 프로필이 존재합니다.');
+          navigating.current = true;
+          action.navigate('/protected/dashboard');
           leaveOnboarding('/protected/dashboard');
           return;
         } else {
@@ -109,7 +119,7 @@ export default function OnboardingForm({
       setFormError('예기치 않은 오류가 발생했습니다. 나중에 다시 시도해주세요.');
       console.error(error);
     } finally {
-      setLoading(false);
+      if (!navigating.current) setLoading(false);
     }
   };
 
@@ -201,6 +211,7 @@ export default function OnboardingForm({
           {loading ? '등록 중...' : '프로필 등록하기'}
         </Button>
       </form>
+      <ActionNavigation href={action.destination} />
     </AuthFrame>
   );
 }

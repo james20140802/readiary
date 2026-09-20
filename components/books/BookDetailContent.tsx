@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useActionLock } from '@/hooks/useActionLock';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import EntryCard from '@/components/EntryCard';
@@ -33,6 +34,7 @@ export default function BookDetailContent({
   friendProfile,
 }: Props) {
   const router = useRouter();
+  const finishAction = useActionLock();
   const [isFinished, setIsFinished] = useState(userBook.is_finished);
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
   const [filterOption, setFilterOption] = useState<'all' | 'public' | 'private'>('all');
@@ -134,7 +136,11 @@ export default function BookDetailContent({
               {!isFriend && !isFinished && (
                 <>
                   <span className="mx-2 text-hairline-strong">·</span>
-                  <MarkAsFinishedButton onFinish={() => setIsFinished(true)} userBookId={id} />
+                  <MarkAsFinishedButton
+                    action={finishAction}
+                    onFinish={() => setIsFinished(true)}
+                    userBookId={id}
+                  />
                 </>
               )}
             </p>
@@ -157,7 +163,11 @@ export default function BookDetailContent({
               >
                 발췌집 보기 →
               </Link>
-              <UnfinishBookButton userBookId={id} onUnfinish={() => setIsFinished(false)} />
+              <UnfinishBookButton
+                action={finishAction}
+                userBookId={id}
+                onUnfinish={() => setIsFinished(false)}
+              />
             </div>
           </div>
         )}

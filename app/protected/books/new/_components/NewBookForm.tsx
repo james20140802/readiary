@@ -1,17 +1,40 @@
 'use client';
+import ActionNavigation from '@/components/ui/ActionNavigation';
+import { SessionExpiredError } from '@/lib/api/fetch';
 
-import { apiFetch } from '@/lib/api/fetch';
+import { useCreationSubmission } from '@/hooks/useCreationSubmission';
+import { useActionLock } from '@/hooks/useActionLock';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Button from '@/components/ui/Button';
 
 /** 직접 입력 — 기록 폼과 같은 종이 문법. 입력은 박스 없이 괘선 위에. */
-export default function NewBookForm() {
+export default function NewBookForm({ onBusyChange }: { onBusyChange?: (busy: boolean) => void }) {
   const router = useRouter();
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
   const [totalPages, setTotalPages] = useState('');
-  const [loading, setLoading] = useState(false);
+  const action = useActionLock();
+  const loading = action.busy;
+  const creation = useCreationSubmission<{
+    title: string;
+    author: string;
+    total_pages: number | null;
+  }>('book:manual', '/api/books/new', 'client_request_id');
+  const [lastAccount, setLastAccount] = useState(creation.accountId);
+  if (lastAccount !== creation.accountId) {
+    setLastAccount(creation.accountId);
+    setTitle('');
+    setAuthor('');
+    setTotalPages('');
+  }
+  const [restoredId, setRestoredId] = useState<string | null>(null);
+  if (creation.snapshot && creation.snapshot.id !== restoredId) {
+    setRestoredId(creation.snapshot.id);
+    setTitle(creation.snapshot.payload.title);
+    setAuthor(creation.snapshot.payload.author);
+    setTotalPages(creation.snapshot.payload.total_pages?.toString() ?? '');
+  }
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -21,30 +44,27 @@ export default function NewBookForm() {
       return;
     }
 
-    setLoading(true);
+    if (!creation.ready || !action.acquire()) return;
+    onBusyChange?.(true);
+    let navigating = false;
     setError(null);
 
     try {
-      const res = await apiFetch('/api/books/new', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          title,
-          author,
-          total_pages: totalPages.trim() === '' ? null : Number(totalPages),
-        }),
+      const result = await creation.submit({
+        title,
+        author,
+        total_pages: totalPages.trim() === '' ? null : Number(totalPages),
       });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || '책 등록에 실패했습니다.');
-      }
-
+      if (!result) return;
+      navigating = true;
+      action.navigate('/protected/books');
       router.push('/protected/books');
       router.refresh();
     } catch (err) {
+      if (err instanceof SessionExpiredError) {
+        navigating = true;
+        return;
+      }
       if (err instanceof Error) {
         setError(err.message);
       } else {
@@ -52,7 +72,10 @@ export default function NewBookForm() {
       }
       return;
     } finally {
-      setLoading(false);
+      if (!navigating) {
+        action.release();
+        onBusyChange?.(false);
+      }
     }
   };
 
@@ -67,6 +90,7 @@ export default function NewBookForm() {
             제목
           </label>
           <input
+            disabled={loading || !creation.ready || !!creation.snapshot}
             id="new-book-title"
             type="text"
             placeholder="책 제목"
@@ -82,6 +106,7 @@ export default function NewBookForm() {
             저자
           </label>
           <input
+            disabled={loading || !creation.ready || !!creation.snapshot}
             id="new-book-author"
             type="text"
             placeholder="지은이"
@@ -99,6 +124,7 @@ export default function NewBookForm() {
           <div className="mt-1.5 flex items-center gap-1 text-caption tabular-nums text-ink-sub">
             <span className="text-ink-faint">총</span>
             <input
+              disabled={loading || !creation.ready || !!creation.snapshot}
               id="new-book-pages"
               type="number"
               inputMode="numeric"
@@ -114,15 +140,16 @@ export default function NewBookForm() {
       </div>
 
       <div className="mt-8 flex items-center justify-between gap-4 border-t border-hairline pt-4">
-        {error ? (
-          <p className="text-caption font-medium text-danger">{error}</p>
+        {error || creation.error ? (
+          <p className="text-caption font-medium text-danger">{error || creation.error}</p>
         ) : (
           <span className="text-caption text-ink-faint">쪽수는 나중에 채워도 됩니다.</span>
         )}
-        <Button type="submit" size="sm" disabled={loading}>
-          {loading ? '꽂는 중...' : '책장에 꽂기'}
+        <Button type="submit" size="sm" disabled={loading || !creation.ready}>
+          {loading ? '꽂는 중...' : creation.snapshot ? '저장 확인·재시도' : '책장에 꽂기'}
         </Button>
       </div>
+      <ActionNavigation href={action.destination} />
     </form>
   );
 }

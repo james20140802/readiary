@@ -1,6 +1,6 @@
 'use client';
 
-import { apiFetch } from '@/lib/api/fetch';
+import { updateEntry } from '@/lib/actions/updateEntry';
 import { useRouter } from 'next/navigation';
 import { Book } from '@/types/book';
 import EntryForm, { EntryFormValues } from '@/components/entries/EntryForm';
@@ -29,26 +29,16 @@ export default function EditEntryForm({
   const router = useRouter();
 
   const handleSubmit = async (values: EntryFormValues): Promise<string | null> => {
-    try {
-      const res = await apiFetch(`/api/entries/${entryId}/edit`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(values),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        return data?.error ?? '수정에 실패했어요.';
-      }
-      router.push(`/protected/entry/${entryId}`);
-      return null;
-    } catch {
-      return '서버와 통신 중 오류가 발생했습니다.';
-    }
+    const error = await updateEntry(entryId, values);
+    if (error) return error;
+    router.push(`/protected/entry/${entryId}`);
+    return null;
   };
 
   return (
     <EntryForm
       book={book}
+      successHref={`/protected/entry/${entryId}`}
       heading="기록 고치기"
       submitLabel="고쳐 남기기"
       initial={{

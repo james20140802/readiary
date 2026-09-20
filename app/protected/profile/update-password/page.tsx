@@ -1,6 +1,9 @@
 'use client';
+import ActionNavigation from '@/components/ui/ActionNavigation';
 
-import { useEffect, useState } from 'react';
+import { useActionLock } from '@/hooks/useActionLock';
+
+import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -51,7 +54,10 @@ export default function UpdatePasswordPage() {
   const [newError, setNewError] = useState<string | null>(null);
   const [codeError, setCodeError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const action = useActionLock();
+  const loading = action.busy;
+  const setLoading = (value: boolean) => (value ? action.acquire() : action.release());
+  const navigating = useRef(false);
   const [resending, setResending] = useState(false);
   const router = useRouter();
   const supabase = createSupabaseClient();
@@ -85,6 +91,8 @@ export default function UpdatePasswordPage() {
     await disableDevicePush().catch(() => {});
     await supabase.auth.signOut();
     await clearPwaCaches();
+    navigating.current = true;
+    action.navigate('/login');
     router.replace('/login');
     router.refresh();
   };
@@ -101,7 +109,7 @@ export default function UpdatePasswordPage() {
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (loading || account.state !== 'password') return;
+    if (action.isLocked() || account.state !== 'password') return;
 
     const currentProblem = currentPassword === '' ? '현재 비밀번호를 입력해주세요.' : null;
     const newProblem =
@@ -144,13 +152,13 @@ export default function UpdatePasswordPage() {
     } catch {
       setFormError('서버와 통신 중 오류가 발생했습니다.');
     } finally {
-      setLoading(false);
+      if (!navigating.current) setLoading(false);
     }
   };
 
   const handleCode = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (loading) return;
+    if (action.isLocked()) return;
     const nonce = normalizeReauthCode(code);
     if (nonce.length !== 6) {
       setCodeError('이메일로 받은 6자리 코드를 입력해주세요.');
@@ -173,7 +181,7 @@ export default function UpdatePasswordPage() {
     } catch {
       setFormError('서버와 통신 중 오류가 발생했습니다.');
     } finally {
-      setLoading(false);
+      if (!navigating.current) setLoading(false);
     }
   };
 
@@ -352,6 +360,7 @@ export default function UpdatePasswordPage() {
           </div>
         </form>
       )}
+      <ActionNavigation href={action.destination} />
     </main>
   );
 }

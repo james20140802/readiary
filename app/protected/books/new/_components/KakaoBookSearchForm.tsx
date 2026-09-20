@@ -1,7 +1,11 @@
 'use client';
+import ActionNavigation from '@/components/ui/ActionNavigation';
+import { SessionExpiredError } from '@/lib/api/fetch';
 
 import { apiFetch } from '@/lib/api/fetch';
 import { useState } from 'react';
+import { useCreationSubmission } from '@/hooks/useCreationSubmission';
+import { useActionLock } from '@/hooks/useActionLock';
 import { BookSearchResult } from '@/types/book';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -17,7 +21,11 @@ function publishedYear(datetime: string | undefined): string | null {
   return y && /^\d{4}$/.test(y) ? y : null;
 }
 
-export default function KakaoBookSearchForm() {
+export default function KakaoBookSearchForm({
+  onBusyChange,
+}: {
+  onBusyChange?: (busy: boolean) => void;
+}) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<BookSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -27,6 +35,38 @@ export default function KakaoBookSearchForm() {
   const [manualTotalPages, setManualTotalPages] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
 
+  const selectLock = useActionLock();
+  const registerLock = useActionLock();
+  const creation = useCreationSubmission<{
+    title: string;
+    author: string;
+    isbn: string;
+    cover_url: string;
+    total_pages: number | null;
+  }>('book:search', '/api/books/new', 'client_request_id');
+  const [lastAccount, setLastAccount] = useState(creation.accountId);
+  if (lastAccount !== creation.accountId) {
+    setLastAccount(creation.accountId);
+    setSelectedBook(null);
+    setTotalPages(null);
+    setManualTotalPages('');
+    setQuery('');
+    setResults([]);
+    setShowModal(false);
+  }
+  const [restoredId, setRestoredId] = useState<string | null>(null);
+  if (creation.snapshot && creation.snapshot.id !== restoredId) {
+    setRestoredId(creation.snapshot.id);
+    const p = creation.snapshot.payload;
+    setSelectedBook({
+      title: p.title,
+      authors: [p.author],
+      isbn: p.isbn,
+      thumbnail: p.cover_url,
+    } as BookSearchResult);
+    setTotalPages(p.total_pages);
+    setShowModal(true);
+  }
   const router = useRouter();
 
   const handleSearch = async (e?: React.FormEvent) => {
@@ -46,6 +86,8 @@ export default function KakaoBookSearchForm() {
   };
 
   const handleSelect = async (book: BookSearchResult) => {
+    if (creation.snapshot || !selectLock.acquire()) return;
+    onBusyChange?.(true);
     setSelectedBook(book);
     try {
       const res = await apiFetch('/api/books/pages', {
@@ -67,18 +109,23 @@ export default function KakaoBookSearchForm() {
       console.error(e);
       setTotalPages(null);
       setShowModal(true);
+    } finally {
+      selectLock.release();
+      onBusyChange?.(false);
     }
   };
 
   const closeModal = () => {
+    if (registerLock.isLocked() || selectLock.isLocked()) return;
     setShowModal(false);
+    if (creation.snapshot) return;
     setSelectedBook(null);
     setTotalPages(null);
     setManualTotalPages('');
   };
 
   const handleConfirm = async () => {
-    if (!selectedBook) return;
+    if (!selectedBook || !creation.ready || registerLock.isLocked()) return;
     let pages: number | null = totalPages;
     if (pages == null && manualTotalPages.trim() !== '') {
       const parsed = parseInt(manualTotalPages, 10);
@@ -89,39 +136,47 @@ export default function KakaoBookSearchForm() {
       pages = parsed;
     }
 
+    if (!registerLock.acquire()) return;
+    onBusyChange?.(true);
+    let navigating = false;
     try {
-      const registerRes = await apiFetch('/api/books/new', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: selectedBook.title,
-          author: selectedBook.authors?.join(', ') ?? '',
-          isbn: selectedBook.isbn,
-          cover_url: selectedBook.thumbnail,
-          total_pages: pages,
-        }),
+      const result = await creation.submit({
+        title: selectedBook.title,
+        author: selectedBook.authors?.join(', ') ?? '',
+        isbn: selectedBook.isbn,
+        cover_url: selectedBook.thumbnail,
+        total_pages: pages,
       });
-
-      const result = await registerRes.json();
-
-      if (registerRes.ok && result?.success) {
-        toast.success('책이 등록되었습니다');
-        // push만으로는 라우터 캐시의 이전 목록이 보일 수 있어 서버 트리를 다시 받는다
-        router.push('/protected/books');
-        router.refresh();
-      } else {
-        toast.error(result?.message ?? '등록에 실패했습니다');
+      if (!result) return;
+      navigating = true;
+      toast.success('책이 등록되었습니다');
+      registerLock.navigate('/protected/books');
+      router.push('/protected/books');
+      router.refresh();
+    } catch (error) {
+      if (error instanceof SessionExpiredError) {
+        navigating = true;
+        return;
       }
-    } catch (e) {
-      console.error(e);
-      toast.error('등록에 실패했습니다');
+      toast.error(error instanceof Error ? error.message : '등록 결과를 확인하지 못했어요.');
     } finally {
-      closeModal();
+      if (!navigating) {
+        registerLock.release();
+        onBusyChange?.(false);
+      }
     }
   };
 
   return (
     <div>
+      {creation.error && (
+        <p role="alert" className="text-caption text-danger">
+          {creation.error}
+        </p>
+      )}
+      {creation.snapshot && !showModal && (
+        <Button onClick={() => setShowModal(true)}>저장 확인·재시도</Button>
+      )}
       {/* 검색 — 박스 대신 괘선 한 줄, 서체는 부리 */}
       <form
         onSubmit={handleSearch}
@@ -166,7 +221,13 @@ export default function KakaoBookSearchForm() {
               <button
                 type="button"
                 onClick={() => handleSelect(book)}
-                disabled={isDimmed}
+                disabled={
+                  isDimmed ||
+                  selectLock.busy ||
+                  registerLock.busy ||
+                  !creation.ready ||
+                  !!creation.snapshot
+                }
                 className={`group flex w-full items-center gap-4 py-3.5 text-left transition-opacity ${
                   isDimmed ? 'opacity-40' : ''
                 }`}
@@ -220,6 +281,7 @@ export default function KakaoBookSearchForm() {
                     onChange={(e) => setManualTotalPages(e.target.value)}
                     placeholder="?"
                     aria-label="총 쪽수"
+                    disabled={registerLock.busy || !!creation.snapshot}
                     className="w-14 border-b border-hairline-strong bg-transparent text-center text-ink placeholder:text-ink-faint focus:border-ink focus:outline-none"
                   />
                   <span className="text-ink-faint">쪽</span>
@@ -232,13 +294,23 @@ export default function KakaoBookSearchForm() {
           </div>
         </div>
         <div className="mt-6 flex items-center justify-end gap-2">
-          <Button variant="ghost" size="sm" onClick={closeModal}>
+          <Button variant="ghost" size="sm" onClick={closeModal} disabled={registerLock.busy}>
             돌아가기
           </Button>
-          <Button variant="primary" size="sm" onClick={handleConfirm}>
-            책장에 꽂기
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={handleConfirm}
+            disabled={!creation.ready || registerLock.busy}
+          >
+            {registerLock.busy
+              ? '꽂는 중...'
+              : creation.snapshot
+                ? '저장 확인·재시도'
+                : '책장에 꽂기'}
           </Button>
         </div>
+        <ActionNavigation href={registerLock.destination} />
       </Modal>
     </div>
   );

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useActionLock } from '@/hooks/useActionLock';
 import { toast } from 'sonner';
 import Button from '@/components/ui/Button';
 import { createSupabaseClient } from '@/lib/supabase/client';
@@ -15,6 +15,7 @@ interface GoogleSignInButtonProps {
    */
   consented?: boolean;
   disabled?: boolean;
+  onBusyChange?: (busy: boolean) => void;
   children?: React.ReactNode;
 }
 
@@ -51,24 +52,33 @@ export default function GoogleSignInButton({
   redirectParam,
   consented = false,
   disabled,
+  onBusyChange,
   children = 'Google로 계속하기',
 }: GoogleSignInButtonProps) {
-  const [loading, setLoading] = useState(false);
+  const action = useActionLock();
+  const loading = action.busy;
 
   const handleClick = async () => {
-    if (loading) return;
-    setLoading(true);
-    const supabase = createSupabaseClient();
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: buildOAuthRedirectTo(window.location.origin, redirectParam, { consented }),
-      },
-    });
-    // 성공하면 브라우저가 Google로 떠나므로 여기 돌아오는 건 실패했을 때뿐
-    if (error) {
-      toast.error('Google 로그인을 시작하지 못했습니다. 잠시 후 다시 시도해주세요.');
-      setLoading(false);
+    if (disabled || !action.acquire()) return;
+    onBusyChange?.(true);
+    try {
+      const supabase = createSupabaseClient();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: buildOAuthRedirectTo(window.location.origin, redirectParam, { consented }),
+        },
+      });
+      // 성공하면 브라우저가 Google로 떠나므로 여기 돌아오는 건 실패했을 때뿐
+      if (error) {
+        toast.error('Google 로그인을 시작하지 못했습니다. 잠시 후 다시 시도해주세요.');
+        action.release();
+        onBusyChange?.(false);
+      }
+    } catch {
+      action.release();
+      onBusyChange?.(false);
+      toast.error('Google 로그인을 시작하지 못했습니다. 다시 시도해주세요.');
     }
   };
 

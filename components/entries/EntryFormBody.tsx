@@ -1,6 +1,10 @@
 'use client';
+import ActionNavigation from '@/components/ui/ActionNavigation';
 
+import { UncertainMutationError } from '@/lib/actions/updateEntry';
+import { SessionExpiredError } from '@/lib/api/fetch';
 import { useState } from 'react';
+import { useActionLock } from '@/hooks/useActionLock';
 import { Lock } from 'lucide-react';
 import { todayKST } from '@/lib/dates';
 import { hasEntryContent } from '@/lib/entries/validation';
@@ -35,6 +39,11 @@ interface EntryFormBodyProps {
   autoFocus?: boolean;
   /** 컨트롤 행 왼쪽에 끼워 넣는 조용한 부가 동작 (예: 삭제) */
   secondaryAction?: React.ReactNode;
+  onBusyChange?: (busy: boolean) => void;
+  disabled?: boolean;
+  frozen?: boolean;
+  retainOnSuccess?: boolean;
+  successHref?: string;
 }
 
 /**
@@ -49,6 +58,11 @@ export default function EntryFormBody({
   onSubmit,
   autoFocus = false,
   secondaryAction,
+  onBusyChange,
+  disabled = false,
+  frozen = false,
+  retainOnSuccess = false,
+  successHref,
 }: EntryFormBodyProps) {
   const [quote, setQuote] = useState(initial?.quote ?? '');
   const [note, setNote] = useState(initial?.note ?? '');
@@ -57,10 +71,13 @@ export default function EntryFormBody({
   const [date, setDate] = useState(initial?.date ?? todayKST());
   const [isPrivate, setIsPrivate] = useState(initial?.isPrivate ?? false);
   const [error, setError] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [needsReload, setNeedsReload] = useState(false);
+  const action = useActionLock();
+  const isSubmitting = action.busy;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (disabled || action.isLocked()) return;
     setError('');
 
     if (!hasEntryContent(quote, note)) {
@@ -76,7 +93,10 @@ export default function EntryFormBody({
       return;
     }
 
-    setIsSubmitting(true);
+    if (!action.acquire()) return;
+    onBusyChange?.(true);
+    let succeeded = false;
+    let leaving = false;
     try {
       const message = await onSubmit({
         quote: quote.trim() === '' ? null : quote.trim(),
@@ -87,15 +107,29 @@ export default function EntryFormBody({
         is_private: isPrivate,
       });
       if (message) setError(message);
+      else {
+        succeeded = true;
+        if (successHref) action.navigate(successHref);
+      }
+    } catch (error) {
+      if (error instanceof SessionExpiredError) leaving = true;
+      else if (error instanceof UncertainMutationError) {
+        leaving = true;
+        setNeedsReload(true);
+        setError(error.message);
+      } else setError(error instanceof Error ? error.message : '저장 결과를 확인하지 못했어요.');
     } finally {
-      setIsSubmitting(false);
+      if (!leaving && (!succeeded || !retainOnSuccess)) {
+        action.release();
+        onBusyChange?.(false);
+      }
     }
   };
 
   // 홈 Composer와 같은 문법 — 입력은 박스 없이 종이 위에 바로, 옵션은
   // 헤어라인 아래 컨트롤 한 줄로. 라벨은 잉크색 작은 산세리프.
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} aria-busy={isSubmitting}>
       {/* 원고 — 투명 텍스트 영역 두 장, 사이는 헤어라인 한 줄 */}
       <div className="divide-y divide-hairline">
         <div className="py-5">
@@ -103,6 +137,7 @@ export default function EntryFormBody({
             문장
           </label>
           <textarea
+            disabled={isSubmitting || disabled || frozen}
             id="entry-quote"
             value={quote}
             onChange={(e) => setQuote(e.target.value)}
@@ -117,6 +152,7 @@ export default function EntryFormBody({
             생각
           </label>
           <textarea
+            disabled={isSubmitting || disabled || frozen}
             id="entry-note"
             value={note}
             onChange={(e) => setNote(e.target.value)}
@@ -137,6 +173,7 @@ export default function EntryFormBody({
             <div className="flex items-center gap-1 text-caption tabular-nums text-ink-sub">
               <span className="text-ink-faint">p.</span>
               <input
+                disabled={isSubmitting || disabled || frozen}
                 type="number"
                 inputMode="numeric"
                 aria-label="시작 페이지"
@@ -147,6 +184,7 @@ export default function EntryFormBody({
               />
               <span className="text-ink-faint">–</span>
               <input
+                disabled={isSubmitting || disabled || frozen}
                 type="number"
                 inputMode="numeric"
                 aria-label="종료 페이지"
@@ -161,6 +199,7 @@ export default function EntryFormBody({
             <span aria-hidden className="hidden h-4 w-px bg-hairline sm:block" />
 
             <input
+              disabled={isSubmitting || disabled || frozen}
               type="date"
               aria-label="읽은 날짜"
               value={date}
@@ -175,6 +214,7 @@ export default function EntryFormBody({
             <span aria-hidden className="hidden h-4 w-px bg-hairline sm:block" />
 
             <Chip
+              disabled={isSubmitting || disabled || frozen}
               selected={isPrivate}
               aria-pressed={isPrivate}
               onClick={() => setIsPrivate((v) => !v)}
@@ -190,7 +230,7 @@ export default function EntryFormBody({
             type="submit"
             size="md"
             className="w-full sm:ml-auto sm:min-h-9 sm:w-auto sm:px-4"
-            disabled={isSubmitting}
+            disabled={isSubmitting || disabled}
           >
             {isSubmitting ? '남기는 중...' : submitLabel}
           </Button>
@@ -202,7 +242,17 @@ export default function EntryFormBody({
             : '친구가 볼 수 있습니다. 공유 버튼을 누르면 링크로도 공개됩니다.'}
         </p>
         {error && <p className="mt-3 text-caption font-medium text-danger">{error}</p>}
+        {needsReload && (
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="text-button-sm underline"
+          >
+            새로고침해 기록 확인
+          </button>
+        )}
       </div>
+      <ActionNavigation href={action.destination} />
     </form>
   );
 }

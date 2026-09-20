@@ -1,4 +1,7 @@
 'use client';
+import ActionNavigation from '@/components/ui/ActionNavigation';
+import { useActionLock } from '@/hooks/useActionLock';
+import { clearCreationSubmissions } from '@/lib/actions/creationSubmission';
 
 import Image from 'next/image';
 import Link from 'next/link';
@@ -254,16 +257,30 @@ export default function ProfileBook({
     }
   };
 
+  const signOutLock = useActionLock();
   const handleSignOut = async () => {
-    const supabase = createSupabaseClient();
-    // 이 기기만 로그아웃 — 기본값(global)은 휴대폰에서 눌렀는데 데스크톱 세션까지 끊어 버린다
-    // Offline cleanup must never prevent ending the login session.
-    await disableDevicePush().catch(() => {});
-    await supabase.auth.signOut({ scope: 'local' });
-    // 공용 기기에 로그인한 뒤 본 화면이 남지 않게 PWA 캐시도 비운다
-    await clearPwaCaches();
-    router.push('/login');
-    router.refresh();
+    if (!signOutLock.acquire()) return;
+    try {
+      clearCreationSubmissions(sessionStorage);
+    } catch {
+      /* Unavailable storage. */
+    }
+    let navigating = false;
+    try {
+      const supabase = createSupabaseClient();
+      await disableDevicePush().catch(() => {});
+      const { error } = await supabase.auth.signOut({ scope: 'local' });
+      if (error) throw error;
+      await clearPwaCaches();
+      navigating = true;
+      signOutLock.navigate('/login');
+      router.push('/login');
+      router.refresh();
+    } catch {
+      toast.error('로그아웃을 완료하지 못했어요. 다시 시도해 주세요.');
+    } finally {
+      if (!navigating) signOutLock.release();
+    }
   };
 
   // 오래된 달이 위에 — 기록이 있는 달만 인덱스가 된다
@@ -968,10 +985,12 @@ export default function ProfileBook({
               <button
                 type="button"
                 onClick={handleSignOut}
+                disabled={signOutLock.busy}
                 className="px-1 py-1.5 transition-colors hover:text-danger"
               >
                 로그아웃
               </button>
+              <ActionNavigation href={signOutLock.destination} />
             </>
           ) : isFriend ? (
             <RemoveFriendButton friendId={profile.id} />

@@ -13,6 +13,9 @@ interface EntryFormProps {
   heading: string;
   submitLabel: string;
   initial?: EntryFormInitial;
+  successHref?: string;
+  frozen?: boolean;
+  disabled?: boolean;
   onSubmit: (values: EntryFormValues) => Promise<string | null>;
 }
 
@@ -23,6 +26,9 @@ export default function EntryForm({
   submitLabel,
   initial,
   onSubmit,
+  frozen,
+  successHref,
+  disabled,
 }: EntryFormProps) {
   return (
     <div>
@@ -57,6 +63,10 @@ export default function EntryForm({
             submitLabel={submitLabel}
             initial={initial}
             onSubmit={onSubmit}
+            successHref={successHref}
+            retainOnSuccess
+            frozen={frozen}
+            disabled={disabled}
           />
         </div>
       </AnimatedSection>

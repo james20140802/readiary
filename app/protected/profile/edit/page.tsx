@@ -1,4 +1,5 @@
 'use client';
+import ActionNavigation from '@/components/ui/ActionNavigation';
 
 import { useState, useEffect, useRef } from 'react';
 import { Camera, Loader2, X } from 'lucide-react';
@@ -98,7 +99,7 @@ export default function EditProfilePage() {
     });
   }, [supabase, router]);
 
-  const { uploading, updating, imagePath, uploadAvatar, deleteAvatar, updateProfile } =
+  const { destination, uploading, updating, imagePath, uploadAvatar, deleteAvatar, updateProfile } =
     useProfileUpdate(profile);
 
   const handleUploadAvatar = async (file: File) => {
@@ -316,6 +317,7 @@ export default function EditProfilePage() {
           <Button onClick={handleUpdateProfile} disabled={updating || uploading} fullWidth>
             {updating ? '저장 중...' : '변경사항 저장하기'}
           </Button>
+          <ActionNavigation href={destination} />
 
           {/* 비밀번호 변경 섹션 분리 (텍스트 링크로 표시) */}
           <div className="text-center">

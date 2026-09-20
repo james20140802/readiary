@@ -2,7 +2,8 @@
 
 import { apiFetch } from '@/lib/api/fetch';
 import { useRouter } from 'next/navigation';
-import { useTransition, useState } from 'react';
+import { useState } from 'react';
+import { useActionLock } from '@/hooks/useActionLock';
 import { toast } from 'sonner';
 
 interface Props {
@@ -10,12 +11,14 @@ interface Props {
 }
 
 export default function RemoveFriendButton({ friendId }: Props) {
-  const [isPending, startTransition] = useTransition();
+  const action = useActionLock();
+  const isPending = action.busy;
   const [showConfirm, setShowConfirm] = useState(false);
   const router = useRouter();
 
-  const handleRemove = () => {
-    startTransition(async () => {
+  const handleRemove = async () => {
+    if (!action.acquire()) return;
+    try {
       const res = await apiFetch('/api/friends/remove', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
@@ -29,7 +32,12 @@ export default function RemoveFriendButton({ friendId }: Props) {
         toast.error('친구 삭제에 실패했어요.');
       }
       setShowConfirm(false);
-    });
+    } catch {
+      toast.error('친구 삭제 결과를 확인하지 못했어요. 목록을 새로고침해 주세요.');
+      router.refresh();
+    } finally {
+      action.release();
+    }
   };
 
   return (
@@ -47,7 +55,9 @@ export default function RemoveFriendButton({ friendId }: Props) {
         <>
           <div
             className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm"
-            onClick={() => setShowConfirm(false)}
+            onClick={() => {
+              if (!action.isLocked()) setShowConfirm(false);
+            }}
           />
           <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-72 bg-card border border-hairline rounded-2xl p-6 animate-in fade-in zoom-in-95 duration-150">
             <p className="text-body-sm font-bold text-ink mb-2">친구를 삭제할까요?</p>
@@ -56,7 +66,9 @@ export default function RemoveFriendButton({ friendId }: Props) {
             </p>
             <div className="flex gap-2">
               <button
-                onClick={() => setShowConfirm(false)}
+                onClick={() => {
+                  if (!action.isLocked()) setShowConfirm(false);
+                }}
                 className="flex-1 py-2.5 rounded-xl border border-hairline text-button-sm font-bold text-ink-sub hover:bg-card-raised transition-colors"
               >
                 취소

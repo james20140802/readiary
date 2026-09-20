@@ -1,6 +1,7 @@
 'use client';
 
-import { apiFetch } from '@/lib/api/fetch';
+import { SessionExpiredError } from '@/lib/api/fetch';
+import { useCreationSubmission } from '@/hooks/useCreationSubmission';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Book } from '@/types/book';
@@ -13,34 +14,57 @@ interface Props {
   bookId: string;
 }
 
-export default function NewEntryForm({ userBookId, userId, book, bookId }: Props) {
+export default function NewEntryForm({ userBookId, book, bookId }: Props) {
   const router = useRouter();
+  const creation = useCreationSubmission<EntryFormValues & { user_book_id: string }>(
+    `entry:${userBookId}`,
+    '/api/entries/new',
+    'client_entry_id'
+  );
 
   const handleSubmit = async (values: EntryFormValues): Promise<string | null> => {
     try {
-      const res = await apiFetch('/api/entries/new', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...values,
-          user_book_id: userBookId,
-          book_id: bookId,
-          user_id: userId,
-        }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        return data?.error ?? '기록 저장 중 오류가 발생했습니다.';
-      }
+      const result = await creation.submit({ ...values, user_book_id: userBookId });
+      if (!result) return '저장 준비 중입니다.';
       toast.success('기록을 남겼어요.');
       router.push(`/protected/books/${bookId}`);
       return null;
-    } catch {
-      return '서버와 통신 중 오류가 발생했습니다.';
+    } catch (error) {
+      if (error instanceof SessionExpiredError) throw error;
+      return error instanceof Error ? error.message : '저장 결과를 확인하지 못했어요.';
     }
   };
 
+  if (!creation.ready)
+    return (
+      <p role="status">
+        {creation.redirecting
+          ? '로그인 화면으로 이동하는 중...'
+          : (creation.error ?? '저장 준비를 확인하는 중...')}
+      </p>
+    );
+  const restored = creation.snapshot?.payload;
   return (
-    <EntryForm book={book} heading="기록 남기기" submitLabel="남기기" onSubmit={handleSubmit} />
+    <EntryForm
+      key={creation.accountId}
+      successHref={`/protected/books/${bookId}`}
+      book={book}
+      heading="기록 남기기"
+      submitLabel={creation.snapshot ? '저장 확인·재시도' : '남기기'}
+      frozen={!!creation.snapshot}
+      onSubmit={handleSubmit}
+      initial={
+        restored
+          ? {
+              quote: restored.quote ?? '',
+              note: restored.note ?? '',
+              fromPage: restored.from_page,
+              toPage: restored.to_page,
+              date: restored.date,
+              isPrivate: restored.is_private,
+            }
+          : undefined
+      }
+    />
   );
 }

@@ -1,5 +1,7 @@
 'use client';
 
+import { updateEntry } from '@/lib/actions/updateEntry';
+import { useActionLock } from '@/hooks/useActionLock';
 import { apiFetch } from '@/lib/api/fetch';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
@@ -70,7 +72,17 @@ export default function EntryEditSheet({
   onDeleted,
 }: Props) {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const deletion = useActionLock();
+  const isDeleting = deletion.busy;
+  const [isSaving, setIsSaving] = useState(false);
+  const saving = useRef(false);
+  const onSaving = (busy: boolean) => {
+    saving.current = busy;
+    setIsSaving(busy);
+  };
+  const close = () => {
+    if (!saving.current && !deletion.isLocked()) onClose();
+  };
   const [deleteError, setDeleteError] = useState('');
 
   // 시트가 닫히면 거기 딸린 삭제 확인창도 같이 닫는다 — 저장이 늦게 돌아와 시트를 닫는 사이 확인창이 열려
@@ -94,27 +106,16 @@ export default function EntryEditSheet({
   const handleSubmit = async (values: EntryFormValues): Promise<string | null> => {
     if (!entry) return null;
     const session = sessionRef.current;
-    try {
-      const res = await apiFetch(`/api/entries/${entry.id}/edit`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(values),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        return data?.error ?? '수정에 실패했어요.';
-      }
-      onSaved(entry.id, values, session === sessionRef.current);
-      return null;
-    } catch {
-      return '서버와 통신 중 오류가 발생했습니다.';
-    }
+    const error = await updateEntry(entry.id, values);
+    if (error) return error;
+    onSaved(entry.id, values, session === sessionRef.current);
+    return null;
   };
 
   const confirmDelete = async () => {
-    if (!entry) return;
+    if (!entry || saving.current || !deletion.acquire()) return;
     const session = sessionRef.current;
-    setIsDeleting(true);
+
     setDeleteError('');
     try {
       const res = await apiFetch(`/api/entries/${entry.id}/delete?book_id=${bookId}`, {
@@ -129,7 +130,7 @@ export default function EntryEditSheet({
     } catch (error) {
       setDeleteError((error as Error).message);
     } finally {
-      setIsDeleting(false);
+      deletion.release();
     }
   };
 
@@ -138,7 +139,7 @@ export default function EntryEditSheet({
       <AnimatePresence>
         {isOpen && entry && (
           // 삭제 확인창(아래 Modal, z-100)이 떠 있는 동안엔 그쪽이 맨 위 레이어라 Esc·바깥 클릭을 먼저 받는다
-          <Dialog static open={isOpen} onClose={onClose} className="relative z-[60]">
+          <Dialog static open={isOpen} onClose={close} className="relative z-[60]">
             <InertBackground />
             <motion.div
               aria-hidden
@@ -162,7 +163,8 @@ export default function EntryEditSheet({
                   </DialogTitle>
                   <button
                     type="button"
-                    onClick={onClose}
+                    onClick={close}
+                    disabled={isSaving || isDeleting}
                     aria-label="닫기"
                     className="rounded-full bg-card-raised p-1.5"
                   >
@@ -185,10 +187,15 @@ export default function EntryEditSheet({
                       isPrivate: entry.is_private,
                     }}
                     onSubmit={handleSubmit}
+                    onBusyChange={onSaving}
+                    disabled={isDeleting}
                     secondaryAction={
                       <button
                         type="button"
-                        onClick={() => setIsDeleteOpen(true)}
+                        onClick={() => {
+                          if (!saving.current && !deletion.isLocked()) setIsDeleteOpen(true);
+                        }}
+                        disabled={isSaving || isDeleting}
                         className="text-button-sm text-ink-faint transition-colors hover:text-danger"
                       >
                         삭제
