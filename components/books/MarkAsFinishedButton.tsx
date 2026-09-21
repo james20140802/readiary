@@ -28,7 +28,7 @@ export default function MarkAsFinishedButton({
         .from('user_books')
         .update({ is_finished: true, finished_at: new Date().toISOString() })
         .eq('id', userBookId)
-        .eq('is_finished', false)
+        .or('is_finished.eq.false,is_finished.is.null')
         .select('id');
 
       if (!error && data && data.length > 0) {
