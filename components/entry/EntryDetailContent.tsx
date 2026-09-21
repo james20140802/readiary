@@ -1,5 +1,7 @@
 'use client';
 
+import ReflectionThread from '@/components/reflections/ReflectionThread';
+import EntryDeleteWarning from '@/components/reflections/EntryDeleteWarning';
 import { useActionLock } from '@/hooks/useActionLock';
 import { apiFetch } from '@/lib/api/fetch';
 import { Fragment, useRef, useState } from 'react';
@@ -47,9 +49,11 @@ export default function EntryDetailContent({
   currentUserId,
 }: Props) {
   const router = useRouter();
+  const [thoughtCount, setThoughtCount] = useState(0);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const deletion = useActionLock();
   const isDeleting = deletion.busy;
+  const [deleteReady, setDeleteReady] = useState(false);
   const [deleteError, setDeleteError] = useState('');
   const commentRef = useRef<HTMLDivElement>(null);
   const [commentCount, setCommentCount] = useState(initialCommentCount);
@@ -59,7 +63,7 @@ export default function EntryDetailContent({
   };
 
   const handleDelete = async () => {
-    if (!deletion.acquire()) return;
+    if (!deleteReady || !deletion.acquire()) return;
     setDeleteError('');
     try {
       const res = await apiFetch(`/api/entries/${entry.id}/delete?book_id=${book.id}`, {
@@ -102,6 +106,10 @@ export default function EntryDetailContent({
 
         <AnimatedSection>
           <article>
+            <p className="mb-5 text-caption tabular-nums text-ink-sub">
+              <time dateTime={entry.date}>{formatKoreanDate(entry.date) ?? entry.date}</time>
+              {pages && ` · ${pages}`}
+            </p>
             {/* 북라이트 — 왼쪽 위 어딘가에 달린 등이 원고 첫머리를 비스듬히 비춘다.
                 다크모드에서 특히 살아난다. 램프 자체는 그리지 않는다 — 빛만이 정직한 입체다 */}
             <div className="relative">
@@ -123,6 +131,9 @@ export default function EntryDetailContent({
                     </blockquote>
                   </div>
                 )}
+                {entry.note && thoughtCount > 0 && (
+                  <h3 className="mt-6 text-caption text-ink-sub">그때 남긴 생각</h3>
+                )}
                 {entry.note && (
                   <p
                     className={`whitespace-pre-wrap font-serif leading-[1.9] ${
@@ -134,6 +145,11 @@ export default function EntryDetailContent({
                 )}
               </div>
             </div>
+
+            <ReflectionThread
+              entryId={entry.id}
+              onSummary={(summary) => setThoughtCount(summary?.total ?? 0)}
+            />
 
             {/* 여백의 기록 — 날짜·쪽수·공개 여부와 조용한 행동들 */}
             <footer className="mt-8 flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-t border-hairline pt-4">
@@ -175,7 +191,7 @@ export default function EntryDetailContent({
                       href={`/protected/entry/${entry.id}/edit`}
                       className="text-button-sm text-ink-faint transition-colors hover:text-accent"
                     >
-                      수정
+                      원문 수정
                     </Link>
                     <button
                       onClick={() => setIsDeleteDialogOpen(true)}
@@ -190,7 +206,7 @@ export default function EntryDetailContent({
             {!isFriend && !entry.is_private && (
               <p className="mt-3 text-caption text-ink-faint">
                 공유하면 기록과 닉네임이 링크를 아는 누구에게나 공개됩니다. 비공개로 바꾸면 링크가
-                닫힙니다.
+                닫힙니다. 이어 남긴 생각은 외부 공유에 포함되지 않습니다.
               </p>
             )}
           </article>
@@ -215,7 +231,9 @@ export default function EntryDetailContent({
       >
         <div className="space-y-4">
           <h2 className="text-section-title font-bold text-ink">정말 삭제하시겠어요?</h2>
-          <p className="text-caption text-ink-sub">이 작업은 되돌릴 수 없습니다.</p>
+          {isDeleteDialogOpen && entry.id && (
+            <EntryDeleteWarning entryId={entry.id} onReady={setDeleteReady} />
+          )}
           {deleteError && <p className="text-caption text-danger">{deleteError}</p>}
           <div className="flex justify-end gap-2 pt-2">
             <Button
@@ -226,7 +244,12 @@ export default function EntryDetailContent({
             >
               취소
             </Button>
-            <Button size="sm" variant="danger" onClick={handleDelete} disabled={isDeleting}>
+            <Button
+              size="sm"
+              variant="danger"
+              onClick={handleDelete}
+              disabled={isDeleting || !deleteReady}
+            >
               {isDeleting ? '삭제 중...' : '삭제하기'}
             </Button>
           </div>

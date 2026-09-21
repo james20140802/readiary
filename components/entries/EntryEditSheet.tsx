@@ -1,6 +1,7 @@
 'use client';
 
 import { updateEntry } from '@/lib/actions/updateEntry';
+import EntryDeleteWarning from '@/components/reflections/EntryDeleteWarning';
 import { useActionLock } from '@/hooks/useActionLock';
 import { apiFetch } from '@/lib/api/fetch';
 import { Fragment, useEffect, useRef, useState } from 'react';
@@ -8,6 +9,7 @@ import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { Entry } from '@/types/entry';
+import InertBackground from '@/components/ui/InertBackground';
 import Modal from '@/components/ui/Modal';
 import Button from '@/components/ui/Button';
 import EntryFormBody, { EntryFormValues } from './EntryFormBody';
@@ -21,40 +23,6 @@ interface Props {
   /** `isCurrent`가 false면 요청을 보낸 뒤 시트가 닫혔다 다시 열린 것 — 목록엔 반영하되 지금 시트는 닫지 말 것 */
   onSaved: (entryId: string, values: EntryFormValues, isCurrent: boolean) => void;
   onDeleted: (entryId: string, isCurrent: boolean) => void;
-}
-
-/**
- * 열려 있는 동안 portal-root 밖의 배경(body 직계 자식)을 스크린리더·포커스에서 빼고, 사라질 때 대상마다
- * 우리가 보기 전의 값으로 되돌린다.
- * Headless UI 2.2의 inert 계산은 이 트리에서 첫 열림엔 비어 있고(메인 트리 노드가 늦게 잡히는데 effect deps가
- * 고정), 위에 삭제 Modal이 떴다 닫히면 그제야 MAIN을 잡는다 — 그때 '이전 값'으로 우리가 건 true를 기억해
- * 언마운트 때 되돌리므로, 이 컴포넌트는 반드시 Dialog *안*에 둔다: 마운트는 자식 effect가 먼저(우리가 원래
- * 값을 본다), 언마운트는 부모 cleanup이 먼저(Headless가 되돌린 뒤 우리가 마지막으로 원래 값으로 되돌린다).
- */
-function InertBackground() {
-  useEffect(() => {
-    const targets = Array.from(document.body.children).filter(
-      (el): el is HTMLElement =>
-        el instanceof HTMLElement && el.id !== 'headlessui-portal-root' && el.tagName !== 'SCRIPT'
-    );
-    const previous = targets.map((el) => ({
-      el,
-      inert: el.inert,
-      ariaHidden: el.getAttribute('aria-hidden'),
-    }));
-    for (const el of targets) {
-      el.inert = true;
-      el.setAttribute('aria-hidden', 'true');
-    }
-    return () => {
-      for (const { el, inert, ariaHidden } of previous) {
-        el.inert = inert;
-        if (ariaHidden === null) el.removeAttribute('aria-hidden');
-        else el.setAttribute('aria-hidden', ariaHidden);
-      }
-    };
-  }, []);
-  return null;
 }
 
 /**
@@ -83,6 +51,7 @@ export default function EntryEditSheet({
   const close = () => {
     if (!saving.current && !deletion.isLocked()) onClose();
   };
+  const [deleteReady, setDeleteReady] = useState(false);
   const [deleteError, setDeleteError] = useState('');
 
   // 시트가 닫히면 거기 딸린 삭제 확인창도 같이 닫는다 — 저장이 늦게 돌아와 시트를 닫는 사이 확인창이 열려
@@ -113,7 +82,7 @@ export default function EntryEditSheet({
   };
 
   const confirmDelete = async () => {
-    if (!entry || saving.current || !deletion.acquire()) return;
+    if (!deleteReady || !entry || saving.current || !deletion.acquire()) return;
     const session = sessionRef.current;
 
     setDeleteError('');
@@ -218,7 +187,9 @@ export default function EntryEditSheet({
       >
         <div className="space-y-4">
           <h2 className="text-section-title font-bold text-ink">정말 삭제하시겠어요?</h2>
-          <p className="text-caption text-ink-sub">이 작업은 되돌릴 수 없습니다.</p>
+          {isDeleteOpen && entry?.id && (
+            <EntryDeleteWarning entryId={entry?.id} onReady={setDeleteReady} />
+          )}
           {deleteError && <p className="text-caption text-danger">{deleteError}</p>}
           <div className="flex justify-end gap-2 pt-2">
             {/* 지우는 중엔 취소도 막는다 — Modal.onClose의 isDeleting 가드와 같은 규칙. 여기서 빠져나가
@@ -231,7 +202,12 @@ export default function EntryEditSheet({
             >
               취소
             </Button>
-            <Button size="sm" variant="danger" onClick={confirmDelete} disabled={isDeleting}>
+            <Button
+              size="sm"
+              variant="danger"
+              onClick={confirmDelete}
+              disabled={isDeleting || !deleteReady}
+            >
               {isDeleting ? '삭제 중...' : '삭제하기'}
             </Button>
           </div>

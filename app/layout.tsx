@@ -1,3 +1,4 @@
+import ReflectionDraftGuard from '@/components/reflections/ReflectionDraftGuard';
 import PushAccountGuard from '@/components/PushAccountGuard';
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
@@ -53,6 +54,7 @@ export default async function RootLayout({
       </head>
       <body className="overflow-x-hidden bg-paper text-ink">
         <PushAccountGuard />
+        <ReflectionDraftGuard />
         <AppShell initialLoggedIn={loggedIn} initialUnread={initialUnread}>
           {children}
         </AppShell>

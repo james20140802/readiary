@@ -1,11 +1,15 @@
+'use client';
+import { useState } from 'react';
+import EntryReader from '@/components/entries/EntryReader';
+import Button from '@/components/ui/Button';
 import PushSeen from '@/components/PushSeen';
-import Link from 'next/link';
 import Card from '@/components/ui/Card';
 import Seal from '@/components/ui/Seal';
 import ClampedText from '@/components/ui/ClampedText';
 import type { RecallEntry } from '@/lib/recall/fetchRecallEntry';
 
 export function RecallCard({ recall }: { recall: RecallEntry }) {
+  const [reader, setReader] = useState<'read' | 'write' | null>(null);
   const label = recall.yearsAgo != null ? `${recall.yearsAgo}년 전 오늘` : '다시 꺼낸 문장';
   const meta = [recall.bookAuthor, recall.date.replaceAll('-', '. ') + '.']
     .filter(Boolean)
@@ -14,24 +18,44 @@ export function RecallCard({ recall }: { recall: RecallEntry }) {
   // 링크와 버튼 의미가 겹친다(접근성). 링크는 카드 위에 깔린 overlay로 두고,
   // 버튼은 그 형제로서 overlay 위(z-10)에 올려 서로 포함 관계가 아니게 한다.
   return (
-    <Card hoverable variant="raised" className="relative px-[26px] pb-6 pt-[30px]">
-      <PushSeen kind="recall" />
-      <Link
-        href={`/protected/entry/${recall.id}`}
-        aria-label={`${recall.bookTitle}의 기록 보기`}
-        className="absolute inset-0 rounded-[inherit]"
-      />
-      <Seal className="mb-3 block">{label}</Seal>
-      <span aria-hidden className="mb-2 block font-serif text-quote-mark leading-none text-accent">
-        “
-      </span>
-      <ClampedText fadeFromClassName="from-card">
-        <blockquote className="font-serif text-quote text-ink">{recall.quote}</blockquote>
-      </ClampedText>
-      <div className="mt-[18px] flex items-baseline gap-2 border-t border-hairline pt-[14px]">
-        <span className="font-serif text-caption font-bold text-ink">{recall.bookTitle}</span>
-        <span className="text-caption text-ink-faint">{meta}</span>
-      </div>
-    </Card>
+    <>
+      <Card hoverable variant="raised" className="relative px-[26px] pb-6 pt-[30px]">
+        <PushSeen kind="recall" />
+        <button
+          type="button"
+          onClick={() => setReader('read')}
+          aria-label={`${recall.bookTitle}의 기록 보기`}
+          className="absolute inset-0 rounded-[inherit]"
+        />
+        <Seal className="mb-3 block">{label}</Seal>
+        <span
+          aria-hidden
+          className="mb-2 block font-serif text-quote-mark leading-none text-accent"
+        >
+          “
+        </span>
+        <ClampedText fadeFromClassName="from-card">
+          <blockquote className="font-serif text-quote text-ink">{recall.quote}</blockquote>
+        </ClampedText>
+        <div className="mt-[18px] flex items-baseline gap-2 border-t border-hairline pt-[14px]">
+          <span className="font-serif text-caption font-bold text-ink">{recall.bookTitle}</span>
+          <span className="text-caption text-ink-faint">{meta}</span>
+        </div>
+        <Button
+          variant="secondary"
+          className="relative z-10 mt-5"
+          onClick={() => setReader('write')}
+        >
+          지금의 생각 남기기
+        </Button>
+      </Card>
+      {reader && (
+        <EntryReader
+          entryId={recall.id}
+          openComposer={reader === 'write'}
+          onClose={() => setReader(null)}
+        />
+      )}
+    </>
   );
 }

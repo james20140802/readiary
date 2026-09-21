@@ -1,9 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { clsx } from 'clsx';
-import Modal from '@/components/ui/Modal';
+import EntryReader from '@/components/entries/EntryReader';
 import Seal from '@/components/ui/Seal';
 
 export interface StickyNote {
@@ -90,52 +89,7 @@ export function QuoteBoard({ notes }: { notes: StickyNote[] }) {
         })}
       </div>
 
-      <Modal isOpen={active != null} onClose={() => setActive(null)}>
-        {active && (
-          <>
-            <Seal className="mb-3 block">
-              {active.kind === 'friend' ? `친구 · ${active.friendName ?? ''}` : '내 기록'}
-            </Seal>
-            {active.quote ? (
-              <>
-                <span
-                  aria-hidden
-                  className="mb-2 block font-serif text-quote-mark leading-none text-accent"
-                >
-                  “
-                </span>
-                {/* 긴 글은 모달에서 다 보여주지 않는다 — 잘린 만큼은 "자세히"로 */}
-                <blockquote className="line-clamp-6 font-serif text-quote text-ink">
-                  {active.quote}
-                </blockquote>
-                {active.note && (
-                  <div className="mt-4 border-t border-hairline pt-3">
-                    <p className="mb-1 text-caption text-ink-faint">남긴 생각</p>
-                    <p className="line-clamp-3 font-serif text-body leading-relaxed text-ink-sub">
-                      {active.note}
-                    </p>
-                  </div>
-                )}
-              </>
-            ) : (
-              <p className="line-clamp-6 font-serif text-quote text-ink">{active.note}</p>
-            )}
-            <div className="mt-[18px] flex items-baseline justify-between gap-3 border-t border-hairline pt-[14px]">
-              <div className="min-w-0">
-                <span className="font-serif text-caption font-bold text-ink">
-                  {active.bookTitle}
-                </span>
-                <span className="ml-2 text-caption text-ink-faint">
-                  {[active.bookAuthor, formatDate(active.date)].filter(Boolean).join(' · ')}
-                </span>
-              </div>
-              <Link href={active.href} className="shrink-0 text-button-sm text-accent">
-                자세히 →
-              </Link>
-            </div>
-          </>
-        )}
-      </Modal>
+      {active && <EntryReader entryId={active.id} onClose={() => setActive(null)} />}
     </section>
   );
 }

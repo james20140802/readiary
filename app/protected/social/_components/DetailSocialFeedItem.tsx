@@ -1,5 +1,6 @@
 'use client';
 
+import ReflectionPreview from '@/components/reflections/ReflectionPreview';
 import { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -228,6 +229,7 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
             </p>
           )}
           {expandControls(isBackClamped, isBackExpanded, setIsBackExpanded)}
+          <ReflectionPreview entryId={entry.id} summary={entry.reflectionSummary} panel />
         </div>
 
         {/* 세로 구분선 — 엽서 뒷면의 사연|주소 경계 */}

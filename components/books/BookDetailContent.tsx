@@ -226,6 +226,7 @@ export default function BookDetailContent({
                 <EntryCard
                   key={data.entry.id}
                   id={data.entry.id}
+                  reflectionSummary={data.entry.reflectionSummary}
                   quote={data.entry.quote}
                   note={data.entry.note}
                   date={data.entry.date}

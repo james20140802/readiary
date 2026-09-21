@@ -44,7 +44,10 @@ function setup({
   };
   const entries = query({ data: missing ? null : entry, error: error ? {} : null });
   const friends = query({ data: friend ? { id: 'friendship' } : null, error: null });
-  const from = vi.fn((table: string) => (table === 'entries' ? entries : friends));
+  const profiles = query({ data: { nickname: 'reader', tag: '1234' }, error: null });
+  const from = vi.fn((table: string) =>
+    table === 'entries' ? entries : table === 'profiles' ? profiles : friends
+  );
   vi.mocked(createSupabaseServerClient).mockResolvedValue({ from } as never);
   return { from, entries, friends };
 }
@@ -62,6 +65,10 @@ describe('on-demand record reading', () => {
       toPage: null,
       quote: '긴 문장\n끝',
       note: '생각',
+      canWrite: true,
+      entryIsPrivate: true,
+      viewerId: 'viewer',
+      detailHref: `/protected/entry/${id}`,
     });
     expect(entries.eq).toHaveBeenCalledWith('id', id);
     expect(from).not.toHaveBeenCalledWith('friends');
@@ -69,7 +76,12 @@ describe('on-demand record reading', () => {
   });
   it('allows accepted friends only for public records', async () => {
     const { friends } = setup({ owner: 'other', friend: true });
-    expect((await read()).status).toBe(200);
+    const response = await read();
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      canWrite: false,
+      detailHref: `/protected/social/u/reader-1234/entry/${id}`,
+    });
     expect(friends.eq).toHaveBeenCalledWith('status', 'accepted');
     setup({ owner: 'other', friend: true, privateEntry: true });
     expect((await read()).status).toBe(404);

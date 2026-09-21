@@ -1,3 +1,4 @@
+import { clearOtherReflectionDrafts } from '@/lib/reflections/draft';
 import { clearCreationSubmissions } from '@/lib/actions/creationSubmission';
 /**
  * 기기에 남은 PWA 캐시(Cache Storage) 정리.
@@ -12,7 +13,10 @@ function cacheStorage(): CacheStorage | null {
 /** 로그아웃 — 이 기기의 캐시를 모두 비운다 */
 export async function clearPwaCaches(): Promise<void> {
   try {
-    if (typeof sessionStorage !== 'undefined') clearCreationSubmissions(sessionStorage);
+    if (typeof sessionStorage !== 'undefined') {
+      clearCreationSubmissions(sessionStorage);
+      clearOtherReflectionDrafts(sessionStorage, null);
+    }
   } catch {
     /* Unavailable storage. */
   }

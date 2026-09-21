@@ -70,6 +70,8 @@ export default function EntryFormBody({
   const [toPage, setToPage] = useState(initial?.toPage?.toString() ?? '');
   const [date, setDate] = useState(initial?.date ?? todayKST());
   const [isPrivate, setIsPrivate] = useState(initial?.isPrivate ?? false);
+  const [acknowledgePublic, setAcknowledgePublic] = useState(false);
+  const republishing = initial?.isPrivate === true && !isPrivate;
   const [error, setError] = useState('');
   const [needsReload, setNeedsReload] = useState(false);
   const action = useActionLock();
@@ -78,6 +80,10 @@ export default function EntryFormBody({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (disabled || action.isLocked()) return;
+    if (republishing && !acknowledgePublic) {
+      setError('함께 공개되는 생각을 확인해 주세요.');
+      return;
+    }
     setError('');
 
     if (!hasEntryContent(quote, note)) {
@@ -230,7 +236,7 @@ export default function EntryFormBody({
             type="submit"
             size="md"
             className="w-full sm:ml-auto sm:min-h-9 sm:w-auto sm:px-4"
-            disabled={isSubmitting || disabled}
+            disabled={isSubmitting || disabled || (republishing && !acknowledgePublic)}
           >
             {isSubmitting ? '남기는 중...' : submitLabel}
           </Button>
@@ -241,6 +247,18 @@ export default function EntryFormBody({
             ? '나만 볼 수 있습니다. 기존 공유 링크도 닫힙니다.'
             : '친구가 볼 수 있습니다. 공유 버튼을 누르면 링크로도 공개됩니다.'}
         </p>
+        {republishing && (
+          <label className="mt-4 flex items-start gap-3 text-caption text-ink-sub">
+            <input
+              type="checkbox"
+              className="mt-1"
+              checked={acknowledgePublic}
+              disabled={isSubmitting}
+              onChange={(e) => setAcknowledgePublic(e.target.checked)}
+            />
+            기존에 친구 공개로 남긴 생각도 친구에게 다시 보이는 것을 확인했어요.
+          </label>
+        )}
         {error && <p className="mt-3 text-caption font-medium text-danger">{error}</p>}
         {needsReload && (
           <button

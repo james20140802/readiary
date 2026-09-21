@@ -1,10 +1,11 @@
 'use client';
 
-import { ButtonHTMLAttributes } from 'react';
+import { ButtonHTMLAttributes, Ref } from 'react';
 import { Slot } from '@radix-ui/react-slot';
 import clsx from 'clsx';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  ref?: Ref<HTMLButtonElement>;
   /**
    * primary : 주요 액션 (먹 배경)
    * secondary: 보조 액션 (헤어라인 아웃라인)
