@@ -4,8 +4,7 @@ import { useState } from 'react';
 import Tabs from '@/components/ui/Tabs';
 import FriendRequestForm from './FriendRequestForm';
 import FriendListItem from './FriendListItem';
-import AcceptFriendRequestButton from './AcceptFriendRequestButton';
-import DeclineFriendRequestButton from './DeclineFriendRequestButton';
+import FriendRequestActions from './FriendRequestActions';
 import CancelFriendRequestButton from './CancelFriendRequestButton';
 import { Friend } from '@/types/friends';
 import { useIsMobile } from '@/hooks/useIsMobile';
@@ -90,12 +89,7 @@ export default function FriendsManager({
                       <FriendListItem
                         profile={friend.profile}
                         href={undefined}
-                        action={
-                          <div className="flex gap-1">
-                            <AcceptFriendRequestButton friendUserId={friend.profile.id} />
-                            <DeclineFriendRequestButton friendUserId={friend.profile.id} />
-                          </div>
-                        }
+                        action={<FriendRequestActions friendUserId={friend.profile.id} />}
                       />
                     </li>
                   ))}

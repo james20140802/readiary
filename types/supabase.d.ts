@@ -33,6 +33,33 @@ export type Database = {
   };
   public: {
     Tables: {
+      book_registration_requests: {
+        Row: {
+          user_id: string;
+          request_id: string;
+          payload: Json;
+          book_id: string;
+          user_book_id: string;
+          created_at: string;
+        };
+        Insert: {
+          user_id: string;
+          request_id: string;
+          payload: Json;
+          book_id: string;
+          user_book_id: string;
+          created_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          request_id?: string;
+          payload?: Json;
+          book_id?: string;
+          user_book_id?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       books: {
         Row: {
           author: string | null;
@@ -403,6 +430,17 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      register_book_idempotently: {
+        Args: {
+          p_request_id: string;
+          p_title: string;
+          p_author: string;
+          p_total_pages?: number | null;
+          p_isbn?: string | null;
+          p_cover_url?: string | null;
+        };
+        Returns: Json;
+      };
       search_library: {
         Args: {
           p_query: string;

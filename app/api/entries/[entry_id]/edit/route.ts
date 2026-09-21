@@ -87,7 +87,12 @@ export async function PATCH(
     return NextResponse.json({ error: '수정할 내용이 없습니다.' }, { status: 400 });
   }
 
-  const { error } = await supabase.from('entries').update(patch).eq('id', entry_id);
+  const { data: updated, error } = await supabase
+    .from('entries')
+    .update(patch)
+    .eq('id', entry_id)
+    .select('id')
+    .maybeSingle();
 
   if (error) {
     // CHECK 제약 위반은 어떤 제약이 걸렸는지에 따라 사용자 메시지를 나눈다
@@ -100,6 +105,8 @@ export async function PATCH(
     }
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+
+  if (!updated) return NextResponse.json({ error: '엔트리를 찾을 수 없습니다.' }, { status: 404 });
 
   // 페이지가 바뀌면 user_books.last_read_page/progress를 재계산한다 (생성/삭제 경로와 동일)
   if ('from_page' in body || 'to_page' in body) {

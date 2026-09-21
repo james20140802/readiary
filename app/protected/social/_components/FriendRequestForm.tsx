@@ -1,5 +1,6 @@
 'use client';
 
+import { useActionLock } from '@/hooks/useActionLock';
 import { apiFetch } from '@/lib/api/fetch';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -15,7 +16,9 @@ interface Props {
 
 export default function FriendRequestForm({ initialQuery }: Props) {
   const [nicknameAndTag, setNicknameAndTag] = useState(initialQuery ?? '');
-  const [loading, setLoading] = useState(false);
+  const search = useActionLock();
+  const sending = useActionLock();
+  const loading = search.busy || sending.busy;
   const [foundUser, setFoundUser] = useState<null | {
     profile: Profile;
     isFriend: boolean;
@@ -24,37 +27,41 @@ export default function FriendRequestForm({ initialQuery }: Props) {
   const router = useRouter();
 
   const handleSearch = async () => {
+    if (sending.isLocked() || search.isLocked()) return;
     if (!nicknameAndTag.includes('#')) {
       toast.error('닉네임과 태그 형식이 올바르지 않아요.');
       return;
     }
 
-    setLoading(true);
+    if (!search.acquire()) return;
+    try {
+      // tag는 항상 '#' 없는 트레일링 세그먼트이므로 마지막 '#'에서 분할 (닉네임에 '#' 포함 가능)
+      const separatorIndex = nicknameAndTag.lastIndexOf('#');
+      const nickname = nicknameAndTag.slice(0, separatorIndex);
+      const tag = nicknameAndTag.slice(separatorIndex + 1);
+      const res = await apiFetch('/api/friends/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nickname, tag }),
+      });
 
-    // tag는 항상 '#' 없는 트레일링 세그먼트이므로 마지막 '#'에서 분할 (닉네임에 '#' 포함 가능)
-    const separatorIndex = nicknameAndTag.lastIndexOf('#');
-    const nickname = nicknameAndTag.slice(0, separatorIndex);
-    const tag = nicknameAndTag.slice(separatorIndex + 1);
-    const res = await apiFetch('/api/friends/search', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nickname, tag }),
-    });
+      const result = await res.json();
 
-    const result = await res.json();
-
-    if (res.ok && result.profile) {
-      setFoundUser({ profile: result.profile, isFriend: result.isFriend });
-      if (result.isFriend) {
-        toast.error('이미 친구입니다.');
+      if (res.ok && result.profile) {
+        setFoundUser({ profile: result.profile, isFriend: result.isFriend });
+        if (result.isFriend) {
+          toast.error('이미 친구입니다.');
+        } else {
+          setShowConfirmModal(true);
+        }
       } else {
-        setShowConfirmModal(true);
+        toast.error(result.error ?? '사용자를 찾을 수 없어요.');
       }
-    } else {
-      toast.error(result.error ?? '사용자를 찾을 수 없어요.');
+    } catch {
+      toast.error('친구를 찾지 못했어요. 다시 시도해 주세요.');
+    } finally {
+      search.release();
     }
-
-    setLoading(false);
   };
 
   const autoSearchRan = useRef(false);
@@ -66,25 +73,29 @@ export default function FriendRequestForm({ initialQuery }: Props) {
   }, [initialQuery]);
 
   const confirmSendRequest = async () => {
-    if (!foundUser) return;
-    setLoading(true);
-    const res = await apiFetch('/api/friends/send', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nickname: foundUser.profile.nickname, tag: foundUser.profile.tag }),
-    });
+    if (!foundUser || search.isLocked() || !sending.acquire()) return;
+    try {
+      const res = await apiFetch('/api/friends/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nickname: foundUser.profile.nickname, tag: foundUser.profile.tag }),
+      });
 
-    if (res.ok) {
-      toast.success('친구 요청을 보냈습니다!');
-      setNicknameAndTag('');
-      setShowConfirmModal(false);
+      if (res.ok) {
+        toast.success('친구 요청을 보냈습니다!');
+        setNicknameAndTag('');
+        setShowConfirmModal(false);
+        router.refresh();
+      } else {
+        const { error } = await res.json();
+        toast.error(error ?? '친구 요청 실패');
+      }
+    } catch {
+      toast.error('친구 요청 결과를 확인하지 못했어요. 다시 확인해 주세요.');
       router.refresh();
-    } else {
-      const { error } = await res.json();
-      toast.error(error ?? '친구 요청 실패');
+    } finally {
+      sending.release();
     }
-
-    setLoading(false);
   };
 
   return (
@@ -93,6 +104,7 @@ export default function FriendRequestForm({ initialQuery }: Props) {
       <div className="flex items-center gap-3 border-b border-hairline pb-2 transition-colors focus-within:border-hairline-strong">
         <UserPlus size={15} className="shrink-0 text-ink-faint" />
         <input
+          disabled={loading}
           placeholder="닉네임#태그로 친구 찾기"
           value={nicknameAndTag}
           onChange={(e) => setNicknameAndTag(e.target.value)}
@@ -110,7 +122,12 @@ export default function FriendRequestForm({ initialQuery }: Props) {
         </button>
       </div>
 
-      <Modal isOpen={showConfirmModal} onClose={() => setShowConfirmModal(false)}>
+      <Modal
+        isOpen={showConfirmModal}
+        onClose={() => {
+          if (!sending.isLocked()) setShowConfirmModal(false);
+        }}
+      >
         <div className="space-y-4">
           <h2 className="text-section-title font-semibold text-ink">친구 요청 보내기</h2>
           <p className="text-body text-ink-sub">
@@ -118,7 +135,11 @@ export default function FriendRequestForm({ initialQuery }: Props) {
             님에게 친구 요청을 보낼까요?
           </p>
           <div className="flex justify-end gap-2">
-            <Button variant="secondary" onClick={() => setShowConfirmModal(false)}>
+            <Button
+              variant="secondary"
+              disabled={sending.busy}
+              onClick={() => setShowConfirmModal(false)}
+            >
               취소
             </Button>
             <Button onClick={confirmSendRequest} disabled={loading}>

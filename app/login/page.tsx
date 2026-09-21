@@ -1,6 +1,9 @@
 'use client';
+import ActionNavigation from '@/components/ui/ActionNavigation';
 
-import { useState, useEffect } from 'react';
+import { useActionLock } from '@/hooks/useActionLock';
+
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
@@ -28,7 +31,10 @@ export default function LoginPage() {
   const [formError, setFormError] = useState<string | null>(null);
   // "이메일 미인증"으로 막혔을 때만 재발송 버튼을 함께 보여준다
   const [unconfirmed, setUnconfirmed] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const action = useActionLock();
+  const isSubmitting = action.busy;
+  const setIsSubmitting = (value: boolean) => (value ? action.acquire() : action.release());
+  const navigating = useRef(false);
   const [resending, setResending] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -57,7 +63,7 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSubmitting) return;
+    if (action.isLocked()) return;
 
     const emailProblem = validateEmail(email);
     const passwordProblem = password === '' ? '비밀번호를 입력해주세요.' : null;
@@ -78,18 +84,20 @@ export default function LoginPage() {
         setUnconfirmed(isEmailNotConfirmed(error.message));
         return;
       }
+      navigating.current = true;
+      action.navigate(sanitizeRedirectPath(redirectParam));
       router.push(sanitizeRedirectPath(redirectParam));
       router.refresh();
     } catch {
       setFormError('서버와 통신 중 오류가 발생했습니다.');
     } finally {
-      setIsSubmitting(false);
+      if (!navigating.current) setIsSubmitting(false);
     }
   };
 
   // 인증 메일이 안 왔거나 만료된 사람을 가입 화면으로 되돌리지 않고 여기서 다시 보낸다
   const handleResend = async () => {
-    if (resending) return;
+    if (resending || action.isLocked()) return;
     setResending(true);
     try {
       const { error } = await supabase.auth.resend({
@@ -116,7 +124,11 @@ export default function LoginPage() {
     <AuthFrame title="로그인" lead="이어서 오늘의 문장을 남겨 보세요.">
       {isGoogleLoginEnabled() && (
         <>
-          <GoogleSignInButton redirectParam={redirectParam} />
+          <GoogleSignInButton
+            redirectParam={redirectParam}
+            disabled={isSubmitting}
+            onBusyChange={setIsSubmitting}
+          />
           <OrDivider />
         </>
       )}
@@ -129,7 +141,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={handleResend}
-                disabled={resending}
+                disabled={resending || isSubmitting}
                 className="mt-1 block font-semibold underline underline-offset-4 disabled:opacity-50"
               >
                 {resending ? '보내는 중...' : '인증 메일 다시 보내기'}
@@ -192,6 +204,7 @@ export default function LoginPage() {
           아직 회원이 아니신가요? <Link href={signupHref}>가입하기</Link>
         </p>
       </div>
+      <ActionNavigation href={action.destination} />
     </AuthFrame>
   );
 }

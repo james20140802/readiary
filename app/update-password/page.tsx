@@ -1,6 +1,9 @@
 'use client';
+import ActionNavigation from '@/components/ui/ActionNavigation';
 
-import { useState, useEffect } from 'react';
+import { useActionLock } from '@/hooks/useActionLock';
+
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -29,7 +32,10 @@ export default function UpdatePasswordPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fieldError, setFieldError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const action = useActionLock();
+  const loading = action.busy;
+  const setLoading = (value: boolean) => (value ? action.acquire() : action.release());
+  const navigating = useRef(false);
   const [gate, setGate] = useState<Gate>('checking');
   const [hasSession, setHasSession] = useState(false);
   const router = useRouter();
@@ -63,7 +69,7 @@ export default function UpdatePasswordPage() {
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (loading) return;
+    if (action.isLocked()) return;
 
     const problem = validateNewPassword(password, confirmPassword);
     setFieldError(problem);
@@ -86,14 +92,22 @@ export default function UpdatePasswordPage() {
       // 재설정은 계정 탈취 뒤 되찾는 길이기도 하다 — 다른 기기의 세션까지 모두 끊는다(global)
       // Offline cleanup must never prevent ending the login session.
       await disableDevicePush().catch(() => {});
-      await supabase.auth.signOut();
+      const { error: signOutError } = await supabase.auth.signOut();
+      if (signOutError) {
+        setFormError(
+          '비밀번호는 변경됐지만 로그아웃하지 못했어요. 프로필에서 로그아웃한 뒤 새 비밀번호로 로그인해 주세요.'
+        );
+        return;
+      }
       await clearPwaCaches();
+      navigating.current = true;
+      action.navigate('/login');
       router.replace('/login');
       router.refresh();
     } catch {
       setFormError('서버와 통신 중 오류가 발생했습니다.');
     } finally {
-      setLoading(false);
+      if (!navigating.current) setLoading(false);
     }
   };
 
@@ -101,6 +115,7 @@ export default function UpdatePasswordPage() {
     return (
       <AuthFrame title="새 비밀번호 설정">
         <p className="text-center text-body-sm text-ink-sub">링크를 확인하는 중...</p>
+        <ActionNavigation href={action.destination} />
       </AuthFrame>
     );
   }
@@ -128,6 +143,7 @@ export default function UpdatePasswordPage() {
             </Link>
           </Button>
         </div>
+        <ActionNavigation href={action.destination} />
       </AuthFrame>
     );
   }
@@ -183,6 +199,7 @@ export default function UpdatePasswordPage() {
           {loading ? '변경 중...' : '비밀번호 변경하기'}
         </Button>
       </form>
+      <ActionNavigation href={action.destination} />
     </AuthFrame>
   );
 }

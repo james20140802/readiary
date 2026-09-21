@@ -1,3 +1,4 @@
+import { clearCreationSubmissions } from '@/lib/actions/creationSubmission';
 /**
  * 기기에 남은 PWA 캐시(Cache Storage) 정리.
  * 서비스 워커 캐시는 로그아웃해도 저절로 비워지지 않는다 — 공용 기기에서 로그인한 뒤 본 화면이 남지 않도록
@@ -10,6 +11,11 @@ function cacheStorage(): CacheStorage | null {
 
 /** 로그아웃 — 이 기기의 캐시를 모두 비운다 */
 export async function clearPwaCaches(): Promise<void> {
+  try {
+    if (typeof sessionStorage !== 'undefined') clearCreationSubmissions(sessionStorage);
+  } catch {
+    /* Unavailable storage. */
+  }
   const storage = cacheStorage();
   if (!storage) return;
   try {

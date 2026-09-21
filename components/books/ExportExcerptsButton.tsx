@@ -1,5 +1,6 @@
 'use client';
 
+import { useActionLock } from '@/hooks/useActionLock';
 import { useEffect, useRef, useState } from 'react';
 import { toBlob } from 'html-to-image';
 import { toast } from 'sonner';
@@ -56,6 +57,7 @@ function quoteSizeClass(quote: string): string {
  */
 export default function ExportExcerptsButton(props: ExcerptBookletProps) {
   const { bookTitle, author, quotes, entryDates } = props;
+  const exportAction = useActionLock();
   const longRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [stage, setStage] = useState<Stage | null>(null);
@@ -78,6 +80,7 @@ export default function ExportExcerptsButton(props: ExcerptBookletProps) {
   );
 
   const close = () => {
+    if (exportAction.isLocked()) return;
     previewUrls.forEach((url) => URL.revokeObjectURL(url));
     previewUrlsRef.current = [];
     setStage(null);
@@ -149,19 +152,25 @@ export default function ExportExcerptsButton(props: ExcerptBookletProps) {
     };
   }, [stage, mode]);
 
-  const handleSave = () => {
-    files.forEach((file, i) => {
-      // 저장 전용 URL을 따로 만든다 — 스태거 도중 시트를 닫아
-      // 미리보기 URL이 revoke돼도 예약된 다운로드가 살아남도록
-      const blobUrl = URL.createObjectURL(file);
-      setTimeout(() => {
-        const anchor = document.createElement('a');
-        anchor.href = blobUrl;
-        anchor.download = file.name;
-        anchor.click();
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 10_000);
-      }, i * 300);
-    });
+  const saveFiles = async () => {
+    await Promise.all(
+      files.map(
+        (file, i) =>
+          new Promise<void>((resolve) => {
+            // 저장 전용 URL을 따로 만든다 — 스태거 도중 시트를 닫아
+            // 미리보기 URL이 revoke돼도 예약된 다운로드가 살아남도록
+            const blobUrl = URL.createObjectURL(file);
+            setTimeout(() => {
+              const anchor = document.createElement('a');
+              anchor.href = blobUrl;
+              anchor.download = file.name;
+              anchor.click();
+              setTimeout(() => URL.revokeObjectURL(blobUrl), 10_000);
+              resolve();
+            }, i * 300);
+          })
+      )
+    );
     toast.success(
       files.length === 1
         ? '발췌집 이미지를 저장했습니다.'
@@ -173,18 +182,32 @@ export default function ExportExcerptsButton(props: ExcerptBookletProps) {
   const canUseShareSheet =
     typeof navigator !== 'undefined' && typeof navigator.share === 'function';
 
+  const handleSave = async () => {
+    if (!exportAction.acquire()) return;
+    try {
+      await saveFiles();
+    } finally {
+      exportAction.release();
+    }
+  };
+
   const handleShare = async () => {
-    if (typeof navigator.share === 'function' && navigator.canShare?.({ files })) {
-      try {
-        await navigator.share({ files, title: `발췌집 — ${bookTitle}` });
-      } catch (error) {
-        if ((error as DOMException)?.name !== 'AbortError') {
-          console.error('발췌집 공유 실패:', error);
-          toast.error('공유에 실패했습니다.');
+    if (!exportAction.acquire()) return;
+    try {
+      if (typeof navigator.share === 'function' && navigator.canShare?.({ files })) {
+        try {
+          await navigator.share({ files, title: `발췌집 — ${bookTitle}` });
+        } catch (error) {
+          if ((error as DOMException)?.name !== 'AbortError') {
+            console.error('발췌집 공유 실패:', error);
+            toast.error('공유에 실패했습니다.');
+          }
         }
+      } else {
+        await saveFiles();
       }
-    } else {
-      handleSave();
+    } finally {
+      exportAction.release();
     }
   };
 
@@ -289,16 +312,27 @@ export default function ExportExcerptsButton(props: ExcerptBookletProps) {
                     <>
                       <button
                         onClick={handleSave}
+                        disabled={exportAction.busy}
                         className="text-button-sm text-ink-sub transition-colors hover:text-ink"
                       >
                         저장
                       </button>
-                      <Button size="sm" variant="primary" onClick={handleShare}>
+                      <Button
+                        size="sm"
+                        variant="primary"
+                        onClick={handleShare}
+                        disabled={exportAction.busy}
+                      >
                         공유하기
                       </Button>
                     </>
                   ) : (
-                    <Button size="sm" variant="primary" onClick={handleSave}>
+                    <Button
+                      size="sm"
+                      variant="primary"
+                      onClick={handleSave}
+                      disabled={exportAction.busy}
+                    >
                       저장
                     </Button>
                   )}

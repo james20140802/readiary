@@ -11,6 +11,7 @@ export function useProfileUpdate(initialProfile: Profile | null) {
   const supabase = createSupabaseClient();
   const router = useRouter();
 
+  const [destination, setDestination] = useState<string | null>(null);
   const [updating, setUpdating] = useState(false);
   const saving = useRef(false);
   const [, refreshAvatar] = useReducer((value: number) => value + 1, 0);
@@ -60,6 +61,7 @@ export function useProfileUpdate(initialProfile: Profile | null) {
   ) => {
     if (saving.current) return { success: false, error: '이미 저장 중입니다.' };
     saving.current = true;
+    let navigating = false;
     try {
       setUpdating(true);
       if (!initialProfile) return { success: false, error: '프로필 정보가 없습니다.' };
@@ -139,6 +141,8 @@ export function useProfileUpdate(initialProfile: Profile | null) {
         }
       );
 
+      navigating = true;
+      setDestination('/protected/profile');
       router.push('/protected/profile');
       router.refresh();
       return { success: true };
@@ -149,13 +153,16 @@ export function useProfileUpdate(initialProfile: Profile | null) {
         error: error instanceof AvatarCleanupError ? error.message : '프로필 수정에 실패했습니다.',
       };
     } finally {
-      saving.current = false;
-      setUpdating(false);
+      if (!navigating) {
+        saving.current = false;
+        setUpdating(false);
+      }
       refreshAvatar();
     }
   };
 
   return {
+    destination,
     uploading: false,
     updating,
     imagePath: avatar.draft.source,

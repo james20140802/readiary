@@ -1,5 +1,6 @@
 'use client';
 
+import { useActionLock } from '@/hooks/useActionLock';
 import { apiFetch } from '@/lib/api/fetch';
 import { Fragment, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -47,7 +48,8 @@ export default function EntryDetailContent({
 }: Props) {
   const router = useRouter();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const deletion = useActionLock();
+  const isDeleting = deletion.busy;
   const [deleteError, setDeleteError] = useState('');
   const commentRef = useRef<HTMLDivElement>(null);
   const [commentCount, setCommentCount] = useState(initialCommentCount);
@@ -57,7 +59,7 @@ export default function EntryDetailContent({
   };
 
   const handleDelete = async () => {
-    setIsDeleting(true);
+    if (!deletion.acquire()) return;
     setDeleteError('');
     try {
       const res = await apiFetch(`/api/entries/${entry.id}/delete?book_id=${book.id}`, {
@@ -67,7 +69,7 @@ export default function EntryDetailContent({
       router.push(`/protected/books/${book.id}`);
     } catch (error) {
       setDeleteError((error as Error).message);
-      setIsDeleting(false);
+      deletion.release();
     }
   };
 
@@ -205,13 +207,23 @@ export default function EntryDetailContent({
       </section>
 
       {/* 삭제 확인 모달 */}
-      <Modal isOpen={isDeleteDialogOpen} onClose={() => setIsDeleteDialogOpen(false)}>
+      <Modal
+        isOpen={isDeleteDialogOpen}
+        onClose={() => {
+          if (!deletion.isLocked()) setIsDeleteDialogOpen(false);
+        }}
+      >
         <div className="space-y-4">
           <h2 className="text-section-title font-bold text-ink">정말 삭제하시겠어요?</h2>
           <p className="text-caption text-ink-sub">이 작업은 되돌릴 수 없습니다.</p>
           {deleteError && <p className="text-caption text-danger">{deleteError}</p>}
           <div className="flex justify-end gap-2 pt-2">
-            <Button size="sm" variant="ghost" onClick={() => setIsDeleteDialogOpen(false)}>
+            <Button
+              size="sm"
+              variant="ghost"
+              disabled={isDeleting}
+              onClick={() => setIsDeleteDialogOpen(false)}
+            >
               취소
             </Button>
             <Button size="sm" variant="danger" onClick={handleDelete} disabled={isDeleting}>

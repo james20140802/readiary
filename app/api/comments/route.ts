@@ -49,7 +49,14 @@ export async function GET(request: Request) {
 
 // POST: 댓글 작성
 export async function POST(request: Request) {
-  const { entryId, content, parentId } = await request.json();
+  const body = await request.json();
+  // PostgreSQL returns UUIDs in lowercase regardless of the request's casing.
+  const canonicalUuid = (value: unknown) =>
+    typeof value === 'string' && isUuid(value) ? value.toLowerCase() : value;
+  const entryId = canonicalUuid(body.entryId) as string;
+  const parentId = canonicalUuid(body.parentId) as string | undefined;
+  const client_comment_id = canonicalUuid(body.client_comment_id) as string | undefined;
+  const { content } = body;
   const supabase = await createSupabaseServerClient();
 
   // 현재 로그인 유저 확인
@@ -58,10 +65,15 @@ export async function POST(request: Request) {
   } = await supabase.auth.getUser();
   if (!user) return unauthorized();
 
+  if (client_comment_id !== undefined && !isUuid(client_comment_id)) {
+    return NextResponse.json({ error: 'Invalid comment ID' }, { status: 400 });
+  }
+
   const { data, error } = await supabase
     .from('comments')
     .insert([
       {
+        ...(client_comment_id ? { id: client_comment_id } : {}),
         entry_id: entryId,
         user_id: user.id,
         content,
@@ -76,6 +88,25 @@ export async function POST(request: Request) {
     )
     .single();
 
+  if (error?.code === '23505' && client_comment_id) {
+    const { data: existing, error: readError } = await supabase
+      .from('comments')
+      .select('*, profile:profiles(id, name, nickname, tag, profile_image, bio, created_at)')
+      .eq('id', client_comment_id)
+      .eq('user_id', user.id)
+      .maybeSingle();
+    if (readError) return NextResponse.json({ error: 'Failed to read comment' }, { status: 500 });
+    if (
+      existing &&
+      existing.user_id === user.id &&
+      existing.entry_id === entryId &&
+      existing.parent_id === (parentId || null) &&
+      existing.content === content
+    ) {
+      return NextResponse.json(existing);
+    }
+    return NextResponse.json({ error: 'Comment ID already used' }, { status: 409 });
+  }
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   // 알림을 이 댓글 행에 매단다 — 댓글을 지우면 알림도 DB에서 함께 사라진다

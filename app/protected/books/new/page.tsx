@@ -8,6 +8,7 @@ import AnimatedSection from '@/components/ui/AnimatedSection';
 import BackButton from '@/components/ui/BackButton';
 
 export default function NewBookPage() {
+  const [busy, setBusy] = useState(false);
   const [tab, setTab] = useState<'manual' | 'search'>('search');
 
   return (
@@ -17,19 +18,24 @@ export default function NewBookPage() {
         <h1 className="text-page-title text-ink ml-4">책 등록</h1>
       </header>
 
-      <Tabs
-        tabs={[
-          { value: 'search', label: '책 검색' },
-          { value: 'manual', label: '직접 입력' },
-        ]}
-        defaultValue={'search'}
-        onChange={(id) => setTab(id as 'manual' | 'search')}
-        fullWidth
-      />
-
+      <fieldset disabled={busy}>
+        <Tabs
+          tabs={[
+            { value: 'search', label: '책 검색' },
+            { value: 'manual', label: '직접 입력' },
+          ]}
+          defaultValue={'search'}
+          onChange={(id) => setTab(id as 'manual' | 'search')}
+          fullWidth
+        />
+      </fieldset>
       <div className="mt-6">
         <AnimatedSection key={tab}>
-          {tab === 'search' ? <KakaoBookSearchForm /> : <NewBookForm />}
+          {tab === 'search' ? (
+            <KakaoBookSearchForm onBusyChange={setBusy} />
+          ) : (
+            <NewBookForm onBusyChange={setBusy} />
+          )}
         </AnimatedSection>
       </div>
     </div>
