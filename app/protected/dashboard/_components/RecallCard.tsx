@@ -1,6 +1,5 @@
 'use client';
-import { useState } from 'react';
-import EntryReader from '@/components/entries/EntryReader';
+import Link from 'next/link';
 import Button from '@/components/ui/Button';
 import PushSeen from '@/components/PushSeen';
 import Card from '@/components/ui/Card';
@@ -9,7 +8,7 @@ import ClampedText from '@/components/ui/ClampedText';
 import type { RecallEntry } from '@/lib/recall/fetchRecallEntry';
 
 export function RecallCard({ recall }: { recall: RecallEntry }) {
-  const [reader, setReader] = useState<'read' | 'write' | null>(null);
+  const href = `/protected/entry/${recall.id}`;
   const label = recall.yearsAgo != null ? `${recall.yearsAgo}년 전 오늘` : '다시 꺼낸 문장';
   const meta = [recall.bookAuthor, recall.date.replaceAll('-', '. ') + '.']
     .filter(Boolean)
@@ -21,9 +20,8 @@ export function RecallCard({ recall }: { recall: RecallEntry }) {
     <>
       <Card hoverable variant="raised" className="relative px-[26px] pb-6 pt-[30px]">
         <PushSeen kind="recall" />
-        <button
-          type="button"
-          onClick={() => setReader('read')}
+        <Link
+          href={href}
           aria-label={`${recall.bookTitle}의 기록 보기`}
           className="absolute inset-0 rounded-[inherit]"
         />
@@ -41,21 +39,10 @@ export function RecallCard({ recall }: { recall: RecallEntry }) {
           <span className="font-serif text-caption font-bold text-ink">{recall.bookTitle}</span>
           <span className="text-caption text-ink-faint">{meta}</span>
         </div>
-        <Button
-          variant="secondary"
-          className="relative z-10 mt-5"
-          onClick={() => setReader('write')}
-        >
-          지금의 생각 남기기
+        <Button variant="secondary" className="relative z-10 mt-5" asChild>
+          <Link href={`${href}?reflect=1#reflections`}>지금의 생각 남기기</Link>
         </Button>
       </Card>
-      {reader && (
-        <EntryReader
-          entryId={recall.id}
-          openComposer={reader === 'write'}
-          onClose={() => setReader(null)}
-        />
-      )}
     </>
   );
 }

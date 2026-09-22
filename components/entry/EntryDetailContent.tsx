@@ -29,6 +29,7 @@ interface Props {
   initialLikeCount: number;
   initialCommentCount: number;
   currentUserId?: string;
+  openComposer?: boolean;
 }
 
 function formatPages(fromPage?: number | null, toPage?: number | null) {
@@ -47,6 +48,7 @@ export default function EntryDetailContent({
   initialLikeCount,
   initialCommentCount,
   currentUserId,
+  openComposer = false,
 }: Props) {
   const router = useRouter();
   const [thoughtCount, setThoughtCount] = useState(0);
@@ -146,10 +148,13 @@ export default function EntryDetailContent({
               </div>
             </div>
 
-            <ReflectionThread
-              entryId={entry.id}
-              onSummary={(summary) => setThoughtCount(summary?.total ?? 0)}
-            />
+            <div id="reflections" className="scroll-mt-24">
+              <ReflectionThread
+                openComposer={openComposer && !isFriend}
+                entryId={entry.id}
+                onSummary={(summary) => setThoughtCount(summary?.total ?? 0)}
+              />
+            </div>
 
             {/* 여백의 기록 — 날짜·쪽수·공개 여부와 조용한 행동들 */}
             <footer className="mt-8 flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-t border-hairline pt-4">

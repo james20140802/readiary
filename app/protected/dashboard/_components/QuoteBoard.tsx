@@ -1,8 +1,7 @@
 'use client';
 
-import { useState } from 'react';
 import { clsx } from 'clsx';
-import EntryReader from '@/components/entries/EntryReader';
+import Link from 'next/link';
 import Seal from '@/components/ui/Seal';
 
 export interface StickyNote {
@@ -34,11 +33,9 @@ const formatDate = (d: string) => d.replaceAll('-', '. ') + '.';
 
 /**
  * 최근 문장 보드 — 내 문장과 친구의 문장을 정사각 포스트잇으로 섞어 붙인다.
- * 인용이 있으면 인용만, 없으면 생각을 보여주고, 짚으면 모달로 전문이 떠오른다.
+ * 인용이 있으면 인용만, 없으면 생각을 보여주고, 누르면 엔트리 상세로 이동한다.
  */
 export function QuoteBoard({ notes }: { notes: StickyNote[] }) {
-  const [active, setActive] = useState<StickyNote | null>(null);
-
   if (notes.length === 0) return null;
 
   return (
@@ -50,10 +47,9 @@ export function QuoteBoard({ notes }: { notes: StickyNote[] }) {
           const text = n.quote ?? n.note;
           if (text == null) return null;
           return (
-            <button
+            <Link
               key={`${n.kind}-${n.id}`}
-              type="button"
-              onClick={() => setActive(n)}
+              href={n.href}
               className={clsx(
                 'relative min-h-56 min-w-0 flex-col rounded-[2px] border border-hairline p-4 text-left shadow-[1px_2px_6px_rgba(62,58,52,0.12)] transition-transform duration-200 hover:-translate-y-1 hover:rotate-0',
                 TILTS[i % TILTS.length],
@@ -84,12 +80,10 @@ export function QuoteBoard({ notes }: { notes: StickyNote[] }) {
                   {[n.bookAuthor, formatDate(n.date)].filter(Boolean).join(' · ')}
                 </p>
               </div>
-            </button>
+            </Link>
           );
         })}
       </div>
-
-      {active && <EntryReader entryId={active.id} onClose={() => setActive(null)} />}
     </section>
   );
 }

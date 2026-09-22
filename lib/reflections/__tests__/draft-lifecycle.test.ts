@@ -26,7 +26,6 @@ vi.mock('@/lib/supabase/client', () => ({
   }),
 }));
 vi.mock('@/lib/reflections/summaryRefresh', () => ({ subscribeReflectionSummary: () => () => {} }));
-vi.mock('@/components/entries/EntryReader', () => ({ default: () => null }));
 const item = (i: number) => ({
   id: `thought-${i}`,
   entry_id: 'entry',
