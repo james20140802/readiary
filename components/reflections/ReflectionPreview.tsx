@@ -11,12 +11,14 @@ export default function ReflectionPreview({
   own = false,
   href,
   onNavigate,
+  compactOnNarrow = false,
 }: {
   entryId: string;
   summary?: ReflectionSummary | null;
   own?: boolean;
   href?: string;
   onNavigate?: () => void;
+  compactOnNarrow?: boolean;
 }) {
   const [current, setCurrent] = useState(summary);
   const [previous, setPrevious] = useState(summary);
@@ -30,9 +32,15 @@ export default function ReflectionPreview({
   const linkClass =
     'inline-flex min-h-11 items-center text-button-sm text-ink-sub underline underline-offset-4 hover:text-accent';
   return (
-    <div className="mt-5 border-t border-hairline pt-4">
+    <div
+      className={
+        compactOnNarrow
+          ? 'mt-3 border-t border-hairline pt-1 [@container(min-width:560px)]:mt-5 [@container(min-width:560px)]:pt-4'
+          : 'mt-5 border-t border-hairline pt-4'
+      }
+    >
       {current?.latest && (
-        <>
+        <div className={compactOnNarrow ? 'hidden [@container(min-width:560px)]:block' : undefined}>
           <p className="text-caption text-ink-sub">
             다시 읽고 ·{' '}
             <time dateTime={current.latest.created_at}>
@@ -42,7 +50,7 @@ export default function ReflectionPreview({
           <p className="mt-2 line-clamp-2 break-words whitespace-pre-wrap font-serif text-note text-ink">
             {current.latest.body}
           </p>
-        </>
+        </div>
       )}
       <div className="mt-1 flex flex-wrap gap-x-5">
         {current?.total !== 0 && (

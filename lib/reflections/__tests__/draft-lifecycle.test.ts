@@ -126,6 +126,19 @@ describe('draft retention through refresh and failed storage', () => {
     expect(screen.queryByRole('textbox')).toBeNull();
     expect(apiFetch).not.toHaveBeenCalled();
   });
+  it('opens the composer when a retained detail receives the write request and cancels without saving', async () => {
+    vi.mocked(apiFetch).mockResolvedValue(response(page([])));
+    const view = render(
+      React.createElement(ReflectionThread, { entryId: 'entry', openComposer: false })
+    );
+    await screen.findByRole('button', { name: '지금의 생각 남기기' });
+    view.rerender(React.createElement(ReflectionThread, { entryId: 'entry', openComposer: true }));
+    const area = await screen.findByRole('textbox', { name: '지금의 생각' });
+    await waitFor(() => expect(document.activeElement).toBe(area));
+    fireEvent.click(screen.getByRole('button', { name: '취소' }));
+    expect(screen.queryByRole('textbox')).toBeNull();
+    expect(screen.getByRole('button', { name: '지금의 생각 남기기' })).toBeTruthy();
+  });
   it('clears the timeline and editor on an explicit revoked-access response', async () => {
     vi.mocked(apiFetch).mockResolvedValue(response(page([])));
     render(React.createElement(ReflectionThread, { entryId: 'entry', openComposer: true }));

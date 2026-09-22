@@ -266,7 +266,7 @@ export default function ReflectionComposer({
       )}
       <div className="flex justify-end gap-2">
         <Button type="button" variant="ghost" disabled={busy} onClick={onCancel}>
-          접기
+          취소
         </Button>
         <Button
           type="submit"

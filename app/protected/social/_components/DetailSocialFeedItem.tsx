@@ -233,6 +233,7 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
             entryId={entry.id}
             summary={entry.reflectionSummary}
             href={entryDetailPath}
+            compactOnNarrow
           />
         </div>
 
@@ -240,9 +241,9 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
         <div className="hidden sm:block w-px self-stretch bg-hairline" />
 
         {/* 주소 칸 — 우표 자리의 표지, 괘선 위의 책 */}
-        <div className="mt-5 flex flex-col sm:mt-0 sm:w-44">
+        <div className="mt-5 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3 sm:mt-0 sm:flex sm:w-44 sm:flex-col sm:items-stretch sm:gap-0">
           <div
-            className="perforated-stamp self-end"
+            className="perforated-stamp col-start-2 row-start-1 self-end"
             style={{ transform: `rotate(${stampTilt}deg)` }}
           >
             <div className="relative h-14 w-10 overflow-hidden bg-card">
@@ -255,7 +256,7 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
               />
             </div>
           </div>
-          <div className="mt-4 sm:mt-auto sm:pt-5">
+          <div className="col-start-1 row-start-1 min-w-0 sm:mt-auto sm:pt-5">
             <p className="truncate border-b border-hairline-strong pb-1.5 font-serif text-body font-semibold text-ink">
               『{book.title}』
             </p>
@@ -357,7 +358,7 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
           그래서 본문 칸의 여백(main의 px-4)만큼 넓힌 상자 안에서 기울여, 삐져나온 조각도
           지워지는 상자 안에 들게 한다. overflow로 자르지는 않는다 — 뒤집는 동안은
           가까운 변이 원근으로 커져 여백보다 더 나갔다 들어오므로 잘리면 눈에 띈다 */}
-      <div className="-mx-4 px-4">
+      <div className="-mx-4 px-4 [container-type:inline-size]">
         <div style={{ transform: `rotate(${tilt}deg) translateX(${shift}px)` }}>
           {hasQuote ? (
             <div

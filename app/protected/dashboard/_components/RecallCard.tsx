@@ -38,7 +38,7 @@ export function RecallCard({ recall }: { recall: RecallEntry }) {
         <ClampedText fadeFromClassName="from-card">
           <blockquote className="font-serif text-quote text-ink">{recall.quote}</blockquote>
         </ClampedText>
-        <div className="mt-[18px] flex flex-wrap items-center justify-center gap-x-4 gap-y-3 border-t border-hairline pt-[14px]">
+        <div className="mt-[18px] flex flex-wrap items-center justify-end gap-x-4 gap-y-3 border-t border-hairline pt-[14px]">
           <div className="flex min-w-0 max-w-full flex-auto basis-auto flex-wrap items-baseline gap-x-2 gap-y-1">
             <span className="font-serif text-caption font-bold text-ink">{recall.bookTitle}</span>
             <span className="text-caption text-ink-faint">{meta}</span>

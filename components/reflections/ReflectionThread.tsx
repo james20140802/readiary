@@ -32,6 +32,11 @@ export default function ReflectionThread({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [composer, setComposer] = useState(openComposer);
+  const [previousOpenComposer, setPreviousOpenComposer] = useState(openComposer);
+  if (openComposer !== previousOpenComposer) {
+    setPreviousOpenComposer(openComposer);
+    if (openComposer) setComposer(true);
+  }
   const [editing, setEditing] = useState<EntryReflection | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [unsafe, setUnsafe] = useState(false);
@@ -349,26 +354,27 @@ export default function ReflectionThread({
                 onDraftSafetyChange={safety}
               />
             ) : (
-              <Button
-                ref={addButton}
-                variant="secondary"
-                className="mt-5"
-                disabled={!!deleting}
-                onClick={() => setComposer(true)}
-              >
-                지금의 생각 남기기
-              </Button>
+              <div className="mt-5 flex justify-end">
+                <Button
+                  ref={addButton}
+                  variant="secondary"
+                  disabled={!!deleting}
+                  onClick={() => setComposer(true)}
+                >
+                  지금의 생각 남기기
+                </Button>
+              </div>
             ))}
         </>
       )}
       {discardPrompt && (
         <div
           role="group"
-          aria-label="보관하지 못한 초안 접기"
+          aria-label="보관하지 못한 초안 취소"
           className="mt-4 border-y border-hairline py-4"
         >
           <p className="text-body text-ink">
-            초안을 보관하지 못했어요. 접으면 작성한 내용이 사라집니다.
+            초안을 보관하지 못했어요. 취소하면 작성한 내용이 사라집니다.
           </p>
           <div className="mt-3 flex gap-2">
             <Button
@@ -390,7 +396,7 @@ export default function ReflectionThread({
                 safety(false);
               }}
             >
-              버리고 접기
+              버리고 취소
             </Button>
           </div>
         </div>

@@ -111,6 +111,12 @@ export default function EntryDetailContent({
             <p className="mb-5 text-caption tabular-nums text-ink-sub">
               <time dateTime={entry.date}>{formatKoreanDate(entry.date) ?? entry.date}</time>
               {pages && ` · ${pages}`}
+              {entry.is_private && (
+                <span className="ml-3 inline-flex items-center gap-1">
+                  <Lock size={10} aria-hidden />
+                  비공개
+                </span>
+              )}
             </p>
             {/* 북라이트 — 왼쪽 위 어딘가에 달린 등이 원고 첫머리를 비스듬히 비춘다.
                 다크모드에서 특히 살아난다. 램프 자체는 그리지 않는다 — 빛만이 정직한 입체다 */}
@@ -148,28 +154,9 @@ export default function EntryDetailContent({
               </div>
             </div>
 
-            <div id="reflections" className="scroll-mt-24">
-              <ReflectionThread
-                openComposer={openComposer && !isFriend}
-                entryId={entry.id}
-                onSummary={(summary) => setThoughtCount(summary?.total ?? 0)}
-              />
-            </div>
-
-            {/* 여백의 기록 — 날짜·쪽수·공개 여부와 조용한 행동들 */}
-            <footer className="mt-8 flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-t border-hairline pt-4">
-              <div className="flex items-center gap-3 text-caption tabular-nums text-ink-faint">
-                <time>{formatKoreanDate(entry.date) ?? entry.date}</time>
-                {pages && <span>{pages}</span>}
-                {entry.is_private && (
-                  <span className="flex items-center gap-1">
-                    <Lock size={10} aria-hidden />
-                    비공개
-                  </span>
-                )}
-              </div>
-
-              <div className="flex items-center gap-4">
+            {/* 원문에 속한 반응과 관리 행동을 원문 바로 아래에 모은다 */}
+            <footer className="mt-6 border-t border-hairline pt-3">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                 <SocialActionBar
                   entryId={entry.id}
                   initialLikeCount={initialLikeCount}
@@ -214,6 +201,13 @@ export default function EntryDetailContent({
                 닫힙니다.
               </p>
             )}
+            <div id="reflections" className="scroll-mt-24">
+              <ReflectionThread
+                openComposer={openComposer && !isFriend}
+                entryId={entry.id}
+                onSummary={(summary) => setThoughtCount(summary?.total ?? 0)}
+              />
+            </div>
           </article>
         </AnimatedSection>
 
