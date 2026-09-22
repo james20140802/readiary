@@ -109,45 +109,22 @@ describe('draft retention through refresh and failed storage', () => {
     await waitFor(() => expect(screen.getByRole('textbox', { name: '생각 고치기' })).toBe(area));
     expect((area as HTMLTextAreaElement).value).toBe('스무 번째 이후의 초안');
   });
-  it('uses one sibling discard confirmation; continue retains draft and discard closes it', async () => {
-    vi.mocked(apiFetch).mockResolvedValue(
-      response({ ...page([]), summary: { total: 0, latest: null } })
-    );
+  it('links thought actions to detail without mounting an inline editor', () => {
     render(
       React.createElement(ReflectionPreview, {
         entryId: 'entry',
-        summary: { total: 0, latest: null },
+        summary: { total: 1, latest: item(0) },
         own: true,
       })
     );
-    fireEvent.click(screen.getByRole('button', { name: '지금의 생각 남기기' }));
-    const area = await screen.findByRole('textbox', { name: '지금의 생각' });
-    vi.stubGlobal('sessionStorage', {
-      length: 0,
-      key: () => null,
-      getItem: () => null,
-      removeItem: vi.fn(),
-      clear: vi.fn(),
-      setItem: () => {
-        throw new Error('quota');
-      },
-    });
-    fireEvent.change(area, { target: { value: '보관되지 않은 초안' } });
-    await screen.findByText(/초안을 이 기기에 보관하지 못했어요/);
-    fireEvent.click(screen.getByRole('button', { name: '생각 접기' }));
-    expect(screen.getAllByRole('group', { name: '초안 보관 실패' })).toHaveLength(1);
-    const keep = screen.getByRole('button', { name: '계속 쓰기' });
-    expect(keep.parentElement?.closest('button')).toBeNull();
-    fireEvent.click(keep);
-    await waitFor(() => expect(document.activeElement).toBe(area));
-    expect((area as HTMLTextAreaElement).value).toBe('보관되지 않은 초안');
-    expect(screen.queryByRole('group', { name: '초안 보관 실패' })).toBeNull();
-    fireEvent.click(screen.getByRole('button', { name: '생각 접기' }));
-    fireEvent.click(screen.getByRole('button', { name: '버리고 접기' }));
+    expect(screen.getByRole('link', { name: '이어 남긴 생각 1개 보기' }).getAttribute('href')).toBe(
+      '/protected/entry/entry#reflections'
+    );
+    expect(screen.getByRole('link', { name: '지금의 생각 남기기' }).getAttribute('href')).toBe(
+      '/protected/entry/entry?reflect=1#reflections'
+    );
     expect(screen.queryByRole('textbox')).toBeNull();
-    expect(
-      screen.getByRole('button', { name: '지금의 생각 남기기' }).getAttribute('aria-expanded')
-    ).toBe('false');
+    expect(apiFetch).not.toHaveBeenCalled();
   });
   it('clears the timeline and editor on an explicit revoked-access response', async () => {
     vi.mocked(apiFetch).mockResolvedValue(response(page([])));

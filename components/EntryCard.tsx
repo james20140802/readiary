@@ -128,7 +128,7 @@ export default function EntryCard({
           )}
         </ClampedText>
 
-        <ReflectionPreview entryId={id} summary={reflectionSummary} own={!href} />
+        <ReflectionPreview entryId={id} summary={reflectionSummary} own={!href} href={targetHref} />
 
         <div className="mt-3 flex items-center justify-between">
           <div className="flex items-center gap-4">
