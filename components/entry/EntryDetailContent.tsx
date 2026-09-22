@@ -206,7 +206,7 @@ export default function EntryDetailContent({
             {!isFriend && !entry.is_private && (
               <p className="mt-3 text-caption text-ink-faint">
                 공유하면 기록과 닉네임이 링크를 아는 누구에게나 공개됩니다. 비공개로 바꾸면 링크가
-                닫힙니다. 이어 남긴 생각은 외부 공유에 포함되지 않습니다.
+                닫힙니다.
               </p>
             )}
           </article>

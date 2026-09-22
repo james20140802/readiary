@@ -229,7 +229,11 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
             </p>
           )}
           {expandControls(isBackClamped, isBackExpanded, setIsBackExpanded)}
-          <ReflectionPreview entryId={entry.id} summary={entry.reflectionSummary} panel />
+          <ReflectionPreview
+            entryId={entry.id}
+            summary={entry.reflectionSummary}
+            href={entryDetailPath}
+          />
         </div>
 
         {/* 세로 구분선 — 엽서 뒷면의 사연|주소 경계 */}

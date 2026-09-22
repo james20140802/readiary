@@ -5,6 +5,8 @@ import { useActionLock } from '@/hooks/useActionLock';
 import { apiFetch, SessionExpiredError } from '@/lib/api/fetch';
 import { Textarea } from '@/components/ui/Textarea';
 import Button from '@/components/ui/Button';
+import Chip from '@/components/ui/Chip';
+import { Lock } from 'lucide-react';
 import {
   readReflectionDraft,
   reflectionDraftKey,
@@ -210,30 +212,16 @@ export default function ReflectionComposer({
         onChange={(e) => setBody(e.target.value)}
       />
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <fieldset
-          disabled={frozen || entryIsPrivate}
-          className="flex gap-4 text-button-sm text-ink-sub"
+        <Chip
+          selected={entryIsPrivate || shownPrivate}
+          aria-pressed={entryIsPrivate || shownPrivate}
+          aria-describedby={`${id}-help`}
+          disabled={frozen || entryIsPrivate || !restored || create.accountId !== viewerId}
+          onClick={() => setPrivate((value) => !value)}
         >
-          <legend className="sr-only">이 생각의 공개 범위</legend>
-          <label className="flex min-h-10 cursor-pointer items-center gap-2">
-            <input
-              type="radio"
-              name={id}
-              checked={entryIsPrivate || shownPrivate}
-              onChange={() => setPrivate(true)}
-            />
-            나만 보기
-          </label>
-          <label className="flex min-h-10 cursor-pointer items-center gap-2">
-            <input
-              type="radio"
-              name={id}
-              checked={!entryIsPrivate && !shownPrivate}
-              onChange={() => setPrivate(false)}
-            />
-            친구 공개
-          </label>
-        </fieldset>
+          <Lock size={12} strokeWidth={1.75} aria-hidden />
+          비공개
+        </Chip>
         <span className="text-caption tabular-nums text-ink-sub">
           {Array.from(shownBody).length.toLocaleString('ko-KR')} /{' '}
           {REFLECTION_LIMIT.toLocaleString('ko-KR')}
@@ -242,7 +230,9 @@ export default function ReflectionComposer({
       <p id={`${id}-help`} className="text-caption text-ink-sub">
         {entryIsPrivate
           ? '원문이 비공개여서 나만 볼 수 있어요.'
-          : '친구 공개를 선택해도 외부 공유 링크에는 포함되지 않아요.'}
+          : shownPrivate
+            ? '나만 볼 수 있어요.'
+            : '친구가 볼 수 있어요.'}
       </p>
       {storageFailed && dirty && (
         <p role="status" className="text-caption text-danger">

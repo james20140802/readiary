@@ -4,18 +4,18 @@ import { subscribeReflectionSummary } from '@/lib/reflections/summaryRefresh';
 import type { ReflectionSummary } from '@/lib/reflections/types';
 import ReflectionThread, { thoughtDate } from './ReflectionThread';
 import Button from '@/components/ui/Button';
-import EntryReader from '@/components/entries/EntryReader';
+import Link from 'next/link';
 
 export default function ReflectionPreview({
   entryId,
   summary,
   own = false,
-  panel = false,
+  href,
 }: {
   entryId: string;
   summary?: ReflectionSummary | null;
   own?: boolean;
-  panel?: boolean;
+  href?: string;
 }) {
   const [current, setCurrent] = useState(summary);
   const [open, setOpen] = useState(false);
@@ -32,8 +32,8 @@ export default function ReflectionPreview({
   useEffect(() => subscribeReflectionSummary(entryId, setCurrent), [entryId]);
   if (current?.total === 0 && !own && !open) return null;
   return (
-    <div ref={container} className={open && !panel ? 'mt-5' : 'mt-5 border-t border-hairline pt-4'}>
-      {(!open || panel) && current?.latest && (
+    <div ref={container} className={open && !href ? 'mt-5' : 'mt-5 border-t border-hairline pt-4'}>
+      {(!open || href) && current?.latest && (
         <>
           <p className="text-caption text-ink-sub">
             다시 읽고 ·{' '}
@@ -46,19 +46,26 @@ export default function ReflectionPreview({
           </p>
         </>
       )}
-      {
+      {href ? (
+        <Link
+          href={href}
+          className="mt-1 inline-flex min-h-11 items-center text-button-sm text-ink-sub underline underline-offset-4 hover:text-accent"
+        >
+          {current?.total ? `이어 남긴 생각 ${current.total}개` : '이어 남긴 생각 확인'}
+        </Link>
+      ) : (
         <button
           ref={trigger}
           type="button"
           aria-expanded={open}
-          aria-controls={panel ? undefined : id}
+          aria-controls={id}
           onClick={() => {
             if (open && unsafe) setDiscard(true);
             else setOpen(!open);
           }}
           className="mt-1 inline-flex min-h-11 items-center text-button-sm text-ink-sub underline underline-offset-4 hover:text-accent"
         >
-          {open && !panel
+          {open && !href
             ? '생각 접기'
             : current
               ? current.total
@@ -66,7 +73,7 @@ export default function ReflectionPreview({
                 : '지금의 생각 남기기'
               : '이어 남긴 생각 확인'}
         </button>
-      }
+      )}
       {discard && (
         <div role="group" aria-label="초안 보관 실패">
           <p className="text-caption text-ink-sub">
@@ -95,19 +102,16 @@ export default function ReflectionPreview({
           </Button>
         </div>
       )}
-      {open &&
-        (panel ? (
-          <EntryReader entryId={entryId} onClose={() => setOpen(false)} />
-        ) : (
-          <div id={id}>
-            <ReflectionThread
-              entryId={entryId}
-              openComposer={own && current?.total === 0}
-              onSummary={setCurrent}
-              onDraftSafetyChange={setUnsafe}
-            />
-          </div>
-        ))}
+      {open && !href && (
+        <div id={id}>
+          <ReflectionThread
+            entryId={entryId}
+            openComposer={own && current?.total === 0}
+            onSummary={setCurrent}
+            onDraftSafetyChange={setUnsafe}
+          />
+        </div>
+      )}
     </div>
   );
 }
