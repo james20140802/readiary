@@ -4,6 +4,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import ReflectionThread from '@/components/reflections/ReflectionThread';
 import ReflectionPreview from '@/components/reflections/ReflectionPreview';
+import ReflectionComposer from '@/components/reflections/ReflectionComposer';
 import { apiFetch } from '@/lib/api/fetch';
 vi.mock('@/lib/api/fetch', async (original) => ({
   ...(await original<object>()),
@@ -58,6 +59,38 @@ beforeEach(() => {
   vi.stubGlobal('requestAnimationFrame', (callback: () => void) => setTimeout(callback, 0));
 });
 describe('draft retention through refresh and failed storage', () => {
+  it.each([true, false])(
+    'persists the displayed privacy when editing under entryIsPrivate=%s',
+    async (entryIsPrivate) => {
+      const onSaved = vi.fn();
+      vi.mocked(apiFetch).mockResolvedValue(response({}));
+      render(
+        React.createElement(ReflectionComposer, {
+          entryId: 'entry',
+          viewerId: 'owner',
+          entryIsPrivate,
+          editing: { ...item(0), is_private: false },
+          onSaved,
+          onCancel: vi.fn(),
+        })
+      );
+      const area = await screen.findByRole('textbox', { name: '생각 고치기' });
+      const privacy = screen.getByRole('button', { name: '비공개' });
+      expect(privacy.getAttribute('aria-pressed')).toBe(String(entryIsPrivate));
+      expect((privacy as HTMLButtonElement).disabled).toBe(entryIsPrivate);
+      fireEvent.change(area, { target: { value: '다시 읽으며 고친 생각' } });
+      fireEvent.click(screen.getByRole('button', { name: '고쳐 남기기' }));
+      await waitFor(() => expect(onSaved).toHaveBeenCalledOnce());
+      const [url, options] = vi.mocked(apiFetch).mock.calls[0];
+      expect(url).toBe('/api/entries/entry/reflections/thought-0');
+      expect(options?.method).toBe('PATCH');
+      expect(JSON.parse(options?.body as string)).toEqual({
+        body: '다시 읽으며 고친 생각',
+        is_private: entryIsPrivate,
+        updated_at: '2026-09-21T00:00:00Z',
+      });
+    }
+  );
   it('keeps an unsaved owner draft mounted after a transient focus refresh failure', async () => {
     vi.mocked(apiFetch).mockResolvedValue(response(page([], null)));
     render(React.createElement(ReflectionThread, { entryId: 'entry', openComposer: true }));

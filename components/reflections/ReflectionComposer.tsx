@@ -163,7 +163,7 @@ export default function ReflectionComposer({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           body: shownBody.trim(),
-          is_private: shownPrivate,
+          is_private: entryIsPrivate ? true : shownPrivate,
           updated_at: version,
         }),
       });
