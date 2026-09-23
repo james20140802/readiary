@@ -6,7 +6,7 @@ import Link from 'next/link';
 import InertBackground from '@/components/ui/InertBackground';
 import ReflectionPreview from '@/components/reflections/ReflectionPreview';
 import type { ReflectionSummary } from '@/lib/reflections/types';
-import { X } from 'lucide-react';
+import { ArrowRight, X } from 'lucide-react';
 import { createSupabaseClient } from '@/lib/supabase/client';
 import { apiFetch, SessionExpiredError } from '@/lib/api/fetch';
 import type { EntryReadData } from '@/types/entry';
@@ -149,9 +149,7 @@ export default function EntryReader({
                 )}
                 {entry.note?.trim() && (
                   <section className="mt-6 border-t border-hairline pt-5">
-                    <h4 className="font-sans text-caption text-ink-sub">
-                      {summary?.total ? '그때 남긴 생각' : '남긴 생각'}
-                    </h4>
+                    <h4 className="font-sans text-caption text-ink-sub">남긴 생각</h4>
                     <p className="mt-3 whitespace-pre-wrap break-words font-serif text-note text-ink">
                       {entry.note}
                     </p>
@@ -164,13 +162,16 @@ export default function EntryReader({
                   href={entry.detailHref}
                   onNavigate={onClose}
                 />
-                <Link
-                  href={entry.detailHref}
-                  onClick={onClose}
-                  className="mt-6 inline-flex min-h-11 items-center text-button-sm text-ink-sub underline underline-offset-4"
-                >
-                  기록 상세에서 읽기
-                </Link>
+                <div className="mt-6 flex justify-end">
+                  <Link
+                    href={entry.detailHref}
+                    onClick={onClose}
+                    className="inline-flex min-h-11 items-center gap-1 text-button-sm text-accent"
+                  >
+                    자세히
+                    <ArrowRight size={16} strokeWidth={1.75} aria-hidden="true" />
+                  </Link>
+                </div>
               </article>
             )}
           </div>

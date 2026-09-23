@@ -140,7 +140,7 @@ export default function EntryDetailContent({
                   </div>
                 )}
                 {entry.note && thoughtCount > 0 && (
-                  <h3 className="mt-6 text-caption text-ink-sub">그때 남긴 생각</h3>
+                  <h3 className="mt-6 text-caption text-ink-sub">남긴 생각</h3>
                 )}
                 {entry.note && (
                   <p

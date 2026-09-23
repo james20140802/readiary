@@ -201,11 +201,7 @@ export default function ReflectionThread({
     }
   };
   return (
-    <section
-      ref={container}
-      className="mt-8 border-t border-hairline pt-6"
-      aria-label="이어 남긴 생각"
-    >
+    <section ref={container} className="mt-8 pt-6" aria-label="이어 남긴 생각">
       <h3 className="font-serif text-section-title text-ink">
         이어 남긴 생각
         {page && page.summary.total > 0 && (
