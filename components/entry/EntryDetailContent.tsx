@@ -57,7 +57,8 @@ export default function EntryDetailContent({
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const deletion = useActionLock();
   const isDeleting = deletion.busy;
-  const [deleteReady, setDeleteReady] = useState(false);
+  const [deleteReady, setDeleteReady] = useState<number | null>(null);
+  const [deleteCheck, setDeleteCheck] = useState(0);
   const [deleteError, setDeleteError] = useState('');
   const commentRef = useRef<HTMLDivElement>(null);
   const [commentCount, setCommentCount] = useState(initialCommentCount);
@@ -67,12 +68,20 @@ export default function EntryDetailContent({
   };
 
   const handleDelete = async () => {
-    if (!deleteReady || !deletion.acquire()) return;
+    if (deleteReady === null || !deletion.acquire()) return;
     setDeleteError('');
     try {
-      const res = await apiFetch(`/api/entries/${entry.id}/delete?book_id=${book.id}`, {
-        method: 'DELETE',
-      });
+      const res = await apiFetch(
+        `/api/entries/${entry.id}/delete?book_id=${book.id}&reflection_count=${deleteReady}`,
+        {
+          method: 'DELETE',
+        }
+      );
+      if (res.status === 409) {
+        setDeleteReady(null);
+        setDeleteCheck((v) => v + 1);
+        throw new Error('함께 삭제할 생각 수가 변경됐어요. 다시 확인해 주세요.');
+      }
       if (!res.ok) throw new Error('삭제 실패');
       router.push(`/protected/books/${book.id}`);
     } catch (error) {
@@ -235,7 +244,7 @@ export default function EntryDetailContent({
         <div className="space-y-4">
           <h2 className="text-section-title font-bold text-ink">정말 삭제하시겠어요?</h2>
           {isDeleteDialogOpen && entry.id && (
-            <EntryDeleteWarning entryId={entry.id} onReady={setDeleteReady} />
+            <EntryDeleteWarning key={deleteCheck} entryId={entry.id} onReady={setDeleteReady} />
           )}
           {deleteError && <p className="text-caption text-danger">{deleteError}</p>}
           <div className="flex justify-end gap-2 pt-2">
@@ -251,7 +260,7 @@ export default function EntryDetailContent({
               size="sm"
               variant="danger"
               onClick={handleDelete}
-              disabled={isDeleting || !deleteReady}
+              disabled={isDeleting || deleteReady === null}
             >
               {isDeleting ? '삭제 중...' : '삭제하기'}
             </Button>

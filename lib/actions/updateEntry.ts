@@ -2,6 +2,8 @@ import { apiFetch, SessionExpiredError } from '@/lib/api/fetch';
 import { createSupabaseClient } from '@/lib/supabase/client';
 import type { EntryFormValues } from '@/components/entries/EntryFormBody';
 
+export class ReflectionConfirmationRequiredError extends Error {}
+
 export class UncertainMutationError extends Error {
   constructor() {
     super('저장 결과를 확인하지 못했어요. 새로고침해 현재 기록을 확인해 주세요.');
@@ -21,10 +23,16 @@ export async function updateEntry(
     if (response.ok) return null;
     if (response.status < 500) {
       const data = await response.json().catch(() => null);
+      if (data?.code === 'reflection_confirmation_required')
+        throw new ReflectionConfirmationRequiredError(data.error);
       return data?.error ?? '입력을 확인해 주세요.';
     }
   } catch (error) {
-    if (error instanceof SessionExpiredError) throw error;
+    if (
+      error instanceof SessionExpiredError ||
+      error instanceof ReflectionConfirmationRequiredError
+    )
+      throw error;
   }
   try {
     const supabase = createSupabaseClient();
@@ -34,7 +42,10 @@ export async function updateEntry(
       .eq('id', entryId)
       .single();
     const expected = {
-      ...values,
+      quote: values.quote,
+      note: values.note,
+      date: values.date,
+      is_private: values.is_private,
       from_page: values.from_page ?? values.to_page,
       to_page: values.to_page ?? values.from_page,
     };

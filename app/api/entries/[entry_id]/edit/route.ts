@@ -1,3 +1,4 @@
+import type { Json } from '@/types/supabase';
 import { unauthorized } from '@/lib/api/auth';
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
@@ -87,12 +88,26 @@ export async function PATCH(
     return NextResponse.json({ error: '수정할 내용이 없습니다.' }, { status: 400 });
   }
 
-  const { data: updated, error } = await supabase
-    .from('entries')
-    .update(patch)
-    .eq('id', entry_id)
-    .select('id')
-    .maybeSingle();
+  const acknowledgedCount = body.reflection_count;
+  if (
+    acknowledgedCount != null &&
+    (!Number.isSafeInteger(acknowledgedCount) || acknowledgedCount < 0)
+  )
+    return NextResponse.json({ error: '함께 공개되는 생각 수를 확인해 주세요.' }, { status: 400 });
+  const { data: result, error } = await supabase.rpc('mutate_entry_with_reflection_ack', {
+    p_entry_id: entry_id,
+    p_patch: patch as Json,
+    p_reflection_count: acknowledgedCount ?? null,
+  });
+  const updated = result as { id?: string; confirmation_required?: boolean; count?: number } | null;
+  if (updated?.confirmation_required)
+    return NextResponse.json(
+      {
+        code: 'reflection_confirmation_required',
+        error: '공개 범위가 변경됐어요. 함께 공개될 생각을 다시 확인해 주세요.',
+      },
+      { status: 409, headers: { 'Cache-Control': 'private, no-store' } }
+    );
 
   if (error) {
     // CHECK 제약 위반은 어떤 제약이 걸렸는지에 따라 사용자 메시지를 나눈다
@@ -106,7 +121,8 @@ export async function PATCH(
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  if (!updated) return NextResponse.json({ error: '엔트리를 찾을 수 없습니다.' }, { status: 404 });
+  if (!updated?.id)
+    return NextResponse.json({ error: '엔트리를 찾을 수 없습니다.' }, { status: 404 });
 
   // 페이지가 바뀌면 user_books.last_read_page/progress를 재계산한다 (생성/삭제 경로와 동일)
   if ('from_page' in body || 'to_page' in body) {

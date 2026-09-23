@@ -51,7 +51,8 @@ export default function EntryEditSheet({
   const close = () => {
     if (!saving.current && !deletion.isLocked()) onClose();
   };
-  const [deleteReady, setDeleteReady] = useState(false);
+  const [deleteReady, setDeleteReady] = useState<number | null>(null);
+  const [deleteCheck, setDeleteCheck] = useState(0);
   const [deleteError, setDeleteError] = useState('');
 
   // 시트가 닫히면 거기 딸린 삭제 확인창도 같이 닫는다 — 저장이 늦게 돌아와 시트를 닫는 사이 확인창이 열려
@@ -82,14 +83,22 @@ export default function EntryEditSheet({
   };
 
   const confirmDelete = async () => {
-    if (!deleteReady || !entry || saving.current || !deletion.acquire()) return;
+    if (deleteReady === null || !entry || saving.current || !deletion.acquire()) return;
     const session = sessionRef.current;
 
     setDeleteError('');
     try {
-      const res = await apiFetch(`/api/entries/${entry.id}/delete?book_id=${bookId}`, {
-        method: 'DELETE',
-      });
+      const res = await apiFetch(
+        `/api/entries/${entry.id}/delete?book_id=${bookId}&reflection_count=${deleteReady}`,
+        {
+          method: 'DELETE',
+        }
+      );
+      if (res.status === 409) {
+        setDeleteReady(null);
+        setDeleteCheck((v) => v + 1);
+        throw new Error('함께 삭제할 생각 수가 변경됐어요. 다시 확인해 주세요.');
+      }
       if (!res.ok) {
         const data = await res.json().catch(() => null);
         throw new Error(data?.error ?? '삭제 실패');
@@ -189,7 +198,7 @@ export default function EntryEditSheet({
         <div className="space-y-4">
           <h2 className="text-section-title font-bold text-ink">정말 삭제하시겠어요?</h2>
           {isDeleteOpen && entry?.id && (
-            <EntryDeleteWarning entryId={entry?.id} onReady={setDeleteReady} />
+            <EntryDeleteWarning key={deleteCheck} entryId={entry?.id} onReady={setDeleteReady} />
           )}
           {deleteError && <p className="text-caption text-danger">{deleteError}</p>}
           <div className="flex justify-end gap-2 pt-2">
@@ -207,7 +216,7 @@ export default function EntryEditSheet({
               size="sm"
               variant="danger"
               onClick={confirmDelete}
-              disabled={isDeleting || !deleteReady}
+              disabled={isDeleting || deleteReady === null}
             >
               {isDeleting ? '삭제 중...' : '삭제하기'}
             </Button>

@@ -49,7 +49,29 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ entry
   }
 
   // 3. Perform deletion
-  const { error } = await supabase.from('entries').delete().eq('id', entry_id);
+  const rawCount = searchParams.get('reflection_count');
+  const acknowledgedCount = rawCount === null ? null : Number(rawCount);
+  if (
+    acknowledgedCount !== null &&
+    (!/^\d+$/.test(rawCount!) || !Number.isSafeInteger(acknowledgedCount))
+  )
+    return NextResponse.json({ error: '함께 삭제할 생각 수를 확인해 주세요.' }, { status: 400 });
+  const { data: result, error } = await supabase.rpc('mutate_entry_with_reflection_ack', {
+    p_entry_id: entry_id,
+    p_delete: true,
+    p_reflection_count: acknowledgedCount,
+  });
+  const outcome = result as { id?: string; confirmation_required?: boolean } | null;
+  if (outcome?.confirmation_required)
+    return NextResponse.json(
+      {
+        code: 'reflection_confirmation_required',
+        error: '함께 삭제할 생각 수가 변경됐어요. 다시 확인해 주세요.',
+      },
+      { status: 409, headers: { 'Cache-Control': 'private, no-store' } }
+    );
+  if (!error && !outcome?.id)
+    return NextResponse.json({ error: '엔트리를 찾을 수 없습니다.' }, { status: 404 });
 
   if (error) {
     return NextResponse.json({ error: '삭제 실패' }, { status: 500 });

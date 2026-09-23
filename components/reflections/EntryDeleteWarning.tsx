@@ -7,14 +7,14 @@ export default function EntryDeleteWarning({
   onReady,
 }: {
   entryId: string;
-  onReady: (ready: boolean) => void;
+  onReady: (count: number | null) => void;
 }) {
   const [count, setCount] = useState<number | null>(null);
   const [error, setError] = useState(false);
   const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     const controller = new AbortController();
-    onReady(false);
+    onReady(null);
     void apiFetch(`/api/entries/${entryId}/reflections/summary`, {
       cache: 'no-store',
       signal: controller.signal,
@@ -22,9 +22,10 @@ export default function EntryDeleteWarning({
       .then(async (response) => {
         if (!response.ok) throw new Error();
         const data = await response.json();
+        if (!Number.isSafeInteger(data.total) || data.total < 0) throw new Error();
         if (!controller.signal.aborted) {
           setCount(data.total);
-          onReady(true);
+          onReady(data.total);
         }
       })
       .catch(() => {

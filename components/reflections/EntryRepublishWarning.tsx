@@ -9,14 +9,14 @@ export default function EntryRepublishWarning({
   onReady,
 }: {
   entryId: string;
-  onReady: (ready: boolean) => void;
+  onReady: (count: number | null) => void;
 }) {
   const [count, setCount] = useState<number | null>(null);
   const [error, setError] = useState(false);
   const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     const controller = new AbortController();
-    onReady(false);
+    onReady(null);
     void apiFetch(`/api/entries/${entryId}/reflections/summary?publicOnly=1`, {
       cache: 'no-store',
       signal: controller.signal,
@@ -27,7 +27,7 @@ export default function EntryRepublishWarning({
         if (!Number.isInteger(result.total) || result.total < 0) throw new Error();
         if (!controller.signal.aborted) {
           setCount(result.total);
-          onReady(result.total === 0);
+          onReady(result.total === 0 ? 0 : null);
         }
       })
       .catch(() => {
@@ -62,7 +62,11 @@ export default function EntryRepublishWarning({
   if (count === 0) return null;
   return (
     <label className="mt-4 flex items-start gap-3 text-caption text-ink-sub">
-      <input type="checkbox" className="mt-1" onChange={(e) => onReady(e.target.checked)} />
+      <input
+        type="checkbox"
+        className="mt-1"
+        onChange={(e) => onReady(e.target.checked ? count : null)}
+      />
       기존에 친구 공개로 남긴 생각 {count}개도 친구에게 다시 보이는 것을 확인했어요.
     </label>
   );

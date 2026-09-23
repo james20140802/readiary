@@ -452,6 +452,15 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      mutate_entry_with_reflection_ack: {
+        Args: {
+          p_entry_id: string;
+          p_patch?: Json;
+          p_delete?: boolean;
+          p_reflection_count?: number | null;
+        };
+        Returns: Json;
+      };
       entry_reflections_enabled: { Args: Record<PropertyKey, never>; Returns: boolean };
       get_entry_reflection_summaries: {
         Args: { p_entry_ids: string[] };
