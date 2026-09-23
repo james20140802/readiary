@@ -136,6 +136,28 @@ export type Database = {
           },
         ];
       };
+      entry_reflections: {
+        Row: {
+          id: string;
+          entry_id: string;
+          user_id: string;
+          body: string;
+          is_private: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: { id: string; entry_id: string; body: string; is_private?: boolean };
+        Update: { body?: string; is_private?: boolean };
+        Relationships: [
+          {
+            foreignKeyName: 'entry_reflections_entry_id_fkey';
+            columns: ['entry_id'];
+            isOneToOne: false;
+            referencedRelation: 'entries';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       entries: {
         Row: {
           created_at: string | null;
@@ -430,6 +452,20 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      mutate_entry_with_reflection_ack: {
+        Args: {
+          p_entry_id: string;
+          p_patch?: Json;
+          p_delete?: boolean;
+          p_reflection_count?: number | null;
+        };
+        Returns: Json;
+      };
+      entry_reflections_enabled: { Args: Record<PropertyKey, never>; Returns: boolean };
+      get_entry_reflection_summaries: {
+        Args: { p_entry_ids: string[] };
+        Returns: { entry_id: string; total: number; latest: Json }[];
+      };
       register_book_idempotently: {
         Args: {
           p_request_id: string;

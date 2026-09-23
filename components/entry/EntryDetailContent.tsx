@@ -1,5 +1,8 @@
 'use client';
+import { useReflectionFeature } from '@/components/features/ReflectionFeatureProvider';
 
+import ReflectionThread from '@/components/reflections/ReflectionThread';
+import EntryDeleteWarning from '@/components/reflections/EntryDeleteWarning';
 import { useActionLock } from '@/hooks/useActionLock';
 import { apiFetch } from '@/lib/api/fetch';
 import { Fragment, useRef, useState } from 'react';
@@ -27,6 +30,7 @@ interface Props {
   initialLikeCount: number;
   initialCommentCount: number;
   currentUserId?: string;
+  openComposer?: boolean;
 }
 
 function formatPages(fromPage?: number | null, toPage?: number | null) {
@@ -45,11 +49,16 @@ export default function EntryDetailContent({
   initialLikeCount,
   initialCommentCount,
   currentUserId,
+  openComposer = false,
 }: Props) {
+  const enabled = useReflectionFeature();
   const router = useRouter();
+  const [thoughtCount, setThoughtCount] = useState(0);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const deletion = useActionLock();
   const isDeleting = deletion.busy;
+  const [deleteReady, setDeleteReady] = useState<number | null>(null);
+  const [deleteCheck, setDeleteCheck] = useState(0);
   const [deleteError, setDeleteError] = useState('');
   const commentRef = useRef<HTMLDivElement>(null);
   const [commentCount, setCommentCount] = useState(initialCommentCount);
@@ -59,12 +68,20 @@ export default function EntryDetailContent({
   };
 
   const handleDelete = async () => {
-    if (!deletion.acquire()) return;
+    if (deleteReady === null || !deletion.acquire()) return;
     setDeleteError('');
     try {
-      const res = await apiFetch(`/api/entries/${entry.id}/delete?book_id=${book.id}`, {
-        method: 'DELETE',
-      });
+      const res = await apiFetch(
+        `/api/entries/${entry.id}/delete?book_id=${book.id}&reflection_count=${deleteReady}`,
+        {
+          method: 'DELETE',
+        }
+      );
+      if (res.status === 409) {
+        setDeleteReady(null);
+        setDeleteCheck((v) => v + 1);
+        throw new Error('함께 삭제할 생각 수가 변경됐어요. 다시 확인해 주세요.');
+      }
       if (!res.ok) throw new Error('삭제 실패');
       router.push(`/protected/books/${book.id}`);
     } catch (error) {
@@ -102,6 +119,16 @@ export default function EntryDetailContent({
 
         <AnimatedSection>
           <article>
+            <p className="mb-5 text-caption tabular-nums text-ink-sub">
+              <time dateTime={entry.date}>{formatKoreanDate(entry.date) ?? entry.date}</time>
+              {pages && ` · ${pages}`}
+              {entry.is_private && (
+                <span className="ml-3 inline-flex items-center gap-1">
+                  <Lock size={10} aria-hidden />
+                  비공개
+                </span>
+              )}
+            </p>
             {/* 북라이트 — 왼쪽 위 어딘가에 달린 등이 원고 첫머리를 비스듬히 비춘다.
                 다크모드에서 특히 살아난다. 램프 자체는 그리지 않는다 — 빛만이 정직한 입체다 */}
             <div className="relative">
@@ -123,6 +150,9 @@ export default function EntryDetailContent({
                     </blockquote>
                   </div>
                 )}
+                {enabled && entry.note && thoughtCount > 0 && (
+                  <h3 className="mt-6 text-caption text-ink-sub">남긴 생각</h3>
+                )}
                 {entry.note && (
                   <p
                     className={`whitespace-pre-wrap font-serif leading-[1.9] ${
@@ -135,20 +165,9 @@ export default function EntryDetailContent({
               </div>
             </div>
 
-            {/* 여백의 기록 — 날짜·쪽수·공개 여부와 조용한 행동들 */}
-            <footer className="mt-8 flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-t border-hairline pt-4">
-              <div className="flex items-center gap-3 text-caption tabular-nums text-ink-faint">
-                <time>{formatKoreanDate(entry.date) ?? entry.date}</time>
-                {pages && <span>{pages}</span>}
-                {entry.is_private && (
-                  <span className="flex items-center gap-1">
-                    <Lock size={10} aria-hidden />
-                    비공개
-                  </span>
-                )}
-              </div>
-
-              <div className="flex items-center gap-4">
+            {/* 원문에 속한 반응과 관리 행동을 원문 바로 아래에 모은다 */}
+            <footer className="mt-6 border-t border-hairline pt-3">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                 <SocialActionBar
                   entryId={entry.id}
                   initialLikeCount={initialLikeCount}
@@ -175,7 +194,7 @@ export default function EntryDetailContent({
                       href={`/protected/entry/${entry.id}/edit`}
                       className="text-button-sm text-ink-faint transition-colors hover:text-accent"
                     >
-                      수정
+                      원문 수정
                     </Link>
                     <button
                       onClick={() => setIsDeleteDialogOpen(true)}
@@ -192,6 +211,15 @@ export default function EntryDetailContent({
                 공유하면 기록과 닉네임이 링크를 아는 누구에게나 공개됩니다. 비공개로 바꾸면 링크가
                 닫힙니다.
               </p>
+            )}
+            {enabled && (
+              <div id="reflections" className="scroll-mt-24">
+                <ReflectionThread
+                  openComposer={openComposer && !isFriend}
+                  entryId={entry.id}
+                  onSummary={(summary) => setThoughtCount(summary?.total ?? 0)}
+                />
+              </div>
             )}
           </article>
         </AnimatedSection>
@@ -215,7 +243,9 @@ export default function EntryDetailContent({
       >
         <div className="space-y-4">
           <h2 className="text-section-title font-bold text-ink">정말 삭제하시겠어요?</h2>
-          <p className="text-caption text-ink-sub">이 작업은 되돌릴 수 없습니다.</p>
+          {isDeleteDialogOpen && entry.id && (
+            <EntryDeleteWarning key={deleteCheck} entryId={entry.id} onReady={setDeleteReady} />
+          )}
           {deleteError && <p className="text-caption text-danger">{deleteError}</p>}
           <div className="flex justify-end gap-2 pt-2">
             <Button
@@ -226,7 +256,12 @@ export default function EntryDetailContent({
             >
               취소
             </Button>
-            <Button size="sm" variant="danger" onClick={handleDelete} disabled={isDeleting}>
+            <Button
+              size="sm"
+              variant="danger"
+              onClick={handleDelete}
+              disabled={isDeleting || deleteReady === null}
+            >
               {isDeleting ? '삭제 중...' : '삭제하기'}
             </Button>
           </div>

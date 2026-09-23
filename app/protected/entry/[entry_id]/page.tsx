@@ -6,8 +6,10 @@ import { notFound } from 'next/navigation';
 
 export default async function EntryDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ entry_id: string }>;
+  searchParams: Promise<{ reflect?: string }>;
 }) {
   const {
     data: { user },
@@ -37,6 +39,7 @@ export default async function EntryDetailPage({
         initialLikeCount={detail.initialLikeCount}
         initialCommentCount={detail.initialCommentCount}
         currentUserId={user.id}
+        openComposer={(await searchParams).reflect === '1'}
       />
     </>
   );

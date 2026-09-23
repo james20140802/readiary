@@ -9,6 +9,7 @@ import EntryFormBody, { EntryFormInitial, EntryFormValues } from './EntryFormBod
 export type { EntryFormValues } from './EntryFormBody';
 
 interface EntryFormProps {
+  entryId?: string;
   book: Book;
   heading: string;
   submitLabel: string;
@@ -21,6 +22,7 @@ interface EntryFormProps {
 
 /** 신규/수정 페이지용 기록 폼 — 뒤로가기 헤더와 출처(책) 블록을 두르고, 알맹이는 EntryFormBody */
 export default function EntryForm({
+  entryId,
   book,
   heading,
   submitLabel,
@@ -59,6 +61,7 @@ export default function EntryForm({
           </div>
 
           <EntryFormBody
+            entryId={entryId}
             totalPages={book.total_pages}
             submitLabel={submitLabel}
             initial={initial}

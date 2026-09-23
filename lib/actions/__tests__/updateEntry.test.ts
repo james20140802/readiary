@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { updateEntry, UncertainMutationError } from '../updateEntry';
+import {
+  updateEntry,
+  UncertainMutationError,
+  ReflectionConfirmationRequiredError,
+} from '../updateEntry';
 const mocks = vi.hoisted(() => ({ fetch: vi.fn(), single: vi.fn(), rpc: vi.fn() }));
 vi.mock('@/lib/api/fetch', () => ({
   apiFetch: mocks.fetch,
@@ -29,6 +33,18 @@ describe('entry update response reconciliation', () => {
     expect(await updateEntry('id', values)).toBeNull();
     expect(mocks.single).not.toHaveBeenCalled();
   });
+  it('requires an explicit new acknowledgement on a server privacy conflict', async () => {
+    mocks.fetch.mockResolvedValue(
+      Response.json(
+        { code: 'reflection_confirmation_required', error: '다시 확인' },
+        { status: 409 }
+      )
+    );
+    await expect(updateEntry('id', values)).rejects.toBeInstanceOf(
+      ReflectionConfirmationRequiredError
+    );
+    expect(mocks.single).not.toHaveBeenCalled();
+  });
   it('keeps validation rejection editable', async () => {
     mocks.fetch.mockResolvedValue(Response.json({ error: '잘못된 입력' }, { status: 400 }));
     expect(await updateEntry('id', values)).toBe('잘못된 입력');
@@ -40,7 +56,7 @@ describe('entry update response reconciliation', () => {
       data: { ...values, from_page: 10, user_books: { book_id: 'book', user_id: 'me' } },
       error: null,
     });
-    expect(await updateEntry('id', values)).toBeNull();
+    expect(await updateEntry('id', { ...values, reflection_count: 2 })).toBeNull();
     expect(mocks.rpc).toHaveBeenCalledWith('update_user_book_progress', {
       p_book_id: 'book',
       p_user_id: 'me',

@@ -1,3 +1,4 @@
+import { fetchReflectionSummaries } from '@/lib/reflections/server';
 import { getServerUser } from '@/lib/supabase/getServerUser';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { BookDetailData } from '@/types/book';
@@ -52,6 +53,8 @@ export async function fetchBookDetail(bookId: string): Promise<BookDetailData | 
 
   if (error || !data) return null;
 
+  const reflectionSummaries = await fetchReflectionSummaries(data.entries?.map((e) => e.id) ?? []);
+
   return {
     userBook: {
       id: data.id,
@@ -69,6 +72,7 @@ export async function fetchBookDetail(bookId: string): Promise<BookDetailData | 
           return {
             entry: {
               id: e.id,
+              reflectionSummary: reflectionSummaries?.[e.id] ?? null,
               date: e.date,
               note: e.note,
               quote: e.quote,

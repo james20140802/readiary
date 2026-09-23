@@ -1,5 +1,7 @@
 'use client';
 
+import ReflectionPreview from '@/components/reflections/ReflectionPreview';
+import type { ReflectionSummary } from '@/lib/reflections/types';
 import { apiFetch } from '@/lib/api/fetch';
 import { useState } from 'react';
 import Link from 'next/link';
@@ -10,6 +12,7 @@ import CommentBottomSheet from './comments/CommentBottomSheet';
 
 interface EntryCardProps {
   id: string;
+  reflectionSummary?: ReflectionSummary | null;
   quote: string | null;
   note: string | null;
   date: string;
@@ -21,7 +24,7 @@ interface EntryCardProps {
   initialLikeCount?: number;
   initialCommentCount?: number;
   initialLiked?: boolean;
-  /** 내 기록을 그 자리에서 고치기 — 있으면 '수정 →'이 페이지 이동 대신 이 콜백을 부른다 */
+  /** 내 기록을 그 자리에서 고치기 — 있으면 '원문 수정'이 페이지 이동 대신 이 콜백을 부른다 */
   onEdit?: () => void;
 }
 
@@ -49,6 +52,7 @@ export default function EntryCard({
   initialCommentCount = 0,
   initialLiked = false,
   onEdit,
+  reflectionSummary,
 }: EntryCardProps) {
   const [isCommentOpen, setIsCommentOpen] = useState(false);
   const [commentCount, setCommentCount] = useState(initialCommentCount);
@@ -124,6 +128,8 @@ export default function EntryCard({
           )}
         </ClampedText>
 
+        <ReflectionPreview entryId={id} summary={reflectionSummary} own={!href} href={targetHref} />
+
         <div className="mt-3 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
@@ -157,14 +163,14 @@ export default function EntryCard({
               onClick={onEdit}
               className="text-button-sm text-ink-faint transition-colors hover:text-accent"
             >
-              수정 →
+              원문 수정
             </button>
           ) : (
             <Link
               href={`/protected/entry/${id}/edit`}
               className="text-button-sm text-ink-faint transition-colors hover:text-accent"
             >
-              수정 →
+              원문 수정
             </Link>
           )}
         </div>

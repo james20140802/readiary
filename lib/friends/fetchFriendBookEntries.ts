@@ -1,3 +1,4 @@
+import { fetchReflectionSummaries } from '@/lib/reflections/server';
 import { getServerUser } from '@/lib/supabase/getServerUser';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { isFriendWith } from './isFriendWith';
@@ -89,12 +90,15 @@ export async function fetchFriendBookEntries({
 
   if (entriesError) return null;
 
+  const reflectionSummaries = await fetchReflectionSummaries(entriesResult.map((e) => e.id));
+
   const entries = entriesResult.map((e): EntryDetailData => {
     const isLiked = e.likes?.some((like) => like.user_id === user.id) ?? false;
     const likeCount = e.likes?.length ?? 0;
     return {
       entry: {
         id: e.id,
+        reflectionSummary: reflectionSummaries?.[e.id] ?? null,
         date: e.date,
         note: e.note,
         quote: e.quote,

@@ -1,5 +1,6 @@
 'use client';
 
+import ReflectionPreview from '@/components/reflections/ReflectionPreview';
 import { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -228,15 +229,21 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
             </p>
           )}
           {expandControls(isBackClamped, isBackExpanded, setIsBackExpanded)}
+          <ReflectionPreview
+            entryId={entry.id}
+            summary={entry.reflectionSummary}
+            href={entryDetailPath}
+            compactOnNarrow
+          />
         </div>
 
         {/* 세로 구분선 — 엽서 뒷면의 사연|주소 경계 */}
         <div className="hidden sm:block w-px self-stretch bg-hairline" />
 
         {/* 주소 칸 — 우표 자리의 표지, 괘선 위의 책 */}
-        <div className="mt-5 flex flex-col sm:mt-0 sm:w-44">
+        <div className="mt-5 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3 sm:mt-0 sm:flex sm:w-44 sm:flex-col sm:items-stretch sm:gap-0">
           <div
-            className="perforated-stamp self-end"
+            className="perforated-stamp col-start-2 row-start-1 self-end"
             style={{ transform: `rotate(${stampTilt}deg)` }}
           >
             <div className="relative h-14 w-10 overflow-hidden bg-card">
@@ -249,7 +256,7 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
               />
             </div>
           </div>
-          <div className="mt-4 sm:mt-auto sm:pt-5">
+          <div className="col-start-1 row-start-1 min-w-0 sm:mt-auto sm:pt-5">
             <p className="truncate border-b border-hairline-strong pb-1.5 font-serif text-body font-semibold text-ink">
               『{book.title}』
             </p>
@@ -322,10 +329,12 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
   ) : null;
 
   // 타공 테두리·액션 바까지 포함한 엽서 낱장 — 앞·뒷면이 각각 온전한 한 장이라
-  // 뒤집을 때 카드 전체가 돌아간다
+  // 뒤집을 때 카드 전체가 돌아간다. 높이 100% 대신 flex stretch를 끝까지 연결한다.
+  // 자동 높이의 겹친 grid 안에서 WebKit이 자손의 % 높이를 내용 높이로 계산해
+  // 앞뒷면 테두리와 액션 바가 서로 다른 높이에 그려지는 것을 피한다.
   const postcard = (face: React.ReactNode) => (
-    <div className="perforated h-full">
-      <div className="flex h-full flex-col bg-card">
+    <div className="perforated flex flex-1 flex-col">
+      <div className="flex flex-1 flex-col bg-card">
         {face}
         <SocialActionBar
           entryId={entry.id}
@@ -351,7 +360,7 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
           그래서 본문 칸의 여백(main의 px-4)만큼 넓힌 상자 안에서 기울여, 삐져나온 조각도
           지워지는 상자 안에 들게 한다. overflow로 자르지는 않는다 — 뒤집는 동안은
           가까운 변이 원근으로 커져 여백보다 더 나갔다 들어오므로 잘리면 눈에 띈다 */}
-      <div className="-mx-4 px-4">
+      <div className="-mx-4 px-4 [container-type:inline-size]">
         <div style={{ transform: `rotate(${tilt}deg) translateX(${shift}px)` }}>
           {hasQuote ? (
             <div
@@ -365,13 +374,13 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
               >
                 <div
                   inert={isFlipped}
-                  className="min-w-0 [grid-area:1/1] [backface-visibility:hidden]"
+                  className="flex min-w-0 flex-col [grid-area:1/1] [backface-visibility:hidden]"
                 >
                   {postcard(frontFace)}
                 </div>
                 <div
                   inert={!isFlipped}
-                  className="min-w-0 [grid-area:1/1] [backface-visibility:hidden] [transform:rotateY(180deg)]"
+                  className="flex min-w-0 flex-col [grid-area:1/1] [backface-visibility:hidden] [transform:rotateY(180deg)]"
                 >
                   {postcard(backFace)}
                 </div>

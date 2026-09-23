@@ -8,6 +8,7 @@ vi.mock('@/utils/sync', () => ({ updateProgress: vi.fn() }));
 it('reports removal between ownership lookup and update truthfully', async () => {
   vi.mocked(createSupabaseServerClient).mockResolvedValue({
     auth: { getUser: async () => ({ data: { user: { id: 'me' } } }) },
+    rpc: async () => ({ data: { not_found: true }, error: null }),
     from: () => ({
       select: () => ({
         eq: () => ({

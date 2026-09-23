@@ -1,7 +1,11 @@
 'use client';
+import EntryRepublishWarning from '@/components/reflections/EntryRepublishWarning';
 import ActionNavigation from '@/components/ui/ActionNavigation';
 
-import { UncertainMutationError } from '@/lib/actions/updateEntry';
+import {
+  UncertainMutationError,
+  ReflectionConfirmationRequiredError,
+} from '@/lib/actions/updateEntry';
 import { SessionExpiredError } from '@/lib/api/fetch';
 import { useState } from 'react';
 import { useActionLock } from '@/hooks/useActionLock';
@@ -12,6 +16,7 @@ import Button from '@/components/ui/Button';
 import Chip from '@/components/ui/Chip';
 
 export interface EntryFormValues {
+  reflection_count?: number | null;
   quote: string | null;
   note: string | null;
   from_page: number | null;
@@ -30,6 +35,7 @@ export type EntryFormInitial = Partial<{
 }>;
 
 interface EntryFormBodyProps {
+  entryId?: string;
   /** 종료 페이지 상한 — 책의 총 쪽수 */
   totalPages?: number | null;
   submitLabel: string;
@@ -52,6 +58,7 @@ interface EntryFormBodyProps {
  * 날짜 백필 허용, 페이지 선택.
  */
 export default function EntryFormBody({
+  entryId,
   totalPages,
   submitLabel,
   initial,
@@ -70,6 +77,11 @@ export default function EntryFormBody({
   const [toPage, setToPage] = useState(initial?.toPage?.toString() ?? '');
   const [date, setDate] = useState(initial?.date ?? todayKST());
   const [isPrivate, setIsPrivate] = useState(initial?.isPrivate ?? false);
+  const [acknowledgePublic, setAcknowledgePublic] = useState<number | null>(null);
+  const [serverRequiresConfirmation, setServerRequiresConfirmation] = useState(false);
+  const [confirmationAttempt, setConfirmationAttempt] = useState(0);
+  const republishing =
+    !!entryId && (initial?.isPrivate === true || serverRequiresConfirmation) && !isPrivate;
   const [error, setError] = useState('');
   const [needsReload, setNeedsReload] = useState(false);
   const action = useActionLock();
@@ -78,6 +90,10 @@ export default function EntryFormBody({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (disabled || action.isLocked()) return;
+    if (republishing && acknowledgePublic === null) {
+      setError('함께 공개되는 생각을 확인해 주세요.');
+      return;
+    }
     setError('');
 
     if (!hasEntryContent(quote, note)) {
@@ -105,6 +121,7 @@ export default function EntryFormBody({
         to_page: toPage === '' ? null : Number(toPage),
         date,
         is_private: isPrivate,
+        reflection_count: acknowledgePublic,
       });
       if (message) setError(message);
       else {
@@ -113,7 +130,12 @@ export default function EntryFormBody({
       }
     } catch (error) {
       if (error instanceof SessionExpiredError) leaving = true;
-      else if (error instanceof UncertainMutationError) {
+      else if (error instanceof ReflectionConfirmationRequiredError) {
+        setServerRequiresConfirmation(true);
+        setAcknowledgePublic(null);
+        setConfirmationAttempt((v) => v + 1);
+        setError(error.message);
+      } else if (error instanceof UncertainMutationError) {
         leaving = true;
         setNeedsReload(true);
         setError(error.message);
@@ -217,7 +239,10 @@ export default function EntryFormBody({
               disabled={isSubmitting || disabled || frozen}
               selected={isPrivate}
               aria-pressed={isPrivate}
-              onClick={() => setIsPrivate((v) => !v)}
+              onClick={() => {
+                setIsPrivate((v) => !v);
+                setAcknowledgePublic(null);
+              }}
             >
               <Lock size={12} strokeWidth={1.75} aria-hidden />
               비공개
@@ -230,7 +255,7 @@ export default function EntryFormBody({
             type="submit"
             size="md"
             className="w-full sm:ml-auto sm:min-h-9 sm:w-auto sm:px-4"
-            disabled={isSubmitting || disabled}
+            disabled={isSubmitting || disabled || (republishing && acknowledgePublic === null)}
           >
             {isSubmitting ? '남기는 중...' : submitLabel}
           </Button>
@@ -241,6 +266,13 @@ export default function EntryFormBody({
             ? '나만 볼 수 있습니다. 기존 공유 링크도 닫힙니다.'
             : '친구가 볼 수 있습니다. 공유 버튼을 누르면 링크로도 공개됩니다.'}
         </p>
+        {republishing && entryId && (
+          <EntryRepublishWarning
+            key={confirmationAttempt}
+            entryId={entryId}
+            onReady={setAcknowledgePublic}
+          />
+        )}
         {error && <p className="mt-3 text-caption font-medium text-danger">{error}</p>}
         {needsReload && (
           <button

@@ -47,7 +47,21 @@ export async function GET(
     if (friendshipError) return failed();
     if (!friendship) return unavailable();
   }
+  let detailHref = `/protected/entry/${entryId}`;
+  if (ownerId !== user.id) {
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('nickname,tag')
+      .eq('id', ownerId)
+      .maybeSingle();
+    if (profileError || !profile) return failed();
+    detailHref = `/protected/social/u/${profile.nickname}-${profile.tag}/entry/${entryId}`;
+  }
   const entry: EntryReadData = {
+    canWrite: ownerId === user.id,
+    entryIsPrivate: data.is_private,
+    viewerId: user.id,
+    detailHref,
     id: data.id,
     bookTitle: data.user_books.books.title,
     date: data.date,

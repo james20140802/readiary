@@ -1,7 +1,9 @@
+import type { ReflectionSummary } from '@/lib/reflections/types';
 import { Book } from './book';
 import { Profile } from './profile';
 
 export type Entry = {
+  reflectionSummary?: ReflectionSummary | null;
   id: string;
   date: string;
   note: string | null;
@@ -50,8 +52,12 @@ export type EntryDetailData = {
   initialCommentCount: number;
 };
 
-/** Minimal on-demand reading payload, with no social or account metadata. */
+/** On-demand reading payload with viewer permissions and canonical navigation. */
 export interface EntryReadData {
+  canWrite: boolean;
+  entryIsPrivate: boolean;
+  viewerId: string;
+  detailHref: string;
   id: string;
   bookTitle: string;
   date: string;
