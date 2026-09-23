@@ -37,6 +37,7 @@ export default function EditEntryForm({
 
   return (
     <EntryForm
+      entryId={entryId}
       book={book}
       successHref={`/protected/entry/${entryId}`}
       heading="기록 고치기"

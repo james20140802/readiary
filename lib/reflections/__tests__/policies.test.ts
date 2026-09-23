@@ -44,6 +44,15 @@ describe('entry reflections migration against PostgreSQL RLS', () => {
         'utf8'
       )
     );
+    await db.exec(
+      readFileSync(
+        new URL(
+          '../../../supabase/migrations/20260923084120_reflection_private_edits.sql',
+          import.meta.url
+        ),
+        'utf8'
+      )
+    );
   }, 20000);
   afterAll(async () => {
     await db?.close();
@@ -147,25 +156,28 @@ describe('entry reflections migration against PostgreSQL RLS', () => {
     await db.exec(`reset role; update entries set is_private=true;`);
     expect((await as(friend, rows())).rows).toHaveLength(0);
     expect((await as(owner, rows())).rows).toHaveLength(2);
-    await expect(
-      as(owner, `update entry_reflections set is_private=false where id='${privateId}'`)
-    ).rejects.toThrow('Original entry is private');
+    const forced = await as(
+      owner,
+      `update entry_reflections set is_private=false where id='${privateId}' returning is_private`
+    );
+    expect(forced.rows[0].is_private).toBe(true);
     await expect(
       as(
         owner,
         `insert into entry_reflections(id,entry_id,body,is_private) values('${stranger}','${entry}','공개',false)`
       )
     ).rejects.toThrow();
-    await as(
+    const edited = await as(
       owner,
-      `update entry_reflections set body='숨겨진 공개 생각 수정' where id='${publicId}'`
+      `update entry_reflections set body='숨겨진 공개 생각 수정',is_private=false where id='${publicId}' returning is_private`
     );
+    expect(edited.rows[0].is_private).toBe(true);
     await db.exec(
       `reset role; update entries set is_private=false; update friends set status='pending';`
     );
     expect((await as(friend, rows())).rows).toHaveLength(0);
     await db.exec(`reset role;update friends set status='accepted';`);
-    expect((await as(friend, rows())).rows).toHaveLength(1);
+    expect((await as(friend, rows())).rows).toHaveLength(0);
   });
   it('anonymous roles cannot read thoughts or execute summaries, even for shared originals', async () => {
     await db.exec('reset role;set role anon;');

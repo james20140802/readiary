@@ -1,4 +1,5 @@
 'use client';
+import EntryRepublishWarning from '@/components/reflections/EntryRepublishWarning';
 import ActionNavigation from '@/components/ui/ActionNavigation';
 
 import { UncertainMutationError } from '@/lib/actions/updateEntry';
@@ -30,6 +31,7 @@ export type EntryFormInitial = Partial<{
 }>;
 
 interface EntryFormBodyProps {
+  entryId?: string;
   /** 종료 페이지 상한 — 책의 총 쪽수 */
   totalPages?: number | null;
   submitLabel: string;
@@ -52,6 +54,7 @@ interface EntryFormBodyProps {
  * 날짜 백필 허용, 페이지 선택.
  */
 export default function EntryFormBody({
+  entryId,
   totalPages,
   submitLabel,
   initial,
@@ -71,7 +74,7 @@ export default function EntryFormBody({
   const [date, setDate] = useState(initial?.date ?? todayKST());
   const [isPrivate, setIsPrivate] = useState(initial?.isPrivate ?? false);
   const [acknowledgePublic, setAcknowledgePublic] = useState(false);
-  const republishing = initial?.isPrivate === true && !isPrivate;
+  const republishing = !!entryId && initial?.isPrivate === true && !isPrivate;
   const [error, setError] = useState('');
   const [needsReload, setNeedsReload] = useState(false);
   const action = useActionLock();
@@ -223,7 +226,10 @@ export default function EntryFormBody({
               disabled={isSubmitting || disabled || frozen}
               selected={isPrivate}
               aria-pressed={isPrivate}
-              onClick={() => setIsPrivate((v) => !v)}
+              onClick={() => {
+                setIsPrivate((v) => !v);
+                setAcknowledgePublic(false);
+              }}
             >
               <Lock size={12} strokeWidth={1.75} aria-hidden />
               비공개
@@ -247,17 +253,8 @@ export default function EntryFormBody({
             ? '나만 볼 수 있습니다. 기존 공유 링크도 닫힙니다.'
             : '친구가 볼 수 있습니다. 공유 버튼을 누르면 링크로도 공개됩니다.'}
         </p>
-        {republishing && (
-          <label className="mt-4 flex items-start gap-3 text-caption text-ink-sub">
-            <input
-              type="checkbox"
-              className="mt-1"
-              checked={acknowledgePublic}
-              disabled={isSubmitting}
-              onChange={(e) => setAcknowledgePublic(e.target.checked)}
-            />
-            기존에 친구 공개로 남긴 생각도 친구에게 다시 보이는 것을 확인했어요.
-          </label>
+        {republishing && entryId && (
+          <EntryRepublishWarning entryId={entryId} onReady={setAcknowledgePublic} />
         )}
         {error && <p className="mt-3 text-caption font-medium text-danger">{error}</p>}
         {needsReload && (

@@ -144,6 +144,7 @@ export default function EntryEditSheet({
                 {/* 원고 — 스크롤 영역. 기록이 바뀌면 key로 폼 상태를 새로 잡는다 */}
                 <div className="custom-scrollbar flex-1 overflow-y-auto px-5 pb-5 sm:rounded-b-[24px]">
                   <EntryFormBody
+                    entryId={entry.id}
                     key={entry.id}
                     totalPages={entry.book?.total_pages}
                     submitLabel="고쳐 남기기"

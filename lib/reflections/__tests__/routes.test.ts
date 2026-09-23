@@ -135,6 +135,25 @@ describe('reflection routes', () => {
     ).toBe(200);
     expect(from).toHaveBeenCalledTimes(1);
   });
+  it('forces private for stale public edits and reconciles the normalized retry', async () => {
+    const body = '오래 열린 편집창의 수정';
+    const { calls } = setup(
+      [
+        { data: { ...current, is_private: false }, error: null },
+        { data: { ...current, body }, error: null },
+      ],
+      true
+    );
+    expect(
+      (await PATCH(request('PATCH', { ...current, body, is_private: false }), { params })).status
+    ).toBe(200);
+    expect(calls[1].update).toHaveBeenCalledWith({ body, is_private: true });
+    const retry = setup([{ data: { ...current, body }, error: null }], true);
+    expect(
+      (await PATCH(request('PATCH', { ...current, body, is_private: false }), { params })).status
+    ).toBe(200);
+    expect(retry.from).toHaveBeenCalledTimes(1);
+  });
   it('delete is idempotent and constrained to the original and reflection', async () => {
     const { calls } = setup([{ data: null, error: null }]);
     expect((await DELETE(request('DELETE'), { params })).status).toBe(200);

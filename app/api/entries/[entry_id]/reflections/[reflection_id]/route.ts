@@ -25,13 +25,12 @@ export async function PATCH(request: Request, { params }: Context) {
     .maybeSingle();
   if (readError) return reflectionError('생각을 확인하지 못했습니다.', 500);
   if (!current) return reflectionError('생각을 볼 수 없습니다.', 404);
-  if (!input.is_private && current.is_private && entry.is_private)
-    return reflectionError('원문이 비공개이면 친구에게 공개할 수 없습니다.', 400);
-  if (current.body === input.body.trim() && current.is_private === input.is_private)
+  const isPrivate = entry.is_private || input.is_private;
+  if (current.body === input.body.trim() && current.is_private === isPrivate)
     return NextResponse.json(current, { headers: reflectionHeaders });
   const { data, error } = await supabase
     .from('entry_reflections')
-    .update({ body: input.body.trim(), is_private: input.is_private })
+    .update({ body: input.body.trim(), is_private: isPrivate })
     .eq('entry_id', entry_id)
     .eq('id', reflection_id)
     .eq('updated_at', input.updated_at)
