@@ -329,10 +329,12 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
   ) : null;
 
   // 타공 테두리·액션 바까지 포함한 엽서 낱장 — 앞·뒷면이 각각 온전한 한 장이라
-  // 뒤집을 때 카드 전체가 돌아간다
+  // 뒤집을 때 카드 전체가 돌아간다. 높이 100% 대신 flex stretch를 끝까지 연결한다.
+  // 자동 높이의 겹친 grid 안에서 WebKit이 자손의 % 높이를 내용 높이로 계산해
+  // 앞뒷면 테두리와 액션 바가 서로 다른 높이에 그려지는 것을 피한다.
   const postcard = (face: React.ReactNode) => (
-    <div className="perforated h-full">
-      <div className="flex h-full flex-col bg-card">
+    <div className="perforated flex flex-1 flex-col">
+      <div className="flex flex-1 flex-col bg-card">
         {face}
         <SocialActionBar
           entryId={entry.id}
@@ -372,13 +374,13 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
               >
                 <div
                   inert={isFlipped}
-                  className="min-w-0 [grid-area:1/1] [backface-visibility:hidden]"
+                  className="flex min-w-0 flex-col [grid-area:1/1] [backface-visibility:hidden]"
                 >
                   {postcard(frontFace)}
                 </div>
                 <div
                   inert={!isFlipped}
-                  className="min-w-0 [grid-area:1/1] [backface-visibility:hidden] [transform:rotateY(180deg)]"
+                  className="flex min-w-0 flex-col [grid-area:1/1] [backface-visibility:hidden] [transform:rotateY(180deg)]"
                 >
                   {postcard(backFace)}
                 </div>
