@@ -1,4 +1,5 @@
 'use client';
+import { useReflectionFeature } from '@/components/features/ReflectionFeatureProvider';
 
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { useEffect, useState } from 'react';
@@ -19,6 +20,7 @@ export default function EntryReader({
   entryId: string;
   onClose: () => void;
 }) {
+  const enabled = useReflectionFeature();
   const [summary, setSummary] = useState<ReflectionSummary | null>(null);
   const [entry, setEntry] = useState<EntryReadData | null>(null);
   const [error, setError] = useState<'unavailable' | 'failed' | null>(null);
@@ -40,6 +42,7 @@ export default function EntryReader({
         }
         const data: EntryReadData = await response.json();
         if (!controller.signal.aborted) setEntry(data);
+        if (!enabled) return;
         const summaryResponse = await apiFetch(
           `/api/entries/${encodeURIComponent(entryId)}/reflections/summary`,
           { signal: controller.signal, cache: 'no-store' }
@@ -55,7 +58,7 @@ export default function EntryReader({
     }
     void read();
     return () => controller.abort();
-  }, [entryId, attempt]);
+  }, [entryId, attempt, enabled]);
 
   useEffect(() => {
     const refresh = () => {

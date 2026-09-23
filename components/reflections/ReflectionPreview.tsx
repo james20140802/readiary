@@ -1,4 +1,5 @@
 'use client';
+import { useReflectionFeature } from '@/components/features/ReflectionFeatureProvider';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { subscribeReflectionSummary } from '@/lib/reflections/summaryRefresh';
@@ -20,13 +21,17 @@ export default function ReflectionPreview({
   onNavigate?: () => void;
   compactOnNarrow?: boolean;
 }) {
+  const enabled = useReflectionFeature();
   const [current, setCurrent] = useState(summary);
   const [previous, setPrevious] = useState(summary);
   if (summary !== previous) {
     setPrevious(summary);
     setCurrent(summary);
   }
-  useEffect(() => subscribeReflectionSummary(entryId, setCurrent), [entryId]);
+  useEffect(() => {
+    if (enabled) return subscribeReflectionSummary(entryId, setCurrent);
+  }, [entryId, enabled]);
+  if (!enabled) return null;
   if (current?.total === 0 && !own) return null;
   const detailHref = href ?? `/protected/entry/${entryId}`;
   const linkClass =

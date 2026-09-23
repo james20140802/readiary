@@ -38,7 +38,7 @@ describe('entry reflections migration against PostgreSQL RLS', () => {
     await db.exec(
       readFileSync(
         new URL(
-          '../../../supabase/migrations/20260921065117_entry_reflections.sql',
+          '../../../supabase/migrations/20260923082615_entry_reflections.sql',
           import.meta.url
         ),
         'utf8'

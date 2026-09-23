@@ -1,3 +1,4 @@
+import { getReflectionFeature } from '@/lib/features/entry-reflections';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { getServerUser } from '@/lib/supabase/getServerUser';
 import { unauthorized } from '@/lib/api/auth';
@@ -11,7 +12,7 @@ export const reflectionHeaders = {
 export function reflectionError(error: string, status: number) {
   return NextResponse.json({ error }, { status, headers: reflectionHeaders });
 }
-export async function reflectionAccess(entryId: string, write = false) {
+export async function reflectionAccess(entryId: string, write = false, safetySummary = false) {
   const {
     data: { user },
     error,
@@ -19,6 +20,8 @@ export async function reflectionAccess(entryId: string, write = false) {
   if (!user || error) return { response: unauthorized(reflectionHeaders) };
   if (!uuidPattern.test(entryId))
     return { response: reflectionError('기록을 볼 수 없습니다.', 404) };
+  if (!safetySummary && !(await getReflectionFeature()).enabled)
+    return { response: reflectionError('아직 사용할 수 없는 기능입니다.', 404) };
   const supabase = await createSupabaseServerClient();
   const { data: entry, error: readError } = await supabase
     .from('entries')
@@ -52,7 +55,7 @@ export async function fetchReflectionSummaries(
   ids: string[]
 ): Promise<Record<string, ReflectionSummary> | null> {
   const result: Record<string, ReflectionSummary> = {};
-  if (!ids.length) return result;
+  if (!ids.length || !(await getReflectionFeature()).enabled) return result;
   const supabase = await createSupabaseServerClient();
   for (let i = 0; i < ids.length; i += 100) {
     const { data, error } = await supabase.rpc('get_entry_reflection_summaries', {

@@ -1,3 +1,4 @@
+import { getReflectionFeature } from '@/lib/features/entry-reflections';
 import { NextResponse } from 'next/server';
 import { getServerUser } from '@/lib/supabase/getServerUser';
 import { unauthorized } from '@/lib/api/auth';
@@ -10,6 +11,8 @@ export async function GET(request: Request) {
     error: authError,
   } = await getServerUser();
   if (authError || !user) return unauthorized(reflectionHeaders);
+  if (!(await getReflectionFeature()).enabled)
+    return reflectionError('아직 사용할 수 없는 기능입니다.', 404);
   const ids = new URL(request.url).searchParams.get('ids')?.split(',') ?? [];
   if (!ids.length || ids.length > 100 || ids.some((id) => !uuidPattern.test(id)))
     return reflectionError('기록 목록을 확인해 주세요.', 400);

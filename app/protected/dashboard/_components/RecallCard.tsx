@@ -1,4 +1,5 @@
 'use client';
+import { useReflectionFeature } from '@/components/features/ReflectionFeatureProvider';
 import Link from 'next/link';
 import { useState } from 'react';
 import EntryReader from '@/components/entries/EntryReader';
@@ -10,6 +11,7 @@ import ClampedText from '@/components/ui/ClampedText';
 import type { RecallEntry } from '@/lib/recall/fetchRecallEntry';
 
 export function RecallCard({ recall }: { recall: RecallEntry }) {
+  const enabled = useReflectionFeature();
   const [reading, setReading] = useState(false);
   const href = `/protected/entry/${recall.id}`;
   const label = recall.yearsAgo != null ? `${recall.yearsAgo}년 전 오늘` : '다시 꺼낸 문장';
@@ -43,9 +45,11 @@ export function RecallCard({ recall }: { recall: RecallEntry }) {
             <span className="font-serif text-caption font-bold text-ink">{recall.bookTitle}</span>
             <span className="text-caption text-ink-faint">{meta}</span>
           </div>
-          <Button variant="secondary" className="relative z-10 shrink-0" asChild>
-            <Link href={`${href}?reflect=1#reflections`}>지금의 생각 남기기</Link>
-          </Button>
+          {enabled && (
+            <Button variant="secondary" className="relative z-10 shrink-0" asChild>
+              <Link href={`${href}?reflect=1#reflections`}>지금의 생각 남기기</Link>
+            </Button>
+          )}
         </div>
       </Card>
       {reading && <EntryReader entryId={recall.id} onClose={() => setReading(false)} />}

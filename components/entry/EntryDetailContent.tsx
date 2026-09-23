@@ -1,4 +1,5 @@
 'use client';
+import { useReflectionFeature } from '@/components/features/ReflectionFeatureProvider';
 
 import ReflectionThread from '@/components/reflections/ReflectionThread';
 import EntryDeleteWarning from '@/components/reflections/EntryDeleteWarning';
@@ -50,6 +51,7 @@ export default function EntryDetailContent({
   currentUserId,
   openComposer = false,
 }: Props) {
+  const enabled = useReflectionFeature();
   const router = useRouter();
   const [thoughtCount, setThoughtCount] = useState(0);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -139,7 +141,7 @@ export default function EntryDetailContent({
                     </blockquote>
                   </div>
                 )}
-                {entry.note && thoughtCount > 0 && (
+                {enabled && entry.note && thoughtCount > 0 && (
                   <h3 className="mt-6 text-caption text-ink-sub">남긴 생각</h3>
                 )}
                 {entry.note && (
@@ -201,13 +203,15 @@ export default function EntryDetailContent({
                 닫힙니다.
               </p>
             )}
-            <div id="reflections" className="scroll-mt-24">
-              <ReflectionThread
-                openComposer={openComposer && !isFriend}
-                entryId={entry.id}
-                onSummary={(summary) => setThoughtCount(summary?.total ?? 0)}
-              />
-            </div>
+            {enabled && (
+              <div id="reflections" className="scroll-mt-24">
+                <ReflectionThread
+                  openComposer={openComposer && !isFriend}
+                  entryId={entry.id}
+                  onSummary={(summary) => setThoughtCount(summary?.total ?? 0)}
+                />
+              </div>
+            )}
           </article>
         </AnimatedSection>
 

@@ -51,6 +51,8 @@ export default function EntryDeleteWarning({
         </>
       ) : count === null ? (
         <p role="status">이어 남긴 생각을 확인하는 중입니다.</p>
+      ) : count === 0 ? (
+        <p>이 기록을 삭제하면 되돌릴 수 없습니다.</p>
       ) : (
         <p>원래 기록과 이어 남긴 생각 {count}개가 함께 삭제됩니다. 되돌릴 수 없습니다.</p>
       )}

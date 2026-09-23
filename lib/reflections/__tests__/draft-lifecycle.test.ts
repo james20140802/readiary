@@ -4,6 +4,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import ReflectionThread from '@/components/reflections/ReflectionThread';
 import ReflectionPreview from '@/components/reflections/ReflectionPreview';
+import { ReflectionFeatureContext } from '@/components/features/ReflectionFeatureProvider';
 import ReflectionComposer from '@/components/reflections/ReflectionComposer';
 import { apiFetch } from '@/lib/api/fetch';
 vi.mock('@/lib/api/fetch', async (original) => ({
@@ -144,11 +145,15 @@ describe('draft retention through refresh and failed storage', () => {
   });
   it('links thought actions to detail without mounting an inline editor', () => {
     render(
-      React.createElement(ReflectionPreview, {
-        entryId: 'entry',
-        summary: { total: 1, latest: item(0) },
-        own: true,
-      })
+      React.createElement(
+        ReflectionFeatureContext.Provider,
+        { value: true },
+        React.createElement(ReflectionPreview, {
+          entryId: 'entry',
+          summary: { total: 1, latest: item(0) },
+          own: true,
+        })
+      )
     );
     expect(screen.getByRole('link', { name: '이어 남긴 생각 1개 보기' }).getAttribute('href')).toBe(
       '/protected/entry/entry#reflections'
