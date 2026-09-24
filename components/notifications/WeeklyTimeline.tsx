@@ -61,17 +61,28 @@ export default function WeeklyTimeline({
       </p>
       <ol aria-label="날짜별 기록" className="space-y-10">
         {orderedDays.map(([date, items]) => (
-          <li key={date} className="relative pl-6 sm:pl-28">
+          <li key={date} className="relative pl-16 sm:pl-28">
             <div
               aria-hidden="true"
-              className="absolute bottom-0 left-1 top-2 w-px bg-hairline-strong sm:left-24"
+              className="absolute bottom-0 left-12 top-2 w-px bg-hairline-strong sm:left-24"
             />
             <span
               aria-hidden="true"
-              className="absolute left-0 top-2 h-[9px] w-[9px] rounded-full border border-accent bg-paper sm:left-[calc(6rem-4px)]"
+              className="absolute left-[calc(3rem-4px)] top-2 h-[9px] w-[9px] rounded-full border border-accent bg-paper sm:left-[calc(6rem-4px)]"
             />
-            <h2 className="mb-5 text-caption font-medium text-accent sm:absolute sm:left-0 sm:top-0 sm:w-20">
-              <time dateTime={date}>{formatKoreanDate(date) ?? date}</time>
+            <h2 className="absolute left-0 top-0 w-10 text-center text-accent sm:w-20">
+              <time dateTime={date}>
+                <span className="sr-only">{formatKoreanDate(date) ?? date}</span>
+                <span aria-hidden="true" className="block text-caption">
+                  {Number(date.slice(5, 7))}월
+                </span>
+                <span
+                  aria-hidden="true"
+                  className="block font-serif text-section-title tabular-nums"
+                >
+                  {date.slice(8, 10)}
+                </span>
+              </time>
             </h2>
             <ol className="divide-y divide-hairline">
               {items.map((entry) => (
@@ -81,7 +92,7 @@ export default function WeeklyTimeline({
                     prefetch={false}
                     className="group block rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-4 focus-visible:ring-offset-paper"
                   >
-                    <p className="mb-3 font-serif text-body-sm text-ink-sub">
+                    <p className="mb-4 break-words font-serif text-body-sm text-ink-sub">
                       {entry.user_books.books?.title ?? '책 정보 없음'}
                     </p>
                     {entry.quote && (
