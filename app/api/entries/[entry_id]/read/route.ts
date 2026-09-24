@@ -1,3 +1,4 @@
+import { fetchReflectionSummaries } from '@/lib/reflections/server';
 import { NextResponse } from 'next/server';
 import { unauthorized } from '@/lib/api/auth';
 import { getServerUser } from '@/lib/supabase/getServerUser';
@@ -57,7 +58,9 @@ export async function GET(
     if (profileError || !profile) return failed();
     detailHref = `/protected/social/u/${profile.nickname}-${profile.tag}/entry/${entryId}`;
   }
+  const summaries = await fetchReflectionSummaries([entryId]);
   const entry: EntryReadData = {
+    reflectionSummary: summaries?.[entryId] ?? null,
     canWrite: ownerId === user.id,
     entryIsPrivate: data.is_private,
     viewerId: user.id,

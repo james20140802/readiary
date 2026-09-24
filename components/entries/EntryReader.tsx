@@ -6,7 +6,6 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import InertBackground from '@/components/ui/InertBackground';
 import ReflectionPreview from '@/components/reflections/ReflectionPreview';
-import type { ReflectionSummary } from '@/lib/reflections/types';
 import { ArrowRight, X } from 'lucide-react';
 import { createSupabaseClient } from '@/lib/supabase/client';
 import { apiFetch, SessionExpiredError } from '@/lib/api/fetch';
@@ -21,7 +20,6 @@ export default function EntryReader({
   onClose: () => void;
 }) {
   const enabled = useReflectionFeature();
-  const [summary, setSummary] = useState<ReflectionSummary | null>(null);
   const [entry, setEntry] = useState<EntryReadData | null>(null);
   const [error, setError] = useState<'unavailable' | 'failed' | null>(null);
   const [attempt, setAttempt] = useState(0);
@@ -42,15 +40,6 @@ export default function EntryReader({
         }
         const data: EntryReadData = await response.json();
         if (!controller.signal.aborted) setEntry(data);
-        if (!enabled) return;
-        const summaryResponse = await apiFetch(
-          `/api/entries/${encodeURIComponent(entryId)}/reflections/summary`,
-          { signal: controller.signal, cache: 'no-store' }
-        ).catch(() => null);
-        const nextSummary = summaryResponse?.ok
-          ? await summaryResponse.json().catch(() => null)
-          : null;
-        if (!controller.signal.aborted) setSummary(nextSummary);
       } catch (cause) {
         if (!controller.signal.aborted && !(cause instanceof SessionExpiredError))
           setError('failed');
@@ -64,7 +53,6 @@ export default function EntryReader({
     const refresh = () => {
       if (document.visibilityState === 'visible') {
         setError(null);
-        setSummary(null);
         setAttempt((value) => value + 1);
       }
     };
@@ -75,12 +63,10 @@ export default function EntryReader({
     } = createSupabaseClient().auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT') {
         setEntry(null);
-        setSummary(null);
         refresh();
       }
       if (event === 'SIGNED_IN') {
         if (entry?.viewerId && session?.user.id !== entry.viewerId) setEntry(null);
-        setSummary(null);
         refresh();
       }
     });
@@ -160,21 +146,20 @@ export default function EntryReader({
                 )}
                 <ReflectionPreview
                   entryId={entry.id}
-                  summary={summary}
+                  summary={entry.reflectionSummary}
                   own={entry.canWrite}
                   href={entry.detailHref}
                   onNavigate={onClose}
+                  trailingAction={
+                    <Link
+                      href={entry.detailHref}
+                      onClick={onClose}
+                      className="inline-flex min-h-11 items-center gap-1 text-button-sm text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
+                    >
+                      자세히 <ArrowRight size={16} strokeWidth={1.75} aria-hidden="true" />
+                    </Link>
+                  }
                 />
-                <div className="mt-6 flex justify-end">
-                  <Link
-                    href={entry.detailHref}
-                    onClick={onClose}
-                    className="inline-flex min-h-11 items-center gap-1 text-button-sm text-accent"
-                  >
-                    자세히
-                    <ArrowRight size={16} strokeWidth={1.75} aria-hidden="true" />
-                  </Link>
-                </div>
               </article>
             )}
           </div>

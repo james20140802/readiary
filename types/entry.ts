@@ -54,6 +54,7 @@ export type EntryDetailData = {
 
 /** On-demand reading payload with viewer permissions and canonical navigation. */
 export interface EntryReadData {
+  reflectionSummary?: ReflectionSummary | null;
   canWrite: boolean;
   entryIsPrivate: boolean;
   viewerId: string;

@@ -239,7 +239,12 @@ export default function ReflectionThread({
               <li key={item.id}>
                 <div className="flex flex-wrap items-center justify-between gap-2 text-caption text-ink-sub">
                   <p>
-                    <time dateTime={item.created_at}>{thoughtDate(item.created_at)}</time>
+                    <time
+                      className="inline-flex rounded-b-md rounded-t-sm bg-card-raised px-3 py-1.5"
+                      dateTime={item.created_at}
+                    >
+                      {thoughtDate(item.created_at)}
+                    </time>
                     {page.canWrite && (
                       <span>
                         {' '}

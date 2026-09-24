@@ -1,6 +1,7 @@
 'use client';
 import { useReflectionFeature } from '@/components/features/ReflectionFeatureProvider';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
+import { ArrowRight, PenLine } from 'lucide-react';
 import Link from 'next/link';
 import { subscribeReflectionSummary } from '@/lib/reflections/summaryRefresh';
 import type { ReflectionSummary } from '@/lib/reflections/types';
@@ -13,6 +14,7 @@ export default function ReflectionPreview({
   href,
   onNavigate,
   compactOnNarrow = false,
+  trailingAction,
 }: {
   entryId: string;
   summary?: ReflectionSummary | null;
@@ -20,6 +22,7 @@ export default function ReflectionPreview({
   href?: string;
   onNavigate?: () => void;
   compactOnNarrow?: boolean;
+  trailingAction?: ReactNode;
 }) {
   const enabled = useReflectionFeature();
   const [current, setCurrent] = useState(summary);
@@ -31,47 +34,63 @@ export default function ReflectionPreview({
   useEffect(() => {
     if (enabled) return subscribeReflectionSummary(entryId, setCurrent);
   }, [entryId, enabled]);
-  if (!enabled) return null;
-  if (current?.total === 0 && !own) return null;
+  if (!enabled)
+    return trailingAction ? <div className="mt-6 flex justify-end">{trailingAction}</div> : null;
+  const hasThoughts = (current?.total ?? 0) > 0;
+  if (!hasThoughts && !own && !trailingAction) return null;
   const detailHref = href ?? `/protected/entry/${entryId}`;
-  const linkClass =
-    'inline-flex min-h-11 items-center text-button-sm text-ink-sub underline underline-offset-4 hover:text-accent';
+  const focusClass =
+    'rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent';
+  const viewLabel = `이어 남긴 생각 ${current?.total ?? 0}개 보기`;
+  const slip = hasThoughts && current?.latest && !compactOnNarrow;
   return (
-    <div
-      className={
-        compactOnNarrow
-          ? 'mt-3 border-t border-hairline pt-1 [@container(min-width:560px)]:mt-5 [@container(min-width:560px)]:pt-4'
-          : 'mt-5 border-t border-hairline pt-4'
-      }
-    >
-      {current?.latest && (
-        <div className={compactOnNarrow ? 'hidden [@container(min-width:560px)]:block' : undefined}>
-          <p className="text-caption text-ink-sub">
-            다시 읽고 ·{' '}
-            <time dateTime={current.latest.created_at}>
-              {thoughtDate(current.latest.created_at)}
+    <div className={compactOnNarrow ? 'mt-3' : 'mt-5'}>
+      {slip && (
+        <Link
+          href={`${detailHref}#reflections`}
+          onClick={onNavigate}
+          aria-label={viewLabel}
+          className={`group relative ml-3 block rounded-md ${trailingAction ? 'bg-paper' : 'bg-card'} px-5 pb-4 pt-0 transition-colors hover:bg-card-raised sm:ml-6 ${focusClass}`}
+        >
+          <span className="relative -top-2 inline-flex items-center gap-2 rounded-b-md rounded-t-sm bg-card-raised px-3 py-1.5 font-sans text-caption text-ink-sub">
+            <span className="h-1 w-1 rounded-full bg-accent" aria-hidden="true" />
+            다시 읽고{' '}
+            <time dateTime={current.latest!.created_at}>
+              {thoughtDate(current.latest!.created_at)}
             </time>
+          </span>
+          <p className="mt-1 line-clamp-2 whitespace-pre-wrap break-words font-serif text-note text-ink">
+            {current.latest!.body}
           </p>
-          <p className="mt-2 line-clamp-2 break-words whitespace-pre-wrap font-serif text-note text-ink">
-            {current.latest.body}
-          </p>
-        </div>
+          {!trailingAction && (
+            <span className="mt-3 flex items-center justify-end gap-1 font-sans text-button-sm text-ink-sub group-hover:text-accent">
+              이어 남긴 생각 {current.total}개{' '}
+              <ArrowRight size={14} strokeWidth={1.75} aria-hidden="true" />
+            </span>
+          )}
+        </Link>
       )}
-      <div className="mt-1 flex flex-wrap gap-x-5">
-        {current?.total !== 0 && (
-          <Link href={`${detailHref}#reflections`} onClick={onNavigate} className={linkClass}>
-            {current?.total ? `이어 남긴 생각 ${current.total}개 보기` : '이어 남긴 생각 보기'}
+      <div className="mt-1 flex flex-wrap items-center justify-end gap-x-4 gap-y-1">
+        {hasThoughts && (!slip || trailingAction) && (
+          <Link
+            href={`${detailHref}#reflections`}
+            onClick={onNavigate}
+            className={`mr-auto inline-flex min-h-11 items-center text-button-sm text-ink-sub hover:text-accent ${focusClass}`}
+          >
+            {trailingAction ? `생각 ${current?.total}개 보기` : viewLabel}
           </Link>
         )}
         {own && (
           <Link
             href={`${detailHref}?reflect=1#reflections`}
             onClick={onNavigate}
-            className={linkClass}
+            className={`inline-flex min-h-11 items-center gap-1.5 text-button-sm text-ink-sub hover:text-accent ${focusClass}`}
           >
-            지금의 생각 남기기
+            <PenLine size={14} strokeWidth={1.75} aria-hidden="true" />
+            {trailingAction ? '지금 생각 남기기' : '지금의 생각 남기기'}
           </Link>
         )}
+        {trailingAction}
       </div>
     </div>
   );
