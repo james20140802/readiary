@@ -6,6 +6,7 @@ import Button from '@/components/ui/Button';
 export type WeeklyEntry = {
   id: string;
   date: string;
+  is_private: boolean;
   quote: string | null;
   note: string | null;
   user_books: { books: { title: string } | null };
