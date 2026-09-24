@@ -160,3 +160,40 @@ li {
   /* 우표도 같은 3D 문맥 안이라 같은 이유로 filter 대신 box-shadow */
   box-shadow: 0 2px 3px -1px rgb(0 0 0 / 0.16);
 }
+
+/* 독서 메모: 위쪽 부착 테이프와 오른쪽 아래 접힌 종이 모서리. */
+.reflection-slip {
+  border: 1px solid rgb(var(--hairline));
+  border-radius: 2px;
+  margin-top: 1.75rem;
+  margin-bottom: 0.5rem;
+  isolation: isolate;
+}
+.reflection-slip::before {
+  content: '';
+  position: absolute;
+  top: -7px;
+  left: 24px;
+  width: 44px;
+  height: 14px;
+  background: rgb(var(--accent) / 0.12);
+  border: 1px solid rgb(var(--accent) / 0.14);
+  transform: rotate(-4deg);
+  pointer-events: none;
+}
+.reflection-slip::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 18px;
+  height: 18px;
+  background: linear-gradient(
+    135deg,
+    rgb(var(--card-raised)) 48%,
+    rgb(var(--hairline-strong)) 49%,
+    rgb(var(--hairline-strong)) 52%,
+    rgb(var(--paper)) 53%
+  );
+  pointer-events: none;
+}

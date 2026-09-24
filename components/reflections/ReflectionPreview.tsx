@@ -7,6 +7,20 @@ import { subscribeReflectionSummary } from '@/lib/reflections/summaryRefresh';
 import type { ReflectionSummary } from '@/lib/reflections/types';
 import { thoughtDate } from './ReflectionThread';
 
+export function ReflectionWriteLink({ href }: { href: string }) {
+  const enabled = useReflectionFeature();
+  if (!enabled) return null;
+  return (
+    <Link
+      href={`${href}?reflect=1#reflections`}
+      className="inline-flex min-h-11 shrink-0 items-center gap-1.5 text-button-sm text-ink-sub hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
+    >
+      <PenLine size={14} strokeWidth={1.75} aria-hidden="true" />
+      지금의 생각 남기기
+    </Link>
+  );
+}
+
 export default function ReflectionPreview({
   entryId,
   summary,
@@ -50,16 +64,16 @@ export default function ReflectionPreview({
           href={`${detailHref}#reflections`}
           onClick={onNavigate}
           aria-label={viewLabel}
-          className={`group relative ml-3 block rounded-md ${trailingAction ? 'bg-paper' : 'bg-card'} px-5 pb-4 pt-0 transition-colors hover:bg-card-raised sm:ml-6 ${focusClass}`}
+          className={`reflection-slip group relative ml-3 block ${trailingAction ? 'bg-paper' : 'bg-card'} px-5 pb-5 pt-5 transition-colors hover:bg-card-raised sm:ml-6 ${focusClass}`}
         >
-          <span className="relative -top-2 inline-flex items-center gap-2 rounded-b-md rounded-t-sm bg-card-raised px-3 py-1.5 font-sans text-caption text-ink-sub">
+          <span className="inline-flex items-center gap-2 pr-5 font-sans text-caption text-ink-sub">
             <span className="h-1 w-1 rounded-full bg-accent" aria-hidden="true" />
             다시 읽고{' '}
             <time dateTime={current.latest!.created_at}>
               {thoughtDate(current.latest!.created_at)}
             </time>
           </span>
-          <p className="mt-1 line-clamp-2 whitespace-pre-wrap break-words font-serif text-note text-ink">
+          <p className="mt-3 line-clamp-2 whitespace-pre-wrap break-words font-serif text-note text-ink">
             {current.latest!.body}
           </p>
           {!trailingAction && (
