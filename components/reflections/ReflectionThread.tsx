@@ -2,6 +2,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Button from '@/components/ui/Button';
+import Modal from '@/components/ui/Modal';
+import { Dialog } from '@headlessui/react';
 import { apiFetch, SessionExpiredError } from '@/lib/api/fetch';
 import { createSupabaseClient } from '@/lib/supabase/client';
 import { useActionLock } from '@/hooks/useActionLock';
@@ -39,6 +41,7 @@ export default function ReflectionThread({
   }
   const [editing, setEditing] = useState<EntryReflection | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState('');
   const [unsafe, setUnsafe] = useState(false);
   const [discardPrompt, setDiscardPrompt] = useState(false);
   const [status, setStatus] = useState('');
@@ -177,8 +180,15 @@ export default function ReflectionThread({
     setEditing(null);
     requestAnimationFrame(() => addButton.current?.focus());
   };
+  const closeDelete = () => {
+    if (deletion.isLocked()) return;
+    setDeleting(null);
+    setDeleteError('');
+    requestAnimationFrame(() => deleteTrigger.current?.focus());
+  };
   const remove = async () => {
     if (!deleting || !deletion.acquire()) return;
+    setDeleteError('');
     try {
       const response = await apiFetch(`/api/entries/${entryId}/reflections/${deleting}`, {
         method: 'DELETE',
@@ -191,7 +201,7 @@ export default function ReflectionThread({
       router.refresh();
     } catch (cause) {
       if (!(cause instanceof SessionExpiredError))
-        setError(
+        setDeleteError(
           cause instanceof Error
             ? cause.message
             : '삭제 결과를 확인하지 못했습니다. 다시 시도해 주세요.'
@@ -267,6 +277,7 @@ export default function ReflectionThread({
                         disabled={composer || !!editing || !!deleting}
                         onClick={(event) => {
                           deleteTrigger.current = event.currentTarget;
+                          setDeleteError('');
                           setDeleting(item.id);
                         }}
                       >
@@ -289,38 +300,6 @@ export default function ReflectionThread({
                   <p className="mt-2 whitespace-pre-wrap break-words font-serif text-note text-ink">
                     {item.body}
                   </p>
-                )}
-                {deleting === item.id && (
-                  <div
-                    role="group"
-                    aria-label="이 생각 삭제"
-                    className="mt-4 border-y border-hairline py-4"
-                  >
-                    <p className="text-body text-ink">이 생각을 삭제할까요?</p>
-                    <p className="mt-1 text-caption text-ink-sub">
-                      원래 기록과 다른 생각은 남습니다. 삭제는 되돌릴 수 없습니다.
-                    </p>
-                    <div className="mt-3 flex justify-end gap-2">
-                      <Button
-                        autoFocus
-                        variant="ghost"
-                        disabled={deletion.busy}
-                        onClick={() => {
-                          setDeleting(null);
-                          requestAnimationFrame(() => deleteTrigger.current?.focus());
-                        }}
-                      >
-                        취소
-                      </Button>
-                      <Button
-                        variant="danger"
-                        disabled={deletion.busy}
-                        onClick={() => void remove()}
-                      >
-                        {deletion.busy ? '지우는 중…' : '생각 삭제'}
-                      </Button>
-                    </div>
-                  </div>
                 )}
               </li>
             ))}
@@ -368,6 +347,40 @@ export default function ReflectionThread({
             ))}
         </>
       )}
+      <Modal isOpen={!!deleting && !!page?.canWrite} onClose={closeDelete}>
+        <div className="space-y-4">
+          <Dialog.Title className="font-serif text-section-title text-ink">
+            이 생각을 삭제할까요?
+          </Dialog.Title>
+          <Dialog.Description className="text-caption text-ink-sub">
+            원래 기록과 다른 생각은 남습니다. 삭제는 되돌릴 수 없습니다.
+          </Dialog.Description>
+          {deleteError && (
+            <p role="alert" className="text-caption text-danger">
+              {deleteError}
+            </p>
+          )}
+          <div className="flex justify-end gap-2 pt-2">
+            <Button
+              autoFocus
+              size="sm"
+              variant="ghost"
+              disabled={deletion.busy}
+              onClick={closeDelete}
+            >
+              취소
+            </Button>
+            <Button
+              size="sm"
+              variant="danger"
+              disabled={deletion.busy}
+              onClick={() => void remove()}
+            >
+              {deletion.busy ? '지우는 중…' : '생각 삭제'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
       {discardPrompt && (
         <div
           role="group"
