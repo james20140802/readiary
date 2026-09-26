@@ -34,6 +34,7 @@ export default function WeeklyLetterExport({
   const [includeNotes, setIncludeNotes] = useState(true);
   const [stage, setStage] = useState<'choose' | 'generating' | 'preview'>('choose');
   const [images, setImages] = useState<ImageFile[]>([]);
+  const [download, setDownload] = useState<{ url: string; name: string } | null>(null);
   const [sheet, setSheet] = useState<{ blocks: LetterBlock[]; page: number; total: number } | null>(
     null
   );
@@ -61,6 +62,7 @@ export default function WeeklyLetterExport({
     ownedUrls.current.forEach(URL.revokeObjectURL);
     ownedUrls.current = [];
     setImages([]);
+    setDownload(null);
   }
   const eligible = (entry: WeeklyEntry) => Boolean(entry.quote || includeNotes || !entry.note);
   const chosen = entries.filter((entry) => selected.has(entry.id) && eligible(entry));
@@ -125,8 +127,14 @@ export default function WeeklyLetterExport({
         next.push({ file, url: URL.createObjectURL(file) });
       }
       if (!active()) return;
+      setProgress('편지를 저장할 파일로 묶고 있어요.');
+      const { bundleLetterImages } = await import('@/lib/export/letter-download');
+      const bundle = await bundleLetterImages(next.map((item) => item.file));
+      if (!active()) return;
+      const downloadUrl = next.length === 1 ? next[0].url : URL.createObjectURL(bundle.blob);
       clearImages();
-      ownedUrls.current = next.map((item) => item.url);
+      ownedUrls.current = [...new Set([...next.map((item) => item.url), downloadUrl])];
+      setDownload({ url: downloadUrl, name: bundle.name });
       setImages(next);
       setStage('preview');
       setSheet(null);
@@ -158,9 +166,7 @@ export default function WeeklyLetterExport({
     try {
       const files = images.map((item) => item.file);
       if (!navigator.canShare?.({ files })) {
-        setMessage(
-          '이 기기에서는 파일 공유를 지원하지 않아요. 각 이미지의 저장 버튼을 이용해 주세요.'
-        );
+        setMessage('이 기기에서는 파일 공유를 지원하지 않아요. 편지 전체 저장을 이용해 주세요.');
         return;
       }
       await navigator.share({ files, title: '한 주의 독서 편지' });
@@ -307,9 +313,18 @@ export default function WeeklyLetterExport({
             </Button>
           </div>
           <p className="text-caption text-ink-sub">
-            각 장을 저장하거나 길게 눌러 사진으로 간직하세요. 다른 사람에게 전달하면 이미지에 담긴
-            내용을 볼 수 있어요.
+            {images.length > 1
+              ? `이미지 ${images.length}장을 ZIP 파일 하나로 저장해요. 압축을 풀면 각 이미지를 볼 수 있어요.`
+              : '편지를 PNG 이미지로 저장해요.'}{' '}
+            다른 사람에게 전달하면 이미지에 담긴 내용을 볼 수 있어요.
           </p>
+          {download && (
+            <Button asChild fullWidth>
+              <a href={download.url} download={download.name}>
+                <Download size={16} strokeWidth={1.75} aria-hidden="true" /> 편지 전체 저장
+              </a>
+            </Button>
+          )}
           <ol className="space-y-8">
             {images.map((item, index) => (
               <li key={item.url} className="space-y-3">
@@ -323,12 +338,6 @@ export default function WeeklyLetterExport({
                   className="h-auto w-full border border-hairline"
                   loading="lazy"
                 />
-                <Button asChild variant="secondary" fullWidth>
-                  <a href={item.url} download={item.file.name}>
-                    <Download size={16} strokeWidth={1.75} aria-hidden="true" /> {index + 1}장
-                    이미지 저장
-                  </a>
-                </Button>
               </li>
             ))}
           </ol>

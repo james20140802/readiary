@@ -23,7 +23,7 @@ export default async function Page() {
     .limit(50);
   const rows = (data as unknown as WeeklyEntry[] | null) ?? [];
   return (
-    <div className="mx-auto max-w-2xl space-y-8">
+    <div className="mx-auto max-w-2xl space-y-4">
       <header>
         <div className="flex items-center gap-2">
           <BackButton />

@@ -39,7 +39,7 @@ export default function WeeklyRecords({
   return (
     <div className="space-y-6">
       {!failed && entries.length > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-4 border-y border-hairline py-5">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-hairline pb-5 pt-2">
           <div>
             <p className="font-serif text-body">한 주를 한 통의 편지로</p>
             <p className="mt-1 text-caption text-ink-sub">
