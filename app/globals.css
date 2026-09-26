@@ -161,12 +161,28 @@ li {
   box-shadow: 0 2px 3px -1px rgb(0 0 0 / 0.16);
 }
 
+.reflection-slip-stack {
+  width: calc(100% - 2rem);
+  max-width: 18rem;
+  margin-top: 1.75rem;
+  margin-bottom: 0.875rem;
+  isolation: isolate;
+}
+.reflection-slip-backing {
+  position: absolute;
+  inset: 5px -5px -5px 5px;
+  border: 1px solid rgb(var(--hairline));
+  border-radius: 2px;
+  background: rgb(var(--card-raised));
+  transform: rotate(1deg);
+  pointer-events: none;
+}
+
 /* 독서 메모: 위쪽 부착 테이프와 오른쪽 아래 접힌 종이 모서리. */
 .reflection-slip {
   border: 1px solid rgb(var(--hairline));
   border-radius: 2px;
-  margin-top: 1.75rem;
-  margin-bottom: 0.5rem;
+
   isolation: isolate;
 }
 .reflection-slip::before {

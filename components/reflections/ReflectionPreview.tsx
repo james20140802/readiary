@@ -60,29 +60,32 @@ export default function ReflectionPreview({
   return (
     <div className={compactOnNarrow ? 'mt-3' : 'mt-5'}>
       {slip && (
-        <Link
-          href={`${detailHref}#reflections`}
-          onClick={onNavigate}
-          aria-label={viewLabel}
-          className={`reflection-slip group relative ml-3 block ${trailingAction ? 'bg-paper' : 'bg-card'} px-5 pb-5 pt-5 transition-colors hover:bg-card-raised sm:ml-6 ${focusClass}`}
-        >
-          <span className="inline-flex items-center gap-2 pr-5 font-sans text-caption text-ink-sub">
-            <span className="h-1 w-1 rounded-full bg-accent" aria-hidden="true" />
-            다시 읽고{' '}
-            <time dateTime={current.latest!.created_at}>
-              {thoughtDate(current.latest!.created_at)}
-            </time>
-          </span>
-          <p className="mt-3 line-clamp-2 whitespace-pre-wrap break-words font-serif text-note text-ink">
-            {current.latest!.body}
-          </p>
-          {!trailingAction && (
-            <span className="mt-3 flex items-center justify-end gap-1 font-sans text-button-sm text-ink-sub group-hover:text-accent">
-              이어 남긴 생각 {current.total}개{' '}
-              <ArrowRight size={14} strokeWidth={1.75} aria-hidden="true" />
+        <div className="reflection-slip-stack relative ml-3 sm:ml-6">
+          {current.total > 1 && <span className="reflection-slip-backing" aria-hidden="true" />}
+          <Link
+            href={`${detailHref}#reflections`}
+            onClick={onNavigate}
+            aria-label={viewLabel}
+            className={`reflection-slip group relative block ${trailingAction ? 'bg-paper' : 'bg-card'} px-5 pb-5 pt-5 transition-colors hover:bg-card-raised ${focusClass}`}
+          >
+            <span className="inline-flex items-center gap-2 pr-5 font-sans text-caption text-ink-sub">
+              <span className="h-1 w-1 rounded-full bg-accent" aria-hidden="true" />
+              다시 읽고{' '}
+              <time dateTime={current.latest!.created_at}>
+                {thoughtDate(current.latest!.created_at)}
+              </time>
             </span>
-          )}
-        </Link>
+            <p className="mt-3 line-clamp-3 whitespace-pre-wrap break-words font-serif text-note text-ink">
+              {current.latest!.body}
+            </p>
+            {!trailingAction && (
+              <span className="mt-3 flex items-center justify-end gap-1 font-sans text-button-sm text-ink-sub group-hover:text-accent">
+                이어 남긴 생각 {current.total}개{' '}
+                <ArrowRight size={14} strokeWidth={1.75} aria-hidden="true" />
+              </span>
+            )}
+          </Link>
+        </div>
       )}
       <div className="mt-1 flex flex-wrap items-center justify-end gap-x-4 gap-y-1">
         {hasThoughts && (!slip || trailingAction) && (
