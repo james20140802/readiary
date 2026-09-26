@@ -74,3 +74,26 @@ describe('reading letter pagination', () => {
     expect(parts.every((part) => part.entryId === 'one' && part.title === '책')).toBe(true);
   });
 });
+
+describe('source headings per sheet', () => {
+  const measureSource = (item: LetterBlock) => (item.hideSource ? 0 : 20) + item.text.length;
+  it('shows the same date and book once while keeping the thought intact', () => {
+    const pages = paginateLetter(
+      [block('quote'), { ...block('thought'), kind: 'note' }],
+      measureSource,
+      100
+    );
+    expect(pages[0].map((item) => item.hideSource)).toEqual([false, true]);
+    expect(pages[0][1].text).toBe('thought');
+  });
+  it('restores the heading when a thought moves to the next sheet', () => {
+    const pages = paginateLetter(
+      [block('q'.repeat(70)), { ...block('n'.repeat(30)), kind: 'note' }],
+      measureSource,
+      100
+    );
+    expect(pages).toHaveLength(2);
+    expect(pages[1][0].hideSource).toBe(false);
+    expect(pages[1].reduce((sum, item) => sum + measureSource(item), 0)).toBeLessThanOrEqual(100);
+  });
+});

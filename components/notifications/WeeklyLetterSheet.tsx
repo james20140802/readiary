@@ -10,13 +10,25 @@ import {
 export function LetterParagraph({ block }: { block: LetterBlock }) {
   return (
     <section className={LETTER_BLOCK_CLASS}>
-      <p data-letter-meta className="mb-2 text-caption text-accent">
-        {formatKoreanDate(block.date)} ·{' '}
-        {block.kind === 'quote' ? '책의 문장' : block.kind === 'note' ? '나의 생각' : '독서 기록'}
-        {block.continued ? ' · 이어서' : ''}
-      </p>
-      <p data-letter-title className="mb-3 break-words font-serif text-body font-semibold text-ink">
-        {block.title}
+      <div data-letter-source hidden={block.hideSource}>
+        <p data-letter-meta className="mb-2 text-caption text-accent">
+          {formatKoreanDate(block.date)} ·{' '}
+          {block.kind === 'quote' ? '책의 문장' : block.kind === 'note' ? '나의 생각' : '독서 기록'}
+          {block.continued ? ' · 이어서' : ''}
+        </p>
+        <p
+          data-letter-title
+          className="mb-3 break-words font-serif text-body font-semibold text-ink"
+        >
+          {block.title}
+        </p>
+      </div>
+      <p
+        data-letter-kind
+        className="mb-2 text-caption text-ink-sub"
+        hidden={!block.hideSource || block.kind !== 'note'}
+      >
+        나의 생각
       </p>
       <p data-letter-text className={LETTER_TEXT_CLASS}>
         {block.text}

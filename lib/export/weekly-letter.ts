@@ -5,6 +5,7 @@ export type LetterBlock = {
   kind: 'quote' | 'note' | 'reading';
   text: string;
   continued: boolean;
+  hideSource?: boolean;
 };
 
 export const LETTER_BODY_HEIGHT = 456;
@@ -39,6 +40,7 @@ export function paginateLetter(
         ...source,
         text: characters.slice(offset).join(''),
         continued: offset > 0,
+        hideSource: page.some((part) => part.date === source.date && part.title === source.title),
       };
       const available = height - used;
       const measured = measure(remaining);

@@ -104,6 +104,11 @@ export default function WeeklyLetterExport({
       const pages = paginateLetter(blocks, (block) => {
         target.querySelector('[data-letter-meta]')!.textContent =
           `${formatKoreanDate(block.date)} · ${block.kind === 'quote' ? '책의 문장' : block.kind === 'note' ? '나의 생각' : '독서 기록'}${block.continued ? ' · 이어서' : ''}`;
+        target.querySelector<HTMLElement>('[data-letter-source]')!.hidden = Boolean(
+          block.hideSource
+        );
+        target.querySelector<HTMLElement>('[data-letter-kind]')!.hidden =
+          !block.hideSource || block.kind !== 'note';
         target.querySelector('[data-letter-title]')!.textContent = block.title;
         target.querySelector('[data-letter-text]')!.textContent = block.text;
         return Math.ceil(target.getBoundingClientRect().height);
