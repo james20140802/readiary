@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
-import { ArrowLeft, Download } from 'lucide-react';
+import { ArrowLeft, Download, Share2 } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { useActionLock } from '@/hooks/useActionLock';
 import { formatKoreanDate } from '@/lib/dates';
@@ -34,6 +34,7 @@ export default function WeeklyLetterExport({
   const [includeNotes, setIncludeNotes] = useState(true);
   const [stage, setStage] = useState<'choose' | 'generating' | 'preview'>('choose');
   const [images, setImages] = useState<ImageFile[]>([]);
+  const [canShareImages, setCanShareImages] = useState(false);
   const [download, setDownload] = useState<{ url: string; name: string } | null>(null);
   const [sheet, setSheet] = useState<{ blocks: LetterBlock[]; page: number; total: number } | null>(
     null
@@ -63,6 +64,7 @@ export default function WeeklyLetterExport({
     ownedUrls.current = [];
     setImages([]);
     setDownload(null);
+    setCanShareImages(false);
   }
   const eligible = (entry: WeeklyEntry) => Boolean(entry.quote || includeNotes || !entry.note);
   const chosen = entries.filter((entry) => selected.has(entry.id) && eligible(entry));
@@ -127,14 +129,29 @@ export default function WeeklyLetterExport({
         next.push({ file, url: URL.createObjectURL(file) });
       }
       if (!active()) return;
+      const files = next.map((item) => item.file);
+      let supported = false;
+      try {
+        supported =
+          typeof navigator.share === 'function' && navigator.canShare?.({ files }) === true;
+      } catch {
+        /* Fall back to a file download. */
+      }
       setProgress('편지를 저장할 파일로 묶고 있어요.');
       const { bundleLetterImages } = await import('@/lib/export/letter-download');
-      const bundle = await bundleLetterImages(next.map((item) => item.file));
+      const bundle = supported ? null : await bundleLetterImages(files);
       if (!active()) return;
-      const downloadUrl = next.length === 1 ? next[0].url : URL.createObjectURL(bundle.blob);
+      const downloadUrl = bundle
+        ? next.length === 1
+          ? next[0].url
+          : URL.createObjectURL(bundle.blob)
+        : null;
       clearImages();
-      ownedUrls.current = [...new Set([...next.map((item) => item.url), downloadUrl])];
-      setDownload({ url: downloadUrl, name: bundle.name });
+      ownedUrls.current = [
+        ...new Set([...next.map((item) => item.url), ...(downloadUrl ? [downloadUrl] : [])]),
+      ];
+      setCanShareImages(supported);
+      if (bundle && downloadUrl) setDownload({ url: downloadUrl, name: bundle.name });
       setImages(next);
       setStage('preview');
       setSheet(null);
@@ -166,13 +183,13 @@ export default function WeeklyLetterExport({
     try {
       const files = images.map((item) => item.file);
       if (!navigator.canShare?.({ files })) {
-        setMessage('이 기기에서는 파일 공유를 지원하지 않아요. 편지 전체 저장을 이용해 주세요.');
+        setMessage('이미지 공유를 사용할 수 없어요. 다시 고르기에서 편지를 다시 만들어 주세요.');
         return;
       }
       await navigator.share({ files, title: '한 주의 독서 편지' });
     } catch (error) {
       if ((error as DOMException)?.name !== 'AbortError')
-        setMessage('공유를 열지 못했어요. 이미지 저장을 이용하거나 다시 시도해 주세요.');
+        setMessage('공유창을 열지 못했어요. 다시 시도하거나 이미지를 길게 눌러 저장해 주세요.');
     } finally {
       if (alive.current) action.release();
     }
@@ -313,11 +330,18 @@ export default function WeeklyLetterExport({
             </Button>
           </div>
           <p className="text-caption text-ink-sub">
-            {images.length > 1
-              ? `이미지 ${images.length}장을 ZIP 파일 하나로 저장해요. 압축을 풀면 각 이미지를 볼 수 있어요.`
-              : '편지를 PNG 이미지로 저장해요.'}{' '}
+            {canShareImages
+              ? '공유창에서 이미지 저장 또는 원하는 앱을 선택하세요. 저장 메뉴는 기기에 따라 달라요.'
+              : images.length > 1
+                ? `이미지 ${images.length}장을 ZIP 파일 하나로 저장해요. 압축을 풀면 각 이미지를 볼 수 있어요.`
+                : '편지를 PNG 이미지로 저장해요.'}{' '}
             다른 사람에게 전달하면 이미지에 담긴 내용을 볼 수 있어요.
           </p>
+          {canShareImages && (
+            <Button onClick={share} disabled={action.busy} fullWidth>
+              <Share2 size={16} strokeWidth={1.75} aria-hidden="true" /> 이미지 저장 · 공유
+            </Button>
+          )}
           {download && (
             <Button asChild fullWidth>
               <a href={download.url} download={download.name}>
@@ -341,11 +365,6 @@ export default function WeeklyLetterExport({
               </li>
             ))}
           </ol>
-          {typeof navigator !== 'undefined' && typeof navigator.share === 'function' && (
-            <Button onClick={share} disabled={action.busy} fullWidth>
-              편지 공유하기
-            </Button>
-          )}
         </>
       )}
       <div
