@@ -89,3 +89,19 @@ it('turns off on a failed focus refresh', async () => {
   fireEvent(window, new Event('focus'));
   await waitFor(() => expect(screen.queryByRole('link')).toBeNull());
 });
+
+it('does not advertise thoughts while their count is unknown or zero', () => {
+  const previewFor = (summary: { total: number; latest: null } | null) =>
+    React.createElement(
+      ReflectionFeatureContext.Provider,
+      { value: true },
+      React.createElement(ReflectionPreview, { entryId: 'entry', own: true, summary })
+    );
+  const view = render(previewFor(null));
+  expect(screen.queryByRole('link', { name: /이어 남긴 생각/ })).toBeNull();
+  expect(screen.getByRole('link', { name: '지금의 생각 남기기' })).toBeTruthy();
+  view.rerender(previewFor({ total: 2, latest: null }));
+  expect(screen.getByRole('link', { name: '이어 남긴 생각 2개 보기' })).toBeTruthy();
+  view.rerender(previewFor({ total: 0, latest: null }));
+  expect(screen.queryByRole('link', { name: /이어 남긴 생각/ })).toBeNull();
+});

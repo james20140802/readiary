@@ -1,3 +1,7 @@
+import { fetchReflectionSummaries } from '@/lib/reflections/server';
+vi.mock('@/lib/reflections/server', () => ({
+  fetchReflectionSummaries: vi.fn().mockResolvedValue({}),
+}));
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { GET } from '../route';
 import { getServerUser } from '@/lib/supabase/getServerUser';
@@ -58,6 +62,7 @@ describe('on-demand record reading', () => {
     const response = await read();
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
+      reflectionSummary: null,
       id,
       bookTitle: '책',
       date: '2026-09-12',
@@ -121,4 +126,18 @@ describe('on-demand record reading', () => {
     expect((await read('invalid')).status).toBe(404);
     expect(from).not.toHaveBeenCalled();
   });
+});
+
+it('includes the authorized thought summary in the original reading response', async () => {
+  setup();
+  const summary = { total: 2, latest: null };
+  vi.mocked(fetchReflectionSummaries).mockResolvedValueOnce({ [id]: summary });
+  const response = await read();
+  expect((await response.json()).reflectionSummary).toEqual(summary);
+});
+it('does not query thought summaries when the original is inaccessible', async () => {
+  setup({ owner: 'other', privateEntry: true });
+  vi.mocked(fetchReflectionSummaries).mockClear();
+  expect((await read()).status).toBe(404);
+  expect(fetchReflectionSummaries).not.toHaveBeenCalled();
 });

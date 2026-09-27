@@ -1,6 +1,6 @@
 'use client';
 
-import ReflectionPreview from '@/components/reflections/ReflectionPreview';
+import ReflectionPreview, { ReflectionWriteLink } from '@/components/reflections/ReflectionPreview';
 import type { ReflectionSummary } from '@/lib/reflections/types';
 import { apiFetch } from '@/lib/api/fetch';
 import { useState } from 'react';
@@ -128,9 +128,9 @@ export default function EntryCard({
           )}
         </ClampedText>
 
-        <ReflectionPreview entryId={id} summary={reflectionSummary} own={!href} href={targetHref} />
+        <ReflectionPreview entryId={id} summary={reflectionSummary} href={targetHref} />
 
-        <div className="mt-3 flex items-center justify-between">
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
           <div className="flex items-center gap-4">
             <button
               onClick={handleLikeToggle}
@@ -149,30 +149,33 @@ export default function EntryCard({
               <span className="text-caption tabular-nums">{commentCount}</span>
             </button>
           </div>
-          {/* 내 기록은 그 자리에서(시트) 또는 수정 페이지로, 친구 기록은 상세로 — 상세(공유)는 날짜 링크로도 열린다 */}
-          {href ? (
-            <Link
-              href={targetHref}
-              className="text-button-sm text-ink-faint transition-colors hover:text-accent"
-            >
-              상세 →
-            </Link>
-          ) : onEdit ? (
-            <button
-              type="button"
-              onClick={onEdit}
-              className="text-button-sm text-ink-faint transition-colors hover:text-accent"
-            >
-              원문 수정
-            </button>
-          ) : (
-            <Link
-              href={`/protected/entry/${id}/edit`}
-              className="text-button-sm text-ink-faint transition-colors hover:text-accent"
-            >
-              원문 수정
-            </Link>
-          )}
+          <div className="ml-auto flex items-center gap-4">
+            {!href && <ReflectionWriteLink href={targetHref} />}
+            {/* 내 기록은 그 자리에서(시트) 또는 수정 페이지로, 친구 기록은 상세로 — 상세(공유)는 날짜 링크로도 열린다 */}
+            {href ? (
+              <Link
+                href={targetHref}
+                className="text-button-sm text-ink-faint transition-colors hover:text-accent"
+              >
+                상세 →
+              </Link>
+            ) : onEdit ? (
+              <button
+                type="button"
+                onClick={onEdit}
+                className="text-button-sm text-ink-faint transition-colors hover:text-accent"
+              >
+                원문 수정
+              </button>
+            ) : (
+              <Link
+                href={`/protected/entry/${id}/edit`}
+                className="text-button-sm text-ink-faint transition-colors hover:text-accent"
+              >
+                원문 수정
+              </Link>
+            )}
+          </div>
         </div>
       </div>
 

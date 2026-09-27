@@ -60,6 +60,22 @@ beforeEach(() => {
   vi.stubGlobal('requestAnimationFrame', (callback: () => void) => setTimeout(callback, 0));
 });
 describe('draft retention through refresh and failed storage', () => {
+  it('confirms deletion in a dialog, cancels without writing, and keeps failures visible', async () => {
+    vi.mocked(apiFetch).mockResolvedValue(response(page([item(0)])));
+    render(React.createElement(ReflectionThread, { entryId: 'entry' }));
+    fireEvent.click(await screen.findByRole('button', { name: '삭제' }));
+    await screen.findByRole('dialog', { name: '이 생각을 삭제할까요?' });
+    fireEvent.click(screen.getByRole('button', { name: '취소' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(vi.mocked(apiFetch).mock.calls.some(([, options]) => options?.method === 'DELETE')).toBe(
+      false
+    );
+    fireEvent.click(screen.getByRole('button', { name: '삭제' }));
+    vi.mocked(apiFetch).mockResolvedValue(response({}, 500));
+    fireEvent.click(await screen.findByRole('button', { name: '생각 삭제' }));
+    expect(await screen.findByRole('alert')).toBeTruthy();
+    expect(screen.getByRole('dialog').textContent).toContain('생각을 지우지 못했습니다.');
+  });
   it.each([true, false])(
     'persists the displayed privacy when editing under entryIsPrivate=%s',
     async (entryIsPrivate) => {
