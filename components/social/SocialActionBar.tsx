@@ -51,12 +51,18 @@ export default function SocialActionBar({
         <div className="flex items-center gap-1.5">
           <button
             onClick={handleLikeToggle}
-            aria-label={isLiked ? '좋아요 취소' : '좋아요'}
+            aria-label={`좋아요 ${likeCount.toLocaleString('ko-KR')}개`}
+            aria-pressed={isLiked}
             className={`flex items-center gap-1.5 transition-all active:scale-90 ${
               isLiked ? 'text-accent' : 'text-ink-faint hover:text-accent'
             } ${isLoading ? 'cursor-progress' : ''}`}
           >
-            <Heart size={18} fill={isLiked ? 'currentColor' : 'none'} strokeWidth={1.75} />
+            <Heart
+              aria-hidden="true"
+              size={18}
+              fill={isLiked ? 'currentColor' : 'none'}
+              strokeWidth={1.75}
+            />
             {!onLikeCountClick && (
               <span className="text-caption font-medium tabular-nums">
                 {formatCount(likeCount)}
@@ -70,7 +76,7 @@ export default function SocialActionBar({
                 e.stopPropagation();
                 onLikeCountClick();
               }}
-              aria-label="좋아요 명단 보기"
+              aria-label={`좋아요 ${likeCount.toLocaleString('ko-KR')}개, 명단 보기`}
               className={`text-button-sm font-medium tabular-nums transition-colors ${
                 isLiked ? 'text-accent' : 'text-ink-faint hover:text-ink-sub'
               }`}
@@ -80,8 +86,9 @@ export default function SocialActionBar({
           )}
         </div>
 
-        {/* 댓글 버튼 (나중에 여기서 댓글 리스트 토글 로직을 추가하면 됩니다) */}
+        {/* 댓글 목록 열기 */}
         <button
+          aria-label={`댓글 ${initialCommentCount.toLocaleString('ko-KR')}개 보기`}
           className="flex items-center gap-1.5 text-ink-faint hover:text-accent transition-all active:scale-95"
           onClick={(e) => {
             e.preventDefault();
@@ -89,7 +96,7 @@ export default function SocialActionBar({
             onCommentClick();
           }}
         >
-          <MessageCircle size={18} strokeWidth={1.75} />
+          <MessageCircle aria-hidden="true" size={18} strokeWidth={1.75} />
           {showCommentCount && (
             <span className="text-caption font-medium tabular-nums">
               {formatCount(initialCommentCount)}
