@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { authHrefWithRedirect } from '@/lib/auth/safeRedirect';
@@ -22,7 +23,12 @@ import ConsentFieldset, {
 } from '@/components/auth/ConsentFieldset';
 import { PENDING_REDIRECT_KEY, toPendingRedirect } from '@/lib/auth/pendingRedirect';
 import { CONSENTED_AT_KEY, CONSENT_REQUIRED_MESSAGE, consentStamp } from '@/lib/auth/consent';
-import { describeAuthError, validateEmail, validateNewPassword } from '@/lib/auth/authErrors';
+import {
+  describeAuthError,
+  validateEmail,
+  validateNewPassword,
+  MIN_PASSWORD_LENGTH,
+} from '@/lib/auth/authErrors';
 import { emailConfirmRedirectTo } from '@/lib/auth/emailRedirect';
 import { isGoogleLoginEnabled } from '@/lib/auth/oauthRedirect';
 
@@ -32,6 +38,10 @@ export default function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [emailError, setEmailError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+  const confirmRef = useRef<HTMLInputElement>(null);
+  const [confirmError, setConfirmError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [signupComplete, setSignupComplete] = useState(false);
   const [consent, setConsent] = useState<Consent>(NO_CONSENT);
@@ -55,10 +65,20 @@ export default function SignupPage() {
     const emailProblem = validateEmail(email);
     const passwordProblem = validateNewPassword(password, confirmPassword);
     const consentProblem = !consented ? CONSENT_REQUIRED_MESSAGE : null;
-    setEmailError(emailProblem);
-    setPasswordError(passwordProblem);
-    setFormError(consentProblem);
-    if (emailProblem || passwordProblem || consentProblem) return;
+    const passwordTooShort = password.length < MIN_PASSWORD_LENGTH;
+    flushSync(() => {
+      setEmailError(emailProblem);
+      setPasswordError(passwordTooShort ? passwordProblem : null);
+      setConfirmError(!passwordTooShort ? passwordProblem : null);
+      setFormError(consentProblem);
+    });
+    if (emailProblem || passwordProblem || consentProblem) {
+      if (emailProblem) emailRef.current?.focus();
+      else if (passwordProblem) {
+        (passwordTooShort ? passwordRef : confirmRef).current?.focus();
+      }
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -136,6 +156,7 @@ export default function SignupPage() {
           <Input
             variant="line"
             id="signup-email"
+            ref={emailRef}
             type="email"
             name="email"
             autoComplete="email"
@@ -158,6 +179,9 @@ export default function SignupPage() {
           <PasswordInput
             variant="line"
             id="signup-password"
+            ref={passwordRef}
+            aria-describedby="signup-password-help"
+            error={passwordError ?? undefined}
             name="password"
             autoComplete="new-password"
             placeholder="6자 이상"
@@ -165,9 +189,13 @@ export default function SignupPage() {
             onChange={(e) => {
               setPassword(e.target.value);
               if (passwordError) setPasswordError(null);
+              if (confirmError) setConfirmError(null);
             }}
             required
           />
+          <p id="signup-password-help" className="text-caption text-ink-faint">
+            비밀번호는 {MIN_PASSWORD_LENGTH}자 이상 입력해주세요.
+          </p>
         </FormGroup>
 
         <FormGroup>
@@ -177,15 +205,16 @@ export default function SignupPage() {
           <PasswordInput
             variant="line"
             id="signup-password-confirm"
+            ref={confirmRef}
             name="confirm-password"
             autoComplete="new-password"
             placeholder="한 번 더"
             value={confirmPassword}
             onChange={(e) => {
               setConfirmPassword(e.target.value);
-              if (passwordError) setPasswordError(null);
+              if (confirmError) setConfirmError(null);
             }}
-            error={passwordError ?? undefined}
+            error={confirmError ?? undefined}
             required
           />
         </FormGroup>

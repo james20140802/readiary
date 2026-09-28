@@ -17,7 +17,20 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, fullWidth = true, trailing, variant = 'box', className, id, ...props }, ref) => {
+  (
+    {
+      label,
+      error,
+      fullWidth = true,
+      trailing,
+      variant = 'box',
+      className,
+      id,
+      'aria-describedby': describedBy,
+      ...props
+    },
+    ref
+  ) => {
     // label·오류문을 입력과 이어 주려면 id가 필요하다 — 안 주면 하나 만든다
     const generatedId = useId();
     const inputId = id ?? generatedId;
@@ -35,7 +48,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             id={inputId}
             aria-invalid={error ? true : undefined}
-            aria-describedby={error ? errorId : undefined}
+            aria-describedby={
+              [describedBy, error ? errorId : undefined].filter(Boolean).join(' ') || undefined
+            }
             className={clsx(
               'w-full text-ink placeholder:text-ink-faint transition-colors focus:outline-none',
               line

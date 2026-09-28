@@ -7,7 +7,8 @@ import {
   ReflectionConfirmationRequiredError,
 } from '@/lib/actions/updateEntry';
 import { SessionExpiredError } from '@/lib/api/fetch';
-import { useState } from 'react';
+import { useId, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { useActionLock } from '@/hooks/useActionLock';
 import { Lock } from 'lucide-react';
 import { todayKST } from '@/lib/dates';
@@ -82,6 +83,9 @@ export default function EntryFormBody({
   const [confirmationAttempt, setConfirmationAttempt] = useState(0);
   const republishing =
     !!entryId && (initial?.isPrivate === true || serverRequiresConfirmation) && !isPrivate;
+  const errorId = useId();
+  const quoteRef = useRef<HTMLTextAreaElement>(null);
+  const [contentError, setContentError] = useState(false);
   const [error, setError] = useState('');
   const [needsReload, setNeedsReload] = useState(false);
   const action = useActionLock();
@@ -95,9 +99,14 @@ export default function EntryFormBody({
       return;
     }
     setError('');
+    setContentError(false);
 
     if (!hasEntryContent(quote, note)) {
-      setError('문장이나 생각 중 하나는 남겨주세요.');
+      flushSync(() => {
+        setContentError(true);
+        setError('문장이나 생각 중 하나는 남겨주세요.');
+      });
+      quoteRef.current?.focus();
       return;
     }
     if (fromPage !== '' && toPage !== '' && Number(fromPage) > Number(toPage)) {
@@ -161,8 +170,17 @@ export default function EntryFormBody({
           <textarea
             disabled={isSubmitting || disabled || frozen}
             id="entry-quote"
+            ref={quoteRef}
+            aria-invalid={contentError || undefined}
+            aria-describedby={contentError ? errorId : undefined}
             value={quote}
-            onChange={(e) => setQuote(e.target.value)}
+            onChange={(e) => {
+              setQuote(e.target.value);
+              if (contentError && hasEntryContent(e.target.value, note)) {
+                setContentError(false);
+                setError('');
+              }
+            }}
             placeholder="책에서 마음에 남은 문장을 옮겨 적어보세요"
             rows={4}
             autoFocus={autoFocus}
@@ -176,8 +194,16 @@ export default function EntryFormBody({
           <textarea
             disabled={isSubmitting || disabled || frozen}
             id="entry-note"
+            aria-invalid={contentError || undefined}
+            aria-describedby={contentError ? errorId : undefined}
             value={note}
-            onChange={(e) => setNote(e.target.value)}
+            onChange={(e) => {
+              setNote(e.target.value);
+              if (contentError && hasEntryContent(e.target.value, quote)) {
+                setContentError(false);
+                setError('');
+              }
+            }}
             placeholder="이 문장에 대한 생각, 혹은 오늘의 감상"
             rows={4}
             className="mt-2 block w-full resize-none border-b border-transparent bg-transparent font-serif text-input leading-relaxed text-ink transition-colors placeholder:text-ink-faint focus:border-hairline-strong focus:outline-none"
@@ -273,7 +299,15 @@ export default function EntryFormBody({
             onReady={setAcknowledgePublic}
           />
         )}
-        {error && <p className="mt-3 text-caption font-medium text-danger">{error}</p>}
+        {error && (
+          <p
+            id={errorId}
+            role={contentError ? undefined : 'alert'}
+            className="mt-3 text-caption font-medium text-danger"
+          >
+            {error}
+          </p>
+        )}
         {needsReload && (
           <button
             type="button"
