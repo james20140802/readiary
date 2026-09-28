@@ -134,7 +134,7 @@ export default function EntryCard({
           <div className="flex items-center gap-4">
             <button
               onClick={handleLikeToggle}
-              aria-label={`좋아요 ${likeCount.toLocaleString('ko-KR')}개`}
+              aria-label={`좋아요 ${likeCount}개`}
               aria-pressed={isLiked}
               className={`flex items-center gap-1 transition-colors active:scale-90 ${
                 isLiked ? 'text-rose-500' : 'text-ink-faint hover:text-rose-500'
@@ -150,7 +150,7 @@ export default function EntryCard({
             </button>
             <button
               onClick={() => setIsCommentOpen(true)}
-              aria-label={`댓글 ${commentCount.toLocaleString('ko-KR')}개 보기`}
+              aria-label={`댓글 ${commentCount}개 보기`}
               className="flex items-center gap-1 text-ink-faint transition-colors hover:text-accent active:scale-95"
             >
               <MessageCircle aria-hidden="true" size={12} strokeWidth={2} />

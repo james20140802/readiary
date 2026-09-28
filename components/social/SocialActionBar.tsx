@@ -51,7 +51,7 @@ export default function SocialActionBar({
         <div className="flex items-center gap-1.5">
           <button
             onClick={handleLikeToggle}
-            aria-label={`좋아요 ${likeCount.toLocaleString('ko-KR')}개`}
+            aria-label={`좋아요 ${formatCount(likeCount)}개`}
             aria-pressed={isLiked}
             className={`flex items-center gap-1.5 transition-all active:scale-90 ${
               isLiked ? 'text-accent' : 'text-ink-faint hover:text-accent'
@@ -76,7 +76,7 @@ export default function SocialActionBar({
                 e.stopPropagation();
                 onLikeCountClick();
               }}
-              aria-label={`좋아요 ${likeCount.toLocaleString('ko-KR')}개, 명단 보기`}
+              aria-label={`좋아요 ${formatCount(likeCount)}개, 명단 보기`}
               className={`text-button-sm font-medium tabular-nums transition-colors ${
                 isLiked ? 'text-accent' : 'text-ink-faint hover:text-ink-sub'
               }`}
@@ -88,7 +88,7 @@ export default function SocialActionBar({
 
         {/* 댓글 목록 열기 */}
         <button
-          aria-label={`댓글 ${initialCommentCount.toLocaleString('ko-KR')}개 보기`}
+          aria-label={`댓글 ${formatCount(initialCommentCount)}개 보기`}
           className="flex items-center gap-1.5 text-ink-faint hover:text-accent transition-all active:scale-95"
           onClick={(e) => {
             e.preventDefault();
