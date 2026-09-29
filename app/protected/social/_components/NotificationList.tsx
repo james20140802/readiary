@@ -96,6 +96,7 @@ export default function NotificationList({
           }
           const n = row.item;
           const isUnread = n.readAt === null;
+          const hasMissingEntry = (n.type === 'like' || n.type === 'comment') && !n.entryId;
           const body = (
             <div className="flex items-center gap-3 py-3.5">
               <Avatar
@@ -108,6 +109,9 @@ export default function NotificationList({
                 <p className={`text-body-sm ${isUnread ? 'text-ink font-medium' : 'text-ink-sub'}`}>
                   {buildNotificationMessage(n.type, n.actorNickname)}
                 </p>
+                {hasMissingEntry && (
+                  <p className="text-caption text-ink-sub">연결된 기록을 열 수 없어요</p>
+                )}
                 <time dateTime={n.createdAt} className="block text-caption text-ink-faint mt-0.5">
                   {formatRelativeTime(n.createdAt, now)}
                 </time>
@@ -119,7 +123,7 @@ export default function NotificationList({
             </div>
           );
 
-          // 좋아요·댓글은 해당 기록으로(기록이 지워졌으면 링크 없음), 친구 알림은
+          // 좋아요·댓글은 해당 기록으로(연결 정보가 없으면 링크 없음), 친구 알림은
           // 친구 페이지로 (수락됨 → 친구 목록, 새 요청 → 받은 요청 탭)
           const href =
             n.type === 'like' || n.type === 'comment'
@@ -137,11 +141,7 @@ export default function NotificationList({
                   {body}
                 </Link>
               ) : (
-                // 이동할 곳이 없어도(예: 지워진 기록) 키보드로 목록을 훑을 때 다른 항목과
-                // 동일하게 탭 정지점이 되도록 버튼으로 감싼다 — 동작은 없다
-                <button type="button" className="block w-full text-left">
-                  {body}
-                </button>
+                body
               )}
             </li>
           );
