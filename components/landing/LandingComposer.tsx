@@ -82,24 +82,22 @@ export default function LandingComposer() {
                 if (quote.trim() || note.trim()) setView('saved');
               }}
             >
-              <div className="writing-field">
-                <textarea
-                  id="landing-demo-entry"
-                  aria-label={mode === 'quote' ? '책의 문장' : '나의 생각'}
-                  rows={3}
-                  maxLength={3000}
-                  className="block w-full resize-none bg-transparent font-serif text-[17px] leading-relaxed text-ink placeholder:text-ink-faint focus:outline-none"
-                  value={mode === 'quote' ? quote : note}
-                  onChange={(event) =>
-                    mode === 'quote' ? setQuote(event.target.value) : setNote(event.target.value)
-                  }
-                  placeholder={
-                    mode === 'quote'
-                      ? '마음에 남은 문장을 옮겨 적어 보세요'
-                      : '떠오른 생각을 남겨 보세요'
-                  }
-                />
-              </div>
+              <textarea
+                id="landing-demo-entry"
+                aria-label={mode === 'quote' ? '책의 문장' : '나의 생각'}
+                rows={3}
+                maxLength={3000}
+                className="block w-full resize-none bg-transparent font-serif text-[17px] leading-relaxed text-ink placeholder:text-ink-faint focus:outline-none"
+                value={mode === 'quote' ? quote : note}
+                onChange={(event) =>
+                  mode === 'quote' ? setQuote(event.target.value) : setNote(event.target.value)
+                }
+                placeholder={
+                  mode === 'quote'
+                    ? '마음에 남은 문장을 옮겨 적어 보세요'
+                    : '떠오른 생각을 남겨 보세요'
+                }
+              />
               <ComposerControls
                 books={
                   <>

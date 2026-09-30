@@ -327,21 +327,19 @@ export default function Composer({ userId, books, recentUserBookId }: ComposerPr
   if (books.length === 0 && !draft.quote && !draft.note) return null;
   return (
     <Card hoverable={false}>
-      <div className="writing-field">
-        <textarea
-          value={text}
-          onChange={(e) => update({ [mode]: e.target.value })}
-          disabled={!ready || locked}
-          placeholder={
-            mode === 'quote'
-              ? '오늘 마음에 남은 문장을 남겨보세요'
-              : '책을 읽으며 떠오른 생각을 남겨보세요'
-          }
-          rows={3}
-          aria-label="기록 입력"
-          className="block w-full resize-none bg-transparent font-serif text-[17px] leading-relaxed text-ink placeholder:text-ink-faint focus:outline-none"
-        />
-      </div>
+      <textarea
+        value={text}
+        onChange={(e) => update({ [mode]: e.target.value })}
+        disabled={!ready || locked}
+        placeholder={
+          mode === 'quote'
+            ? '오늘 마음에 남은 문장을 남겨보세요'
+            : '책을 읽으며 떠오른 생각을 남겨보세요'
+        }
+        rows={3}
+        aria-label="기록 입력"
+        className="block w-full resize-none bg-transparent font-serif text-[17px] leading-relaxed text-ink placeholder:text-ink-faint focus:outline-none"
+      />
 
       <ComposerControls
         controlsRef={controlsRef}
