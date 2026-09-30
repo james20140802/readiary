@@ -28,7 +28,8 @@ export default function MarkAsFinishedButton({
         .from('user_books')
         .update({ is_finished: true, finished_at: new Date().toISOString() })
         .eq('id', userBookId)
-        .or('is_finished.eq.false,is_finished.is.null')
+        // 비어 있는(null) 완독 상태도 포함한다. or() 논리 필터는 PATCH에서 PostgREST가 42703으로 거절한다.
+        .not('is_finished', 'is', true)
         .select('id');
 
       if (!error && data && data.length > 0) {
