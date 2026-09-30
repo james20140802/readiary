@@ -220,7 +220,8 @@ li {
     @apply relative;
   }
 
-  .writing-field::before {
+  .writing-field::before,
+  .writing-field--labeled > label::before {
     content: '';
     position: absolute;
     left: -0.625rem;
@@ -232,7 +233,21 @@ li {
     pointer-events: none;
   }
 
-  .writing-field:focus-within::before {
+  .writing-field--labeled::before {
+    content: none;
+  }
+
+  .writing-field--labeled > label {
+    position: relative;
+  }
+
+  .writing-field--labeled > label::before {
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .writing-field:focus-within::before,
+  .writing-field--labeled:focus-within > label::before {
     opacity: 1;
   }
 

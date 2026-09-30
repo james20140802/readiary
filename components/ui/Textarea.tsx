@@ -22,7 +22,14 @@ export function Textarea({
 }: TextareaProps) {
   const line = variant === 'line';
   return (
-    <div className={clsx('space-y-1', line && 'writing-field', fullWidth && 'w-full')}>
+    <div
+      className={clsx(
+        'space-y-1',
+        line && 'writing-field',
+        line && label && 'writing-field--labeled',
+        fullWidth && 'w-full'
+      )}
+    >
       {label && (
         <label htmlFor={props.id} className="block text-caption font-medium text-ink">
           {label}
