@@ -248,7 +248,7 @@ export default function Composer({ userId, books, recentUserBookId }: ComposerPr
         <p className="mt-1 text-caption text-ink-sub">{savedEntry.bookTitle}</p>
 
         {showExtraText && (
-          <div className="mt-4 border-t border-hairline pt-4">
+          <div className="writing-field mt-4 border-t border-hairline pt-4 [--writing-marker-top:1.25rem]">
             <label htmlFor="composer-extra" className="text-[11.5px] font-medium text-ink-faint">
               {extraLabel}
             </label>
@@ -263,7 +263,7 @@ export default function Composer({ userId, books, recentUserBookId }: ComposerPr
               }
               rows={3}
               autoFocus
-              className="mt-2 block w-full resize-none border-b border-transparent bg-transparent font-serif text-[15px] leading-relaxed text-ink transition-colors placeholder:text-ink-faint focus:border-hairline-strong focus:outline-none"
+              className="mt-2 block w-full resize-none border-0 bg-transparent font-serif text-[15px] leading-relaxed text-ink transition-colors placeholder:text-ink-faint focus:outline-none"
             />
           </div>
         )}
@@ -280,7 +280,7 @@ export default function Composer({ userId, books, recentUserBookId }: ComposerPr
                 value={fromPage}
                 autoFocus={!showExtraText}
                 onChange={(e) => setFromPage(e.target.value)}
-                className="w-11 border-b border-transparent bg-transparent text-center text-ink placeholder:text-ink-faint focus:border-hairline-strong focus:outline-none"
+                className="h-11 w-11 border-b border-transparent bg-transparent text-center text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none"
               />
               <span className="text-ink-faint">–</span>
               <input
@@ -290,7 +290,7 @@ export default function Composer({ userId, books, recentUserBookId }: ComposerPr
                 placeholder="25"
                 value={toPage}
                 onChange={(e) => setToPage(e.target.value)}
-                className="w-11 border-b border-transparent bg-transparent text-center text-ink placeholder:text-ink-faint focus:border-hairline-strong focus:outline-none"
+                className="h-11 w-11 border-b border-transparent bg-transparent text-center text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none"
               />
             </div>
           )}

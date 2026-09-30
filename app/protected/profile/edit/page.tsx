@@ -174,10 +174,12 @@ export default function EditProfilePage() {
                   <button
                     onClick={handleDeleteAvatar}
                     disabled={uploading || updating}
-                    className="absolute top-2 right-2 p-1 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors z-10"
+                    className="absolute top-0 right-0 flex h-11 w-11 items-center justify-center rounded-full text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset z-10"
                     title="이미지 삭제"
                   >
-                    <X size={14} strokeWidth={2.5} />
+                    <span className="flex h-[22px] w-[22px] items-center justify-center rounded-full bg-black/50 hover:bg-black/70">
+                      <X size={14} strokeWidth={2.5} aria-hidden />
+                    </span>
                   </button>
                 </>
               ) : (
@@ -256,10 +258,8 @@ export default function EditProfilePage() {
           </FormGroup>
 
           <FormGroup>
-            <FormLabel variant="line" htmlFor="profile-bio">
-              한줄 소개
-            </FormLabel>
             <Textarea
+              label="한줄 소개"
               variant="line"
               id="profile-bio"
               value={bio}

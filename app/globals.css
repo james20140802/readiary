@@ -213,3 +213,45 @@ li {
   );
   pointer-events: none;
 }
+
+/* 긴 글의 포커스는 구분선과 겹치지 않는 짧은 여백 표시로 알린다. */
+@layer components {
+  .writing-field {
+    @apply relative;
+  }
+
+  .writing-field::before,
+  .writing-field--labeled > label::before {
+    content: '';
+    position: absolute;
+    left: -0.625rem;
+    top: var(--writing-marker-top, 0.25rem);
+    width: 2px;
+    height: 1.5rem;
+    background: rgb(var(--accent));
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .writing-field--labeled::before {
+    content: none;
+  }
+
+  .writing-field--labeled > label {
+    position: relative;
+  }
+
+  .writing-field--labeled > label::before {
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .writing-field:focus-within::before,
+  .writing-field--labeled:focus-within > label::before {
+    opacity: 1;
+  }
+
+  .writing-field:focus-within > label {
+    color: rgb(var(--accent));
+  }
+}

@@ -80,7 +80,7 @@ export default function NewBookForm({ onBusyChange }: { onBusyChange?: (busy: bo
   };
 
   const fieldClass =
-    'mt-1.5 block w-full border-b border-hairline bg-transparent py-1.5 text-ink transition-colors placeholder:text-ink-faint focus:border-hairline-strong focus:outline-none';
+    'mt-1.5 block w-full border-b border-hairline bg-transparent py-1.5 text-ink transition-colors placeholder:text-ink-faint focus:border-accent focus:outline-none';
 
   return (
     <form onSubmit={handleSubmit}>
@@ -132,7 +132,7 @@ export default function NewBookForm({ onBusyChange }: { onBusyChange?: (busy: bo
               placeholder="?"
               value={totalPages}
               onChange={(e) => setTotalPages(e.target.value)}
-              className="w-14 border-b border-hairline bg-transparent py-1 text-center text-ink transition-colors placeholder:text-ink-faint focus:border-hairline-strong focus:outline-none"
+              className="w-14 border-b border-hairline bg-transparent py-1 text-center text-ink transition-colors placeholder:text-ink-faint focus:border-accent focus:outline-none"
             />
             <span className="text-ink-faint">쪽</span>
           </div>

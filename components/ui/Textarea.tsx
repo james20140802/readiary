@@ -8,7 +8,7 @@ type TextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement> & {
   label?: string;
   error?: string;
   fullWidth?: boolean;
-  /** `box`(기본): 헤어라인 상자. `line`: 상자 없이 괘선 위에 — Input 의 같은 옵션과 짝 */
+  /** `box`(기본): 헤어라인 상자. `line`: 밑줄 없이 종이 위에, 포커스는 왼쪽의 짧은 accent 표시 */
   variant?: FieldVariant;
 };
 
@@ -22,9 +22,19 @@ export function Textarea({
 }: TextareaProps) {
   const line = variant === 'line';
   return (
-    <div className={clsx('space-y-1', fullWidth && 'w-full')}>
+    <div
+      className={clsx(
+        'space-y-1',
+        line && 'writing-field',
+        line && label && 'writing-field--labeled',
+        fullWidth && 'w-full'
+      )}
+    >
       {label && (
-        <label htmlFor={props.id} className="block text-caption font-medium text-ink">
+        <label
+          htmlFor={props.id}
+          className={clsx('block text-caption font-medium', line ? 'text-ink-sub' : 'text-ink')}
+        >
           {label}
         </label>
       )}
@@ -32,11 +42,7 @@ export function Textarea({
         className={clsx(
           'block leading-relaxed text-ink placeholder:text-ink-faint transition-colors focus:outline-none',
           line
-            ? [
-                'border-b border-hairline bg-transparent px-0 py-2 text-input',
-                'focus:border-hairline-strong',
-                error && 'border-danger focus:border-danger',
-              ]
+            ? 'border-0 bg-transparent px-0 py-2 text-input'
             : [
                 'px-4 py-3 rounded-md border text-input bg-card',
                 'border-hairline-strong focus:border-accent focus:ring-1 focus:ring-accent',
