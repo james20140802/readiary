@@ -26,6 +26,8 @@
   --accent-hover: 36 80 158;
   --danger: 166 61 47; /* #A63D2F 가라앉힌 적갈 */
   --success: 74 124 89; /* #4A7C59 가라앉힌 초록 */
+  /* 움직임 — 들어오고 나가는 UI는 빠르게 시작해 조용히 멈춘다 */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -117,6 +119,54 @@ li {
   100% {
     transform: scaleY(0);
     transform-origin: bottom;
+  }
+}
+
+/* 완독 선언 — 한 권에 한 번뿐인 순간이라 조금 천천히.
+   위아래 헤어라인이 펜으로 긋듯 왼쪽에서 그어지고, 문장과 도구가 잉크가 배듯 뒤따른다.
+   방금 완독한 경우에만 붙는다(이미 완독한 책을 열 때는 움직이지 않는다). */
+@keyframes finish-rule {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes finish-ink {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.finish-rule {
+  transform-origin: left;
+  animation: finish-rule 480ms var(--ease-out) both;
+}
+
+.finish-ink {
+  animation: finish-ink 360ms var(--ease-out) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* 선이 그어지는 움직임은 빼고, 나타남만 부드럽게 남긴다 */
+  .finish-rule {
+    animation: none;
+  }
+
+  @keyframes finish-ink {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
 }
 

@@ -16,6 +16,7 @@ import UnfinishBookButton from './UnfinishBookButton';
 import { Profile } from '@/types/profile';
 import Button from '../ui/Button';
 import Link from 'next/link';
+import { clsx } from 'clsx';
 import { formatReadingPeriod } from '@/lib/dates';
 
 interface Props {
@@ -36,6 +37,8 @@ export default function BookDetailContent({
   const router = useRouter();
   const finishAction = useActionLock();
   const [isFinished, setIsFinished] = useState(userBook.is_finished);
+  // 이 화면에서 방금 완독을 선언했는지 — 그때만 완독 줄이 그어지며 나타난다
+  const [justFinished, setJustFinished] = useState(false);
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
   const [filterOption, setFilterOption] = useState<'all' | 'public' | 'private'>('all');
 
@@ -138,7 +141,10 @@ export default function BookDetailContent({
                   <span className="mx-2 text-hairline-strong">·</span>
                   <MarkAsFinishedButton
                     action={finishAction}
-                    onFinish={() => setIsFinished(true)}
+                    onFinish={() => {
+                      setIsFinished(true);
+                      setJustFinished(true);
+                    }}
                     userBookId={id}
                   />
                 </>
@@ -152,11 +158,35 @@ export default function BookDetailContent({
 
         {/* 완독한 책은 hairline 사이에 한 줄로 */}
         {!isFriend && isFinished && (
-          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-y border-hairline py-3">
-            <p className="font-serif text-body text-ink">
+          <div
+            className={clsx(
+              'relative flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-y py-3',
+              justFinished ? 'border-transparent' : 'border-hairline'
+            )}
+          >
+            {justFinished && (
+              <>
+                <span
+                  aria-hidden
+                  className="finish-rule absolute inset-x-0 -top-px h-px bg-hairline"
+                />
+                <span
+                  aria-hidden
+                  className="finish-rule absolute inset-x-0 -bottom-px h-px bg-hairline"
+                  style={{ animationDelay: '60ms' }}
+                />
+              </>
+            )}
+            <p
+              className={clsx('font-serif text-body text-ink', justFinished && 'finish-ink')}
+              style={justFinished ? { animationDelay: '140ms' } : undefined}
+            >
               <span className="font-bold text-accent">완독</span>한 책입니다
             </p>
-            <div className="flex items-center gap-2">
+            <div
+              className={clsx('flex items-center gap-2', justFinished && 'finish-ink')}
+              style={justFinished ? { animationDelay: '220ms' } : undefined}
+            >
               <Link
                 href={`/protected/books/${book_id}/excerpts`}
                 className="font-serif text-button-sm text-accent hover:underline"
@@ -166,7 +196,10 @@ export default function BookDetailContent({
               <UnfinishBookButton
                 action={finishAction}
                 userBookId={id}
-                onUnfinish={() => setIsFinished(false)}
+                onUnfinish={() => {
+                  setIsFinished(false);
+                  setJustFinished(false);
+                }}
               />
             </div>
           </div>
