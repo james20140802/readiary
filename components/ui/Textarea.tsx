@@ -31,7 +31,10 @@ export function Textarea({
       )}
     >
       {label && (
-        <label htmlFor={props.id} className="block text-caption font-medium text-ink">
+        <label
+          htmlFor={props.id}
+          className={clsx('block text-caption font-medium', line ? 'text-ink-sub' : 'text-ink')}
+        >
           {label}
         </label>
       )}
