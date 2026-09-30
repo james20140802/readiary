@@ -11,7 +11,7 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   trailing?: ReactNode;
   /**
    * `box`(기본): 카드 표면 + 헤어라인 상자. `line`: 상자 없이 괘선 위에 — 기록·책 등록·인증 화면처럼
-   * 종이 문법을 따르는 폼에서 쓴다. 포커스는 괘선이 짙어지는 것으로만 알린다.
+   * 종이 문법을 따르는 폼에서 쓴다. 포커스는 기존 1px 괘선의 색만 accent로 바꿔 알린다.
    */
   variant?: FieldVariant;
 }
@@ -52,19 +52,22 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               [describedBy, error ? errorId : undefined].filter(Boolean).join(' ') || undefined
             }
             className={clsx(
-              'w-full text-ink placeholder:text-ink-faint transition-colors focus:outline-none',
+              'min-h-11 w-full text-ink placeholder:text-ink-faint transition-colors focus:outline-none',
               line
                 ? [
-                    'border-b border-hairline bg-transparent px-0 py-2 text-input',
-                    'focus:border-hairline-strong',
-                    error && 'border-danger focus:border-danger',
-                    trailing && 'pr-9',
+                    'border-b bg-transparent px-0 py-2 text-input',
+                    error
+                      ? 'border-danger focus:border-danger'
+                      : 'border-hairline focus:border-accent',
+                    trailing && 'pr-12',
                   ]
                 : [
                     'rounded-md px-4 py-2 text-input border bg-card',
-                    'border-hairline-strong focus:border-accent focus:ring-1 focus:ring-accent',
-                    error && 'border-danger focus:ring-danger focus:border-danger',
-                    trailing && 'pr-11',
+                    'focus:ring-1',
+                    error
+                      ? 'border-danger focus:ring-danger focus:border-danger'
+                      : 'border-hairline-strong focus:border-accent focus:ring-accent',
+                    trailing && 'pr-14',
                   ],
               props.disabled && 'cursor-not-allowed opacity-60',
               props.disabled && !line && 'bg-card-raised',
@@ -74,10 +77,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           />
           {trailing && (
             <div
-              className={clsx(
-                'absolute inset-y-0 flex items-center',
-                line ? '-right-2' : 'right-1'
-              )}
+              className={clsx('absolute inset-y-0 flex items-center', line ? 'right-0' : 'right-1')}
             >
               {trailing}
             </div>

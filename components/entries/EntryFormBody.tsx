@@ -163,7 +163,7 @@ export default function EntryFormBody({
     <form onSubmit={handleSubmit} aria-busy={isSubmitting}>
       {/* 원고 — 투명 텍스트 영역 두 장, 사이는 헤어라인 한 줄 */}
       <div className="divide-y divide-hairline">
-        <div className="py-5">
+        <div className="writing-field py-5 [--writing-marker-top:1.5rem]">
           <label htmlFor="entry-quote" className="text-caption font-medium text-ink-faint">
             문장
           </label>
@@ -184,10 +184,10 @@ export default function EntryFormBody({
             placeholder="책에서 마음에 남은 문장을 옮겨 적어보세요"
             rows={4}
             autoFocus={autoFocus}
-            className="mt-2 block w-full resize-none border-b border-transparent bg-transparent font-serif text-input leading-relaxed text-ink transition-colors placeholder:text-ink-faint focus:border-hairline-strong focus:outline-none"
+            className="mt-2 block w-full resize-none border-0 bg-transparent font-serif text-input leading-relaxed text-ink transition-colors placeholder:text-ink-faint focus:outline-none"
           />
         </div>
-        <div className="py-5">
+        <div className="writing-field py-5 [--writing-marker-top:1.5rem]">
           <label htmlFor="entry-note" className="text-caption font-medium text-ink-faint">
             생각
           </label>
@@ -206,7 +206,7 @@ export default function EntryFormBody({
             }}
             placeholder="이 문장에 대한 생각, 혹은 오늘의 감상"
             rows={4}
-            className="mt-2 block w-full resize-none border-b border-transparent bg-transparent font-serif text-input leading-relaxed text-ink transition-colors placeholder:text-ink-faint focus:border-hairline-strong focus:outline-none"
+            className="mt-2 block w-full resize-none border-0 bg-transparent font-serif text-input leading-relaxed text-ink transition-colors placeholder:text-ink-faint focus:outline-none"
           />
         </div>
       </div>
@@ -228,7 +228,7 @@ export default function EntryFormBody({
                 placeholder="10"
                 value={fromPage}
                 onChange={(e) => setFromPage(e.target.value)}
-                className="w-11 border-b border-transparent bg-transparent text-center text-ink placeholder:text-ink-faint focus:border-hairline-strong focus:outline-none"
+                className="h-11 w-11 border-b border-transparent bg-transparent text-center text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none"
               />
               <span className="text-ink-faint">–</span>
               <input
@@ -240,7 +240,7 @@ export default function EntryFormBody({
                 value={toPage}
                 max={totalPages ?? undefined}
                 onChange={(e) => setToPage(e.target.value)}
-                className="w-11 border-b border-transparent bg-transparent text-center text-ink placeholder:text-ink-faint focus:border-hairline-strong focus:outline-none"
+                className="h-11 w-11 border-b border-transparent bg-transparent text-center text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none"
               />
             </div>
 
@@ -253,7 +253,7 @@ export default function EntryFormBody({
               value={date}
               max={todayKST()}
               onChange={(e) => setDate(e.target.value)}
-              className="border-b border-transparent bg-transparent text-input tabular-nums text-ink-sub transition-colors focus:border-hairline-strong focus:outline-none"
+              className="min-h-11 border-b border-transparent bg-transparent text-input tabular-nums text-ink-sub transition-colors focus:border-accent focus:outline-none"
             />
           </div>
 
