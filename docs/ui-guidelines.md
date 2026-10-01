@@ -88,6 +88,16 @@
 
 홈 최근 문장·다시 꺼낸 문장·월별 회고의 원문은 읽기 모달에서 연다. 생각 보기와 작성 행동은 엔트리 상세로 연결한다. 회상 카드의 작성 버튼은 책 정보 오른쪽, 공간이 부족하면 다음 줄 오른쪽에 배치한다. 상세의 작성 버튼도 오른쪽에 둔다. 원문의 날짜·쪽수는 상단에, 반응·공유·관리 행동은 원문과 이어 남긴 생각 사이에 둔다. 책 상세의 생각 요약도 상세로 연결하고, 친구 엽서는 기존 앞뒷면을 유지하며 생각 개수를 누르면 엔트리 상세로 이동한다. 화면별 행동·공개 범위·초안 보호는 [이어 남긴 생각](features/entry-reflections.md)을 따른다.
 
+## 움직임 (Motion)
+
+움직임은 장식이 아니라 변화를 이어 주는 도구다. 자주 쓰는 동작은 빠르고 조용하게, 한 권에 한 번뿐인 순간(완독 등)만 조금 천천히 한다.
+
+- 곡선은 토큰만 쓴다. `--ease-out`(들어오고 나감, 기본) · `--ease-in-out`(화면 안 이동) · `--ease-drawer`(시트·서랍). Tailwind는 `ease-ink-out`·`ease-ink-in-out`·`ease-drawer`, framer는 `lib/motion.ts`의 `EASE_*`다. Tailwind 기본 `ease-out`/`ease-in`은 약해서 쓰지 않는다.
+- 책장 넘김 3D 동작만 `EASE_PAGE`(`[0.4, 0, 0.2, 1]`)를 쓴다.
+- 바닥 시트는 `SHEET_TRANSITION`(350ms, 스프링 아님).
+- 움직이는 속성은 `transform`과 `opacity`다. 크기·위치로 바뀌는 곳은 `transition-all` 대신 속성을 지정한다.
+- 감축 모션: framer는 앱 루트의 `MotionProvider`(`reducedMotion="user"`)가 이동을 빼고 opacity만 남긴다. CSS 키프레임은 `prefers-reduced-motion`에서 이동을 빼고 나타남만 남긴다.
+
 ## 다크 모드
 
 어두운 종이. OS 설정 따름(`darkMode: 'media'`), 앱 내 토글 없음.

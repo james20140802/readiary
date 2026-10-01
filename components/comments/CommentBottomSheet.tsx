@@ -4,6 +4,7 @@ import { apiFetch } from '@/lib/api/fetch';
 import { useState, useEffect, useRef } from 'react';
 import { useActionLock } from '@/hooks/useActionLock';
 import { motion, AnimatePresence } from 'framer-motion';
+import { SHEET_TRANSITION } from '@/lib/motion';
 import { X } from 'lucide-react';
 import { Comment } from '@/types/comments';
 import CommentItem from './CommentItem';
@@ -132,7 +133,7 @@ export default function CommentBottomSheet({
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              transition={SHEET_TRANSITION}
               className="fixed bottom-0 left-0 right-0 z-[70] bg-card border border-hairline max-h-[90vh] rounded-t-[20px] flex flex-col w-full mx-auto sm:max-w-[640px] sm:bottom-4 sm:rounded-[24px]"
             >
               {/* 헤더 */}

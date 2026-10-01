@@ -67,6 +67,12 @@ module.exports = {
         '2xl': '0.75rem',
         '3xl': '1rem',
       },
+      // globals.css의 --ease-* 토큰과 같은 값. Tailwind 기본 ease-out/ease-in은 약해서 따로 둔다
+      transitionTimingFunction: {
+        'ink-out': 'var(--ease-out)',
+        'ink-in-out': 'var(--ease-in-out)',
+        drawer: 'var(--ease-drawer)',
+      },
       fontFamily: {
         sans: ['var(--font-sans)', 'ui-sans-serif', 'system-ui'],
         serif: ['var(--font-serif)', 'Noto Serif KR', 'Georgia', 'serif'],
