@@ -11,7 +11,6 @@ import { PROFILE_SHELF_LIMIT, toShelfBook } from '@/lib/books/shelfBook';
 import ProfileBook from '@/components/profile/ProfileBook';
 import ProfileShelf from '@/components/profile/ProfileShelf';
 import ProfileExcerpts from '@/components/profile/ProfileExcerpts';
-import AnimatedSection from '@/components/ui/AnimatedSection';
 import BackButton from '@/components/ui/BackButton';
 
 interface FriendProfilePageProps {
@@ -69,7 +68,7 @@ export default async function FriendProfilePage({ params }: FriendProfilePagePro
         <BackButton />
         <h1 className="ml-4 text-page-title text-ink">친구 프로필</h1>
       </header>
-      <AnimatedSection>
+      <section className="space-y-8">
         <ProfileBook
           user={user}
           profile={profile}
@@ -91,7 +90,7 @@ export default async function FriendProfilePage({ params }: FriendProfilePagePro
         ) : (
           <p className="mt-10 text-body-sm text-ink-faint">회고 정보를 불러올 수 없습니다.</p>
         )}
-      </AnimatedSection>
+      </section>
     </div>
   );
 }

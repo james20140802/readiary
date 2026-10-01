@@ -2,7 +2,6 @@
 
 import Image from 'next/image';
 import { Book } from '@/types/book';
-import AnimatedSection from '@/components/ui/AnimatedSection';
 import BackButton from '@/components/ui/BackButton';
 import EntryFormBody, { EntryFormInitial, EntryFormValues } from './EntryFormBody';
 
@@ -39,7 +38,7 @@ export default function EntryForm({
         <h1 className="text-page-title ml-4">{heading}</h1>
       </header>
 
-      <AnimatedSection>
+      <section className="space-y-8">
         <div className="mx-auto max-w-2xl py-4 sm:py-6">
           {/* 출처 — 어느 책에 남기는지 */}
           <div className="flex items-center gap-4 border-b border-hairline pb-5">
@@ -72,7 +71,7 @@ export default function EntryForm({
             disabled={disabled}
           />
         </div>
-      </AnimatedSection>
+      </section>
     </div>
   );
 }
