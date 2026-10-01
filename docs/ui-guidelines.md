@@ -93,8 +93,10 @@
 움직임은 장식이 아니라 변화를 이어 주는 도구다. 자주 쓰는 동작은 빠르고 조용하게, 한 권에 한 번뿐인 순간(완독 등)만 조금 천천히 한다.
 
 - 곡선은 토큰만 쓴다. `--ease-out`(들어오고 나감, 기본) · `--ease-in-out`(화면 안 이동) · `--ease-drawer`(시트·서랍). Tailwind는 `ease-ink-out`·`ease-ink-in-out`·`ease-drawer`, framer는 `lib/motion.ts`의 `EASE_*`다. Tailwind 기본 `ease-out`/`ease-in`은 약해서 쓰지 않는다.
-- 책장 넘김 3D 동작만 `EASE_PAGE`(`[0.4, 0, 0.2, 1]`)를 쓴다.
+- 책장 넘김 3D 동작만 `EASE_PAGE`(`[0.4, 0, 0.2, 1]`, CSS는 `--ease-page`·Tailwind `ease-page`)를 쓴다.
 - 바닥 시트는 `SHEET_TRANSITION`(350ms, 스프링 아님).
+- 눌림은 `Button`처럼 `scale(0.97)`·150ms로 조용히. 불투명도로 눌림을 표현하지 않는다.
+- `hover:` 스타일은 Tailwind `hoverOnlyWhenSupported`로 hover가 되는 기기에서만 적용된다. 터치 기기에서 눌림 말고는 hover에 기대지 않는다.
 - 움직이는 속성은 `transform`과 `opacity`다. 크기·위치로 바뀌는 곳은 `transition-all` 대신 속성을 지정한다.
 - 감축 모션: framer는 앱 루트의 `MotionProvider`(`reducedMotion="user"`)가 이동을 빼고 opacity만 남긴다. CSS 키프레임은 `prefers-reduced-motion`에서 이동을 빼고 나타남만 남긴다.
 

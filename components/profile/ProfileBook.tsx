@@ -73,9 +73,8 @@ const BOOKMARK_LEFT = Math.round(W * 0.6);
 const BOOKMARK_CLEAR = W - BOOKMARK_LEFT - 28 + 8;
 
 const FACE = 'absolute inset-0 [backface-visibility:hidden]';
-const TURN =
-  'transition-transform duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] motion-reduce:duration-0';
-const EASE = 'cubic-bezier(0.4,0,0.2,1)';
+const TURN = 'transition-transform duration-700 ease-page motion-reduce:duration-0';
+const EASE = 'var(--ease-page)';
 /** 표지가 열리고 닫히는 시간 — TURN의 duration-700과 같다 */
 const COVER_MS = 700;
 /** 낱장 한 장이 넘어가는 시간과, 여러 장을 넘길 때 장마다 두는 시차 */

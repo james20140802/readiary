@@ -14,7 +14,7 @@ export const EASE_IN_OUT: [number, number, number, number] = [0.77, 0, 0.175, 1]
 /** 시트·서랍 */
 export const EASE_DRAWER: [number, number, number, number] = [0.32, 0.72, 0, 1];
 
-/** 책장을 넘기는 3D 동작 전용 — 부드럽게 가속해 부드럽게 멈춘다. 다른 곳에 쓰지 않는다 */
+/** 책장을 넘기는 3D 동작 전용(CSS는 --ease-page) — 부드럽게 가속해 부드럽게 멈춘다. 다른 곳에 쓰지 않는다 */
 export const EASE_PAGE: [number, number, number, number] = [0.4, 0, 0.2, 1];
 
 /** 바닥에서 올라오는 시트 — 스프링처럼 출렁이지 않고 바닥에 붙은 채 올라온다 */

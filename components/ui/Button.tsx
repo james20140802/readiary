@@ -34,9 +34,10 @@ export default function Button({
 }: ButtonProps) {
   const base = clsx(
     'inline-flex items-center justify-center gap-2',
-    'font-sans font-bold rounded-full transition-colors duration-150',
+    'font-sans font-bold rounded-full duration-150 ease-ink-out',
+    'transition-[background-color,color,opacity,transform]',
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-paper',
-    'active:opacity-80',
+    'active:scale-[0.97] motion-reduce:active:scale-100',
     'disabled:opacity-50 disabled:pointer-events-none'
   );
 

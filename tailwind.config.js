@@ -72,6 +72,7 @@ module.exports = {
         'ink-out': 'var(--ease-out)',
         'ink-in-out': 'var(--ease-in-out)',
         drawer: 'var(--ease-drawer)',
+        page: 'var(--ease-page)',
       },
       fontFamily: {
         sans: ['var(--font-sans)', 'ui-sans-serif', 'system-ui'],
@@ -79,5 +80,7 @@ module.exports = {
       },
     },
   },
+  // hover: 스타일은 마우스·트랙패드처럼 hover가 되는 기기에서만 — 터치 후 들린 채 남지 않게
+  future: { hoverOnlyWhenSupported: true },
   plugins: [],
 };

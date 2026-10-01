@@ -18,8 +18,7 @@ const OBI_BOTTOM = 18;
 const SCALE_SM = 0.7;
 
 const FACE = 'absolute inset-0 [backface-visibility:hidden]';
-const TURN =
-  'transition-transform duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] motion-reduce:duration-0';
+const TURN = 'transition-transform duration-700 ease-page motion-reduce:duration-0';
 /** 종이 단면 — 낱장이 겹친 줄무늬 */
 const pageEdge = (dir: 'to right' | 'to bottom'): CSSProperties => ({
   backgroundImage: `repeating-linear-gradient(${dir}, rgb(var(--card)) 0 1px, rgb(var(--hairline)) 1px 2px)`,
