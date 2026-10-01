@@ -51,7 +51,7 @@ export function InProgressBooksStack({ myBooks, initialTopId, latestTexts }: Pro
             <motion.div
               key={b.id}
               layout
-              transition={{ duration: 0.3, ease: EASE_OUT }}
+              transition={{ duration: 0.38, ease: EASE_OUT }}
               className="mx-auto"
               style={{ width: isSelected ? '100%' : `${Math.max(70, 96 - dist * 7)}%` }}
             >
