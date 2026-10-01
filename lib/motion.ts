@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import type { Transition } from 'framer-motion';
 
 /**
@@ -19,3 +20,6 @@ export const EASE_PAGE: [number, number, number, number] = [0.4, 0, 0.2, 1];
 
 /** 바닥에서 올라오는 시트 — 스프링처럼 출렁이지 않고 바닥에 붙은 채 올라온다 */
 export const SHEET_TRANSITION: Transition = { duration: 0.35, ease: EASE_DRAWER };
+
+/** 목록 차례 등장(.ink-in)의 순번 — 0부터. 여섯 번째부터는 globals.css에서 같은 때로 묶인다 */
+export const inkIn = (i: number): CSSProperties => ({ '--i': i }) as CSSProperties;
