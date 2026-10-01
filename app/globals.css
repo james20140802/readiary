@@ -158,6 +158,25 @@ li {
   animation: finish-ink 360ms var(--ease-out) both;
 }
 
+/* 목록 차례 등장 — 처음 그려질 때 위에서부터 한 줄씩 잉크가 배듯 나타난다.
+   순서는 --i(0부터)로 주고, 여섯 번째부터는 같은 때 나타난다(기다리게 하지 않는다).
+   끝난 뒤 transform을 남기지 않도록 backwards — 항목 안의 fixed 시트가 항목 기준으로 갇히지 않게. */
+@keyframes ink-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ink-in {
+  animation: ink-in 320ms var(--ease-out) backwards;
+  animation-delay: calc(min(var(--i, 0), 5) * 40ms);
+}
+
 /* 작은 메뉴가 누른 자리(오른쪽 위)에서 열린다 */
 @keyframes menu-pop {
   from {
@@ -176,6 +195,16 @@ li {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  /* 차례 등장 — 떠오름은 빼고 나타남만 남긴다 */
+  @keyframes ink-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
   /* 크기 변화는 빼고 나타남만 남긴다 */
   @keyframes menu-pop {
     from {

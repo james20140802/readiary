@@ -1,5 +1,4 @@
 import { ReactNode } from 'react';
-import AnimatedSection from '@/components/ui/AnimatedSection';
 
 interface AuthFrameProps {
   title: string;
@@ -21,9 +20,9 @@ export default function AuthFrame({ title, lead, children, footer }: AuthFramePr
         <h1 className="font-serif text-page-title font-bold leading-snug text-ink">{title}</h1>
         {lead && <p className="mt-2 break-keep text-body-sm text-ink-sub">{lead}</p>}
       </header>
-      <AnimatedSection>
+      <section className="space-y-8">
         <div className="mt-8">{children}</div>
-      </AnimatedSection>
+      </section>
       {footer && (
         <footer className="mt-8 flex flex-col gap-2 border-t border-hairline pt-5 text-center text-body-sm text-ink-sub [&_a]:underline [&_a]:underline-offset-4 [&_a:hover]:text-ink">
           {footer}

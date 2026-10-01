@@ -6,7 +6,7 @@ import { DetailSocialFeedEntry } from '@/types/entry';
 import { fetchDetailSocialFeedEntries } from '@/lib/queries/fetchSocialFeedEntries';
 import { FEED_PAGINATION_LIMIT } from '@/constants/social';
 import DetailSocailFeedItem from './DetailSocialFeedItem';
-import AnimatedSection from '@/components/ui/AnimatedSection';
+import { inkIn } from '@/lib/motion';
 
 export default function DetailSocailFeedList({
   initialFeed,
@@ -78,10 +78,11 @@ export default function DetailSocailFeedList({
     <>
       {/* 엽서는 한 장씩 — 괘선 대신 간격으로 구분 */}
       <div className="flex flex-col gap-6 py-6">
-        {feed.map((item) => (
-          <AnimatedSection key={item.entry.id}>
+        {/* 차례 등장 — 이어 불러온 페이지도 그 페이지 안에서 처음부터 센다 */}
+        {feed.map((item, i) => (
+          <div key={item.entry.id} className="ink-in" style={inkIn(i % FEED_PAGINATION_LIMIT)}>
             <DetailSocailFeedItem item={item} userId={userId} />
-          </AnimatedSection>
+          </div>
         ))}
       </div>
 

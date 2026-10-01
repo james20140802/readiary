@@ -17,6 +17,7 @@ import { fetchDetailSocialFeedEntries } from '@/lib/queries/fetchSocialFeedEntri
 import { getUserStats } from '@/lib/stats/getUserStats';
 import { getServerUser } from '@/lib/supabase/getServerUser';
 import { redirect } from 'next/navigation';
+import { inkIn } from '@/lib/motion';
 
 function WidgetSkeleton({ tall = false }: { tall?: boolean }) {
   return (
@@ -52,46 +53,65 @@ export default async function DashboardPage() {
     recentEntries,
   } = data;
 
+  // 차례 등장 — 위에서부터 한 덩이씩. 늦게 오는 위젯(Suspense)은 도착할 때 나타나고,
+  // 위젯이 아무것도 그리지 않으면 빈 상자가 간격을 차지하지 않게 감춘다.
+  const step = 'ink-in empty:hidden';
   return (
     <div className="w-full">
-      <GreetingHeader name={name} />
+      <div className="ink-in" style={inkIn(0)}>
+        <GreetingHeader name={name} />
+      </div>
       <section className="space-y-8">
         <Suspense fallback={null}>
-          <RecapWidget result={recap} />
+          <div className={step} style={inkIn(1)}>
+            <RecapWidget result={recap} />
+          </div>
         </Suspense>
-        <Composer
-          key={user.id}
-          userId={user.id}
-          books={books}
-          recentUserBookId={recentUserBookId}
-        />
-        <Suspense fallback={<WidgetSkeleton />}>
-          <RecallWidget result={recall} />
-        </Suspense>
-        <WeeklyStreakSection
-          weeklyCount={weeklyCount}
-          weekActivity={weekActivity}
-          todayKst={todayKst}
-        />
-        {books.length > 0 ? (
-          <InProgressBooksStack
-            myBooks={books}
-            initialTopId={recentUserBookId ?? books[0].id}
-            latestTexts={latestTexts}
-          />
-        ) : (
-          <NoBooksSection />
-        )}
-        <Suspense fallback={<WidgetSkeleton tall />}>
-          <BoardWidget
-            result={friendFeed}
-            recentEntries={recentEntries}
+        <div className="ink-in" style={inkIn(1)}>
+          <Composer
+            key={user.id}
             userId={user.id}
+            books={books}
+            recentUserBookId={recentUserBookId}
+          />
+        </div>
+        <Suspense fallback={<WidgetSkeleton />}>
+          <div className={step} style={inkIn(2)}>
+            <RecallWidget result={recall} />
+          </div>
+        </Suspense>
+        <div className="ink-in" style={inkIn(3)}>
+          <WeeklyStreakSection
+            weeklyCount={weeklyCount}
+            weekActivity={weekActivity}
             todayKst={todayKst}
           />
+        </div>
+        <div className="ink-in" style={inkIn(4)}>
+          {books.length > 0 ? (
+            <InProgressBooksStack
+              myBooks={books}
+              initialTopId={recentUserBookId ?? books[0].id}
+              latestTexts={latestTexts}
+            />
+          ) : (
+            <NoBooksSection />
+          )}
+        </div>
+        <Suspense fallback={<WidgetSkeleton tall />}>
+          <div className={step} style={inkIn(5)}>
+            <BoardWidget
+              result={friendFeed}
+              recentEntries={recentEntries}
+              userId={user.id}
+              todayKst={todayKst}
+            />
+          </div>
         </Suspense>
         <Suspense fallback={<WidgetSkeleton />}>
-          <StatsWidget result={stats} name={name} />
+          <div className={step} style={inkIn(5)}>
+            <StatsWidget result={stats} name={name} />
+          </div>
         </Suspense>
       </section>
     </div>

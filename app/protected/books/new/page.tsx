@@ -4,7 +4,6 @@ import { useState } from 'react';
 import NewBookForm from './_components/NewBookForm';
 import KakaoBookSearchForm from './_components/KakaoBookSearchForm';
 import Tabs from '@/components/ui/Tabs';
-import AnimatedSection from '@/components/ui/AnimatedSection';
 import BackButton from '@/components/ui/BackButton';
 
 export default function NewBookPage() {
@@ -30,13 +29,13 @@ export default function NewBookPage() {
         />
       </fieldset>
       <div className="mt-6">
-        <AnimatedSection key={tab}>
+        <section key={tab} className="space-y-8">
           {tab === 'search' ? (
             <KakaoBookSearchForm onBusyChange={setBusy} />
           ) : (
             <NewBookForm onBusyChange={setBusy} />
           )}
-        </AnimatedSection>
+        </section>
       </div>
     </div>
   );

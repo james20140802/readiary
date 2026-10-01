@@ -18,6 +18,7 @@ import Button from '../ui/Button';
 import Link from 'next/link';
 import { clsx } from 'clsx';
 import { formatReadingPeriod } from '@/lib/dates';
+import { inkIn } from '@/lib/motion';
 
 interface Props {
   userBook: MyBook;
@@ -255,28 +256,29 @@ export default function BookDetailContent({
 
           {sortedEntries && sortedEntries.length > 0 ? (
             <div className="mt-1 divide-y divide-hairline">
-              {sortedEntries.map((data) => (
-                <EntryCard
-                  key={data.entry.id}
-                  id={data.entry.id}
-                  reflectionSummary={data.entry.reflectionSummary}
-                  quote={data.entry.quote}
-                  note={data.entry.note}
-                  date={data.entry.date}
-                  fromPage={data.entry.from_page}
-                  toPage={data.entry.to_page}
-                  isPrivate={data.entry.is_private}
-                  userId={userId}
-                  href={
-                    isFriend && friendProfile
-                      ? `/protected/social/u/${friendProfile.nickname + '-' + friendProfile.tag}/entry/${data.entry.id}`
-                      : undefined
-                  }
-                  initialCommentCount={data.initialCommentCount}
-                  initialLikeCount={data.initialLikeCount}
-                  initialLiked={data.initialLiked}
-                  onEdit={isFriend ? undefined : () => openEdit(data.entry)}
-                />
+              {sortedEntries.map((data, i) => (
+                <div key={data.entry.id} className="ink-in" style={inkIn(i)}>
+                  <EntryCard
+                    id={data.entry.id}
+                    reflectionSummary={data.entry.reflectionSummary}
+                    quote={data.entry.quote}
+                    note={data.entry.note}
+                    date={data.entry.date}
+                    fromPage={data.entry.from_page}
+                    toPage={data.entry.to_page}
+                    isPrivate={data.entry.is_private}
+                    userId={userId}
+                    href={
+                      isFriend && friendProfile
+                        ? `/protected/social/u/${friendProfile.nickname + '-' + friendProfile.tag}/entry/${data.entry.id}`
+                        : undefined
+                    }
+                    initialCommentCount={data.initialCommentCount}
+                    initialLikeCount={data.initialLikeCount}
+                    initialLiked={data.initialLiked}
+                    onEdit={isFriend ? undefined : () => openEdit(data.entry)}
+                  />
+                </div>
               ))}
             </div>
           ) : (

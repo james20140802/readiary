@@ -11,6 +11,7 @@ import CommentItem from './CommentItem';
 import CommentInput from './CommentInput';
 import Modal from '@/components/ui/Modal';
 import Button from '@/components/ui/Button';
+import BodyPortal from '@/components/ui/BodyPortal';
 
 interface Props {
   entryId: string;
@@ -116,7 +117,7 @@ export default function CommentBottomSheet({
   };
 
   return (
-    <>
+    <BodyPortal>
       <AnimatePresence>
         {isOpen && (
           <>
@@ -258,6 +259,6 @@ export default function CommentBottomSheet({
           </div>
         </div>
       </Modal>
-    </>
+    </BodyPortal>
   );
 }

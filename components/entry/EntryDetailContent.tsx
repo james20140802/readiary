@@ -15,7 +15,6 @@ import { Entry } from '@/types/entry';
 import { Book } from '@/types/book';
 import { Profile } from '@/types/profile';
 import { formatKoreanDate } from '@/lib/dates';
-import AnimatedSection from '@/components/ui/AnimatedSection';
 import SocialActionBar from '../social/SocialActionBar';
 import ShareEntryButton from '@/components/entries/ShareEntryButton';
 import Button from '../ui/Button';
@@ -117,7 +116,7 @@ export default function EntryDetailContent({
           </div>
         </Link>
 
-        <AnimatedSection>
+        <section className="space-y-8">
           <article>
             <p className="mb-5 text-caption tabular-nums text-ink-sub">
               <time dateTime={entry.date}>{formatKoreanDate(entry.date) ?? entry.date}</time>
@@ -222,7 +221,7 @@ export default function EntryDetailContent({
               </div>
             )}
           </article>
-        </AnimatedSection>
+        </section>
 
         {/* 푸터 위 헤어라인이 이미 본문을 닫는다 — 여기 선을 또 그으면 허공에 뜬다 */}
         <div ref={commentRef}>

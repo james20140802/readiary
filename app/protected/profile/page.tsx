@@ -10,7 +10,6 @@ import { PROFILE_SHELF_LIMIT, toShelfBook } from '@/lib/books/shelfBook';
 import ProfileBook from '@/components/profile/ProfileBook';
 import ProfileShelf from '@/components/profile/ProfileShelf';
 import ProfileExcerpts from '@/components/profile/ProfileExcerpts';
-import AnimatedSection from '@/components/ui/AnimatedSection';
 
 const excerptsHref = (bookId: string) => `/protected/books/${bookId}/excerpts`;
 
@@ -54,7 +53,7 @@ export default async function ProfilePage() {
 
   return (
     <div className="pb-16">
-      <AnimatedSection>
+      <section className="space-y-8">
         <ProfileBook
           user={user}
           profile={profile}
@@ -76,7 +75,7 @@ export default async function ProfilePage() {
         ) : (
           <p className="mt-10 text-body-sm text-ink-faint">회고 정보를 불러올 수 없습니다.</p>
         )}
-      </AnimatedSection>
+      </section>
     </div>
   );
 }
