@@ -4,6 +4,7 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Toaster } from 'sonner';
 import AppShell from '@/components/AppShell';
+import MotionProvider from '@/components/MotionProvider';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { maruBuri, pretendard } from './fonts';
 
@@ -55,9 +56,11 @@ export default async function RootLayout({
       <body className="overflow-x-hidden bg-paper text-ink">
         <PushAccountGuard />
         <ReflectionDraftGuard />
-        <AppShell initialLoggedIn={loggedIn} initialUnread={initialUnread}>
-          {children}
-        </AppShell>
+        <MotionProvider>
+          <AppShell initialLoggedIn={loggedIn} initialUnread={initialUnread}>
+            {children}
+          </AppShell>
+        </MotionProvider>
         <Toaster
           richColors
           position="top-center"

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { EASE_OUT } from '@/lib/motion';
 import Card from '@/components/ui/Card';
 import Seal from '@/components/ui/Seal';
 import { MyBook } from '@/types/book';
@@ -50,7 +51,7 @@ export function InProgressBooksStack({ myBooks, initialTopId, latestTexts }: Pro
             <motion.div
               key={b.id}
               layout
-              transition={{ duration: 0.3, ease: 'easeOut' }}
+              transition={{ duration: 0.38, ease: EASE_OUT }}
               className="mx-auto"
               style={{ width: isSelected ? '100%' : `${Math.max(70, 96 - dist * 7)}%` }}
             >

@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { EASE_OUT, EASE_PAGE } from '@/lib/motion';
 import Seal from '@/components/ui/Seal';
 import {
   STACK_MAX,
@@ -30,7 +31,6 @@ interface Props {
 /** 꺼내기(책등→표지) · 넘기기(표지) 시간, 초 */
 export const PULL = 0.45;
 export const FLIP = 0.6;
-const EASE_OUT: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
 const BOARD = 3; // 판이 종이보다 넓게 나오는 여백
 const PAGE_BOTTOM = BOARD + Math.ceil(STACK_MAX * 0.3); // 부채꼴로 내려오는 단면 자리
@@ -69,6 +69,8 @@ export default function OpenBook({
   onClosed,
   preview = false,
 }: Props) {
+  // MotionConfig의 reducedMotion은 transform·layout만 끈다 — height는 직접 끈다
+  const reduceMotion = useReducedMotion();
   const [stage, setStage] = useState<Stage>('idle');
   const [visible, setVisible] = useState<ShelfBook | null>(null);
   const [prevBook, setPrevBook] = useState<ShelfBook | null>(null);
@@ -140,7 +142,7 @@ export default function OpenBook({
       aria-label="꺼낸 책"
       initial={false}
       animate={{ height: slotOpen ? 'auto' : 0 }}
-      transition={{ duration: PULL, ease: EASE_OUT }}
+      transition={{ duration: reduceMotion ? 0 : PULL, ease: EASE_OUT }}
       onAnimationComplete={() => {
         if (slotOpen) stageRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
       }}
@@ -278,7 +280,7 @@ export default function OpenBook({
                 <motion.div
                   initial={false}
                   animate={{ rotateY: isOpen ? -180 : 0 }}
-                  transition={{ duration: FLIP, ease: [0.4, 0, 0.2, 1] }}
+                  transition={{ duration: FLIP, ease: EASE_PAGE }}
                   className="relative h-full w-full origin-left"
                   style={{ transformStyle: 'preserve-3d' }}
                 >

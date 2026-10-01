@@ -3,6 +3,7 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { EASE_OUT } from '@/lib/motion';
 import { SHELF_SLOT_HEIGHT, spineHeight, spineWidth } from '@/lib/books/spine';
 
 export interface ShelfBook {
@@ -134,7 +135,7 @@ function SpineItem({
   const showText = !hidden && settled;
   const textStyle = {
     opacity: showText ? 1 : 0,
-    transition: showText ? 'opacity 150ms ease-out' : 'none',
+    transition: showText ? 'opacity 150ms var(--ease-out)' : 'none',
   } as const;
   // 아래 테두리는 늘 둔다 — 선반 위에서는 판에 묻히고, 꺼내고 되돌아가는 동안엔 책의 밑면이 된다
   const spineClass = `group flex h-full w-full flex-col items-center rounded-t-[3px] border border-hairline-strong pt-4 pb-3 transition-transform hover:-translate-y-1 focus-visible:-translate-y-1 focus-visible:border-accent focus-visible:outline-none ${
@@ -165,7 +166,7 @@ function SpineItem({
           덮이면 표지 자리에서 이 transition으로 되돌아온다 */}
       <motion.div
         layoutId={spineLayoutId(book.id)}
-        transition={{ layout: { duration: RETURN, ease: [0.22, 1, 0.36, 1] } }}
+        transition={{ layout: { duration: RETURN, ease: EASE_OUT } }}
         onLayoutAnimationComplete={() => settleAfter(REVEAL_DELAY)}
         className={`flex items-end ${hidden ? 'invisible' : ''}`}
         style={{ height, width }}

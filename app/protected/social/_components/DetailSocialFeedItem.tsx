@@ -181,7 +181,7 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
           {isMenuOpen && (
             <>
               <div className="fixed inset-0 z-10" onClick={() => setIsMenuOpen(false)} />
-              <div className="absolute right-0 mt-1 w-36 bg-card border border-hairline rounded-xl z-20 py-1 overflow-hidden animate-in fade-in zoom-in-95 duration-100 origin-top-right">
+              <div className="absolute right-0 mt-1 w-36 bg-card border border-hairline rounded-xl z-20 py-1 overflow-hidden menu-pop">
                 <button
                   onClick={() => {
                     router.push(userProfilePath);

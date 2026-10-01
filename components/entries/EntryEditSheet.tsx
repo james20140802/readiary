@@ -7,6 +7,7 @@ import { apiFetch } from '@/lib/api/fetch';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { SHEET_TRANSITION } from '@/lib/motion';
 import { X } from 'lucide-react';
 import { Entry } from '@/types/entry';
 import InertBackground from '@/components/ui/InertBackground';
@@ -131,7 +132,7 @@ export default function EntryEditSheet({
                 initial={{ y: '100%' }}
                 animate={{ y: 0 }}
                 exit={{ y: '100%' }}
-                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                transition={SHEET_TRANSITION}
                 className="fixed bottom-0 left-0 right-0 mx-auto flex max-h-[90vh] w-full flex-col rounded-t-[20px] border border-hairline bg-card sm:bottom-4 sm:max-w-[640px] sm:rounded-[24px]"
               >
                 {/* 헤더 */}
