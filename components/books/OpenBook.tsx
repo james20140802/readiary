@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { EASE_OUT, EASE_PAGE } from '@/lib/motion';
 import Seal from '@/components/ui/Seal';
 import {
@@ -69,6 +69,8 @@ export default function OpenBook({
   onClosed,
   preview = false,
 }: Props) {
+  // MotionConfig의 reducedMotion은 transform·layout만 끈다 — height는 직접 끈다
+  const reduceMotion = useReducedMotion();
   const [stage, setStage] = useState<Stage>('idle');
   const [visible, setVisible] = useState<ShelfBook | null>(null);
   const [prevBook, setPrevBook] = useState<ShelfBook | null>(null);
@@ -140,7 +142,7 @@ export default function OpenBook({
       aria-label="꺼낸 책"
       initial={false}
       animate={{ height: slotOpen ? 'auto' : 0 }}
-      transition={{ duration: PULL, ease: EASE_OUT }}
+      transition={{ duration: reduceMotion ? 0 : PULL, ease: EASE_OUT }}
       onAnimationComplete={() => {
         if (slotOpen) stageRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
       }}
