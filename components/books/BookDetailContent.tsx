@@ -255,29 +255,37 @@ export default function BookDetailContent({
           )}
 
           {sortedEntries && sortedEntries.length > 0 ? (
-            <div className="mt-1 divide-y divide-hairline">
+            <div className="mt-1">
               {sortedEntries.map((data, i) => (
-                <div key={data.entry.id} className="ink-in" style={inkIn(i)}>
-                  <EntryCard
-                    id={data.entry.id}
-                    reflectionSummary={data.entry.reflectionSummary}
-                    quote={data.entry.quote}
-                    note={data.entry.note}
-                    date={data.entry.date}
-                    fromPage={data.entry.from_page}
-                    toPage={data.entry.to_page}
-                    isPrivate={data.entry.is_private}
-                    userId={userId}
-                    href={
-                      isFriend && friendProfile
-                        ? `/protected/social/u/${friendProfile.nickname + '-' + friendProfile.tag}/entry/${data.entry.id}`
-                        : undefined
-                    }
-                    initialCommentCount={data.initialCommentCount}
-                    initialLikeCount={data.initialLikeCount}
-                    initialLiked={data.initialLiked}
-                    onEdit={isFriend ? undefined : () => openEdit(data.entry)}
+                // 구분선은 항목 위에 그어진다 — 첫 줄은 감추되 늘 렌더해서, 정렬로 첫 자리가 바뀌어도 다시 긋지 않는다
+                <div key={data.entry.id} className="group relative pt-px first:pt-0">
+                  <span
+                    aria-hidden
+                    className="rule-draw absolute inset-x-0 top-0 h-px bg-hairline group-first:invisible"
+                    style={inkIn(i)}
                   />
+                  <div className="ink-in" style={inkIn(i)}>
+                    <EntryCard
+                      id={data.entry.id}
+                      reflectionSummary={data.entry.reflectionSummary}
+                      quote={data.entry.quote}
+                      note={data.entry.note}
+                      date={data.entry.date}
+                      fromPage={data.entry.from_page}
+                      toPage={data.entry.to_page}
+                      isPrivate={data.entry.is_private}
+                      userId={userId}
+                      href={
+                        isFriend && friendProfile
+                          ? `/protected/social/u/${friendProfile.nickname + '-' + friendProfile.tag}/entry/${data.entry.id}`
+                          : undefined
+                      }
+                      initialCommentCount={data.initialCommentCount}
+                      initialLikeCount={data.initialLikeCount}
+                      initialLiked={data.initialLiked}
+                      onEdit={isFriend ? undefined : () => openEdit(data.entry)}
+                    />
+                  </div>
                 </div>
               ))}
             </div>

@@ -177,6 +177,14 @@ li {
   animation-delay: calc(min(var(--i, 0), 5) * 40ms);
 }
 
+/* 원고 흐름의 구분선 — 항목이 떠오르는 차례에 맞춰 왼쪽에서부터 그어진다.
+   같은 --i를 쓰고, 한 번 그어진 뒤에는 정렬·필터로 다시 그려지지 않는다(항목마다 늘 렌더하고 첫 줄만 감춘다). */
+.rule-draw {
+  transform-origin: left;
+  animation: finish-rule 420ms var(--ease-out) backwards;
+  animation-delay: calc(min(var(--i, 0), 5) * 40ms);
+}
+
 /* 작은 메뉴가 누른 자리(오른쪽 위)에서 열린다 */
 @keyframes menu-pop {
   from {
@@ -218,6 +226,10 @@ li {
   /* 선이 그어지는 움직임은 빼고, 나타남만 부드럽게 남긴다 */
   .finish-rule {
     animation: none;
+  }
+
+  .rule-draw {
+    animation-name: ink-in;
   }
 
   @keyframes finish-ink {
