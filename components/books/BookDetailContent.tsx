@@ -257,8 +257,8 @@ export default function BookDetailContent({
           {sortedEntries && sortedEntries.length > 0 ? (
             <div className="mt-1">
               {sortedEntries.map((data, i) => (
-                // 구분선은 항목 위에 그어진다 — 첫 줄은 감추되 늘 렌더해서, 정렬로 첫 자리가 바뀌어도 다시 긋지 않는다
-                <div key={data.entry.id} className="group relative pt-px first:pt-0">
+                // 구분선이 먼저 그어지고 기록이 뒤따른다(globals.css .ruled-item) — 첫 줄은 감추되 늘 렌더해서, 정렬로 첫 자리가 바뀌어도 다시 긋지 않는다
+                <div key={data.entry.id} className="ruled-item group relative pt-px first:pt-0">
                   <span
                     aria-hidden
                     className="rule-draw absolute inset-x-0 top-0 h-px bg-hairline group-first:invisible"
