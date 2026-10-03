@@ -177,6 +177,37 @@ li {
   animation-delay: calc(min(var(--i, 0), 5) * 40ms);
 }
 
+/* 원고 흐름의 구분선 — 선이 먼저 그어지고, 그 아래 기록이 뒤따라 떠오른다.
+   .ruled-item(항목 상자) 안에 선(.rule-draw)과 내용(.ink-in)을 둔다. 순번 k=min(--i,5)일 때
+   선은 (k-1)×100+60ms에 360ms 동안 긋고, 내용은 선이 반쯤 넘어간 k×100+160ms에 떠오른다.
+   첫 항목은 위에 선이 없으므로 바로 나타난다.
+   선은 항목마다 늘 렌더하고 첫 줄만 감춰 정렬로 다시 그어지지 않게 한다.
+   ease-out은 첫 0.1초에 거의 다 그어져 옅은 선이 움직이는지 보이지 않아 in-out을 쓴다. */
+.rule-draw {
+  transform-origin: left;
+  animation: finish-rule 360ms var(--ease-in-out) backwards;
+  animation-delay: calc((min(var(--i, 0), 5) - 1) * 100ms + 60ms);
+}
+
+.ruled-item > .ink-in {
+  animation-delay: calc(min(var(--i, 0), 5) * 100ms + 160ms);
+}
+
+.ruled-item:first-child > .ink-in {
+  animation-delay: 0ms;
+}
+
+/* 첫 항목 위에는 선이 없다 — Tailwind의 이름 없는 group은 항목 안의 group-hover까지 깨우므로 CSS로 감춘다 */
+.ruled-item:first-child > .rule-draw {
+  visibility: hidden;
+}
+
+/* 필터를 바꾸면 빠졌던 항목이 새로 마운트된다 — 목록을 한 번 만진 뒤로는 다시 긋지도 떠오르지도 않는다 */
+.ruled-list-settled .rule-draw,
+.ruled-list-settled .ink-in {
+  animation: none;
+}
+
 /* 작은 메뉴가 누른 자리(오른쪽 위)에서 열린다 */
 @keyframes menu-pop {
   from {
@@ -218,6 +249,10 @@ li {
   /* 선이 그어지는 움직임은 빼고, 나타남만 부드럽게 남긴다 */
   .finish-rule {
     animation: none;
+  }
+
+  .rule-draw {
+    animation-name: ink-in;
   }
 
   @keyframes finish-ink {

@@ -42,6 +42,8 @@ export default function BookDetailContent({
   const [justFinished, setJustFinished] = useState(false);
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
   const [filterOption, setFilterOption] = useState<'all' | 'public' | 'private'>('all');
+  // 필터를 바꾸면 빠졌던 기록이 새로 마운트된다 — 목록을 한 번 만진 뒤로는 등장 애니메이션 없이 그 자리에 놓는다
+  const [listSettled, setListSettled] = useState(false);
 
   // 기록 목록은 서버 props를 따르되, 시트에서 고치거나 지운 결과를 재조회 전에 먼저 반영한다.
   // props가 새로 오면(router.refresh) 렌더 중에 되맞춘다 — React의 '이전 props 기억' 패턴.
@@ -231,7 +233,10 @@ export default function BookDetailContent({
                   {FILTER_OPTIONS.map((opt) => (
                     <button
                       key={opt.value}
-                      onClick={() => setFilterOption(opt.value)}
+                      onClick={() => {
+                        setFilterOption(opt.value);
+                        setListSettled(true);
+                      }}
                       className={`transition-colors ${
                         filterOption === opt.value
                           ? 'text-ink underline decoration-accent underline-offset-4'
@@ -255,29 +260,37 @@ export default function BookDetailContent({
           )}
 
           {sortedEntries && sortedEntries.length > 0 ? (
-            <div className="mt-1 divide-y divide-hairline">
+            <div className={clsx('mt-1', listSettled && 'ruled-list-settled')}>
               {sortedEntries.map((data, i) => (
-                <div key={data.entry.id} className="ink-in" style={inkIn(i)}>
-                  <EntryCard
-                    id={data.entry.id}
-                    reflectionSummary={data.entry.reflectionSummary}
-                    quote={data.entry.quote}
-                    note={data.entry.note}
-                    date={data.entry.date}
-                    fromPage={data.entry.from_page}
-                    toPage={data.entry.to_page}
-                    isPrivate={data.entry.is_private}
-                    userId={userId}
-                    href={
-                      isFriend && friendProfile
-                        ? `/protected/social/u/${friendProfile.nickname + '-' + friendProfile.tag}/entry/${data.entry.id}`
-                        : undefined
-                    }
-                    initialCommentCount={data.initialCommentCount}
-                    initialLikeCount={data.initialLikeCount}
-                    initialLiked={data.initialLiked}
-                    onEdit={isFriend ? undefined : () => openEdit(data.entry)}
+                // 구분선이 먼저 그어지고 기록이 뒤따른다(globals.css .ruled-item) — 첫 줄은 감추되 늘 렌더해서, 정렬로 첫 자리가 바뀌어도 다시 긋지 않는다
+                <div key={data.entry.id} className="ruled-item relative pt-px first:pt-0">
+                  <span
+                    aria-hidden
+                    className="rule-draw absolute inset-x-0 top-0 h-px bg-hairline"
+                    style={inkIn(i)}
                   />
+                  <div className="ink-in" style={inkIn(i)}>
+                    <EntryCard
+                      id={data.entry.id}
+                      reflectionSummary={data.entry.reflectionSummary}
+                      quote={data.entry.quote}
+                      note={data.entry.note}
+                      date={data.entry.date}
+                      fromPage={data.entry.from_page}
+                      toPage={data.entry.to_page}
+                      isPrivate={data.entry.is_private}
+                      userId={userId}
+                      href={
+                        isFriend && friendProfile
+                          ? `/protected/social/u/${friendProfile.nickname + '-' + friendProfile.tag}/entry/${data.entry.id}`
+                          : undefined
+                      }
+                      initialCommentCount={data.initialCommentCount}
+                      initialLikeCount={data.initialLikeCount}
+                      initialLiked={data.initialLiked}
+                      onEdit={isFriend ? undefined : () => openEdit(data.entry)}
+                    />
+                  </div>
                 </div>
               ))}
             </div>

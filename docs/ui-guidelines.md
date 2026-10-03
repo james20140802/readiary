@@ -96,6 +96,7 @@
 - 책장 넘김 3D 동작만 `EASE_PAGE`(`[0.4, 0, 0.2, 1]`, CSS는 `--ease-page`·Tailwind `ease-page`)를 쓴다.
 - 바닥 시트는 `SHEET_TRANSITION`(350ms, 스프링 아님).
 - 목록이 처음 그려질 때는 `.ink-in`(320ms, 6px 떠오름)으로 차례 등장한다. 순번은 `lib/motion.ts`의 `inkIn(i)`로 주고 간격은 40ms, 여섯 번째부터는 함께 나타난다. 다시 그려지거나 정렬만 바뀔 때는 움직이지 않는다. 끝난 뒤 transform이 남지 않게 `backwards`를 쓰지만, 등장하는 동안에는 조상의 transform·opacity가 `fixed` 자손을 가두므로 항목 안에서 여는 시트는 `components/ui/BodyPortal`로 body에 띄운다.
+- 책 상세의 기록은 구분선이 먼저 그어지고 그 아래 기록이 뒤따라 떠오른다(`.ruled-item` 안의 `.rule-draw`·`.ink-in`). 선은 360ms `--ease-in-out`, 순번마다 100ms 간격이고, 기록은 선이 반쯤 넘어갔을 때 떠오른다. `--ease-out`은 옅은 헤어라인이 첫 0.1초에 거의 다 그어져 움직임이 보이지 않으므로 쓰지 않는다. 선은 항목마다 늘 렌더하고 첫 줄만 감춰 정렬로 다시 그어지지 않게 한다. 필터는 빠졌던 항목을 새로 마운트하므로, 필터를 한 번 만진 뒤로는 목록에 `.ruled-list-settled`를 붙여 등장 애니메이션을 끈다. 줄이는 모션에서는 나타남만 남긴다.
 - 눌림은 `Button`처럼 `scale(0.97)`·150ms로 조용히. 불투명도로 눌림을 표현하지 않는다.
 - `hover:` 스타일은 Tailwind `hoverOnlyWhenSupported`로 hover가 되는 기기에서만 적용된다. 터치 기기에서 눌림 말고는 hover에 기대지 않는다.
 - 움직이는 속성은 `transform`과 `opacity`다. 크기·위치로 바뀌는 곳은 `transition-all` 대신 속성을 지정한다.
