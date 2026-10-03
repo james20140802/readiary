@@ -42,6 +42,8 @@ export default function BookDetailContent({
   const [justFinished, setJustFinished] = useState(false);
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
   const [filterOption, setFilterOption] = useState<'all' | 'public' | 'private'>('all');
+  // 필터를 바꾸면 빠졌던 기록이 새로 마운트된다 — 목록을 한 번 만진 뒤로는 등장 애니메이션 없이 그 자리에 놓는다
+  const [listSettled, setListSettled] = useState(false);
 
   // 기록 목록은 서버 props를 따르되, 시트에서 고치거나 지운 결과를 재조회 전에 먼저 반영한다.
   // props가 새로 오면(router.refresh) 렌더 중에 되맞춘다 — React의 '이전 props 기억' 패턴.
@@ -231,7 +233,10 @@ export default function BookDetailContent({
                   {FILTER_OPTIONS.map((opt) => (
                     <button
                       key={opt.value}
-                      onClick={() => setFilterOption(opt.value)}
+                      onClick={() => {
+                        setFilterOption(opt.value);
+                        setListSettled(true);
+                      }}
                       className={`transition-colors ${
                         filterOption === opt.value
                           ? 'text-ink underline decoration-accent underline-offset-4'
@@ -255,7 +260,7 @@ export default function BookDetailContent({
           )}
 
           {sortedEntries && sortedEntries.length > 0 ? (
-            <div className="mt-1">
+            <div className={clsx('mt-1', listSettled && 'ruled-list-settled')}>
               {sortedEntries.map((data, i) => (
                 // 구분선이 먼저 그어지고 기록이 뒤따른다(globals.css .ruled-item) — 첫 줄은 감추되 늘 렌더해서, 정렬로 첫 자리가 바뀌어도 다시 긋지 않는다
                 <div key={data.entry.id} className="ruled-item group relative pt-px first:pt-0">
