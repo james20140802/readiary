@@ -197,6 +197,11 @@ li {
   animation-delay: 0ms;
 }
 
+/* 첫 항목 위에는 선이 없다 — Tailwind의 이름 없는 group은 항목 안의 group-hover까지 깨우므로 CSS로 감춘다 */
+.ruled-item:first-child > .rule-draw {
+  visibility: hidden;
+}
+
 /* 필터를 바꾸면 빠졌던 항목이 새로 마운트된다 — 목록을 한 번 만진 뒤로는 다시 긋지도 떠오르지도 않는다 */
 .ruled-list-settled .rule-draw,
 .ruled-list-settled .ink-in {
