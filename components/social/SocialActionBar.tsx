@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Heart, MessageCircle } from 'lucide-react';
 import { LikeState, useLike } from './useLike';
 
@@ -31,9 +32,13 @@ export default function SocialActionBar({
   const internalLike = useLike(entryId, initialLiked, initialLikeCount);
   const { isLiked, likeCount, isLoading, toggle } = like ?? internalLike;
 
+  // 이 버튼으로 방금 좋아요를 켰는지 — 그때만 하트가 부푼다(globals.css .heart-pop)
+  const [popped, setPopped] = useState(false);
+
   const handleLikeToggle = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!isLoading) setPopped(!isLiked);
     void toggle();
   };
 
@@ -53,12 +58,13 @@ export default function SocialActionBar({
             onClick={handleLikeToggle}
             aria-label={`좋아요 ${formatCount(likeCount)}개`}
             aria-pressed={isLiked}
-            className={`flex items-center gap-1.5 transition-all active:scale-90 ${
+            className={`flex items-center gap-1.5 transition-[color,transform] duration-150 ease-ink-out active:scale-[0.97] motion-reduce:active:scale-100 ${
               isLiked ? 'text-accent' : 'text-ink-faint hover:text-accent'
             } ${isLoading ? 'cursor-progress' : ''}`}
           >
             <Heart
               aria-hidden="true"
+              className={popped && isLiked ? 'heart-pop' : undefined}
               size={18}
               fill={isLiked ? 'currentColor' : 'none'}
               strokeWidth={1.75}

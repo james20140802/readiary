@@ -59,6 +59,8 @@ export default function EntryCard({
   const [isLiked, setIsLiked] = useState(initialLiked);
   const [likeCount, setLikeCount] = useState(initialLikeCount);
   const [isLikeLoading, setIsLikeLoading] = useState(false);
+  // 방금 좋아요를 켰는지 — 그때만 하트가 부푼다(globals.css .heart-pop)
+  const [likePopped, setLikePopped] = useState(false);
 
   const targetHref = href ?? `/protected/entry/${id}`;
   const pages = formatPages(fromPage, toPage);
@@ -67,6 +69,7 @@ export default function EntryCard({
     if (isLikeLoading) return;
     const prevLiked = isLiked;
     const prevCount = likeCount;
+    setLikePopped(!prevLiked);
     setIsLiked(!prevLiked);
     setLikeCount(prevLiked ? prevCount - 1 : prevCount + 1);
     setIsLikeLoading(true);
@@ -136,12 +139,13 @@ export default function EntryCard({
               onClick={handleLikeToggle}
               aria-label={`좋아요 ${likeCount}개`}
               aria-pressed={isLiked}
-              className={`flex items-center gap-1 transition-colors active:scale-90 ${
-                isLiked ? 'text-rose-500' : 'text-ink-faint hover:text-rose-500'
+              className={`flex items-center gap-1 transition-[color,transform] duration-150 ease-ink-out active:scale-[0.97] motion-reduce:active:scale-100 ${
+                isLiked ? 'text-accent' : 'text-ink-faint hover:text-accent'
               } ${isLikeLoading ? 'cursor-progress' : ''}`}
             >
               <Heart
                 aria-hidden="true"
+                className={likePopped && isLiked ? 'heart-pop' : undefined}
                 size={12}
                 fill={isLiked ? 'currentColor' : 'none'}
                 strokeWidth={2}

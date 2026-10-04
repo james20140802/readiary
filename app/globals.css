@@ -225,7 +225,29 @@ li {
   animation: menu-pop 140ms var(--ease-out) both;
 }
 
+/* 좋아요를 켜는 순간 하트만 한 번 부풀었다 돌아온다 — 끌 때와 처음부터 눌려 있던 하트는 움직이지 않는다 */
+@keyframes heart-pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.heart-pop {
+  animation: heart-pop 220ms var(--ease-out);
+}
+
 @media (prefers-reduced-motion: reduce) {
+  /* 크기 변화는 빼고 색만 바뀐다 */
+  .heart-pop {
+    animation: none;
+  }
+
   /* 차례 등장 — 떠오름은 빼고 나타남만 남긴다 */
   @keyframes ink-in {
     from {
