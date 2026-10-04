@@ -59,11 +59,17 @@ export default function LandingPostcard() {
         onClick={() => setLiked((v) => !v)}
         aria-pressed={liked}
         aria-label={liked ? '좋아요 취소' : '좋아요'}
-        className={`flex items-center gap-1.5 transition-all active:scale-90 ${
+        className={`flex items-center gap-1.5 transition-[color,transform] duration-150 ease-ink-out active:scale-[0.97] motion-reduce:active:scale-100 ${
           liked ? 'text-accent' : 'text-ink-faint hover:text-accent'
         }`}
       >
-        <Heart size={18} fill={liked ? 'currentColor' : 'none'} strokeWidth={1.75} />
+        {/* 처음엔 늘 꺼져 있으니, 켜져 있다면 방금 누른 것이다 */}
+        <Heart
+          className={liked ? 'heart-pop' : undefined}
+          size={18}
+          fill={liked ? 'currentColor' : 'none'}
+          strokeWidth={1.75}
+        />
         <span className="text-caption font-medium tabular-nums">{likeCount}</span>
       </button>
       <span className="flex items-center gap-1.5 text-ink-faint">
