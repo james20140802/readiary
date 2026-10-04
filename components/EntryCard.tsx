@@ -140,7 +140,7 @@ export default function EntryCard({
               aria-label={`좋아요 ${likeCount}개`}
               aria-pressed={isLiked}
               className={`flex items-center gap-1 transition-[color,transform] duration-150 ease-ink-out active:scale-[0.97] motion-reduce:active:scale-100 ${
-                isLiked ? 'text-rose-500' : 'text-ink-faint hover:text-rose-500'
+                isLiked ? 'text-accent' : 'text-ink-faint hover:text-accent'
               } ${isLikeLoading ? 'cursor-progress' : ''}`}
             >
               <Heart
