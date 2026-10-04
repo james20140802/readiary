@@ -4,6 +4,7 @@ import { apiFetch } from '@/lib/api/fetch';
 import { useState, useEffect, useRef } from 'react';
 import { useActionLock } from '@/hooks/useActionLock';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useFold } from '@/hooks/useFold';
 import { SHEET_TRANSITION } from '@/lib/motion';
 import { X } from 'lucide-react';
 import { Comment } from '@/types/comments';
@@ -37,6 +38,8 @@ export default function CommentBottomSheet({
 
   const [deleteModalCommentId, setDeleteModalCommentId] = useState<string | null>(null);
   const deletion = useActionLock();
+  // 지운 댓글은 접히며 빠지고 아래 댓글이 그만큼 올라온다(이미 있던 댓글과 새 댓글은 그 자리에 놓인다)
+  const fold = useFold();
   const isDeleting = deletion.busy;
   const [isPosting, setIsPosting] = useState(false);
   const postingRef = useRef(false);
@@ -157,44 +160,54 @@ export default function CommentBottomSheet({
                   <div className="py-10 text-center text-ink-faint text-caption">
                     기록을 불러오는 중...
                   </div>
-                ) : comments.length > 0 ? (
-                  <div className="divide-y divide-hairline">
-                    {comments
-                      .filter((c) => !c.parent_id)
-                      .map((rootComment) => (
-                        <div key={rootComment.id} className="flex flex-col">
-                          {/* 부모 댓글 */}
-                          <CommentItem
-                            comment={rootComment}
-                            currentUserId={currentUserId}
-                            onDelete={handleDelete}
-                            onReplyClick={() => {
-                              if (!postingRef.current && !deletion.isLocked())
-                                setReplyingTo(rootComment);
-                            }} // 답글 달기 버튼 클릭 시
-                          />
-
-                          {/* 2. 해당 부모를 parent_id로 가지는 대댓글들 필터링 */}
-                          <div className="ml-10 border-l-2 border-hairline">
-                            {comments
-                              .filter((reply) => reply.parent_id === rootComment.id)
-                              .map((reply) => (
-                                <CommentItem
-                                  key={reply.id}
-                                  comment={reply}
-                                  currentUserId={currentUserId}
-                                  onDelete={handleDelete}
-                                  isReply // 대댓글임을 표시하는 prop (디자인 조정용)
-                                />
-                              ))}
-                          </div>
-                        </div>
-                      ))}
-                  </div>
                 ) : (
-                  <div className="py-12 text-center text-ink-faint text-caption">
-                    아직 댓글이 없어요. 첫 인사를 남겨보세요!
-                  </div>
+                  <>
+                    {/* 목록 상자는 비어도 남겨 둔다 — 마지막 댓글을 지울 때도 접히며 빠지도록 */}
+                    <div className="divide-y divide-hairline">
+                      <AnimatePresence initial={false}>
+                        {comments
+                          .filter((c) => !c.parent_id)
+                          .map((rootComment) => (
+                            <motion.div key={rootComment.id} {...fold} className="flex flex-col">
+                              {/* 부모 댓글 */}
+                              <CommentItem
+                                comment={rootComment}
+                                currentUserId={currentUserId}
+                                onDelete={handleDelete}
+                                onReplyClick={() => {
+                                  if (!postingRef.current && !deletion.isLocked())
+                                    setReplyingTo(rootComment);
+                                }} // 답글 달기 버튼 클릭 시
+                              />
+
+                              {/* 2. 해당 부모를 parent_id로 가지는 대댓글들 필터링 */}
+                              <div className="ml-10 border-l-2 border-hairline">
+                                <AnimatePresence initial={false}>
+                                  {comments
+                                    .filter((reply) => reply.parent_id === rootComment.id)
+                                    .map((reply) => (
+                                      <motion.div key={reply.id} {...fold}>
+                                        <CommentItem
+                                          comment={reply}
+                                          currentUserId={currentUserId}
+                                          onDelete={handleDelete}
+                                          isReply // 대댓글임을 표시하는 prop (디자인 조정용)
+                                        />
+                                      </motion.div>
+                                    ))}
+                                </AnimatePresence>
+                              </div>
+                            </motion.div>
+                          ))}
+                      </AnimatePresence>
+                    </div>
+
+                    {comments.length === 0 && (
+                      <div className="py-12 text-center text-ink-faint text-caption">
+                        아직 댓글이 없어요. 첫 인사를 남겨보세요!
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
 

@@ -10,6 +10,8 @@ import { Friend } from '@/types/friends';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { useLiveRefresh } from '@/hooks/useLiveRefresh';
 import { Users } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { useFold } from '@/hooks/useFold';
 
 export type FriendsTabValue = 'friends' | 'pending' | 'sent';
 
@@ -32,6 +34,8 @@ export default function FriendsManager({
   const isMobile = useIsMobile();
   // 열어 둔 채 써도 새 친구 요청이 새로고침 없이 도착하도록
   useLiveRefresh();
+  // 수락·거절·취소한 요청은 접히며 빠지고 아래 줄이 그만큼 올라온다
+  const fold = useFold();
 
   const friendTabs = [
     { label: '목록', value: 'friends' },
@@ -54,7 +58,7 @@ export default function FriendsManager({
         <div>
           {/* 친구 목록 */}
           {friendTab === 'friends' && (
-            <section className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <section>
               {acceptedFriends.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 gap-2">
                   <Users size={28} className="text-ink-faint" />
@@ -77,46 +81,50 @@ export default function FriendsManager({
 
           {/* 받은 요청 */}
           {friendTab === 'pending' && (
-            <section className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-              {pendingFriends.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 gap-2">
-                  <p className="text-body-sm text-ink-faint">받은 친구 요청이 없어요</p>
-                </div>
-              ) : (
-                <ul className="divide-y divide-hairline">
+            <section>
+              {/* 목록 상자는 비어도 남겨 둔다 — 마지막 요청도 접히며 빠지도록 */}
+              <ul className="divide-y divide-hairline">
+                <AnimatePresence initial={false}>
                   {pendingFriends.map((friend) => (
-                    <li key={friend.profile.id}>
+                    <motion.li key={friend.profile.id} {...fold}>
                       <FriendListItem
                         profile={friend.profile}
                         href={undefined}
                         action={<FriendRequestActions friendUserId={friend.profile.id} />}
                       />
-                    </li>
+                    </motion.li>
                   ))}
-                </ul>
+                </AnimatePresence>
+              </ul>
+              {pendingFriends.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-12 gap-2">
+                  <p className="text-body-sm text-ink-faint">받은 친구 요청이 없어요</p>
+                </div>
               )}
             </section>
           )}
 
           {/* 보낸 요청 */}
           {friendTab === 'sent' && (
-            <section className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-              {sentFriends.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 gap-2">
-                  <p className="text-body-sm text-ink-faint">보낸 친구 요청이 없어요</p>
-                </div>
-              ) : (
-                <ul className="divide-y divide-hairline">
+            <section>
+              {/* 목록 상자는 비어도 남겨 둔다 — 마지막 요청도 접히며 빠지도록 */}
+              <ul className="divide-y divide-hairline">
+                <AnimatePresence initial={false}>
                   {sentFriends.map((friend) => (
-                    <li key={friend.profile.id}>
+                    <motion.li key={friend.profile.id} {...fold}>
                       <FriendListItem
                         profile={friend.profile}
                         href={undefined}
                         action={<CancelFriendRequestButton friendUserId={friend.profile.id} />}
                       />
-                    </li>
+                    </motion.li>
                   ))}
-                </ul>
+                </AnimatePresence>
+              </ul>
+              {sentFriends.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-12 gap-2">
+                  <p className="text-body-sm text-ink-faint">보낸 친구 요청이 없어요</p>
+                </div>
               )}
             </section>
           )}
