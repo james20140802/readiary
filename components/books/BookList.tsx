@@ -2,13 +2,15 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useId, useMemo, useState } from 'react';
+import { motion } from 'framer-motion';
 import { MyBook } from '@/types/book';
 import type { BookReadingStat } from '@/lib/queries/fetchBookReadingStats';
 import BookSpineShelf, { type ShelfBook } from './BookSpineShelf';
 import OpenBook from './OpenBook';
 import { useOpenBook } from './useOpenBook';
 import { toShelfBook } from '@/lib/books/shelfBook';
+import { UNDERLINE_TRANSITION } from '@/lib/motion';
 
 interface Props {
   books: MyBook[];
@@ -54,6 +56,8 @@ function TextToggle<T extends string>({
   onChange: (v: T) => void;
   label: string;
 }) {
+  // 밑줄은 한 줄만 두고 고른 쪽으로 옮겨 간다 — 같은 화면의 두 토글(상태·보기 방식)이 섞이지 않게 이름을 따로
+  const underlineId = useId();
   return (
     <div role="group" aria-label={label} className="flex items-center gap-3">
       {options.map((opt) => (
@@ -62,13 +66,19 @@ function TextToggle<T extends string>({
           type="button"
           onClick={() => onChange(opt.value)}
           aria-pressed={value === opt.value}
-          className={`transition-colors ${
-            value === opt.value
-              ? 'text-ink underline decoration-accent underline-offset-4'
-              : 'text-ink-sub hover:text-ink'
+          className={`relative transition-colors ${
+            value === opt.value ? 'text-ink' : 'text-ink-sub hover:text-ink'
           }`}
         >
           {opt.label}
+          {value === opt.value && (
+            <motion.span
+              aria-hidden
+              layoutId={underlineId}
+              transition={UNDERLINE_TRANSITION}
+              className="absolute inset-x-0 bottom-0 h-px bg-accent"
+            />
+          )}
         </button>
       ))}
     </div>
