@@ -76,8 +76,18 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
   // 감상은 글자 크기를 고정하고 line-clamp로만 자른다 — 잘렸는지만 재서 "더 보기"를 띄운다
   const noteRef = useRef<HTMLParagraphElement>(null);
   const quoteRef = useRef<HTMLDivElement>(null);
-  const toggleFront = useHeightFold(quoteRef, isFrontExpanded, setIsFrontExpanded);
-  const toggleBack = useHeightFold(noteRef, isBackExpanded, setIsBackExpanded);
+  const toggleFront = useHeightFold(
+    quoteRef,
+    isFrontExpanded,
+    setIsFrontExpanded,
+    measureQuoteCollapsed
+  );
+  const toggleBack = useHeightFold(
+    noteRef,
+    isBackExpanded,
+    setIsBackExpanded,
+    measureNoteCollapsed
+  );
   useEffect(() => {
     const el = noteRef.current;
     if (!el || isBackExpanded) return;
@@ -226,7 +236,7 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
             <p
               ref={noteRef}
               className={`text-body text-pretty text-ink-sub whitespace-pre-wrap ${
-                isBackExpanded ? '' : 'line-clamp-4 sm:line-clamp-5'
+                isBackExpanded ? '' : NOTE_CLAMP
               }`}
             >
               {entry.note}
@@ -303,8 +313,8 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
         <FitText
           boxRef={quoteRef}
           text={entry.quote ?? ''}
-          capPx={170}
-          capPxSm={220}
+          capPx={QUOTE_CAP_PX}
+          capPxSm={QUOTE_CAP_PX_SM}
           expanded={isFrontExpanded}
           className="font-serif text-quote text-pretty text-ink whitespace-pre-wrap"
           onClampedChange={setIsFrontClamped}
@@ -419,18 +429,19 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
  * 220ms --ease-in-out. 펼친 높이는 글 길이마다 달라 바뀐 뒤의 높이를 재어 Web Animations로 잇는다.
  * 펼칠 때는 먼저 다 보이게 바꾸고 직전 높이에서 늘인다. 접을 때는 거꾸로 하면 line-clamp가 글을 먼저
  * 잘라 빈칸만 줄어들므로, 글을 둔 채 높이부터 줄이고 다 줄어든 뒤에 접힌 상태로 바꾼다.
+ * 접힌 높이는 접는 순간 measureCollapsed로 다시 잰다 — 펼친 사이 화면을 돌려 sm 경계를 넘으면
+ * 상한과 줄 수가 바뀌므로, 펼치기 전 높이를 기억해 두면 끝에서 튄다.
  * 높이는 offsetHeight로 잰다 — 엽서는 기울어 있어 getBoundingClientRect가 몇 px 크게 나온다.
  * 줄이는 모션에서는 지금처럼 한 번에 바뀐다.
  */
 function useHeightFold(
   ref: RefObject<HTMLElement | null>,
   expanded: boolean,
-  setExpanded: (next: boolean) => void
+  setExpanded: (next: boolean) => void,
+  measureCollapsed: (el: HTMLElement) => number
 ) {
   const anim = useRef<Animation | null>(null);
   const expandFrom = useRef<number | null>(null);
-  // 펼치기 직전의 접힌 높이 — 접을 때 여기까지 줄인다
-  const collapsedHeight = useRef<number | null>(null);
   const timing = {
     duration: FOLD_DURATION * 1000,
     easing: `cubic-bezier(${EASE_IN_OUT.join(',')})`,
@@ -462,17 +473,13 @@ function useHeightFold(
     }
     const current = el.offsetHeight;
     if (next) {
-      collapsedHeight.current = current;
       expandFrom.current = current;
       setExpanded(true);
       return;
     }
-    const to = collapsedHeight.current;
-    if (to == null) {
-      setExpanded(false);
-      return;
-    }
+    // 펼치던 중이면 그 높이(current)에서 되돌린다 — 애니메이션을 놓아야 접힌 높이를 잴 수 있다
     anim.current?.cancel();
+    const to = measureCollapsed(el);
     const h = (px: number) => ({ height: `${px}px`, maxHeight: 'none', overflow: 'hidden' });
     const a = el.animate([h(current), h(to)], { ...timing, fill: 'forwards' });
     anim.current = a;
@@ -480,6 +487,35 @@ function useHeightFold(
       if (anim.current === a) setExpanded(false);
     };
   };
+}
+
+const QUOTE_CAP_PX = 170;
+const QUOTE_CAP_PX_SM = 220;
+const NOTE_CLAMP = 'line-clamp-4 sm:line-clamp-5';
+
+/** FitText의 접힌 상한 — 10% 여유를 두고 줄 높이의 배수로 스냅한다 */
+function snappedCap(el: HTMLElement, capPx: number, capPxSm: number) {
+  const cap = (window.innerWidth >= 640 ? capPxSm : capPx) * 1.1;
+  const linePx = parseFloat(getComputedStyle(el).lineHeight);
+  return Math.max(1, Math.floor(cap / linePx)) * linePx;
+}
+
+/** 지금 화면에서 앞면 문장이 접혔을 때의 높이 — 상한을 잠깐 걸어 재고 되돌린다(그리기 전이라 보이지 않는다) */
+function measureQuoteCollapsed(el: HTMLElement) {
+  const prev = el.style.maxHeight;
+  el.style.maxHeight = `${snappedCap(el, QUOTE_CAP_PX, QUOTE_CAP_PX_SM)}px`;
+  const height = el.offsetHeight;
+  el.style.maxHeight = prev;
+  return height;
+}
+
+/** 지금 화면에서 뒷면 감상이 접혔을 때의 높이 — line-clamp를 잠깐 걸어 재고 뗀다 */
+function measureNoteCollapsed(el: HTMLElement) {
+  const classes = NOTE_CLAMP.split(' ');
+  el.classList.add(...classes);
+  const height = el.offsetHeight;
+  el.classList.remove(...classes);
+  return height;
 }
 
 interface FitTextProps {
@@ -518,13 +554,10 @@ function FitText({
     const el = ref.current;
     if (!el) return;
     const fit = () => {
-      const cap = (window.innerWidth >= 640 ? capPxSm : capPx) * 1.1;
       el.style.maxHeight = 'none';
-      const style = getComputedStyle(el);
-      const linePx = parseFloat(style.lineHeight);
-      const snappedCap = Math.max(1, Math.floor(cap / linePx)) * linePx;
-      onClampedChange(el.scrollHeight > snappedCap + 1);
-      el.style.maxHeight = expanded ? 'none' : `${snappedCap}px`;
+      const cap = snappedCap(el, capPx, capPxSm);
+      onClampedChange(el.scrollHeight > cap + 1);
+      el.style.maxHeight = expanded ? 'none' : `${cap}px`;
     };
 
     fit();
