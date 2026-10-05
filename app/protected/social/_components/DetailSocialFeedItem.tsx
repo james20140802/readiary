@@ -1,7 +1,7 @@
 'use client';
 
 import ReflectionPreview from '@/components/reflections/ReflectionPreview';
-import { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import { useState, useRef, useEffect, useLayoutEffect, type RefObject } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -16,6 +16,7 @@ import LikersBottomSheet from '@/components/social/LikersBottomSheet';
 import { useLike } from '@/components/social/useLike';
 import { getImageUrl } from '@/utils/profile';
 import { Avatar } from '@/components/ui/Avatar';
+import { EASE_IN_OUT, FOLD_DURATION } from '@/lib/motion';
 
 interface Props {
   item: DetailSocialFeedEntry;
@@ -74,6 +75,9 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
 
   // 감상은 글자 크기를 고정하고 line-clamp로만 자른다 — 잘렸는지만 재서 "더 보기"를 띄운다
   const noteRef = useRef<HTMLParagraphElement>(null);
+  const quoteRef = useRef<HTMLDivElement>(null);
+  const toggleFront = useHeightFold(quoteRef, isFrontExpanded, setIsFrontExpanded);
+  const toggleBack = useHeightFold(noteRef, isBackExpanded, setIsBackExpanded);
   useEffect(() => {
     const el = noteRef.current;
     if (!el || isBackExpanded) return;
@@ -228,7 +232,7 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
               {entry.note}
             </p>
           )}
-          {expandControls(isBackClamped, isBackExpanded, setIsBackExpanded)}
+          {expandControls(isBackClamped, isBackExpanded, toggleBack)}
           <ReflectionPreview
             entryId={entry.id}
             summary={entry.reflectionSummary}
@@ -297,6 +301,7 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
       </span>
       <blockquote className="mt-1">
         <FitText
+          boxRef={quoteRef}
           text={entry.quote ?? ''}
           capPx={170}
           capPxSm={220}
@@ -305,7 +310,7 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
           onClampedChange={setIsFrontClamped}
         />
       </blockquote>
-      {expandControls(isFrontClamped, isFrontExpanded, setIsFrontExpanded)}
+      {expandControls(isFrontClamped, isFrontExpanded, toggleFront)}
       <div className="mt-auto flex items-end justify-between gap-3 pt-5">
         <div className="min-w-0">
           <p className="truncate text-caption font-medium text-ink-sub">
@@ -409,7 +414,77 @@ export default function DetailSocialFeedItem({ item, userId }: Props) {
   );
 }
 
+/**
+ * '더 보기·접기'가 순간 전환되지 않고 높이째 늘었다 줄었다 한다 — ClampedText·hooks/useFold와 같은
+ * 220ms --ease-in-out. 펼친 높이는 글 길이마다 달라 바뀐 뒤의 높이를 재어 Web Animations로 잇는다.
+ * 펼칠 때는 먼저 다 보이게 바꾸고 직전 높이에서 늘인다. 접을 때는 거꾸로 하면 line-clamp가 글을 먼저
+ * 잘라 빈칸만 줄어들므로, 글을 둔 채 높이부터 줄이고 다 줄어든 뒤에 접힌 상태로 바꾼다.
+ * 높이는 offsetHeight로 잰다 — 엽서는 기울어 있어 getBoundingClientRect가 몇 px 크게 나온다.
+ * 줄이는 모션에서는 지금처럼 한 번에 바뀐다.
+ */
+function useHeightFold(
+  ref: RefObject<HTMLElement | null>,
+  expanded: boolean,
+  setExpanded: (next: boolean) => void
+) {
+  const anim = useRef<Animation | null>(null);
+  const expandFrom = useRef<number | null>(null);
+  // 펼치기 직전의 접힌 높이 — 접을 때 여기까지 줄인다
+  const collapsedHeight = useRef<number | null>(null);
+  const timing = {
+    duration: FOLD_DURATION * 1000,
+    easing: `cubic-bezier(${EASE_IN_OUT.join(',')})`,
+  };
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    const from = expandFrom.current;
+    expandFrom.current = null;
+    // 접힘으로 바뀌었으면 끝 높이에 붙잡아 둔 애니메이션을 놓는다 — 이제 클래스가 같은 높이로 자른다
+    anim.current?.cancel();
+    anim.current = null;
+    if (!el || from == null || !expanded) return;
+    const h = (px: number) => ({ height: `${px}px`, maxHeight: 'none', overflow: 'hidden' });
+    anim.current = el.animate([h(from), h(el.scrollHeight)], timing);
+    // timing은 매 렌더 같은 값이라 의존성에서 뺀다
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [expanded, ref]);
+
+  return (next: boolean) => {
+    const el = ref.current;
+    if (
+      !el ||
+      typeof el.animate !== 'function' ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) {
+      setExpanded(next);
+      return;
+    }
+    const current = el.offsetHeight;
+    if (next) {
+      collapsedHeight.current = current;
+      expandFrom.current = current;
+      setExpanded(true);
+      return;
+    }
+    const to = collapsedHeight.current;
+    if (to == null) {
+      setExpanded(false);
+      return;
+    }
+    anim.current?.cancel();
+    const h = (px: number) => ({ height: `${px}px`, maxHeight: 'none', overflow: 'hidden' });
+    const a = el.animate([h(current), h(to)], { ...timing, fill: 'forwards' });
+    anim.current = a;
+    a.onfinish = () => {
+      if (anim.current === a) setExpanded(false);
+    };
+  };
+}
+
 interface FitTextProps {
+  /** 높이째 접고 펼칠 상자 — useHeightFold가 잰다 */
+  boxRef?: RefObject<HTMLDivElement | null>;
   text: string;
   /** 본문 상한 높이 px (모바일) */
   capPx: number;
@@ -428,6 +503,7 @@ interface FitTextProps {
  * 펼치면(expanded) 크기는 유지한 채 잘라내지만 않는다 — 크기가 튀지 않게.
  */
 function FitText({
+  boxRef,
   text,
   capPx,
   capPxSm,
@@ -435,7 +511,8 @@ function FitText({
   className,
   onClampedChange,
 }: FitTextProps) {
-  const ref = useRef<HTMLDivElement>(null);
+  const ownRef = useRef<HTMLDivElement>(null);
+  const ref = boxRef ?? ownRef;
 
   useLayoutEffect(() => {
     const el = ref.current;
@@ -458,7 +535,7 @@ function FitText({
       observer.disconnect();
       window.removeEventListener('resize', fit);
     };
-  }, [text, capPx, capPxSm, expanded, onClampedChange]);
+  }, [ref, text, capPx, capPxSm, expanded, onClampedChange]);
 
   return (
     <div ref={ref} className={`overflow-hidden ${className ?? ''}`}>
