@@ -1,13 +1,6 @@
 'use client';
 
-import {
-  motion,
-  MotionConfig,
-  useMotionValue,
-  useScroll,
-  useTransform,
-  type MotionValue,
-} from 'framer-motion';
+import { motion, useMotionValue, useScroll, useTransform, type MotionValue } from 'framer-motion';
 import clsx from 'clsx';
 import {
   createContext,
@@ -87,13 +80,11 @@ export function SlideStack({ children }: { children: ReactNode }) {
   const progress = useTransform(scrollY, (y) => clamp01((y - bounds.top) / bounds.span));
 
   return (
-    <MotionConfig reducedMotion="user">
-      <StackContext.Provider value={{ progress, reduced }}>
-        <div ref={ref} className="relative">
-          {children}
-        </div>
-      </StackContext.Provider>
-    </MotionConfig>
+    <StackContext.Provider value={{ progress, reduced }}>
+      <div ref={ref} className="relative">
+        {children}
+      </div>
+    </StackContext.Provider>
   );
 }
 

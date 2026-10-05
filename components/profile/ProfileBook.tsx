@@ -21,6 +21,7 @@ import { disableDevicePush } from '@/lib/push/browser';
 import { clearPwaCaches } from '@/lib/pwa/clear-caches';
 import { buildInviteSlug } from '@/lib/social/invite';
 import { photoTilt } from '@/lib/books/openBook';
+import { EASE_IN_OUT } from '@/lib/motion';
 import { getImageUrl } from '@/utils/profile';
 import {
   BOOK_H,
@@ -177,6 +178,24 @@ export default function ProfileBook({
     document.addEventListener('pointerdown', onPointerDown);
     return () => document.removeEventListener('pointerdown', onPointerDown);
   }, [open, readingEntryId]);
+
+  const stageRef = useRef<HTMLDivElement>(null);
+
+  // 동작 줄이기에서는 펼침·넘김·뒤집기가 한 번에 바뀐다(motion-reduce:!duration-0·!delay-0 — 낱장·책갈피·
+  // 인덱스의 인라인 시차까지 지워 흐려진 동안 모두 제자리에 놓인다) — 그 순간 책 전체를 잠깐 흐렸다 보여
+  // 면이 바뀐 것을 알린다. 3D 무대(perspective) 상자에 건다: 안쪽 preserve-3d 상자에
+  // opacity를 주면 3D가 납작해진다.
+  const turnKey = `${open}|${page}|${flipAngle}`;
+  const lastTurn = useRef(turnKey);
+  useEffect(() => {
+    if (lastTurn.current === turnKey) return;
+    lastTurn.current = turnKey;
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    stageRef.current?.animate([{ opacity: 0 }, { opacity: 1 }], {
+      duration: 300,
+      easing: `cubic-bezier(${EASE_IN_OUT.join(',')})`,
+    });
+  }, [turnKey]);
 
   // 펼치면 표지가 왼쪽으로 한 권 폭만큼 눕는다. 자리가 있으면 펼친 전체를 가운데에,
   // 없으면 줄이지 않고 본문을 그대로 둔 채 표지가 화면 밖으로 나간다
@@ -502,7 +521,7 @@ export default function ProfileBook({
                   ? '책갈피를 다시 꽂고 덮기'
                   : `${bookmark.title} 발췌집 · 문장 ${bookmark.quoteCount}`
               }
-              className={`${FACE} group overflow-hidden rounded-[3px] border border-hairline-strong motion-reduce:!duration-0 ${
+              className={`${FACE} group overflow-hidden rounded-[3px] border border-hairline-strong motion-reduce:!duration-0 motion-reduce:!delay-0 ${
                 lifted ? 'shadow-[2px_4px_12px_rgb(var(--ink)/0.22)]' : 'hover:-translate-y-2'
               }`}
               style={{
@@ -532,7 +551,7 @@ export default function ProfileBook({
               inert={isFlipped || !turned}
               onClick={() => goTo('bookmark')}
               title={`${bookmark.title} 발췌집 · 문장 ${bookmark.quoteCount}`}
-              className={`${FACE} group overflow-hidden rounded-[3px] border border-hairline-strong [transform:rotateY(180deg)] hover:-translate-y-2 motion-reduce:!duration-0`}
+              className={`${FACE} group overflow-hidden rounded-[3px] border border-hairline-strong [transform:rotateY(180deg)] hover:-translate-y-2 motion-reduce:!duration-0 motion-reduce:!delay-0`}
               style={{
                 backgroundColor: bookmarkTint(bookmark.userBookId),
                 clipPath: clip,
@@ -551,7 +570,7 @@ export default function ProfileBook({
           <Link
             href="/protected/profile/edit#bookmark"
             inert={isFlipped || turned}
-            className={`${FACE} flex justify-center rounded-[3px] border border-dashed border-hairline-strong pt-6 font-serif text-[12px] tracking-[0.08em] text-ink-faint transition-colors hover:border-accent hover:text-accent`}
+            className={`${FACE} flex justify-center rounded-[3px] border border-dashed border-hairline-strong pt-6 font-serif text-[12px] tracking-[0.08em] text-ink-faint transition-colors hover:border-accent hover:text-accent motion-reduce:!delay-0`}
             style={{ writingMode: 'vertical-rl', clipPath: clip, transition: faceTransition }}
           >
             책갈피 꽂기
@@ -573,7 +592,7 @@ export default function ProfileBook({
     const turned = open && order.indexOf(monthPage(m.label)) < leafIndex;
     const timing = `0s linear ${active ? 0 : moveMs}ms`;
     const face =
-      'absolute inset-0 flex items-center justify-end rounded-r-[3px] pr-2 font-sans text-[10px] font-medium tabular-nums leading-none tracking-[0.04em] text-ink [backface-visibility:hidden] hover:brightness-95 motion-reduce:!duration-0';
+      'absolute inset-0 flex items-center justify-end rounded-r-[3px] pr-2 font-sans text-[10px] font-medium tabular-nums leading-none tracking-[0.04em] text-ink [backface-visibility:hidden] hover:brightness-95 motion-reduce:!duration-0 motion-reduce:!delay-0';
     const go = () => (active ? close() : goTo(monthPage(m.label)));
     return (
       <div
@@ -628,6 +647,7 @@ export default function ProfileBook({
       {/* 무대 상자 — 무대를 축소해도 흐름에서는 원래 높이를 차지하므로, 줄인 높이만큼만 자리를 잡는다 */}
       <div style={{ height: (TOP_PAD + H) * stageScale, overflow: 'clip' }}>
         <div
+          ref={stageRef}
           className="relative mx-auto [perspective:1800px] [touch-action:pan-y]"
           style={{
             width: STAGE_W,
@@ -905,7 +925,7 @@ export default function ProfileBook({
                 return (
                   <div
                     key={p}
-                    className="absolute [transform-style:preserve-3d] motion-reduce:!duration-0"
+                    className="absolute [transform-style:preserve-3d] motion-reduce:!duration-0 motion-reduce:!delay-0"
                     style={{
                       inset: '2px 3px 2px 0',
                       transformOrigin: '0 50%',
