@@ -10,6 +10,8 @@ import { Friend } from '@/types/friends';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { useLiveRefresh } from '@/hooks/useLiveRefresh';
 import { Users } from 'lucide-react';
+import { useFold } from '@/hooks/useFold';
+import { FoldLi, FoldList } from '@/components/ui/FoldList';
 
 export type FriendsTabValue = 'friends' | 'pending' | 'sent';
 
@@ -32,6 +34,8 @@ export default function FriendsManager({
   const isMobile = useIsMobile();
   // 열어 둔 채 써도 새 친구 요청이 새로고침 없이 도착하도록
   useLiveRefresh();
+  // 수락·거절·취소한 요청은 접히며 빠지고 아래 줄이 그만큼 올라온다
+  const fold = useFold();
 
   const friendTabs = [
     { label: '목록', value: 'friends' },
@@ -54,7 +58,7 @@ export default function FriendsManager({
         <div>
           {/* 친구 목록 */}
           {friendTab === 'friends' && (
-            <section className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <section>
               {acceptedFriends.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 gap-2">
                   <Users size={28} className="text-ink-faint" />
@@ -77,47 +81,53 @@ export default function FriendsManager({
 
           {/* 받은 요청 */}
           {friendTab === 'pending' && (
-            <section className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-              {pendingFriends.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 gap-2">
-                  <p className="text-body-sm text-ink-faint">받은 친구 요청이 없어요</p>
-                </div>
-              ) : (
-                <ul className="divide-y divide-hairline">
-                  {pendingFriends.map((friend) => (
-                    <li key={friend.profile.id}>
-                      <FriendListItem
-                        profile={friend.profile}
-                        href={undefined}
-                        action={<FriendRequestActions friendUserId={friend.profile.id} />}
-                      />
-                    </li>
-                  ))}
-                </ul>
-              )}
+            <section>
+              <FoldList
+                as="ul"
+                className="divide-y divide-hairline"
+                isEmpty={pendingFriends.length === 0}
+                empty={
+                  <div className="flex flex-col items-center justify-center py-12 gap-2">
+                    <p className="text-body-sm text-ink-faint">받은 친구 요청이 없어요</p>
+                  </div>
+                }
+              >
+                {pendingFriends.map((friend) => (
+                  <FoldLi key={friend.profile.id} {...fold}>
+                    <FriendListItem
+                      profile={friend.profile}
+                      href={undefined}
+                      action={<FriendRequestActions friendUserId={friend.profile.id} />}
+                    />
+                  </FoldLi>
+                ))}
+              </FoldList>
             </section>
           )}
 
           {/* 보낸 요청 */}
           {friendTab === 'sent' && (
-            <section className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-              {sentFriends.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 gap-2">
-                  <p className="text-body-sm text-ink-faint">보낸 친구 요청이 없어요</p>
-                </div>
-              ) : (
-                <ul className="divide-y divide-hairline">
-                  {sentFriends.map((friend) => (
-                    <li key={friend.profile.id}>
-                      <FriendListItem
-                        profile={friend.profile}
-                        href={undefined}
-                        action={<CancelFriendRequestButton friendUserId={friend.profile.id} />}
-                      />
-                    </li>
-                  ))}
-                </ul>
-              )}
+            <section>
+              <FoldList
+                as="ul"
+                className="divide-y divide-hairline"
+                isEmpty={sentFriends.length === 0}
+                empty={
+                  <div className="flex flex-col items-center justify-center py-12 gap-2">
+                    <p className="text-body-sm text-ink-faint">보낸 친구 요청이 없어요</p>
+                  </div>
+                }
+              >
+                {sentFriends.map((friend) => (
+                  <FoldLi key={friend.profile.id} {...fold}>
+                    <FriendListItem
+                      profile={friend.profile}
+                      href={undefined}
+                      action={<CancelFriendRequestButton friendUserId={friend.profile.id} />}
+                    />
+                  </FoldLi>
+                ))}
+              </FoldList>
             </section>
           )}
         </div>

@@ -6,6 +6,8 @@ import { clearSubmittedComposerDraft } from '@/lib/entries/composerDraft';
 import { useComposerDraft } from '@/hooks/useComposerDraft';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { motion } from 'framer-motion';
+import { useFold } from '@/hooks/useFold';
 import { LibraryBig, Lock } from 'lucide-react';
 import { MyBook } from '@/types/book';
 import Link from 'next/link';
@@ -53,6 +55,7 @@ export default function Composer({ userId, books, recentUserBookId }: ComposerPr
   const locked = isSubmitting || Boolean(draft.submission);
   const [savedEntry, setSavedEntry] = useState<SavedEntry | null>(null);
   const [showExtraText, setShowExtraText] = useState(false);
+  const extraFold = useFold({ appear: true });
   const [showPages, setShowPages] = useState(false);
   const [extraText, setExtraText] = useState('');
   const [fromPage, setFromPage] = useState('');
@@ -247,25 +250,28 @@ export default function Composer({ userId, books, recentUserBookId }: ComposerPr
         <p className="mt-2 whitespace-pre-wrap font-serif text-quote text-ink">{savedEntry.text}</p>
         <p className="mt-1 text-caption text-ink-sub">{savedEntry.bookTitle}</p>
 
+        {/* 덧붙일 입력칸은 위에서부터 열리듯 펼쳐진다 — 닫기는 카드 전체를 처음으로 되돌리므로 접는 쪽은 없다 */}
         {showExtraText && (
-          <div className="writing-field mt-4 border-t border-hairline pt-4 [--writing-marker-top:1.25rem]">
-            <label htmlFor="composer-extra" className="text-[11.5px] font-medium text-ink-faint">
-              {extraLabel}
-            </label>
-            <textarea
-              id="composer-extra"
-              value={extraText}
-              onChange={(e) => setExtraText(e.target.value)}
-              placeholder={
-                savedEntry.mode === 'quote'
-                  ? '이 문장에 대한 생각을 덧붙여보세요'
-                  : '책에서 마음에 남은 문장을 옮겨 적어보세요'
-              }
-              rows={3}
-              autoFocus
-              className="mt-2 block w-full resize-none border-0 bg-transparent font-serif text-[15px] leading-relaxed text-ink transition-colors placeholder:text-ink-faint focus:outline-none"
-            />
-          </div>
+          <motion.div {...extraFold}>
+            <div className="writing-field mt-4 border-t border-hairline pt-4 [--writing-marker-top:1.25rem]">
+              <label htmlFor="composer-extra" className="text-[11.5px] font-medium text-ink-faint">
+                {extraLabel}
+              </label>
+              <textarea
+                id="composer-extra"
+                value={extraText}
+                onChange={(e) => setExtraText(e.target.value)}
+                placeholder={
+                  savedEntry.mode === 'quote'
+                    ? '이 문장에 대한 생각을 덧붙여보세요'
+                    : '책에서 마음에 남은 문장을 옮겨 적어보세요'
+                }
+                rows={3}
+                autoFocus
+                className="mt-2 block w-full resize-none border-0 bg-transparent font-serif text-[15px] leading-relaxed text-ink transition-colors placeholder:text-ink-faint focus:outline-none"
+              />
+            </div>
+          </motion.div>
         )}
 
         <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-3 border-t border-hairline pt-3.5">
