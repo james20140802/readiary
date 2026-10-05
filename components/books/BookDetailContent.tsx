@@ -18,9 +18,10 @@ import Button from '../ui/Button';
 import Link from 'next/link';
 import { clsx } from 'clsx';
 import { formatReadingPeriod } from '@/lib/dates';
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { inkIn, UNDERLINE_TRANSITION } from '@/lib/motion';
 import { useFold } from '@/hooks/useFold';
+import { FoldDiv, FoldList } from '@/components/ui/FoldList';
 
 interface Props {
   userBook: MyBook;
@@ -276,53 +277,54 @@ export default function BookDetailContent({
             </div>
           )}
 
-          {/* 목록 상자는 비어도 남겨 둔다 — 마지막 기록을 지울 때도 접히며 빠지도록 */}
-          <div className={clsx('mt-1', listSettled && 'ruled-list-settled')}>
-            <AnimatePresence initial={false} custom={foldExits}>
-              {sortedEntries?.map((data, i) => (
-                // 구분선이 먼저 그어지고 기록이 뒤따른다(globals.css .ruled-item) — 첫 줄은 감추되 늘 렌더해서, 정렬로 첫 자리가 바뀌어도 다시 긋지 않는다
-                <motion.div
-                  key={data.entry.id}
-                  {...fold}
-                  custom={foldExits}
-                  className="ruled-item relative pt-px first:pt-0"
-                >
-                  <span
-                    aria-hidden
-                    className="rule-draw absolute inset-x-0 top-0 h-px bg-hairline"
-                    style={inkIn(i)}
+          <FoldList
+            className={clsx('mt-1', listSettled && 'ruled-list-settled')}
+            custom={foldExits}
+            isEmpty={!sortedEntries?.length}
+            empty={
+              <p className="mt-5 font-serif text-caption text-ink-faint">
+                아직 이 책에 남긴 문장이 없습니다.
+              </p>
+            }
+          >
+            {sortedEntries?.map((data, i) => (
+              // 구분선이 먼저 그어지고 기록이 뒤따른다(globals.css .ruled-item) — 첫 줄은 감추되 늘 렌더해서, 정렬로 첫 자리가 바뀌어도 다시 긋지 않는다
+              <FoldDiv
+                key={data.entry.id}
+                {...fold}
+                custom={foldExits}
+                className="ruled-item relative pt-px first:pt-0"
+              >
+                <span
+                  aria-hidden
+                  className="rule-draw absolute inset-x-0 top-0 h-px bg-hairline"
+                  style={inkIn(i)}
+                />
+                <div className="ink-in" style={inkIn(i)}>
+                  <EntryCard
+                    id={data.entry.id}
+                    reflectionSummary={data.entry.reflectionSummary}
+                    quote={data.entry.quote}
+                    note={data.entry.note}
+                    date={data.entry.date}
+                    fromPage={data.entry.from_page}
+                    toPage={data.entry.to_page}
+                    isPrivate={data.entry.is_private}
+                    userId={userId}
+                    href={
+                      isFriend && friendProfile
+                        ? `/protected/social/u/${friendProfile.nickname + '-' + friendProfile.tag}/entry/${data.entry.id}`
+                        : undefined
+                    }
+                    initialCommentCount={data.initialCommentCount}
+                    initialLikeCount={data.initialLikeCount}
+                    initialLiked={data.initialLiked}
+                    onEdit={isFriend ? undefined : () => openEdit(data.entry)}
                   />
-                  <div className="ink-in" style={inkIn(i)}>
-                    <EntryCard
-                      id={data.entry.id}
-                      reflectionSummary={data.entry.reflectionSummary}
-                      quote={data.entry.quote}
-                      note={data.entry.note}
-                      date={data.entry.date}
-                      fromPage={data.entry.from_page}
-                      toPage={data.entry.to_page}
-                      isPrivate={data.entry.is_private}
-                      userId={userId}
-                      href={
-                        isFriend && friendProfile
-                          ? `/protected/social/u/${friendProfile.nickname + '-' + friendProfile.tag}/entry/${data.entry.id}`
-                          : undefined
-                      }
-                      initialCommentCount={data.initialCommentCount}
-                      initialLikeCount={data.initialLikeCount}
-                      initialLiked={data.initialLiked}
-                      onEdit={isFriend ? undefined : () => openEdit(data.entry)}
-                    />
-                  </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
-          {!sortedEntries?.length && (
-            <p className="mt-5 font-serif text-caption text-ink-faint">
-              아직 이 책에 남긴 문장이 없습니다.
-            </p>
-          )}
+                </div>
+              </FoldDiv>
+            ))}
+          </FoldList>
         </section>
       </div>
 

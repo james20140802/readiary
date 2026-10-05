@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useActionLock } from '@/hooks/useActionLock';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useFold } from '@/hooks/useFold';
+import { FoldDiv, FoldList } from '@/components/ui/FoldList';
 import { SHEET_TRANSITION } from '@/lib/motion';
 import { X } from 'lucide-react';
 import { Comment } from '@/types/comments';
@@ -162,51 +163,50 @@ export default function CommentBottomSheet({
                   </div>
                 ) : (
                   <>
-                    {/* 목록 상자는 비어도 남겨 둔다 — 마지막 댓글을 지울 때도 접히며 빠지도록 */}
-                    <div className="divide-y divide-hairline">
-                      <AnimatePresence initial={false}>
-                        {comments
-                          .filter((c) => !c.parent_id)
-                          .map((rootComment) => (
-                            <motion.div key={rootComment.id} {...fold} className="flex flex-col">
-                              {/* 부모 댓글 */}
-                              <CommentItem
-                                comment={rootComment}
-                                currentUserId={currentUserId}
-                                onDelete={handleDelete}
-                                onReplyClick={() => {
-                                  if (!postingRef.current && !deletion.isLocked())
-                                    setReplyingTo(rootComment);
-                                }} // 답글 달기 버튼 클릭 시
-                              />
+                    <FoldList
+                      className="divide-y divide-hairline"
+                      isEmpty={comments.length === 0}
+                      empty={
+                        <div className="py-12 text-center text-ink-faint text-caption">
+                          아직 댓글이 없어요. 첫 인사를 남겨보세요!
+                        </div>
+                      }
+                    >
+                      {comments
+                        .filter((c) => !c.parent_id)
+                        .map((rootComment) => (
+                          <FoldDiv key={rootComment.id} {...fold} className="flex flex-col">
+                            {/* 부모 댓글 */}
+                            <CommentItem
+                              comment={rootComment}
+                              currentUserId={currentUserId}
+                              onDelete={handleDelete}
+                              onReplyClick={() => {
+                                if (!postingRef.current && !deletion.isLocked())
+                                  setReplyingTo(rootComment);
+                              }} // 답글 달기 버튼 클릭 시
+                            />
 
-                              {/* 2. 해당 부모를 parent_id로 가지는 대댓글들 필터링 */}
-                              <div className="ml-10 border-l-2 border-hairline">
-                                <AnimatePresence initial={false}>
-                                  {comments
-                                    .filter((reply) => reply.parent_id === rootComment.id)
-                                    .map((reply) => (
-                                      <motion.div key={reply.id} {...fold}>
-                                        <CommentItem
-                                          comment={reply}
-                                          currentUserId={currentUserId}
-                                          onDelete={handleDelete}
-                                          isReply // 대댓글임을 표시하는 prop (디자인 조정용)
-                                        />
-                                      </motion.div>
-                                    ))}
-                                </AnimatePresence>
-                              </div>
-                            </motion.div>
-                          ))}
-                      </AnimatePresence>
-                    </div>
-
-                    {comments.length === 0 && (
-                      <div className="py-12 text-center text-ink-faint text-caption">
-                        아직 댓글이 없어요. 첫 인사를 남겨보세요!
-                      </div>
-                    )}
+                            {/* 2. 해당 부모를 parent_id로 가지는 대댓글들 필터링 */}
+                            <div className="ml-10 border-l-2 border-hairline">
+                              <AnimatePresence initial={false}>
+                                {comments
+                                  .filter((reply) => reply.parent_id === rootComment.id)
+                                  .map((reply) => (
+                                    <FoldDiv key={reply.id} {...fold}>
+                                      <CommentItem
+                                        comment={reply}
+                                        currentUserId={currentUserId}
+                                        onDelete={handleDelete}
+                                        isReply // 대댓글임을 표시하는 prop (디자인 조정용)
+                                      />
+                                    </FoldDiv>
+                                  ))}
+                              </AnimatePresence>
+                            </div>
+                          </FoldDiv>
+                        ))}
+                    </FoldList>
                   </>
                 )}
               </div>

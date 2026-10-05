@@ -10,8 +10,8 @@ import { Friend } from '@/types/friends';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { useLiveRefresh } from '@/hooks/useLiveRefresh';
 import { Users } from 'lucide-react';
-import { AnimatePresence, motion } from 'framer-motion';
 import { useFold } from '@/hooks/useFold';
+import { FoldLi, FoldList } from '@/components/ui/FoldList';
 
 export type FriendsTabValue = 'friends' | 'pending' | 'sent';
 
@@ -82,50 +82,52 @@ export default function FriendsManager({
           {/* 받은 요청 */}
           {friendTab === 'pending' && (
             <section>
-              {/* 목록 상자는 비어도 남겨 둔다 — 마지막 요청도 접히며 빠지도록 */}
-              <ul className="divide-y divide-hairline">
-                <AnimatePresence initial={false}>
-                  {pendingFriends.map((friend) => (
-                    <motion.li key={friend.profile.id} {...fold}>
-                      <FriendListItem
-                        profile={friend.profile}
-                        href={undefined}
-                        action={<FriendRequestActions friendUserId={friend.profile.id} />}
-                      />
-                    </motion.li>
-                  ))}
-                </AnimatePresence>
-              </ul>
-              {pendingFriends.length === 0 && (
-                <div className="flex flex-col items-center justify-center py-12 gap-2">
-                  <p className="text-body-sm text-ink-faint">받은 친구 요청이 없어요</p>
-                </div>
-              )}
+              <FoldList
+                as="ul"
+                className="divide-y divide-hairline"
+                isEmpty={pendingFriends.length === 0}
+                empty={
+                  <div className="flex flex-col items-center justify-center py-12 gap-2">
+                    <p className="text-body-sm text-ink-faint">받은 친구 요청이 없어요</p>
+                  </div>
+                }
+              >
+                {pendingFriends.map((friend) => (
+                  <FoldLi key={friend.profile.id} {...fold}>
+                    <FriendListItem
+                      profile={friend.profile}
+                      href={undefined}
+                      action={<FriendRequestActions friendUserId={friend.profile.id} />}
+                    />
+                  </FoldLi>
+                ))}
+              </FoldList>
             </section>
           )}
 
           {/* 보낸 요청 */}
           {friendTab === 'sent' && (
             <section>
-              {/* 목록 상자는 비어도 남겨 둔다 — 마지막 요청도 접히며 빠지도록 */}
-              <ul className="divide-y divide-hairline">
-                <AnimatePresence initial={false}>
-                  {sentFriends.map((friend) => (
-                    <motion.li key={friend.profile.id} {...fold}>
-                      <FriendListItem
-                        profile={friend.profile}
-                        href={undefined}
-                        action={<CancelFriendRequestButton friendUserId={friend.profile.id} />}
-                      />
-                    </motion.li>
-                  ))}
-                </AnimatePresence>
-              </ul>
-              {sentFriends.length === 0 && (
-                <div className="flex flex-col items-center justify-center py-12 gap-2">
-                  <p className="text-body-sm text-ink-faint">보낸 친구 요청이 없어요</p>
-                </div>
-              )}
+              <FoldList
+                as="ul"
+                className="divide-y divide-hairline"
+                isEmpty={sentFriends.length === 0}
+                empty={
+                  <div className="flex flex-col items-center justify-center py-12 gap-2">
+                    <p className="text-body-sm text-ink-faint">보낸 친구 요청이 없어요</p>
+                  </div>
+                }
+              >
+                {sentFriends.map((friend) => (
+                  <FoldLi key={friend.profile.id} {...fold}>
+                    <FriendListItem
+                      profile={friend.profile}
+                      href={undefined}
+                      action={<CancelFriendRequestButton friendUserId={friend.profile.id} />}
+                    />
+                  </FoldLi>
+                ))}
+              </FoldList>
             </section>
           )}
         </div>

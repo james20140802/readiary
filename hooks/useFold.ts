@@ -15,7 +15,7 @@ interface FoldOptions {
 
 /**
  * 지우거나 펼칠 때 아래 내용이 툭 튀지 않도록 높이째 접고 펼친다 — motion 요소에 그대로 펼쳐 쓴다.
- * 사라지는 쪽은 AnimatePresence 안에 둔다. 접히는 상자 자체에는 margin·padding·border를 주지 말고
+ * 사라지는 쪽은 AnimatePresence 안에 둔다 — 목록이면 FoldList·FoldDiv·FoldLi(components/ui/FoldList). 접히는 상자 자체에는 margin·padding·border를 주지 말고
  * 안쪽 요소에 준다(높이 0이 되어도 남는다).
  *
  * overflow는 움직이는 동안만 clip — hidden은 스크롤 상자가 되어, 펼치는 중 autoFocus된 입력칸 쪽으로
