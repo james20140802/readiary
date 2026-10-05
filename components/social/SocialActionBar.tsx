@@ -95,7 +95,7 @@ export default function SocialActionBar({
         {/* 댓글 목록 열기 */}
         <button
           aria-label={`댓글 ${formatCount(initialCommentCount)}개 보기`}
-          className="flex items-center gap-1.5 text-ink-faint hover:text-accent transition-all active:scale-95"
+          className="flex items-center gap-1.5 text-ink-faint transition-[color,transform] duration-150 ease-ink-out hover:text-accent active:scale-[0.97] motion-reduce:active:scale-100"
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();

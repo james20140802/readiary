@@ -21,6 +21,7 @@ import { disableDevicePush } from '@/lib/push/browser';
 import { clearPwaCaches } from '@/lib/pwa/clear-caches';
 import { buildInviteSlug } from '@/lib/social/invite';
 import { photoTilt } from '@/lib/books/openBook';
+import { EASE_OUT } from '@/lib/motion';
 import { getImageUrl } from '@/utils/profile';
 import {
   BOOK_H,
@@ -177,6 +178,23 @@ export default function ProfileBook({
     document.addEventListener('pointerdown', onPointerDown);
     return () => document.removeEventListener('pointerdown', onPointerDown);
   }, [open, readingEntryId]);
+
+  const stageRef = useRef<HTMLDivElement>(null);
+
+  // 동작 줄이기에서는 펼침·넘김·뒤집기가 한 번에 바뀐다(TURN의 motion-reduce:duration-0) — 그 순간 책 전체를
+  // 잠깐 흐렸다 보여 면이 바뀐 것을 알린다. 3D 무대(perspective) 상자에 건다: 안쪽 preserve-3d 상자에
+  // opacity를 주면 3D가 납작해진다.
+  const turnKey = `${open}|${page}|${flipAngle}`;
+  const lastTurn = useRef(turnKey);
+  useEffect(() => {
+    if (lastTurn.current === turnKey) return;
+    lastTurn.current = turnKey;
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    stageRef.current?.animate([{ opacity: 0 }, { opacity: 1 }], {
+      duration: 200,
+      easing: `cubic-bezier(${EASE_OUT.join(',')})`,
+    });
+  }, [turnKey]);
 
   // 펼치면 표지가 왼쪽으로 한 권 폭만큼 눕는다. 자리가 있으면 펼친 전체를 가운데에,
   // 없으면 줄이지 않고 본문을 그대로 둔 채 표지가 화면 밖으로 나간다
@@ -628,6 +646,7 @@ export default function ProfileBook({
       {/* 무대 상자 — 무대를 축소해도 흐름에서는 원래 높이를 차지하므로, 줄인 높이만큼만 자리를 잡는다 */}
       <div style={{ height: (TOP_PAD + H) * stageScale, overflow: 'clip' }}>
         <div
+          ref={stageRef}
           className="relative mx-auto [perspective:1800px] [touch-action:pan-y]"
           style={{
             width: STAGE_W,

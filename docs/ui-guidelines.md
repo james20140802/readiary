@@ -103,7 +103,7 @@
 - 지우거나 펼쳐서 아래 내용이 밀리는 곳은 높이째 접고 펼친다(`hooks/useFold`, 220ms `--ease-in-out`). 지운 댓글·처리한 친구 요청·책 상세에서 지운 기록이 접히며 빠지고, 홈의 덧붙이기 입력칸이 펼쳐진다. 목록에 원래 있던 항목과 새로 생긴 항목은 그 자리에 놓이고, 필터로 빠지는 항목은 바로 사라진다. 목록은 `components/ui/FoldList`(`FoldList`·`FoldDiv`·`FoldLi`)로 짠다. 마지막 항목도 접히도록 목록 상자는 비어도 남기고, 빈 문구는 그 항목이 다 접힌 뒤에 놓는다. 접히기 시작한 항목은 `inert`라 그 사이 눌리거나 포커스되지 않는다. 긴 문장의 '계속 읽기·접기'(`ClampedText`)도 같은 시간·곡선으로 높이가 늘고 준다. 줄이는 모션에서는 높이가 한 번에 바뀌고 흐려지고 나타나는 것만 남는다.
 - `hover:` 스타일은 Tailwind `hoverOnlyWhenSupported`로 hover가 되는 기기에서만 적용된다. 터치 기기에서 눌림 말고는 hover에 기대지 않는다.
 - 움직이는 속성은 `transform`과 `opacity`다. 크기·위치로 바뀌는 곳은 `transition-all` 대신 속성을 지정한다.
-- 감축 모션: framer는 앱 루트의 `MotionProvider`(`reducedMotion="user"`)가 이동을 빼고 opacity만 남긴다. CSS 키프레임은 `prefers-reduced-motion`에서 이동을 빼고 나타남만 남긴다.
+- 감축 모션: framer는 앱 루트의 `MotionProvider`(`reducedMotion="user"`)가 이동을 빼고 opacity만 남긴다. CSS 키프레임은 `prefers-reduced-motion`에서 이동을 빼고 나타남만 남긴다. 컴포넌트에서 `MotionConfig`를 따로 두지 않는다. 프로필 책은 펼침·넘김·뒤집기가 한 번에 바뀌는 대신 무대 전체가 200ms `--ease-out`으로 흐렸다 나타난다(3D가 납작해지지 않게 perspective 상자에 건다).
 
 ## 다크 모드
 
