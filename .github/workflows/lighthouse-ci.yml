@@ -30,6 +30,9 @@ jobs:
       - name: Run unit tests
         run: npm test
 
+      - name: Verify email consent database contract
+        run: node supabase/tests/run-email-consent-contract.mjs
+
       - name: Lint
         run: npx eslint .
 

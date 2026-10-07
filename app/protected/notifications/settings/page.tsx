@@ -1,4 +1,5 @@
 import BackButton from '@/components/ui/BackButton';
+import EmailSettings from '@/components/email/EmailSettings';
 import PushSettings from './PushSettings';
 export default function Page() {
   return (
@@ -8,6 +9,7 @@ export default function Page() {
         <h1 className="text-page-title">알림 설정</h1>
       </header>
       <PushSettings />
+      <EmailSettings />
     </div>
   );
 }
