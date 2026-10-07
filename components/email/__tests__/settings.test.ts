@@ -39,6 +39,7 @@ describe('email settings interactions', () => {
     fireEvent.click(button);
     fireEvent.click(button);
     expect(mocks.api).toHaveBeenCalledTimes(2);
+    expect(JSON.parse(mocks.api.mock.calls[1][1].body).expectedEmail).toBe(state.email);
     finish(Response.json({ preferences: { ...state.preferences, enabled: true, version: 1 } }));
     expect(await screen.findByText(/수신 동의가 저장/)).toBeTruthy();
   });

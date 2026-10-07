@@ -94,6 +94,7 @@ export default function OnboardingForm({
             fingerprint,
             change: {
               accountId,
+              expectedEmail: email,
               enabled: emailEnabled,
               requestId: crypto.randomUUID(),
               expectedVersion: 0,

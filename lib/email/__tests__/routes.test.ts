@@ -12,6 +12,7 @@ import { EMAIL_COPY_VERSION } from '../consent';
 const owner = '00000000-0000-4000-8000-000000000001';
 const body = {
   accountId: owner,
+  expectedEmail: 'owner@example.test',
   enabled: true,
   requestId: '10000000-0000-4000-8000-000000000001',
   expectedVersion: 0,
@@ -56,7 +57,12 @@ describe('email preference authorization and contract', () => {
     expect(r.status).toBe(200);
     expect(mocks.rpc).toHaveBeenCalledWith(
       'save_email_consent',
-      expect.objectContaining({ p_user: owner, p_source: 'settings', p_copy: EMAIL_COPY_VERSION })
+      expect.objectContaining({
+        p_user: owner,
+        p_source: 'settings',
+        p_copy: EMAIL_COPY_VERSION,
+        p_email: body.expectedEmail,
+      })
     );
     expect(r.headers.get('cache-control')).toContain('no-store');
   });
@@ -67,13 +73,18 @@ describe('email preference authorization and contract', () => {
     { ...body, expectedVersion: -1 },
     { ...body, copyVersion: 'old' },
     { ...body, requestId: 'bad' },
+    { ...body, expectedEmail: undefined },
+    { ...body, expectedEmail: 123 },
   ])('rejects malformed changes: %j', async (value) => {
     expect((await PUT(req(value))).status).toBe(400);
   });
-  it('maps stale writes to a reloadable conflict', async () => {
-    mocks.rpc.mockResolvedValue({ error: { message: 'version_conflict' } });
-    expect((await PUT(req(body))).status).toBe(409);
-  });
+  it.each(['version_conflict', 'email_conflict'])(
+    'maps %s to a reloadable conflict',
+    async (message) => {
+      mocks.rpc.mockResolvedValue({ error: { message } });
+      expect((await PUT(req(body))).status).toBe(409);
+    }
+  );
   it('blocks collection before activation but allows withdrawal', async () => {
     vi.stubEnv('EMAIL_CONSENT_ENABLED', 'false');
     expect((await PUT(req(body))).status).toBe(503);

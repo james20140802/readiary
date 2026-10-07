@@ -9,14 +9,23 @@ let checks = 0;
 async function value(sql, params = []) {
   return (await db.query(sql, params)).rows[0]?.v;
 }
-async function save(user, enabled, id, version, source = 'settings', profile = null) {
-  return value('select public.save_email_consent($1,$2,$3,$4,$5,$6,$7) v', [
+async function save(
+  user,
+  enabled,
+  id,
+  version,
+  source = 'settings',
+  profile = null,
+  email = user === a ? 'one@example.test' : 'two@example.test'
+) {
+  return value('select public.save_email_consent($1,$2,$3,$4,$5,$6,$7,$8) v', [
     user,
     enabled,
     request(id),
     version,
     source,
     'email-news-v1',
+    email,
     profile,
   ]);
 }
@@ -42,6 +51,13 @@ try {
   assert.equal(await value('select count(*)::int v from public.email_preferences'), 0);
   checks++;
   const profile = { name: '독자', nickname: 'reader', tag: '1000', bio: null };
+  // An address change before first consent must not opt in the unseen address.
+  await db.query('update auth.users set email=$2 where id=$1', [a, 'new@example.test']);
+  await rejects(() => save(a, true, 90, 0, 'onboarding', profile), /email_conflict/);
+  assert.equal(await value('select count(*)::int v from public.profiles where id=$1', [a]), 0);
+  assert.equal(await value('select count(*)::int v from public.email_consent_events'), 0);
+  checks++;
+  await db.query('update auth.users set email=$2 where id=$1', [a, 'one@example.test']);
   const first = await save(a, true, 1, 0, 'onboarding', profile);
   assert.equal(first.enabled, true);
   assert.equal(first.version, 1);
@@ -121,8 +137,23 @@ try {
     'one@example.test',
   ]);
   await rejects(() => save(a, true, 6, 4), /email_unconfirmed/);
+  // Disabled preferences retain their version when the address changes.
+  await db.query('update auth.users set email=$2 where id=$1', [b, 'new@example.test']);
+  await rejects(() => save(b, true, 91, 1), /email_conflict/);
+  assert.equal(
+    await value('select version v from public.email_preferences where user_id=$1', [b]),
+    1
+  );
+  checks++;
+  const fresh = await save(b, true, 92, 1, 'settings', null, 'new@example.test');
+  assert.equal(fresh.email, 'new@example.test');
+  checks++;
+  await rejects(() => save(b, true, 92, 1), /request_conflict/);
+  // Withdrawal still works even if the screen's email is stale.
+  await save(b, false, 93, 2);
+  await db.query('update auth.users set email=$2 where id=$1', [b, 'two@example.test']);
   // Concurrent stale writes cannot both succeed, even without a browser lock.
-  const results = await Promise.allSettled([save(b, true, 7, 1), save(b, false, 8, 1)]);
+  const results = await Promise.allSettled([save(b, true, 7, 3), save(b, false, 8, 3)]);
   assert.equal(results.filter((x) => x.status === 'fulfilled').length, 1);
   checks++;
   await db.exec(`set role authenticated; set request.jwt.claims='{"sub":"${a}"}';`);

@@ -11,6 +11,7 @@ export interface EmailPreferences {
 }
 export interface ConsentChange {
   accountId: string;
+  expectedEmail: string | null;
   enabled: boolean;
   requestId: string;
   expectedVersion: number;
@@ -23,6 +24,10 @@ export function validConsentChange(value: unknown): value is ConsentChange {
   return (
     typeof v.accountId === 'string' &&
     UUID.test(v.accountId) &&
+    (v.expectedEmail === null ||
+      (typeof v.expectedEmail === 'string' &&
+        v.expectedEmail.length > 0 &&
+        v.expectedEmail.length <= 320)) &&
     typeof v.enabled === 'boolean' &&
     typeof v.requestId === 'string' &&
     UUID.test(v.requestId) &&

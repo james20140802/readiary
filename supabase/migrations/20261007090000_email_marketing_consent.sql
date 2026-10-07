@@ -21,6 +21,7 @@ create table public.email_consent_events (
  version integer not null,
  created_at timestamptz not null default now(),
  profile_input_hash text,
+ requested_email text,
  primary key(user_id, request_id)
 );
 create table public.email_deliveries (
@@ -46,7 +47,7 @@ grant all on public.email_preferences, public.email_consent_events, public.email
 
 -- Caller must be a server that has validated the session. Never grant to client roles.
 create function public.save_email_consent(p_user uuid, p_enabled boolean, p_request uuid,
- p_expected integer, p_source text, p_copy text, p_profile jsonb default null)
+ p_expected integer, p_source text, p_copy text, p_email text, p_profile jsonb default null)
 returns jsonb language plpgsql security definer set search_path='' as $$
 declare u auth.users; old public.email_preferences; prior public.email_consent_events; result public.email_preferences;
 begin
@@ -59,7 +60,7 @@ begin
  select * into prior from public.email_consent_events where user_id=p_user and request_id=p_request;
  if found then
   if prior.enabled is distinct from p_enabled or prior.source<>p_source or prior.expected_version<>p_expected
-   or prior.copy_version<>p_copy or prior.profile_input_hash is distinct from md5(p_profile::text) then
+   or prior.copy_version<>p_copy or prior.requested_email is distinct from p_email or prior.profile_input_hash is distinct from md5(p_profile::text) then
    raise exception 'request_conflict' using errcode='P0001';
   end if;
   -- Return current truth, never replay an old write over a later withdrawal.
@@ -69,6 +70,8 @@ begin
  if coalesce(old.version,0)<>p_expected then raise exception 'version_conflict' using errcode='P0001'; end if;
  if p_enabled and (u.email is null or u.email_confirmed_at is null) then
   raise exception 'email_unconfirmed' using errcode='P0001'; end if;
+ if p_enabled and u.email is distinct from p_email then
+  raise exception 'email_conflict' using errcode='P0001'; end if;
  if p_profile is not null then
   insert into public.profiles(id,name,nickname,tag,bio)
   values(p_user,p_profile->>'name',p_profile->>'nickname',p_profile->>'tag',p_profile->>'bio');
@@ -79,8 +82,8 @@ begin
  on conflict(user_id) do update set enabled=excluded.enabled,email=excluded.email,version=excluded.version,
  consented_at=excluded.consented_at,withdrawn_at=excluded.withdrawn_at,updated_at=now()
  returning * into result;
- insert into public.email_consent_events(user_id,request_id,enabled,email,copy_version,source,expected_version,version,profile_input_hash)
- values(p_user,p_request,p_enabled,result.email,p_copy,p_source,p_expected,result.version,md5(p_profile::text));
+ insert into public.email_consent_events(user_id,request_id,enabled,email,copy_version,source,expected_version,version,profile_input_hash,requested_email)
+ values(p_user,p_request,p_enabled,result.email,p_copy,p_source,p_expected,result.version,md5(p_profile::text),p_email);
  return to_jsonb(result);
 end $$;
 
@@ -143,8 +146,8 @@ begin
  return jsonb_build_object('email',p.email,'version',p.version);
 end $$;
 
-revoke all on function public.save_email_consent(uuid,boolean,uuid,integer,text,text,jsonb),
+revoke all on function public.save_email_consent(uuid,boolean,uuid,integer,text,text,text,jsonb),
  public.revoke_changed_email_consent(), public.withdraw_email_by_token(text),
  public.claim_marketing_email(uuid,uuid,text,text) from public,anon,authenticated;
-grant execute on function public.save_email_consent(uuid,boolean,uuid,integer,text,text,jsonb),
+grant execute on function public.save_email_consent(uuid,boolean,uuid,integer,text,text,text,jsonb),
  public.withdraw_email_by_token(text),public.claim_marketing_email(uuid,uuid,text,text) to service_role;

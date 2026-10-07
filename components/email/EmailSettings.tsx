@@ -69,6 +69,7 @@ export default function EmailSettings() {
     setMessage('');
     const request = attempt.current ?? {
       accountId: loaded.accountId,
+      expectedEmail: loaded.email,
       enabled: checked,
       requestId: crypto.randomUUID(),
       expectedVersion: loaded.preferences.version,

@@ -28,7 +28,7 @@ export function emailSameOrigin(req: Request) {
   return req.headers.get('origin') === new URL(req.url).origin;
 }
 export function consentError(error: { message: string; code?: string }) {
-  if (/version_conflict|request_conflict/.test(error.message))
+  if (/version_conflict|request_conflict|email_conflict/.test(error.message))
     return emailReply(
       {
         code: 'consent_conflict',
@@ -50,6 +50,7 @@ export function saveConsent(
     p_enabled: change.enabled,
     p_request: change.requestId,
     p_expected: change.expectedVersion,
+    p_email: change.expectedEmail,
     p_source: profile ? 'onboarding' : 'settings',
     p_copy: EMAIL_COPY_VERSION,
     p_profile: profile ?? null,
