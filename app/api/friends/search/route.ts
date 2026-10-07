@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
   // 1. 해당 유저 찾기
   const { data: profiles, error: profileError } = await supabase
     .from('profiles')
-    .select('*')
+    .select('id, name, nickname, tag, profile_image, bio, created_at')
     .eq('nickname', nickname)
     .eq('tag', String(tag))
     .single();

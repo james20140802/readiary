@@ -69,6 +69,40 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid comment ID' }, { status: 400 });
   }
 
+  if (!isUuid(entryId)) {
+    return NextResponse.json({ error: 'entryId가 필요합니다.' }, { status: 400 });
+  }
+
+  const unavailable = () =>
+    NextResponse.json({ error: '기록을 찾을 수 없습니다.' }, { status: 404 });
+  const lookupFailed = () =>
+    NextResponse.json({ error: '기록을 확인하지 못했습니다.' }, { status: 500 });
+
+  // 세션 사용자의 RLS로 조회하고, 본인 또는 수락된 친구의 공개 기록인지 명시한다.
+  // 외부 공유 링크의 활성화 여부는 댓글 작성 권한을 부여하지 않는다.
+  const { data: entry, error: entryError } = await supabase
+    .from('entries')
+    .select('id, is_private, user_books!inner(user_id)')
+    .eq('id', entryId)
+    .maybeSingle();
+  if (entryError) return lookupFailed();
+  if (!entry) return unavailable();
+  const ownerId = entry.user_books.user_id;
+  if (ownerId !== user.id) {
+    if (entry.is_private) return unavailable();
+    const { data: friendship, error: friendshipError } = await supabase
+      .from('friends')
+      .select('id')
+      .or(
+        `and(user_id.eq.${user.id},friend_id.eq.${ownerId}),and(user_id.eq.${ownerId},friend_id.eq.${user.id})`
+      )
+      .eq('status', 'accepted')
+      .limit(1)
+      .maybeSingle();
+    if (friendshipError) return lookupFailed();
+    if (!friendship) return unavailable();
+  }
+
   const { data, error } = await supabase
     .from('comments')
     .insert([
@@ -87,6 +121,9 @@ export async function POST(request: Request) {
     `
     )
     .single();
+
+  // 사전 검사 직후 비공개 전환·친구 해제가 일어나도 최종 RLS 거부를 404로 처리한다.
+  if (error?.code === '42501') return unavailable();
 
   if (error?.code === '23505' && client_comment_id) {
     const { data: existing, error: readError } = await supabase
