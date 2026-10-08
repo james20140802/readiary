@@ -1,4 +1,5 @@
 // /app/onboarding/page.tsx
+import { emailConsentAvailable } from '@/lib/email/server';
 import { redirect } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { hasConsented } from '@/lib/auth/consent';
@@ -31,6 +32,9 @@ export default async function OnboardingPage() {
   return (
     <OnboardingForm
       defaultName={nameFromMetadata(user.user_metadata)}
+      email={user.email ?? null}
+      accountId={user.id}
+      emailConsentAvailable={emailConsentAvailable() && !!user.email_confirmed_at}
       requireConsent={!hasConsented(user.user_metadata)}
     />
   );

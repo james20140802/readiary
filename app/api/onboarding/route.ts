@@ -1,3 +1,11 @@
+import { validConsentChange } from '@/lib/email/consent';
+import {
+  emailConsentAvailable,
+  emailSameOrigin,
+  emailReply,
+  consentError,
+  saveConsent,
+} from '@/lib/email/server';
 import { unauthorized } from '@/lib/api/auth';
 import { NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
@@ -31,6 +39,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
     }
 
+    if (!body || typeof body !== 'object' || Array.isArray(body))
+      return emailReply({ error: 'Invalid JSON' }, 400);
     const { name: rawName, nickname: rawNickname, tag, bio: rawBio, consent } = body;
 
     // 약관·개인정보 동의 없이는 프로필(개인정보)을 만들지 않는다 — 이메일 가입과 가입 화면 Google은
@@ -65,17 +75,30 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: nicknameError }, { status: 400 });
     }
 
-    const { data, error: insertError } = await supabase
-      .from('profiles')
-      .insert({
-        id: user.id,
-        name,
-        nickname,
-        tag,
-        bio,
-      })
-      .select('*')
-      .single();
+    const emailChange = body.emailConsent;
+    if (emailChange !== undefined) {
+      if (!emailSameOrigin(req)) return emailReply({ error: '허용되지 않은 요청입니다.' }, 403);
+      if (!validConsentChange(emailChange) || emailChange.expectedVersion !== 0)
+        return emailReply({ error: '이메일 동의 내용을 확인해 주세요.' }, 400);
+      if (emailChange.accountId !== user.id)
+        return emailReply({ error: '계정이 바뀌었습니다. 화면을 새로 열어 주세요.' }, 409);
+      if (emailChange.enabled && !emailConsentAvailable())
+        return emailReply({ error: '이메일 소식 신청을 준비 중입니다.' }, 503);
+    }
+    const { data, error: insertError } =
+      emailChange !== undefined
+        ? await saveConsent(user.id, emailChange, { name, nickname, tag, bio })
+        : await supabase
+            .from('profiles')
+            .insert({
+              id: user.id,
+              name,
+              nickname,
+              tag,
+              bio,
+            })
+            .select('*')
+            .single();
 
     if (insertError || !data) {
       const kind = classifyProfileInsertError(insertError);
@@ -91,6 +114,7 @@ export async function POST(req: Request) {
           { status: 409 }
         );
       }
+      if (emailChange !== undefined && insertError) return consentError(insertError);
       console.error('[ONBOARDING INSERT ERROR]', { insertError, hasData: !!data });
       return NextResponse.json({ error: '프로필 등록에 실패했습니다.' }, { status: 500 });
     }

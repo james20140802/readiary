@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import LegalDocument from '@/components/legal/LegalDocument';
-import { PRIVACY_EFFECTIVE, PRIVACY_POLICY } from '@/lib/legal/texts';
+import { PRIVACY_EFFECTIVE, PRIVACY_POLICY, EMAIL_PRIVACY_ADDENDUM } from '@/lib/legal/texts';
 
 export const metadata: Metadata = {
   title: '개인정보처리방침 | Readiary',
@@ -15,7 +15,7 @@ export default function PrivacyPage() {
       seal="Privacy Policy"
       title="개인정보처리방침"
       effective={`${PRIVACY_EFFECTIVE} 시행`}
-      body={PRIVACY_POLICY}
+      body={`${PRIVACY_POLICY}\n\n${EMAIL_PRIVACY_ADDENDUM}`}
       sibling={{ href: '/terms', label: '서비스 이용 약관' }}
     />
   );

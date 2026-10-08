@@ -1,4 +1,6 @@
 'use client';
+import EmailConsentField from '@/components/email/EmailConsentField';
+import { EMAIL_COPY_VERSION, type ConsentChange } from '@/lib/email/consent';
 import ActionNavigation from '@/components/ui/ActionNavigation';
 
 import { useActionLock } from '@/hooks/useActionLock';
@@ -41,12 +43,22 @@ interface OnboardingFormProps {
    * 이메일 가입과 가입 화면 Google은 이미 동의했으므로 다시 묻지 않는다.
    */
   requireConsent?: boolean;
+  email?: string | null;
+  accountId?: string;
+  emailConsentAvailable?: boolean;
 }
 
 export default function OnboardingForm({
   defaultName = '',
   requireConsent = false,
+  email = null,
+  accountId = '',
+  emailConsentAvailable = false,
 }: OnboardingFormProps) {
+  const [emailEnabled, setEmailEnabled] = useState(false);
+  const emailAttempt = useRef<{ change: ConsentChange; fingerprint: string } | null>(null);
+  const pendingTag = useRef<string | null>(null);
+  const [uncertainEmailAttempt, setUncertainEmailAttempt] = useState(false);
   const [name, setName] = useState(defaultName);
   const [nickname, setNickname] = useState('');
   const [bio, setBio] = useState('');
@@ -69,12 +81,27 @@ export default function OnboardingForm({
     if (problem || !consented) return;
 
     setLoading(true);
-    let tag = generateRandomTag();
+    let tag = pendingTag.current ?? generateRandomTag();
+    pendingTag.current = tag;
     let tries = 0;
     const maxTries = 5;
 
     try {
       while (tries < maxTries) {
+        const fingerprint = JSON.stringify({ name, nickname, tag, bio, emailEnabled });
+        if (emailConsentAvailable && emailAttempt.current?.fingerprint !== fingerprint) {
+          emailAttempt.current = {
+            fingerprint,
+            change: {
+              accountId,
+              expectedEmail: email,
+              enabled: emailEnabled,
+              requestId: crypto.randomUUID(),
+              expectedVersion: 0,
+              copyVersion: EMAIL_COPY_VERSION,
+            },
+          };
+        }
         const res = await apiFetch('/api/onboarding', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -85,6 +112,7 @@ export default function OnboardingForm({
             tag,
             bio,
             ...(requireConsent && { consent: true }),
+            ...(emailConsentAvailable && { emailConsent: emailAttempt.current!.change }),
           }),
         });
 
@@ -102,6 +130,7 @@ export default function OnboardingForm({
 
         if (res.status === 409 && result.code === 'tag_conflict') {
           tag = generateRandomTag();
+          pendingTag.current = tag;
           tries++;
         } else if (res.status === 409 && result.code === 'profile_exists') {
           toast.info(result.error || '이미 프로필이 존재합니다.');
@@ -110,12 +139,15 @@ export default function OnboardingForm({
           leaveOnboarding('/protected/dashboard');
           return;
         } else {
+          setUncertainEmailAttempt(res.status >= 500);
+          if (res.status < 500) emailAttempt.current = null;
           setFormError(result.error || '프로필 등록 중 오류가 발생했습니다.');
           return;
         }
       }
       setFormError('태그 생성이 계속 겹칩니다. 닉네임을 바꿔 다시 시도해주세요.');
     } catch (error) {
+      setUncertainEmailAttempt(emailConsentAvailable);
       setFormError('예기치 않은 오류가 발생했습니다. 나중에 다시 시도해주세요.');
       console.error(error);
     } finally {
@@ -135,78 +167,93 @@ export default function OnboardingForm({
       }
     >
       <form onSubmit={handleSubmit} noValidate className="space-y-5">
-        {formError && <FormAlert>{formError}</FormAlert>}
+        <fieldset disabled={loading || uncertainEmailAttempt} className="space-y-5">
+          {formError && <FormAlert>{formError}</FormAlert>}
 
-        <FormGroup>
-          <FormLabel variant="line" htmlFor="name">
-            이름
-          </FormLabel>
-          <Input
-            variant="line"
-            id="name"
-            name="name"
-            autoComplete="name"
-            placeholder="친구에게 보이는 이름"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
-        </FormGroup>
+          <FormGroup>
+            <FormLabel variant="line" htmlFor="name">
+              이름
+            </FormLabel>
+            <Input
+              variant="line"
+              id="name"
+              name="name"
+              autoComplete="name"
+              placeholder="친구에게 보이는 이름"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+          </FormGroup>
 
-        <FormGroup>
-          <FormLabel variant="line" htmlFor="nickname">
-            닉네임
-          </FormLabel>
-          <Input
-            variant="line"
-            id="nickname"
-            name="nickname"
-            autoComplete="username"
-            autoCapitalize="none"
-            spellCheck={false}
-            maxLength={MAX_NICKNAME_LENGTH}
-            placeholder="영문·숫자·언더스코어"
-            value={nickname}
-            onChange={(e) => {
-              setNickname(e.target.value);
-              if (nicknameError) setNicknameError(null);
-            }}
-            error={nicknameError ?? undefined}
-            required
-          />
-          <p className="text-caption text-ink-faint">
-            영어 알파벳과 숫자, 언더스코어(_)만 쓸 수 있습니다. 친구가 나를 찾을 때 씁니다.
+          <FormGroup>
+            <FormLabel variant="line" htmlFor="nickname">
+              닉네임
+            </FormLabel>
+            <Input
+              variant="line"
+              id="nickname"
+              name="nickname"
+              autoComplete="username"
+              autoCapitalize="none"
+              spellCheck={false}
+              maxLength={MAX_NICKNAME_LENGTH}
+              placeholder="영문·숫자·언더스코어"
+              value={nickname}
+              onChange={(e) => {
+                setNickname(e.target.value);
+                if (nicknameError) setNicknameError(null);
+              }}
+              error={nicknameError ?? undefined}
+              required
+            />
+            <p className="text-caption text-ink-faint">
+              영어 알파벳과 숫자, 언더스코어(_)만 쓸 수 있습니다. 친구가 나를 찾을 때 씁니다.
+            </p>
+          </FormGroup>
+
+          <FormGroup>
+            <FormLabel variant="line" htmlFor="bio">
+              자기소개
+            </FormLabel>
+            <Textarea
+              variant="line"
+              id="bio"
+              name="bio"
+              rows={3}
+              placeholder="한 줄이면 충분합니다 (선택)"
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              fullWidth
+              className="resize-none"
+            />
+          </FormGroup>
+
+          {requireConsent && (
+            <ConsentFieldset
+              idPrefix="onboarding"
+              value={consent}
+              onChange={(next) => {
+                setConsent(next);
+                if (formError) setFormError(null);
+              }}
+            />
+          )}
+
+          {emailConsentAvailable && (
+            <EmailConsentField
+              checked={emailEnabled}
+              onChange={setEmailEnabled}
+              email={email}
+              disabled={loading || uncertainEmailAttempt}
+            />
+          )}
+        </fieldset>
+        {uncertainEmailAttempt && (
+          <p role="alert" className="text-caption text-ink-sub">
+            저장 결과를 확인하지 못했습니다. 같은 내용으로 다시 등록해 주세요.
           </p>
-        </FormGroup>
-
-        <FormGroup>
-          <FormLabel variant="line" htmlFor="bio">
-            자기소개
-          </FormLabel>
-          <Textarea
-            variant="line"
-            id="bio"
-            name="bio"
-            rows={3}
-            placeholder="한 줄이면 충분합니다 (선택)"
-            value={bio}
-            onChange={(e) => setBio(e.target.value)}
-            fullWidth
-            className="resize-none"
-          />
-        </FormGroup>
-
-        {requireConsent && (
-          <ConsentFieldset
-            idPrefix="onboarding"
-            value={consent}
-            onChange={(next) => {
-              setConsent(next);
-              if (formError) setFormError(null);
-            }}
-          />
         )}
-
         <Button type="submit" fullWidth loading={loading} disabled={!canSubmit} className="mt-2">
           {loading ? '등록 중...' : '프로필 등록하기'}
         </Button>
