@@ -13,6 +13,7 @@ import { Entry, EntryDetailData } from '@/types/entry';
 import Image from 'next/image';
 import MarkAsFinishedButton from './MarkAsFinishedButton';
 import UnfinishBookButton from './UnfinishBookButton';
+import DeleteBookButton from './DeleteBookButton';
 import { Profile } from '@/types/profile';
 import Button from '../ui/Button';
 import Link from 'next/link';
@@ -164,6 +165,11 @@ export default function BookDetailContent({
             </p>
             {readingPeriod && (
               <p className="mt-1 text-caption tabular-nums text-ink-faint">{readingPeriod}</p>
+            )}
+            {!isFriend && (
+              <div className="mt-3">
+                <DeleteBookButton userBookId={id} title={title} />
+              </div>
             )}
           </div>
         </section>
