@@ -5,6 +5,7 @@ import { fetchBookDetail } from '@/lib/books/fetchBookDetail';
 import BookDetailContent from '@/components/books/BookDetailContent';
 import { toast } from 'sonner';
 import BackButton from '@/components/ui/BackButton';
+import BookActionsMenu from '@/components/books/BookActionsMenu';
 
 interface Props {
   params: Promise<{
@@ -34,8 +35,9 @@ export default async function BookDetailPage({ params }: Props) {
 
   return (
     <div className="w-full">
-      <header className="flex items-center mb-6">
+      <header className="mb-6 flex items-center justify-between">
         <BackButton />
+        <BookActionsMenu userBookId={userBook.id} title={book.title} />
       </header>
       <BookDetailContent userBook={userBook} entries={entries} userId={user.id} />
     </div>
