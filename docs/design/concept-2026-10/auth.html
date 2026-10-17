@@ -1,0 +1,92 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>로그인 · Readiary 시안</title><link rel="stylesheet" href="app.css">
+<style>
+.dev{display:flex;gap:6px;margin-bottom:18px;overflow-x:auto;scrollbar-width:none;padding:10px 0 4px}
+.dev a{flex:none;height:30px;padding:0 10px;border-radius:15px;display:inline-flex;align-items:center;font:600 12px var(--sans);color:var(--sub);box-shadow:inset 0 0 0 1px var(--rule)}
+.dev a.on{background:var(--ink);color:var(--paper);box-shadow:none}
+.au{max-width:440px;margin:0 auto}
+.au h1{font:700 30px/1.3 var(--serif);margin-top:28px}
+.au .lead{font:400 18px/1.65 var(--serif);color:var(--sub);margin-top:8px}
+.panel{display:none}.panel:target,.panel.def{display:block}
+:has(.panel:target) .panel.def:not(:target){display:none}
+.gbtn{width:100%;margin-top:12px;box-shadow:inset 0 0 0 1px var(--rule)}
+.gbtn svg{width:18px;height:18px}
+.or{display:flex;align-items:center;gap:12px;margin:22px 0 4px;font:500 13px var(--sans);color:var(--faint)}
+.or::before,.or::after{content:"";flex:1;height:1px;background:var(--rule)}
+.sm-links{display:flex;justify-content:space-between;margin-top:14px;font:500 15px var(--sans);color:var(--sub)}
+.sm-links a{min-height:44px;display:inline-flex;align-items:center}
+.cons{margin-top:20px}
+.cons label{display:flex;align-items:center;gap:12px;min-height:48px;border-top:1px solid var(--rule);font:500 15px var(--sans)}
+.cons label:last-child{border-bottom:1px solid var(--rule)}
+.cons input{width:20px;height:20px;accent-color:var(--ink);flex:none}
+.cons a{margin-left:auto;color:var(--sub);font-size:14px;text-decoration:underline;text-underline-offset:3px}
+.mail{padding:24px;border-radius:3px;margin-top:26px}
+.side-q{display:none}
+@media (min-width:1024px){
+  .shell{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:80px;align-items:center;min-height:calc(100dvh - 80px)}
+  .side-q{display:block;padding:40px 44px;border-radius:3px;transform:rotate(-1.2deg);max-width:520px;justify-self:end}
+  .au{margin:0}
+}
+</style></head>
+<body data-tab="none" class="plain bare">
+<main class="page"><div class="wrap" style="padding-top:calc(8px + env(safe-area-inset-top));max-width:1100px;margin:0 auto">
+<nav class="dev" aria-label="시안 화면 고르기"><a href="#login">로그인</a><a href="#signup">가입</a><a href="#mail">메일 확인</a><a href="#reset">비밀번호 찾기</a><a href="#newpw">새 비밀번호</a><a href="#onboard">처음 설정</a></nav>
+<div class="shell">
+<div class="side-q sheet"><div class="kicker">1년 전 오늘</div><p class="quote-lg" style="margin-top:12px">생각이 깊어진다는 것은 무엇을 내려놓을지 알게 되는 일이다.</p><div class="meta" style="margin-top:12px">철학이 깊을수록 삶은 단순하다</div></div>
+<div class="au">
+  <section class="panel def" id="login">
+    <div style="font:700 26px var(--serif)">Readiary</div>
+    <h1>다시 만나서 반가워요</h1>
+    <label class="field"><span>이메일</span><input type="email" autocomplete="email"></label>
+    <label class="field"><span>비밀번호</span><input type="password" autocomplete="current-password"></label>
+    <a class="btn ink press" href="home2.html" style="width:100%;margin-top:24px">로그인</a>
+    <div class="sm-links"><a href="#reset">비밀번호를 잊었어요</a><a href="#signup">처음이에요</a></div>
+    <div class="or">또는</div>
+    <button class="btn gbtn press"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 12h8"/></svg>Google로 계속하기</button>
+    <p class="meta" style="margin-top:18px;text-align:center"><a href="#mail" style="text-decoration:underline;text-underline-offset:3px">인증 메일을 다시 받을래요</a></p>
+  </section>
+  <section class="panel" id="signup">
+    <h1>문장을 모으기 시작해요</h1>
+    <p class="lead">메일 주소 하나면 충분해요.</p>
+    <label class="field"><span>이메일</span><input type="email" autocomplete="email"></label>
+    <label class="field"><span>비밀번호</span><input type="password" autocomplete="new-password"><div class="hint">6자 이상</div></label>
+    <label class="field"><span>비밀번호 한 번 더</span><input type="password" autocomplete="new-password"></label>
+    <div class="cons"><label><input type="checkbox">만 14세 이상이에요</label><label><input type="checkbox">이용 약관에 동의해요<a href="#">보기</a></label><label><input type="checkbox">개인정보 수집·이용에 동의해요<a href="#">보기</a></label></div>
+    <a class="btn ink press" href="#mail" style="width:100%;margin-top:22px">가입하기</a>
+    <button class="btn gbtn press" disabled style="opacity:.5"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 12h8"/></svg>Google로 가입 · 동의 후에 눌러져요</button>
+    <div class="sm-links"><a href="#login">이미 계정이 있어요</a></div>
+  </section>
+  <section class="panel" id="mail">
+    <h1>메일을 확인해 주세요</h1>
+    <div class="mail sheet"><p class="note">read•••@example.com으로 보낸 메일의 버튼을 누르면 가입이 끝나요.</p></div>
+    <button class="btn line press" style="width:100%;margin-top:18px" data-toast="메일을 다시 보냈어요">메일 다시 보내기</button>
+    <div class="sm-links"><a href="#login">로그인으로</a></div>
+  </section>
+  <section class="panel" id="reset">
+    <h1>비밀번호 찾기</h1>
+    <p class="lead">가입한 메일로 새 비밀번호를 정할 수 있는 링크를 보내요.</p>
+    <label class="field"><span>이메일</span><input type="email" autocomplete="email"></label>
+    <button class="btn ink press" style="width:100%;margin-top:24px" data-toast="메일을 보냈어요">링크 받기</button>
+    <div class="sm-links"><a href="#login">로그인으로</a></div>
+  </section>
+  <section class="panel" id="newpw">
+    <h1>새 비밀번호</h1>
+    <p class="lead">메일의 링크로 들어왔을 때만 보이는 화면이에요. 바꾸면 다른 기기의 알림은 꺼져요.</p>
+    <label class="field"><span>새 비밀번호</span><input type="password" autocomplete="new-password"></label>
+    <label class="field"><span>한 번 더</span><input type="password" autocomplete="new-password"></label>
+    <a class="btn ink press" href="home2.html" style="width:100%;margin-top:24px">바꾸기</a>
+  </section>
+  <section class="panel" id="onboard">
+    <h1>내 일기장의 이름을 적어 주세요</h1>
+    <p class="lead">친구는 닉네임#태그로 나를 찾아요. 태그는 자동으로 붙어요.</p>
+    <label class="field"><span>이름</span><input placeholder="표지에 들어갈 이름"></label>
+    <label class="field"><span>닉네임</span><input placeholder="영문, 숫자, _" autocapitalize="off"><div class="hint">예: readiary → readiary#0417</div></label>
+    <label class="longf"><span>한 줄 소개 · 선택</span><textarea rows="2" placeholder="어떻게 읽는 사람인가요"></textarea></label>
+    <a class="btn ink press" href="home2.html" style="width:100%;margin-top:22px">첫 문장 남기러 가기</a>
+  </section>
+</div></div>
+</div></main>
+<script src="shell.js"></script>
+<script>const mark=()=>{const h=location.hash||'#login';document.querySelectorAll('.dev a').forEach(a=>a.classList.toggle('on',a.getAttribute('href')===h))};mark();addEventListener('hashchange',mark);</script>
+</body></html>

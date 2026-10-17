@@ -1,0 +1,226 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#F4F0E8">
+<title>Readiary 홈 프로토타입</title>
+<style>
+@font-face{font-family:Maru;src:url(MaruBuri-Regular.woff2) format('woff2');font-weight:400}
+@font-face{font-family:Maru;src:url(MaruBuri-SemiBold.woff2) format('woff2');font-weight:600}
+@font-face{font-family:Maru;src:url(MaruBuri-Bold.woff2) format('woff2');font-weight:700}
+@font-face{font-family:Pre;src:url(PretendardVariable.woff2) format('woff2');font-weight:45 920}
+:root{
+  --paper:#F4F0E8; --ink:#221E1A; --sub:#6B645A; --faint:#9E968A;
+  --rule:#E0D9CC; --margin:#8EA9DD; --accent:#2D5FB8;
+  --sheet:251 250 246; --sheet-a:.6;
+  --serif:Maru,'Noto Serif KR',serif; --sans:Pre,-apple-system,system-ui,sans-serif;
+  --mono:ui-monospace,'SF Mono',Menlo,monospace;
+  --ease-out:cubic-bezier(.23,1,.32,1);
+  --tabbar-h:64px;
+}
+@media (prefers-color-scheme:dark){:root{
+  --paper:#1A1714; --ink:#ECE5DA; --sub:#B1A899; --faint:#7F776B;
+  --rule:#2E2A25; --margin:#4F6694; --accent:#8FB0EE; --sheet:38 35 31; --sheet-a:.72;
+}}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{scroll-snap-type:y mandatory;background:var(--paper);overscroll-behavior-y:none}
+body{font-family:var(--sans);color:var(--ink);-webkit-font-smoothing:antialiased;word-break:keep-all;max-width:520px;margin:0 auto;position:relative}
+.serif{font-family:var(--serif)}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+
+/* ── Apple식 상단 바: 첫 장에서는 투명, 넘기면 재질이 깔리고 가운데 제목이 나타남 ── */
+.navbar{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;z-index:30;
+  padding:env(safe-area-inset-top) 16px 0;height:calc(52px + env(safe-area-inset-top));display:flex;align-items:center;gap:6px;
+  transition:background-color 200ms ease,box-shadow 200ms ease}
+.navbar .brand{font:700 22px var(--serif);margin-right:auto;transition:opacity 160ms ease}
+.navbar .title{position:absolute;left:0;right:0;bottom:14px;text-align:center;font:600 17px var(--sans);opacity:0;transition:opacity 160ms ease;pointer-events:none}
+.navbar .ib{width:44px;height:44px;display:grid;place-items:center;border-radius:22px}
+.navbar svg{width:23px;height:23px}
+.navbar.scrolled{background:rgb(var(--sheet)/.72);-webkit-backdrop-filter:blur(20px) saturate(1.6);backdrop-filter:blur(20px) saturate(1.6);box-shadow:0 .5px 0 rgb(0 0 0/.12)}
+.navbar.scrolled .brand{opacity:0}
+.navbar.scrolled .title{opacity:1}
+
+/* ── 장(page): 한 화면에 하나, 다음 장이 앞 장 위로 덮인다 ── */
+.leaf{position:sticky;top:0;height:100svh;scroll-snap-align:start;scroll-snap-stop:always;overflow:hidden;
+  padding:calc(64px + env(safe-area-inset-top)) 24px calc(var(--tabbar-h) + 40px + env(safe-area-inset-bottom))}
+.leaf.first{background:transparent}
+body{background:var(--paper)}
+/* 일기장 괘선 + 파란 여백선 (첫 장의 바탕) */
+.ruled{position:fixed;inset:0;max-width:520px;margin:0 auto;pointer-events:none;z-index:0;
+  background:
+    linear-gradient(to right,transparent 51px,var(--margin) 51px,var(--margin) 52px,transparent 52px),
+    repeating-linear-gradient(to bottom,transparent 0 39px,var(--rule) 39px 40px);
+  background-position:0 0,0 18px}
+/* 간지: 반투명 + 뒤 흐림. 앞 장의 괘선과 글자가 어렴풋이 비친다 */
+.sheet{background:rgb(var(--sheet)/var(--sheet-a));
+  -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);
+  box-shadow:inset 0 0 0 1px rgb(255 255 255/.75),0 -1px 2px rgb(60 45 25/.05),0 -18px 40px -24px rgb(60 45 25/.28)}
+@media (prefers-color-scheme:dark){.sheet{box-shadow:inset 0 0 0 1px rgb(255 255 255/.07),0 -20px 40px -20px rgb(0 0 0/.6)}}
+@media (prefers-reduced-transparency:reduce){.sheet{background:rgb(var(--sheet));-webkit-backdrop-filter:none;backdrop-filter:none}}
+.leaf.sheet{border-radius:14px 14px 0 0}
+.folio{position:absolute;left:0;right:0;bottom:calc(var(--tabbar-h) + 22px + env(safe-area-inset-bottom));text-align:center;font:500 13px var(--mono);color:var(--faint)}
+
+/* 넘길 때의 움직임: 들어오는 장은 살짝 기울었다가 바로 놓이고, 덮이는 장은 조금 가라앉는다 */
+@supports (animation-timeline:view()){
+  @media (prefers-reduced-motion:no-preference){
+    .leaf.sheet .inner{animation:settle linear both;animation-timeline:view();animation-range:entry 0% entry 100%}
+    body{timeline-scope:--l2,--l3,--l4}
+    .leaf:nth-of-type(2){view-timeline-name:--l2}.leaf:nth-of-type(3){view-timeline-name:--l3}.leaf:nth-of-type(4){view-timeline-name:--l4}
+    .leaf:nth-of-type(1) .sink{animation:sink linear both;animation-timeline:--l2;animation-range:entry 0% entry 100%}
+    .leaf:nth-of-type(2) .sink{animation:sink linear both;animation-timeline:--l3;animation-range:entry 0% entry 100%}
+    .leaf:nth-of-type(3) .sink{animation:sink linear both;animation-timeline:--l4;animation-range:entry 0% entry 100%}
+  }
+}
+@keyframes settle{from{transform:translateY(24px) rotate(1.6deg);transform-origin:100% 0}to{transform:none}}
+@keyframes sink{to{transform:scale(.965);opacity:.4;filter:blur(1.5px)}}
+
+/* ── 1장: 오늘 쓰기 ── */
+.date{display:flex;align-items:flex-start;gap:16px;margin:10px 0 0}
+.date .num{font:400 120px/0.86 var(--serif);letter-spacing:-.04em}
+.date .meta{padding-top:8px}
+.date .m{font:700 24px var(--sans)}
+.date .d{font:500 17px var(--sans);color:var(--sub);margin-top:6px}
+.write{margin:46px 0 0 34px;position:relative}
+.write textarea{width:100%;height:160px;border:0;outline:0;resize:none;background:transparent;font:400 23px/40px var(--serif);color:var(--ink);caret-color:var(--accent)}
+.write textarea::placeholder{color:var(--faint)}
+.bookpick{display:inline-flex;align-items:center;gap:6px;font:600 17px var(--sans);height:44px;border-bottom:1.5px solid var(--ink)}
+.row{display:flex;align-items:center;gap:8px;margin-top:10px}
+.pg{font:500 16px var(--sans);color:var(--sub);display:flex;align-items:center;gap:8px}
+.pg input{width:58px;height:44px;border:0;border-bottom:1px solid var(--rule);background:transparent;font:500 17px var(--mono);color:var(--ink);outline:0;text-align:center}
+.pg input:focus{border-color:var(--accent)}
+.ghost{white-space:nowrap;height:44px;padding:0 8px;font:500 16px var(--sans);color:var(--sub)}
+.primary{margin-left:auto;height:48px;padding:0 24px;border-radius:24px;background:var(--ink);color:var(--paper);font:600 17px var(--sans);transition:transform 160ms var(--ease-out)}
+.primary:active,.ghost:active,.tab:active{transform:scale(.97)}
+.hint{position:absolute;left:0;right:0;bottom:calc(var(--tabbar-h) + 52px + env(safe-area-inset-bottom));text-align:center;font:500 14px var(--sans);color:var(--faint)}
+
+/* ── 2장: 다시 만나기 ── */
+.kicker{font:600 15px var(--sans);color:var(--accent)}
+.big-q{font:600 30px/1.55 var(--serif);letter-spacing:-.015em;margin-top:22px}
+.src{font:500 16px var(--sans);color:var(--sub);margin-top:18px}
+.then{margin-top:30px;padding:18px 20px;border-radius:4px;transform:rotate(-1deg)}
+.then .l{font:600 14px var(--sans);color:var(--sub)}
+.then .t{font:400 19px/1.6 var(--serif);margin-top:6px}
+.link{display:inline-flex;align-items:center;gap:6px;height:48px;font:600 17px var(--sans);margin-top:22px}
+
+/* ── 3장: 이번 주 ── */
+.h2{font:700 28px/1.3 var(--serif);letter-spacing:-.01em}
+.week{display:grid;grid-template-columns:repeat(7,1fr);margin-top:34px;border-top:1px solid var(--rule)}
+.day{height:180px;border-right:1px solid var(--rule);display:flex;flex-direction:column;align-items:center;padding-top:12px;gap:6px}
+.day:last-child{border-right:0}
+.day .w{font:500 14px var(--sans);color:var(--sub)}
+.day .n{font:500 18px var(--serif)}
+.day .mk{width:18px;height:2px;background:var(--ink);border-radius:1px}
+.day.today .n{color:var(--accent);font-weight:700}
+.day.today .mk{background:var(--accent)}
+.week-line{margin-top:26px;font:400 20px/1.6 var(--serif)}
+.week-line b{font-weight:700}
+
+/* ── 4장: 읽던 책 ── */
+.books{display:flex;gap:14px;margin-top:28px;align-items:flex-end}
+.books img{display:block;box-shadow:0 18px 30px -16px rgb(30 20 10/.5);border-radius:2px 4px 4px 2px}
+.frac{font:400 26px var(--serif);margin-top:20px}
+.frac span{color:var(--faint)}
+
+/* ── Apple식 하단 탭 바: 떠 있는 캡슐 + 반투명 재질 (iOS 26 탭 바의 웹 근사) ── */
+.tabbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(10px + env(safe-area-inset-bottom));z-index:30;
+  width:calc(100% - 32px);max-width:488px;height:var(--tabbar-h);border-radius:32px;display:grid;grid-template-columns:repeat(4,1fr);padding:4px;
+  background:rgb(var(--sheet)/.62);-webkit-backdrop-filter:blur(22px) saturate(1.8);backdrop-filter:blur(22px) saturate(1.8);
+  box-shadow:inset 0 0 0 .5px rgb(255 255 255/.7),inset 0 1px 0 rgb(255 255 255/.6),0 8px 28px -10px rgb(40 30 20/.35)}
+@media (prefers-color-scheme:dark){.tabbar{box-shadow:inset 0 0 0 .5px rgb(255 255 255/.12),0 8px 28px -10px rgb(0 0 0/.7)}}
+@media (prefers-reduced-transparency:reduce){.tabbar{background:rgb(var(--sheet))}}
+.tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:28px;font:600 12px var(--sans);color:var(--sub);transition:transform 160ms var(--ease-out)}
+.tab svg{width:24px;height:24px}
+.tab.on{color:var(--accent);background:rgb(127 127 127/.12)}
+svg{stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+</style></head><body>
+
+<header class="navbar" id="nav">
+  <span class="brand">Readiary</span><span class="title" id="navtitle">오늘</span>
+  <button class="ib" aria-label="기록 찾기"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></button>
+  <button class="ib" aria-label="알림"><svg viewBox="0 0 24 24"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg></button>
+</header>
+
+<div class="ruled"></div>
+<main style="position:relative;z-index:1">
+<!-- 1장 -->
+<section class="leaf first" data-title="오늘" aria-label="오늘 쓰기">
+  <div class="sink" style="position:relative">
+    <div class="date"><div class="num">6</div><div class="meta"><div class="m">10월</div><div class="d">화요일 · 이번 주 두 번째 문장</div></div></div>
+    <div class="write">
+      <textarea placeholder="오늘 마음에 남은 문장을&#10;여기 옮겨 적어 보세요" aria-label="오늘 마음에 남은 문장"></textarea>
+      <button class="bookpick">소유냐 존재냐 <svg viewBox="0 0 24 24" style="width:18px;height:18px"><path d="m6 9 6 6 6-6"/></svg></button>
+      <div class="row">
+        <label class="pg">쪽 <input inputmode="numeric" placeholder="184" aria-label="쪽"></label>
+        <button class="ghost">생각 덧붙이기</button>
+        <button class="primary">남기기</button>
+      </div>
+    </div>
+  </div>
+  <div class="folio">279</div>
+</section>
+
+<!-- 2장 -->
+<section class="leaf sheet" data-title="다시 만나기" aria-label="다시 만나기">
+  <div class="inner"><div class="sink">
+    <div class="kicker">20일 전 · 9월 16일</div>
+    <div class="big-q serif">경계와 문턱이 사라짐과 동시에 타자에 대한 환상도 사라진다.</div>
+    <div class="src">에로스의 종말 · 한병철</div>
+    <div class="then sheet"><div class="l">그때의 생각</div><div class="t">가까워질수록 모르는 부분이 줄어드는 게 꼭 좋은 걸까.</div></div>
+    <button class="link">지금의 생각 덧붙이기 <svg viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+  </div></div>
+  <div class="folio">280</div>
+</section>
+
+<!-- 3장 -->
+<section class="leaf sheet" data-title="이번 주" aria-label="이번 주">
+  <div class="inner"><div class="sink">
+    <div class="h2">이번 주에 남긴 문장</div>
+    <div class="week">
+      <div class="day"><span class="w">월</span><span class="n">5</span><span class="mk"></span></div>
+      <div class="day today"><span class="w">화</span><span class="n">6</span><span class="mk"></span><span class="mk"></span></div>
+      <div class="day"><span class="w">수</span><span class="n">7</span></div>
+      <div class="day"><span class="w">목</span><span class="n">8</span></div>
+      <div class="day"><span class="w">금</span><span class="n">9</span></div>
+      <div class="day"><span class="w">토</span><span class="n">10</span></div>
+      <div class="day"><span class="w">일</span><span class="n">11</span></div>
+    </div>
+    <p class="week-line serif">이번 주에 <b>문장 3개</b>를 남겼어요.<br>지난주보다 하루 일찍 시작했어요.</p>
+  </div></div>
+  <div class="folio">281</div>
+</section>
+
+<!-- 4장 -->
+<section class="leaf sheet" data-title="읽던 책" aria-label="읽던 책">
+  <div class="inner"><div class="sink">
+    <div class="h2">읽던 책</div>
+    <div class="books">
+      <img src="img/5249396.jpg" width="150" alt="소유냐 존재냐 표지">
+      <img src="img/6896606.jpg" width="96" alt="철학이 깊을수록 삶은 단순하다 표지" style="opacity:.9">
+      <img src="img/1289155.jpg" width="96" alt="리만 가설 표지" style="opacity:.9">
+    </div>
+    <div class="frac serif">184 <span>/ 352</span></div>
+    <div class="src" style="margin-top:6px">소유냐 존재냐 · 나흘 전에 마지막으로 남겼어요</div>
+    <button class="link">이어서 남기기 <svg viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+  </div></div>
+  <div class="folio">282</div>
+</section>
+</main>
+
+<nav class="tabbar" aria-label="주요 메뉴">
+  <button class="tab on" aria-current="page"><svg viewBox="0 0 24 24"><path d="M13.4 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7.4"/><path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><path d="M21.378 5.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"/></svg>오늘</button>
+  <button class="tab"><svg viewBox="0 0 24 24"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></svg>책장</button>
+  <button class="tab"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>소셜</button>
+  <button class="tab"><svg viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>나</button>
+</nav>
+
+<script>
+// 지금 화면을 차지한 장의 이름을 상단 바 제목으로. 스크롤 이벤트 대신 IntersectionObserver.
+const nav=document.getElementById('nav'), t=document.getElementById('navtitle');
+// 장은 sticky라 덮인 뒤에도 보이는 것으로 잡히므로, 60% 이상 보이는 장 중 가장 뒤의 장을 고른다.
+const leaves=[...document.querySelectorAll('.leaf')], seen=new Set();
+const io=new IntersectionObserver(es=>{
+  for(const e of es){e.intersectionRatio>=.6?seen.add(e.target):seen.delete(e.target)}
+  const cur=leaves.filter(l=>seen.has(l)).pop()||leaves[0];
+  t.textContent=cur.dataset.title; nav.classList.toggle('scrolled',cur!==leaves[0]);
+},{threshold:[0,.6,1]});
+leaves.forEach(s=>io.observe(s));
+</script>
+</body></html>

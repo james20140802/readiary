@@ -1,0 +1,207 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>친구의 문장 · Readiary 시안</title><link rel="stylesheet" href="app.css"><link rel="stylesheet" href="debate.css">
+<style>
+.seg{display:grid;grid-template-columns:1fr 1fr;height:44px;padding:2px;border-radius:10px;background:rgb(127 127 127/.14);margin:14px 0 18px}
+.seg a{display:flex;align-items:center;justify-content:center;border-radius:8px;font:600 14px var(--sans);color:var(--sub)}
+.seg a.on{background:rgb(var(--sheet));color:var(--ink);box-shadow:0 1px 3px rgb(0 0 0/.12)}
+.post{position:relative}
+.post .card{position:relative;z-index:1;padding:22px 22px 14px;border-radius:3px}
+.post .who{display:flex;align-items:center;gap:12px}
+.post .who img{width:38px;border-radius:2px;box-shadow:0 8px 14px -8px rgb(0 0 0/.5)}
+.post .who b{font:600 16px var(--sans)} .post .who .meta{font-size:14px}
+.post .q{font:600 24px/1.6 var(--serif);letter-spacing:-.01em;margin-top:16px}
+.post .thought{position:relative;z-index:0;margin:-6px 10px 0 22px;padding:16px 18px 14px;border-radius:3px;transform:rotate(1.4deg)}
+.post .thought .l{font:600 13px var(--sans);color:var(--sub)} .post .thought .t{font:400 18px/1.6 var(--serif);margin-top:4px}
+.acts{display:flex;align-items:center;gap:2px;margin-top:10px}
+.acts span,.acts a{display:inline-flex;align-items:center;gap:6px;height:44px;padding:0 10px;border-radius:22px;font:500 15px var(--sans);color:var(--sub)}
+.acts svg{width:20px;height:20px}
+.acts .ask{margin-left:auto;color:var(--accent);font-weight:600}
+.cmt{margin-top:12px;font:400 16px/1.55 var(--serif);color:var(--sub)} .cmt b{font:600 14px var(--sans);color:var(--ink);margin-right:6px}
+.done-card{padding:22px;border-radius:3px}
+.mini{padding:12px 14px;border-radius:3px;font:400 17px/1.55 var(--serif)}
+.mini+.mini{margin-top:-4px}
+.friend{display:grid;grid-template-columns:40px 1fr auto;gap:2px 14px;padding:12px 0;border-top:1px solid var(--rule);align-items:center}
+.friend img{grid-row:span 2;width:40px;border-radius:2px;box-shadow:0 6px 12px -6px rgb(0 0 0/.45)}
+.friend b{font:600 16px var(--sans);align-self:end} .friend .meta{font-size:14px;align-self:start;grid-column:2}
+.friend .go{grid-row:span 2;grid-column:3;font:600 14px var(--sans);color:var(--accent)}
+/* 모바일 피드 */
+@media (max-width:1023px){
+  html:has(body.feed){scroll-snap-type:y proximity}
+  .fpage{padding:calc(60px + env(safe-area-inset-top)) 20px calc(var(--tabbar-h) + 40px + env(safe-area-inset-bottom))}
+  .item{scroll-snap-align:start;scroll-margin-top:calc(64px + env(safe-area-inset-top))}
+  .item+.item{margin-top:36px}
+}
+.reading{display:flex;gap:14px;overflow-x:auto;margin:0 -20px;padding:2px 20px 6px;scroll-snap-type:x proximity;scroll-padding-inline:20px;scrollbar-width:none}
+.reading::-webkit-scrollbar{display:none}
+.reading a{flex:none;width:64px;scroll-snap-align:start;display:grid;justify-items:center;gap:2px;text-align:center}
+.reading img{width:56px;height:80px;object-fit:cover;border-radius:2px;box-shadow:0 10px 16px -10px rgb(0 0 0/.55);margin-bottom:6px}
+.reading b{font:600 14px var(--sans)} .reading span{font:500 13px var(--sans);color:var(--sub)}
+.req{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:18px 0 26px;padding:10px 10px 10px 16px;border-radius:3px;font:500 15px var(--sans)}
+.pm{width:36px;height:36px;margin:-8px -10px 0 2px;display:grid;place-items:center;color:var(--sub);align-self:start}.pm svg{width:18px;height:18px}
+.who time{margin-left:auto;align-self:start;font:500 14px var(--sans);color:var(--sub)}
+.post .who>div{min-width:0}
+.note-only .t{font:400 20px/1.65 var(--serif);margin-top:14px}
+.opened{display:block;margin-top:14px;padding:10px 0 2px 14px;box-shadow:inset 2px 0 0 var(--accent);font:600 16px/1.45 var(--sans)}
+.opened span{display:block;font:600 13px var(--sans);color:var(--accent);margin-bottom:2px}
+.post .cmt{margin:14px 0 0 22px}
+.done .who{display:flex;align-items:center;gap:14px}
+.done .who img.big{width:52px;border-radius:2px;box-shadow:0 10px 18px -10px rgb(0 0 0/.5)}
+.done .who b{font:600 17px var(--sans)} .done .meta{font-size:14px}
+.done .slips{margin-top:14px;display:grid;gap:0}
+.done .mini{transform:rotate(var(--r))}
+.end{margin-top:44px;padding-top:22px;border-top:1px solid var(--rule);display:flex;align-items:center;justify-content:space-between;gap:12px;font:500 15px var(--sans);color:var(--sub)}
+.acts .press{transition:transform 160ms var(--ease-out)}
+@media (min-width:1024px){
+  .seg{height:36px}
+  .feed-wrap{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.75fr);gap:56px;align-items:start}
+  .post+.post{margin-top:34px}
+  .post .q{font-size:28px}
+  .side{position:sticky;top:40px}
+}
+</style></head>
+<body data-tab="social" class="feed">
+<header class="navbar only-mobile"><span class="brand" style="opacity:0"></span><span class="title">친구의 문장</span>
+  <a class="ib" href="friends.html" aria-label="친구"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6"/><path d="M22 11h-6"/></svg></a></header>
+<svg width="0" height="0" style="position:absolute"><defs>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></symbol>
+  <symbol id="i-cmt" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></symbol>
+</defs></svg>
+
+<!-- 모바일: 한 화면씩 끊지 않는 피드. 글마다 맨 위에 가볍게 멈춘다(proximity) -->
+<main class="page only-mobile fpage">
+  <div class="top-sentinel"></div>
+  <h1 class="large-title">소셜</h1>
+  <div class="seg"><a class="on" href="social.html">친구의 문장</a><a href="talk.html">토론</a></div>
+
+  <div class="reading" aria-label="친구들이 읽는 책">
+    <a href="friend.html"><img src="img/6896606.jpg" alt=""><b>윤서</b><span>42쪽</span></a>
+    <a href="friend.html"><img src="img/1289155.jpg" alt=""><b>도현</b><span>118쪽</span></a>
+    <a href="friend.html"><img src="img/1239611.jpg" alt=""><b>하린</b><span>다 읽음</span></a>
+    <a href="friend.html"><img src="img/545848.jpg" alt=""><b>지우</b><span>오늘</span></a>
+    <a href="friend.html"><img src="img/5249396.jpg" alt=""><b>민재</b><span>96쪽</span></a>
+  </div>
+
+  <div class="req sheet"><span><b>지우</b>가 친구 신청을 보냈어요</span><span style="display:flex;gap:6px"><a class="btn line sm press" href="friends.html">친구 5</a><span class="btn ink sm press" data-toast="이제 지우와 친구예요">수락</span></span></div>
+
+  <article class="item post">
+    <div class="card sheet">
+      <div class="who"><img src="img/6896606.jpg" alt=""><div><b>윤서</b><div class="meta">철학이 깊을수록 삶은 단순하다 p.42</div></div><time>오늘</time><button class="pm" data-open="pmenu" aria-label="더 보기"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button></div>
+      <div class="q">질문을 바꾸면 같은 하루도 다른 얼굴을 한다.</div>
+      <div class="acts"><span class="press"><svg><use href="#i-heart"/></svg>4</span><span class="press" data-open="cmts" role="button" tabindex="0"><svg><use href="#i-cmt"/></svg>2</span><span class="ask press">토론으로 묻기</span></div>
+    </div>
+    <div class="thought sheet"><div class="l">윤서의 생각</div><div class="t">출근길이 매일 같다고 느낄 때 다시 읽고 싶은 문장.</div></div>
+    <div class="cmt"><b>도현</b>오늘 아침에 딱 필요했던 말.</div>
+  </article>
+
+  <article class="item post">
+    <div class="card sheet">
+      <div class="who"><img src="img/1289155.jpg" alt=""><div><b>도현</b><div class="meta">리만 가설 p.118</div></div><time>어제</time><button class="pm" data-open="pmenu" aria-label="더 보기"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button></div>
+      <div class="q">소수는 질서와 무질서 사이 어딘가에 있다.</div>
+      <a class="opened" href="debate.html"><span>이 문장으로 열린 토론</span>수학은 발견하는 걸까요, 만들어 내는 걸까요?</a>
+      <div class="acts"><span class="press"><svg><use href="#i-heart"/></svg>1</span><span class="press" data-open="cmts" role="button" tabindex="0"><svg><use href="#i-cmt"/></svg>0</span><a class="ask press" href="debate.html">토론 보기</a></div>
+    </div>
+    <div class="thought sheet"><div class="l">도현의 생각</div><div class="t">수학책인데 밑줄이 제일 많다.</div></div>
+  </article>
+
+  <article class="item done">
+    <div class="who"><img src="img/1239611.jpg" alt="" class="big"><div><b>하린이 다 읽었어요</b><div class="meta">왜 나는 너를 사랑하는가, 문장 12</div></div><time>어제</time><button class="pm" data-open="pmenu" aria-label="더 보기"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button></div>
+    <div class="slips">
+      <div class="mini sheet" style="--r:-1deg">사랑에 빠지는 일은 상대를 다 알기 전에 시작된다.</div>
+      <div class="mini sheet" style="--r:.8deg">오해도 이해의 한 방식이다.</div>
+    </div>
+    <div class="acts"><span class="press"><svg><use href="#i-heart"/></svg>축하 6</span><a class="ask press" href="excerpt.html">발췌집 펼치기</a></div>
+  </article>
+
+  <article class="item post note-only">
+    <div class="card sheet">
+      <div class="who"><img src="img/545848.jpg" alt=""><div><b>지우</b><div class="meta">정의란 무엇인가, 생각만 남김</div></div><time>2일 전</time><button class="pm" data-open="pmenu" aria-label="더 보기"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button></div>
+      <div class="t">공정하다는 말이 이렇게 여러 뜻일 줄 몰랐다. 다음 회의 때 누가 이 말을 쓰면 어떤 뜻인지 물어봐야지.</div>
+      <div class="acts"><span class="press"><svg><use href="#i-heart"/></svg>3</span><span class="press" data-open="cmts" role="button" tabindex="0"><svg><use href="#i-cmt"/></svg>1</span><span class="ask press">토론으로 묻기</span></div>
+    </div>
+  </article>
+
+  <article class="item post">
+    <div class="card sheet">
+      <div class="who"><img src="img/5249396.jpg" alt=""><div><b>민재</b><div class="meta">소유냐 존재냐 p.96</div></div><time>3일 전</time><button class="pm" data-open="pmenu" aria-label="더 보기"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button></div>
+      <div class="q">사랑은 가지는 것이 아니라 하는 것이다.</div>
+      <div class="acts"><span class="press"><svg><use href="#i-heart"/></svg>7</span><span class="press" data-open="cmts" role="button" tabindex="0"><svg><use href="#i-cmt"/></svg>3</span><span class="ask press">토론으로 묻기</span></div>
+    </div>
+  </article>
+
+  <div class="end"><div>지난 일주일의 친구 소식을 다 읽었어요</div><a class="btn line sm press" href="friends.html">친구 찾기</a></div>
+</main>
+
+<!-- 데스크톱: 친구의 문장 흐름 + 옆에 친구들, 열린 토론 -->
+<main class="page only-desk"><div class="wrap">
+  <div style="display:flex;align-items:center;gap:16px"><h1 class="large-title">소셜</h1>
+    <div class="seg" style="margin:0 auto 0 12px;width:260px"><a class="on" href="social.html">친구의 문장</a><a href="talk.html">토론</a></div>
+    <span class="btn line sm">친구 찾기</span></div>
+  <div class="feed-wrap" style="margin-top:28px">
+    <div>
+      <div class="post">
+        <div class="card sheet" style="transform:rotate(-.4deg)">
+          <div class="who"><img src="img/6896606.jpg" alt=""><div><b>윤서</b><div class="meta">철학이 깊을수록 삶은 단순하다 · p.42 · 오늘</div></div></div>
+          <div class="q">질문을 바꾸면 같은 하루도 다른 얼굴을 한다.</div>
+          <div class="acts"><span><svg><use href="#i-heart"/></svg>4</span><span data-open="cmts" role="button" tabindex="0" style="cursor:pointer"><svg><use href="#i-cmt"/></svg>2</span><span class="ask">토론으로 묻기</span></div>
+        </div>
+        <div class="thought sheet" style="margin-right:120px"><div class="l">윤서의 생각</div><div class="t">출근길이 매일 같다고 느낄 때 다시 읽고 싶은 문장.</div></div>
+      </div>
+      <div class="post">
+        <div class="card sheet" style="transform:rotate(.4deg)">
+          <div class="who"><img src="img/1289155.jpg" alt=""><div><b>도현</b><div class="meta">리만 가설 · p.118 · 어제</div></div></div>
+          <div class="q">소수는 질서와 무질서 사이 어딘가에 있다.</div>
+          <div class="acts"><span><svg><use href="#i-heart"/></svg>1</span><span data-open="cmts" role="button" tabindex="0" style="cursor:pointer"><svg><use href="#i-cmt"/></svg>0</span><span class="ask">토론 보기</span></div>
+        </div>
+        <div class="thought sheet" style="margin-right:160px"><div class="l">도현의 생각</div><div class="t">수학책인데 밑줄이 제일 많다.</div></div>
+      </div>
+      <div class="post">
+        <div class="done-card sheet" style="display:grid;grid-template-columns:90px 1fr;gap:20px">
+          <img src="img/1239611.jpg" alt="" style="width:90px;border-radius:2px;box-shadow:0 14px 22px -12px rgb(0 0 0/.5)">
+          <div><div style="font:600 17px var(--sans)">하린이 『왜 나는 너를 사랑하는가』를 다 읽었어요</div>
+            <div class="mini" style="padding:10px 0 0">사랑에 빠지는 일은 상대를 다 알기 전에 시작된다.</div>
+            <div class="acts"><span><svg><use href="#i-heart"/></svg>축하 6</span><a class="ask" href="excerpt.html">발췌집 12장 펼치기</a></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="side">
+      <div class="label" style="margin-bottom:6px">친구들이 읽는 책</div>
+      <div class="friend"><img src="img/6896606.jpg" alt=""><b>윤서</b><span class="go">서재</span><span class="meta">철학이 깊을수록 삶은 단순하다</span></div>
+      <div class="friend"><img src="img/1289155.jpg" alt=""><b>도현</b><span class="go">서재</span><span class="meta">리만 가설 · 118쪽</span></div>
+      <div class="friend"><img src="img/1239611.jpg" alt=""><b>하린</b><span class="go">서재</span><span class="meta">왜 나는 너를 사랑하는가 · 다 읽음</span></div>
+      <a class="sheet" href="debate.html" style="display:block;margin-top:26px;padding:16px 18px;border-radius:3px">
+        <div style="font:600 14px var(--sans);color:var(--accent)">열린 토론 3</div>
+        <div style="font:600 16px/1.45 var(--sans);margin-top:6px">가까워질수록 상대를 덜 궁금해하게 되는 걸까요?</div>
+        <div class="meta" style="font-size:14px;margin-top:4px">윤서 · 답 8 · 생각이 바뀐 사람 2</div>
+      </a>
+      <div class="sheet" style="margin-top:16px;padding:16px 18px;border-radius:3px">
+        <div style="font:600 16px var(--sans)">지우가 친구 신청을 보냈어요</div>
+        <div style="display:flex;gap:8px;margin-top:12px"><span class="btn ink sm">수락</span><span class="btn line sm">나중에</span></div>
+      </div>
+    </div>
+  </div>
+</div></main>
+
+<dialog class="bsheet" id="cmts" aria-labelledby="cmts-t"><div class="grab"></div><div class="bd">
+  <div class="hd"><b id="cmts-t">댓글 2</b><button class="x" data-close>닫기</button></div>
+  <p class="meta" style="font:400 16px/1.6 var(--serif)">질문을 바꾸면 같은 하루도 다른 얼굴을 한다. — 윤서</p>
+  <div class="cm2"><b>도현</b><span>오늘 아침에 딱 필요했던 말.</span><div class="ca"><button>답글</button><time>2시간 전</time></div>
+    <div class="cm2 rp"><b>윤서</b><span>출근길에 다시 읽어 봐.</span><div class="ca"><time>1시간 전</time></div></div></div>
+  <div class="cm2"><b>나</b><span>질문을 바꾸는 게 제일 어렵더라.</span><div class="ca"><button>답글</button><button>지우기</button><time>방금</time></div></div>
+  <form class="cin2" onsubmit="return false"><input placeholder="댓글 남기기" aria-label="댓글"><button class="btn ink sm press">남기기</button></form>
+</div></dialog>
+<dialog class="bsheet menu" id="pmenu" aria-label="글 메뉴"><div class="grab"></div><div class="bd">
+  <a class="lrow" href="friend.html">윤서의 서재 보기</a>
+  <a class="lrow" href="book.html">이 책 정보</a>
+  <a class="lrow" href="entry.html">기록 자세히</a>
+  <a class="lrow" href="debate.html">이 문장으로 토론 열기 <i class="tag-new">제안</i></a>
+</div></dialog>
+<style>
+.cm2{padding:12px 0;border-top:1px solid var(--rule)}.cm2 b{font:600 15px var(--sans)}.cm2 span{display:block;font:400 17px/1.55 var(--serif);margin-top:2px}
+.cm2 .ca{display:flex;gap:12px;margin-top:4px;font:500 13px var(--sans);color:var(--sub)}.cm2 .ca button{font:600 13px var(--sans);color:var(--sub);min-height:32px}.cm2 .ca time{margin-left:auto;align-self:center}
+.cm2.rp{margin:8px 0 0 18px;padding:8px 0 0 12px;border-top:0;box-shadow:inset 2px 0 0 var(--rule)}
+.cin2{display:flex;gap:8px;align-items:center;padding-top:12px;border-top:1px solid var(--rule)}
+.cin2 input{flex:1;min-width:0;height:44px;border:0;outline:0;background:transparent;font:400 17px var(--serif);color:var(--ink)}
+</style>
+<script src="shell.js"></script>
+</body></html>

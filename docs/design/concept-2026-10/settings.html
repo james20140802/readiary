@@ -1,0 +1,162 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>설정 · Readiary 시안</title><link rel="stylesheet" href="app.css">
+<style>
+.me-hd{display:flex;align-items:center;gap:16px;margin-top:20px}
+.me-hd .av{width:72px;height:72px}
+.me-hd b{display:block;font:700 20px var(--sans)}
+.tagc{display:inline-flex;align-items:center;gap:6px;font:500 15px var(--mono);color:var(--sub);min-height:40px}
+.tagc svg{width:16px;height:16px}
+.feat{display:block;padding:16px 18px;border-radius:3px;margin-top:10px}
+.feat .q{font:600 19px/1.55 var(--serif)} .feat .m{font:500 14px var(--sans);color:var(--sub);margin-top:6px}
+.push-on{padding:18px 20px;border-radius:3px;margin-top:10px}
+.danger-note{font:500 14px/1.6 var(--sans);color:var(--sub);margin-top:8px}
+.toc{display:none}
+@media (min-width:1024px){
+  .plain .wrap{max-width:1100px}
+  .cols{display:grid;grid-template-columns:200px minmax(0,640px);gap:64px;align-items:start}
+  .toc{display:grid;gap:2px;position:sticky;top:44px}
+  .toc a{height:38px;display:flex;align-items:center;font:500 15px var(--sans);color:var(--sub)}
+  .toc a:hover{color:var(--ink)}
+}
+.q-row{display:block;padding:14px 0;border-top:1px solid var(--rule);font:400 17px/1.55 var(--serif);width:100%;text-align:left}
+.q-row small{display:block;font:500 13px var(--sans);color:var(--sub);margin-top:4px}
+.q-row[aria-pressed=true]{color:var(--accent)}
+.bm{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:12px}
+.bm button{text-align:left;font:500 13px var(--sans);color:var(--sub)}
+.bm img,.bm .ph{width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:2px;box-shadow:0 10px 18px -10px rgb(0 0 0/.5);margin-bottom:6px;display:block}
+.bm button[aria-pressed=true] img{outline:2px solid var(--accent);outline-offset:3px}
+.code{display:flex;gap:8px;margin-top:14px}
+.code input{width:44px;height:52px;text-align:center;font:600 22px var(--mono);border:0;border-bottom:1.5px solid var(--rule);background:transparent;color:var(--ink);outline:0}
+.code input:focus{border-color:var(--accent)}
+</style></head>
+<body data-tab="me" class="plain">
+<header class="navbar only-mobile"><a class="back" href="me.html"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>나</a><span class="title">설정</span></header>
+<main class="page"><div class="wrap"><div class="top-sentinel"></div>
+<h1 class="large-title">설정</h1>
+<div class="cols">
+  <nav class="toc" aria-label="설정 차례"><a href="#profile">프로필</a><a href="#cover">내 책의 표지</a><a href="#friends">친구</a><a href="#push">알림</a><a href="#device">이 기기</a><a href="#account">계정</a><a href="#data">내 기록</a><a href="#about">안내</a></nav>
+  <div>
+  <section class="sec" id="profile" style="margin-top:8px">
+    <div class="me-hd"><img class="av" src="img/5249396.jpg" alt="프로필 사진"><div><b>테스트용계정</b>
+      <button class="tagc" data-toast="닉네임#태그를 복사했어요">readiary#0417 <svg viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div></div>
+    <div style="display:flex;gap:8px;margin-top:10px"><button class="btn line sm press">사진 바꾸기</button><button class="btn line sm press">사진 지우기</button></div>
+    <label class="field"><span>이름</span><input value="테스트용계정"></label>
+    <label class="field"><span>닉네임</span><input value="readiary" autocapitalize="off"><div class="hint">영문, 숫자, _만 쓸 수 있어요. 친구는 닉네임#태그로 나를 찾아요.</div></label>
+    <label class="longf"><span>한 줄 소개 · 표지 띠지에 들어가요</span><textarea rows="2">출퇴근길에 조금씩 읽어요. 철학책을 좋아해요.</textarea></label>
+    <button class="btn ink press" style="margin-top:18px" data-toast="프로필을 고쳤어요">고친 내용 저장</button>
+  </section>
+
+  <section class="sec" id="cover">
+    <div class="h2" style="font-size:22px">내 책의 표지</div>
+    <p class="meta" style="margin-top:4px">‘나’ 화면 첫 장과 친구가 보는 표지에 들어가요.</p>
+    <div class="label" style="margin-top:18px">표지 문장</div>
+    <button class="feat sheet" data-open="pickq" style="width:100%;text-align:left"><div class="q">생각이 깊어진다는 것은 무엇을 내려놓을지 알게 되는 일이다</div><div class="m">철학이 깊을수록 삶은 단순하다 · 바꾸기</div></button>
+    <div class="label" style="margin-top:18px">책갈피 · 다 읽은 책 중 하나</div>
+    <button class="lrow" data-open="pickbm" style="border-bottom:1px solid var(--rule)">왜 나는 너를 사랑하는가<span class="v">바꾸기</span><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
+  </section>
+
+  <section class="sec" id="friends">
+    <div class="h2" style="font-size:22px">친구</div>
+    <a class="lrow" href="friends.html" style="margin-top:12px">친구 관리<span class="v">친구 5 · 받은 요청 1</span><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></a>
+    <button class="lrow" data-toast="초대 링크를 복사했어요">초대 링크 보내기<span class="v">readiary.net/invite/…</span><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
+  </section>
+
+  <section class="sec" id="push">
+    <div class="h2" style="font-size:22px">알림</div>
+    <div class="push-on sheet"><div style="font:600 16px var(--sans)">이 기기 알림이 꺼져 있어요</div>
+      <p class="meta" style="margin-top:4px;line-height:1.5">아이폰은 Safari에서 ‘홈 화면에 추가’로 설치한 뒤에 알림을 받을 수 있어요.</p>
+      <button class="btn ink sm press" style="margin-top:12px" data-toast="이 기기 알림을 켰어요">동의하고 이 기기 알림 켜기</button></div>
+    <div style="margin-top:14px">
+      <div class="lrow"><div>기록 리마인드<small>읽는 책에 기록을 3일 쉬었을 때 · 주 1회 이하</small></div><button class="switch" role="switch" aria-checked="true" aria-label="기록 리마인드"></button></div>
+      <div class="lrow"><div>지난 문장 다시 보기<small>오래전 남긴 문장과 다시 만나기 · 격주 이하</small></div><button class="switch" role="switch" aria-checked="true" aria-label="지난 문장 다시 보기"></button></div>
+      <div class="lrow"><div>주간 회고<small>이번 주에 남긴 기록 돌아보기 · 일요일</small></div><button class="switch" role="switch" aria-checked="true" aria-label="주간 회고"></button></div>
+      <div class="lrow"><div>완독 후 감상<small>완독하고 7일 뒤, 감상이 없다면 · 책마다 한 번</small></div><button class="switch" role="switch" aria-checked="false" aria-label="완독 후 감상"></button></div>
+      <div class="lrow"><div>친구의 새 기록<small>친구들의 기록을 한 번에 모아서 · 수요일</small></div><button class="switch" role="switch" aria-checked="false" aria-label="친구의 새 기록"></button></div>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:16px"><button class="btn line sm press" data-toast="이 기기로 시험 알림을 보냈어요">이 기기로 시험해 보기</button><button class="btn line sm press">이 기기만 끄기</button><button class="btn line sm press">모든 기기 알림 끄기</button></div>
+  </section>
+
+  <section class="sec" id="device">
+    <div class="h2" style="font-size:22px">이 기기 <i class="tag-new">제안</i></div>
+    <button class="lrow" data-open="install" style="margin-top:12px;border-bottom:1px solid var(--rule)"><div>홈 화면에 Readiary 두기<small>앱처럼 바로 열리고, 아이폰에서도 알림을 받을 수 있어요</small></div><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
+  </section>
+
+  <section class="sec" id="account">
+    <div class="h2" style="font-size:22px">계정</div>
+    <div class="lrow" style="margin-top:12px">이메일<span class="v">read•••@example.com</span></div>
+    <button class="lrow" data-open="pw">비밀번호 바꾸기<svg viewBox="0 0 24 24" style="margin-left:auto"><path d="m9 18 6-6-6-6"/></svg></button>
+    <a class="lrow" href="auth.html">로그아웃</a>
+  </section>
+
+  <section class="sec" id="data">
+    <div class="h2" style="font-size:22px">내 기록 <i class="tag-new">제안</i></div>
+    <button class="lrow" data-open="export" style="margin-top:12px"><div>모든 기록 내려받기<small>문장·생각·책 목록을 파일 하나로 받아요</small></div><svg viewBox="0 0 24 24" style="margin-left:auto"><path d="m9 18 6-6-6-6"/></svg></button>
+    <button class="lrow danger" data-open="leave">계정 지우기</button>
+  </section>
+
+  <section class="sec" id="about">
+    <div class="h2" style="font-size:22px">안내</div>
+    <a class="lrow" href="#" style="margin-top:12px">이용 약관<svg viewBox="0 0 24 24" style="margin-left:auto"><path d="m9 18 6-6-6-6"/></svg></a>
+    <a class="lrow" href="#">개인정보처리방침<svg viewBox="0 0 24 24" style="margin-left:auto"><path d="m9 18 6-6-6-6"/></svg></a>
+    <a class="lrow" href="#">문의하기<svg viewBox="0 0 24 24" style="margin-left:auto"><path d="m9 18 6-6-6-6"/></svg></a>
+  </section>
+  </div>
+</div>
+</div></main>
+
+<dialog class="bsheet" id="pickq" aria-labelledby="pickq-t"><div class="grab"></div><div class="bd">
+  <div class="hd"><b id="pickq-t">표지 문장 고르기</b><button class="x" data-close>닫기</button></div>
+  <label class="field" style="margin-top:0"><input type="search" placeholder="내 문장에서 찾기" aria-label="내 문장에서 찾기"></label>
+  <div class="chips" style="margin:14px 0 6px"><span class="chip on">모든 책</span><span class="chip">소유냐 존재냐</span><span class="chip">에로스의 종말</span><span class="chip">리만 가설</span></div>
+  <button class="q-row" aria-pressed="true" data-close>생각이 깊어진다는 것은 무엇을 내려놓을지 알게 되는 일이다.<small>철학이 깊을수록 삶은 단순하다 · 지금 표지</small></button>
+  <button class="q-row" data-close>사랑은 가지는 것이 아니라 하는 것이다.<small>소유냐 존재냐 · p.96</small></button>
+  <button class="q-row" data-close>경계와 문턱이 사라짐과 동시에 타자에 대한 환상도 사라진다.<small>에로스의 종말 · p.42</small></button>
+  <div style="display:flex;justify-content:center;margin-top:12px"><button class="btn line sm press">더 보기</button></div>
+</div></dialog>
+
+<dialog class="bsheet" id="pickbm" aria-labelledby="pickbm-t"><div class="grab"></div><div class="bd">
+  <div class="hd"><b id="pickbm-t">책갈피를 꽂을 책</b><button class="x" data-close>닫기</button></div>
+  <p class="meta">책갈피를 누르면 그 책의 발췌집이 열려요.</p>
+  <div class="bm"><button aria-pressed="true" data-close><img src="img/1239611.jpg" alt="">왜 나는 너를 사랑하는가</button><button data-close><img src="img/545848.jpg" alt="">정의란 무엇인가</button><button data-close><div class="ph" style="background:#2F3E5C"></div>작별하지 않는다</button></div>
+</div></dialog>
+
+<dialog class="bsheet" id="pw" aria-labelledby="pw-t"><div class="grab"></div><div class="bd">
+  <div class="hd"><b id="pw-t">비밀번호 바꾸기</b><button class="x" data-close>닫기</button></div>
+  <div class="step1">
+    <label class="field" style="margin-top:0"><span>지금 비밀번호</span><input type="password" autocomplete="current-password"></label>
+    <label class="field"><span>새 비밀번호</span><input type="password" autocomplete="new-password"><div class="hint">6자 이상</div></label>
+    <label class="field"><span>새 비밀번호 한 번 더</span><input type="password" autocomplete="new-password"></label>
+    <button class="btn ink press" style="width:100%;margin-top:22px" onclick="this.closest('.bd').querySelector('.step1').hidden=true;this.closest('.bd').querySelector('.step2').hidden=false">다음</button>
+  </div>
+  <div class="step2" hidden>
+    <p class="note" style="font-size:17px">가입한 메일로 보낸 여섯 자리 숫자를 적어 주세요. 본인 확인 뒤에 바뀌어요.</p>
+    <div class="code"><input maxlength="1" inputmode="numeric" aria-label="1번째 숫자"><input maxlength="1" inputmode="numeric" aria-label="2번째 숫자"><input maxlength="1" inputmode="numeric" aria-label="3번째 숫자"><input maxlength="1" inputmode="numeric" aria-label="4번째 숫자"><input maxlength="1" inputmode="numeric" aria-label="5번째 숫자"><input maxlength="1" inputmode="numeric" aria-label="6번째 숫자"></div>
+    <button class="link" style="font-size:15px;color:var(--sub)">메일 다시 보내기</button>
+    <button class="btn ink press" style="width:100%;margin-top:16px" data-close data-toast="비밀번호를 바꿨어요">비밀번호 바꾸기</button>
+  </div>
+  <p class="meta" style="margin-top:16px">Google로 가입했다면 비밀번호가 없어요.</p>
+</div></dialog>
+
+<dialog class="bsheet" id="install" aria-labelledby="install-t"><div class="grab"></div><div class="bd">
+  <div class="hd"><b id="install-t">홈 화면에 두기</b><button class="x" data-close>닫기</button></div>
+  <ol style="padding-left:20px;font:500 17px/1.9 var(--sans)"><li>Safari 아래쪽 <b>공유</b> 버튼을 눌러요</li><li><b>홈 화면에 추가</b>를 골라요</li><li>홈 화면의 Readiary로 열어요</li></ol>
+  <p class="meta" style="margin-top:12px">안드로이드와 데스크톱 Chrome에서는 이 버튼 하나로 설치돼요.</p>
+  <button class="btn ink press" style="width:100%;margin-top:18px" data-close>알겠어요</button>
+</div></dialog>
+
+<dialog class="bsheet" id="export" aria-labelledby="export-t"><div class="grab"></div><div class="bd">
+  <div class="hd"><b id="export-t">모든 기록 내려받기</b><button class="x" data-close>닫기</button></div>
+  <p class="note" style="font-size:17px">책 46권, 문장 46개, 생각 12개를 파일로 묶어요.</p>
+  <div class="seg2" role="tablist" style="margin-top:16px"><button class="on" role="tab">읽기 좋은 문서</button><button role="tab">표 (CSV)</button></div>
+  <button class="btn ink press" style="width:100%;margin-top:20px" data-close data-toast="파일을 만들고 있어요">내려받기</button>
+</div></dialog>
+
+<dialog class="bsheet" id="leave" aria-labelledby="leave-t"><div class="grab"></div><div class="bd">
+  <div class="hd"><b id="leave-t">계정을 지울까요</b><button class="x" data-close>닫기</button></div>
+  <p class="note" style="font-size:17px">남긴 문장과 생각, 책장, 친구 관계가 모두 지워지고 되돌릴 수 없어요. 공유한 링크도 닫혀요.</p>
+  <p class="danger-note">지우기 전에 기록을 내려받아 둘 수 있어요.</p>
+  <div style="display:flex;gap:8px;margin-top:20px"><button class="btn line press" style="flex:1" data-open="export">먼저 내려받기</button><button class="btn press" style="flex:1;background:#B3402E;color:#fff">계정 지우기</button></div>
+</div></dialog>
+<script src="shell.js"></script>
+</body></html>
