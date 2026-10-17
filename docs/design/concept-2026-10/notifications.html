@@ -1,0 +1,49 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>알림 · Readiary 시안</title><link rel="stylesheet" href="app.css">
+<style>
+.nt{display:grid;grid-template-columns:40px 1fr;gap:14px;padding:16px 0;border-top:1px solid var(--rule);position:relative}
+.nt.new::before{content:"";position:absolute;left:-14px;top:32px;width:7px;height:7px;border-radius:50%;background:var(--accent)}
+.nt .ic{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:rgb(127 127 127/.12);color:var(--sub)}
+.nt .ic svg{width:19px;height:19px}
+.nt img.ic{object-fit:cover;padding:0}
+.nt .t{font:500 16px/1.5 var(--sans)} .nt .t b{font-weight:700}
+.nt .q{font:400 17px/1.55 var(--serif);color:var(--sub);margin-top:6px;padding-left:12px;box-shadow:inset 2px 0 0 var(--rule)}
+.nt time{display:block;font:500 13px var(--sans);color:var(--faint);margin-top:6px}
+.nt .acts{display:flex;gap:8px;margin-top:10px}
+.hdr{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.digest{padding:20px 22px;border-radius:3px;margin-top:22px;display:block}
+.digest .kicker{display:flex;align-items:center;gap:8px}
+</style></head>
+<body data-tab="bell" class="plain">
+<header class="navbar only-mobile"><a class="back" href="home2.html"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>오늘</a><span class="title">알림</span>
+  <a class="ib" href="settings.html#push" aria-label="알림 설정"><svg viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></a></header>
+<main class="page"><div class="wrap narrow">
+  <div class="top-sentinel"></div>
+  <div class="hdr"><h1 class="large-title">알림</h1><a class="link only-desk" href="settings.html#push" style="font-size:15px;color:var(--sub)">알림 설정</a></div>
+
+  <a class="digest sheet" href="home2.html" style="transform:rotate(-.6deg)">
+    <div class="kicker">이번 주의 기록 · 일요일 저녁</div>
+    <div class="quote" style="font-size:21px;margin-top:8px">이번 주엔 세 권에서 문장 여섯 개를 남겼어요.</div>
+    <span class="link" style="font-size:15px">지난 7일 펼치기 <svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+  </a>
+
+  <section class="sec">
+    <div class="label">오늘</div>
+    <div class="nt new"><img class="ic" src="img/545848.jpg" alt=""><div><div class="t"><b>지우</b>가 친구 신청을 보냈어요</div><time>12분 전 · 지우#2041</time>
+      <div class="acts"><button class="btn ink sm press" data-toast="이제 지우와 친구예요">수락</button><button class="btn line sm press">거절</button></div></div></div>
+    <a class="nt new" href="entry.html"><img class="ic" src="img/6896606.jpg" alt=""><div><div class="t"><b>윤서</b>가 내 문장에 댓글을 남겼어요</div>
+      <div class="q">나도 이 책에서 이 문장에 멈췄어.</div><time>1시간 전 · 에로스의 종말</time></div></a>
+    <a class="nt" href="entry.html"><span class="ic"><svg viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg></span><div><div class="t"><b>도현</b> 외 2명이 내 문장을 좋아해요</div>
+      <div class="q">가진 것을 잃을까 두려운 마음이 나를 가장 많이 붙잡고 있었다.</div><time>3시간 전</time></div></a>
+  </section>
+  <section class="sec">
+    <div class="label">이번 주</div>
+    <a class="nt" href="entry.html"><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg></span><div><div class="t">1년 전 오늘 남긴 문장이 있어요</div>
+      <div class="q">생각이 깊어진다는 것은 무엇을 내려놓을지 알게 되는 일이다.</div><time>월요일</time></div></a>
+    <a class="nt" href="friend.html"><img class="ic" src="img/1289155.jpg" alt=""><div><div class="t"><b>민재</b>와 친구가 되었어요</div><time>일요일</time></div></a>
+    <a class="nt" href="talk.html"><span class="ic"><svg viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></span><div><div class="t"><b>도현</b>이 내 발제에 다르게 읽은 답을 남겼어요 <i class="tag-new">제안</i></div><time>토요일</time></div></a>
+  </section>
+</div></main>
+<script src="shell.js"></script>
+</body></html>

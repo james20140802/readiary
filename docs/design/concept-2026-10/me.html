@@ -1,0 +1,115 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>나 · Readiary 시안</title><link rel="stylesheet" href="app.css"><link rel="stylesheet" href="profile.css">
+<style>.tcover{position:relative;width:min(230px,60vw);aspect-ratio:7/10;background:#26395E;color:#F3EEE4;border-radius:2px 6px 6px 2px;padding:22px 22px 18px 28px;display:flex;flex-direction:column;
+  box-shadow:inset 8px 0 10px -6px rgb(0 0 0/.35),0 28px 44px -20px rgb(20 20 40/.55)}
+.tcover .by{font:600 12px var(--sans);letter-spacing:.06em;opacity:.8}
+.tcover .ti{font:600 22px/1.5 var(--serif);margin-top:auto;letter-spacing:-.01em}
+.tcover .ft{display:flex;justify-content:space-between;margin-top:22px;font:500 12px var(--mono);opacity:.7}
+.swatch{display:flex;gap:10px;margin-top:16px}.swatch i{width:28px;height:28px;border-radius:14px;box-shadow:inset 0 0 0 1px rgb(0 0 0/.1)}
+.swatch i.on{outline:2px solid var(--accent);outline-offset:2px}
+@media (min-width:1024px){.tcover{width:320px;padding:32px 30px 26px 40px}.tcover .ti{font-size:30px}}.made{display:flex;gap:16px;align-items:flex-end;padding:0 4px;border-bottom:6px solid #CDBFA6;height:200px;margin-top:20px}
+@media (prefers-color-scheme:dark){.made{border-bottom-color:#3C352C}}
+.made img{display:block;width:92px;border-radius:2px 4px 4px 2px;box-shadow:0 18px 28px -14px rgb(30 20 10/.55)}
+.made img:first-child{width:120px}
+.why{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+.why div{font:400 15px/1.5 var(--serif);color:var(--sub)}
+.stat{display:grid;grid-template-columns:1fr 1fr;gap:18px 12px;margin-top:18px}
+.stat b{display:block;font:700 34px var(--serif)} .stat span{font:500 15px var(--sans);color:var(--sub)}
+@media (min-width:1024px){.made{height:340px;gap:30px}.made img{width:180px}.made img:first-child{width:220px}.why div{font-size:17px}
+  .stat{grid-template-columns:repeat(4,1fr)}}.vols{position:relative;height:330px;margin-top:10px}
+.vol{position:absolute;width:210px;height:290px;border-radius:3px 8px 8px 3px;background:var(--c);box-shadow:inset 9px 0 0 -2px rgb(0 0 0/.18),0 24px 40px -22px rgb(20 15 10/.6)}
+.vol .lab{position:absolute;left:30px;right:22px;top:54px;background:#F7F3EA;color:#2A2620;border-radius:2px;padding:12px 14px 10px;
+  background-image:repeating-linear-gradient(to bottom,transparent 0 23px,#E3DACB 23px 24px);background-position:0 30px}
+.vol .lab b{display:block;font:700 19px var(--serif)} .vol .lab span{font:500 13px var(--sans);color:#6B645A}
+.v1{left:calc(50% - 75px);top:34px;--c:#3E5446;z-index:3}
+.v2{left:calc(50% - 125px);top:18px;--c:#8A4B33;z-index:2;transform:rotate(-4deg)}
+.v3{left:calc(50% - 150px);top:6px;--c:#2F3E5C;z-index:1;transform:rotate(-8deg)}
+.months{margin-top:14px}
+.mrow{display:grid;grid-template-columns:44px 1fr auto;gap:12px;padding:12px 0;border-top:1px solid var(--rule);align-items:baseline}
+.mrow .mo{font:600 15px var(--sans)} .mrow .q{font:400 17px/1.5 var(--serif)} .mrow .c{font:500 14px var(--mono);color:var(--sub)}
+@media (min-width:1024px){.vols{height:520px}.vol{width:300px;height:420px}.vol .lab{top:80px;left:40px;padding:18px 18px 14px}.vol .lab b{font-size:24px}
+  .v1{left:120px;top:60px}.v2{left:60px;top:40px}.v3{left:10px;top:24px}}
+@media (min-width:1024px){.vols{height:470px}}
+.made-fig{display:flex;gap:16px;align-items:flex-end}</style></head>
+<body data-tab="me" class="snap dsnap">
+<header class="navbar only-mobile"><span class="brand" style="opacity:0"></span><span class="title">나</span>
+  <a class="ib" href="settings.html" aria-label="설정"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></a></header>
+
+<main class="page only-mobile">
+  <section class="leaf" data-title="나의 책"><div class="in">
+    <div style="display:flex;justify-content:center;margin-top:8px"><div class="tcover"><div class="by">테스트용계정 지음</div><div class="ti">생각이 깊어진다는 것은 무엇을 내려놓을지 알게 되는 일이다</div><div class="ft"><span>2026</span><span>문장 46</span></div></div></div>
+    <div style="margin-top:22px;text-align:center"><div class="who"><div class="n">테스트용계정</div><div class="bio">출퇴근길에 조금씩 읽어요. 철학책을 좋아해요.</div></div></div>
+    <div style="display:flex;gap:8px;justify-content:center;margin-top:16px"><a class="btn line sm press" href="settings.html#profile">고치기</a><button class="btn line sm press" data-open="invite">친구 부르기</button></div>
+  </div></section>
+  <section class="leaf sheet" data-title="나를 만든 책"><div class="in">
+    <div class="h2">나를 만든 책</div><div class="made"><img src="img/5249396.jpg" alt="소유냐 존재냐"><img src="img/6896606.jpg" alt="철학이 깊을수록 삶은 단순하다"><img src="img/1239611.jpg" alt="왜 나는 너를 사랑하는가"></div>
+    <div class="why"><div>가진 것보다 머무는 법을 생각하게 했다.</div><div>질문을 고쳐 쓰는 법.</div><div>사랑을 처음부터 다시 읽었다.</div></div>
+    <div style="margin-top:28px"><div class="stat"><div><b>46</b><span>남긴 문장</span></div><div><b>12</b><span>덧붙인 생각</span></div><div><b>2</b><span>다 읽은 책</span></div><div><b>31</b><span>기록한 날</span></div></div></div>
+  </div></section>
+  <section class="leaf sheet" data-title="서가"><div class="in">
+    <div class="h2">읽은 책 46권</div><div class="cap" style="margin:6px 0 18px">친구에게 보이는 서가예요</div><div class="m-shelves"></div>
+  </div></section>
+  <section class="leaf sheet" data-title="일기장"><div class="in">
+    <div class="h2">세 번째 일기장</div><div class="cap" style="margin-top:6px">2024년부터 해마다 한 권씩</div>
+    <div style="transform:scale(.8);transform-origin:50% 0;margin-bottom:-60px"><div class="vols" aria-label="해마다 한 권씩 쌓인 독서 일기">
+  <div class="vol v3"></div><div class="vol v2"></div>
+  <div class="vol v1"><div class="lab"><b>독서 일기 2026</b><span>테스트용계정 · 셋째 권</span></div></div>
+</div>
+    </div>
+    <div class="months" style="margin-top:0"><div class="mrow"><span class="mo">10월</span><span class="q">가진 것을 잃을까 두려운 마음이 나를 가장 많이 붙잡고 있었다.</span><span class="c">9</span></div>
+<div class="mrow"><span class="mo">9월</span><span class="q">경계와 문턱이 사라짐과 동시에 타자에 대한 환상도 사라진다.</span><span class="c">17</span></div>
+</div>
+  </div></section>
+  <section class="leaf sheet free" data-title="판권과 책갈피"><div class="in">
+    <div class="h2">판권</div><div style="margin-top:14px"><div class="colo">
+  <span>지은이</span><span>테스트용계정</span>
+  <span>처음 펴낸 날</span><span>2026년 3월 8일</span>
+  <span>엮은 기록</span><span>문장 46장, 생각 12장</span>
+  <span>다 읽은 책</span><span>2권</span>
+</div></div>
+    <div class="h2" style="margin:34px 0 16px">책갈피</div><div class="mark sheet" style="transform:rotate(-.8deg)"><div class="q">생각이 깊어진다는 것은 무엇을 내려놓을지 알게 되는 일이다.</div><div class="s">철학이 깊을수록 삶은 단순하다</div></div>
+<div class="mark sheet" style="transform:rotate(.6deg)"><div class="q">사랑은 가지는 것이 아니라 하는 것이다.</div><div class="s">소유냐 존재냐 · p.96</div></div>
+<div class="mark sheet" style="transform:rotate(-.4deg)"><div class="q">경계와 문턱이 사라짐과 동시에 타자에 대한 환상도 사라진다.</div><div class="s">에로스의 종말 · p.42</div></div>
+  </div></section>
+</main>
+<nav class="dseg"><a class="on" href="#cover">표지</a><a href="#made">나를 만든 책</a><a href="#shelf">서가</a><a href="#diary">일기장</a></nav>
+<main class="page only-desk">
+  <section class="dleaf two" id="cover">
+    <div><div class="tcover" style="width:340px"><div class="by">테스트용계정 지음</div><div class="ti">생각이 깊어진다는 것은 무엇을 내려놓을지 알게 되는 일이다</div><div class="ft"><span>2026</span><span>문장 46</span></div></div></div>
+    <div style="padding-top:30px"><div class="who"><div class="n">테스트용계정</div><div class="bio">출퇴근길에 조금씩 읽어요. 철학책을 좋아해요.</div></div><div style="margin-top:34px"><div class="colo">
+  <span>지은이</span><span>테스트용계정</span>
+  <span>처음 펴낸 날</span><span>2026년 3월 8일</span>
+  <span>엮은 기록</span><span>문장 46장, 생각 12장</span>
+  <span>다 읽은 책</span><span>2권</span>
+</div></div>
+      <div style="display:flex;gap:10px;margin-top:26px"><a class="btn line press" href="settings.html#profile">고치기</a><button class="btn line press" data-open="invite">친구 부르기</button><a class="btn line press" href="settings.html">설정</a></div>
+      <div class="label" style="margin:34px 0 12px">책갈피</div><div class="mark sheet" style="transform:rotate(-.8deg)"><div class="q">생각이 깊어진다는 것은 무엇을 내려놓을지 알게 되는 일이다.</div><div class="s">철학이 깊을수록 삶은 단순하다</div></div>
+</div>
+  </section>
+  <section class="dleaf" id="made"><div class="h2" style="font-size:30px">나를 만든 책</div>
+    <div style="margin-top:10px;max-width:960px"><div><div class="made"><img src="img/5249396.jpg" alt="소유냐 존재냐"><img src="img/6896606.jpg" alt="철학이 깊을수록 삶은 단순하다"><img src="img/1239611.jpg" alt="왜 나는 너를 사랑하는가"></div>
+    <div class="why"><div>가진 것보다 머무는 법을 생각하게 했다.</div><div>질문을 고쳐 쓰는 법.</div><div>사랑을 처음부터 다시 읽었다.</div></div></div><div style="padding-top:40px"><div class="stat" style="grid-template-columns:repeat(4,1fr)"><div><b>46</b><span>남긴 문장</span></div><div><b>12</b><span>덧붙인 생각</span></div><div><b>2</b><span>다 읽은 책</span></div><div><b>31</b><span>기록한 날</span></div></div></div></div></section>
+  <section class="dleaf" id="shelf"><div class="h2" style="font-size:30px;margin-bottom:22px">읽은 책 46권</div><div class="d-shelves"></div></section>
+  <section class="dleaf two" id="diary"><div><div class="vols" aria-label="해마다 한 권씩 쌓인 독서 일기">
+  <div class="vol v3"></div><div class="vol v2"></div>
+  <div class="vol v1"><div class="lab"><b>독서 일기 2026</b><span>테스트용계정 · 셋째 권</span></div></div>
+</div>
+    </div>
+    <div style="padding-top:64px"><div class="h2" style="font-size:30px">2026년의 차례</div><div class="cap" style="margin-top:6px">달마다 가장 오래 머문 문장</div><div class="months"><div class="mrow"><span class="mo">10월</span><span class="q">가진 것을 잃을까 두려운 마음이 나를 가장 많이 붙잡고 있었다.</span><span class="c">9</span></div>
+<div class="mrow"><span class="mo">9월</span><span class="q">경계와 문턱이 사라짐과 동시에 타자에 대한 환상도 사라진다.</span><span class="c">17</span></div>
+<div class="mrow"><span class="mo">8월</span><span class="q">쉬어 간 달</span><span class="c">0</span></div>
+<div class="mrow"><span class="mo">4월</span><span class="q">생각이 깊어진다는 것은 무엇을 내려놓을지 알게 되는 일이다.</span><span class="c">12</span></div>
+<div class="mrow"><span class="mo">3월</span><span class="q">첫 기록. 정의란 무엇인가 1쪽.</span><span class="c">8</span></div></div>
+      <div class="label" style="margin:26px 0 4px">지난 권</div>
+      <div class="mrow"><span class="mo">2025</span><span class="q">둘째 권 · 문장 132</span><span class="c">펼치기</span></div>
+      <div class="mrow"><span class="mo">2024</span><span class="q">첫째 권 · 문장 58</span><span class="c">펼치기</span></div></div></section>
+</main>
+<dialog class="bsheet" id="invite" aria-labelledby="inv-t"><div class="grab"></div><div class="bd">
+  <div class="hd"><b id="inv-t">함께 읽을 사람 부르기</b><button class="x" data-close>닫기</button></div>
+  <p class="note" style="font-size:17px">링크를 받은 사람이 로그인하면 바로 나에게 친구 신청을 보낼 수 있어요.</p>
+  <button class="lrow" data-toast="닉네임#태그를 복사했어요" style="margin-top:14px">내 닉네임#태그<span class="v" style="font-family:var(--mono)">readiary#0417</span></button>
+  <div style="display:flex;gap:8px;margin-top:18px"><button class="btn line press" style="flex:1" data-toast="링크를 복사했어요">링크 복사</button><button class="btn ink press" style="flex:1" data-toast="공유 창을 열어요 (시안)">초대 링크 보내기</button></div>
+</div></dialog>
+<script src="shell.js"></script><script src="shelf.js"></script><script>fillShelves('.m-shelves',10,3);fillShelves('.d-shelves',16,3,{scale:1.25});</script>
+</body></html>

@@ -1,0 +1,222 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>문장 토론 (밑줄에 붙은 답) · Readiary 시안</title><link rel="stylesheet" href="app.css?v=3"><link rel="stylesheet" href="debate.css">
+<style>
+@media (min-width:1024px){
+  .deb{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:56px;align-items:start}
+  .deb .l{position:sticky;top:40px}
+  .prompt .s{font-size:32px}
+  .filters{display:flex;gap:8px;margin-bottom:16px}
+}
+
+/* ── 밑줄에 붙은 답: 답 간지(네모난 트레이싱지)가 그 밑줄 바로 아래에 걸쳐 놓인다 ── */
+.prompt{position:relative}
+.prompt .s{line-height:52px}
+@media (max-width:1023px){.prompt .s{line-height:50px;margin-top:8px}}
+.pacts{display:flex;align-items:center;gap:12px;margin-top:18px;flex-wrap:wrap}
+.pacts .hint{font:500 14px var(--sans);color:var(--sub)}
+.cnt{position:absolute;z-index:2;min-width:22px;height:20px;padding:0 6px;border-radius:3px 3px 3px 3px;display:grid;place-items:center;
+  font:700 12px var(--sans);color:var(--accent);background:rgb(var(--sheet)/.55);box-shadow:inset 0 0 0 1px rgb(45 95 184/.35),0 4px 8px -4px rgb(30 20 10/.35);
+  transform:rotate(-4deg);transition:opacity 160ms ease;pointer-events:auto;cursor:pointer}
+.prompt.open .cnt{opacity:0;pointer-events:none}
+.aslip{position:absolute;z-index:5;width:min(88%,560px);padding:14px 18px 16px;border-radius:2px;
+  /* 네모난 트레이싱지 한 장: 위쪽 가장자리가 그 밑줄에 걸치고, 밑줄이 있는 쪽으로 비켜 놓인다. 덮인 글줄은 하얗게 바래 어렴풋이 남는다 */
+  background-color:rgb(var(--sheet)/.9);background-image:var(--grain),var(--vellum-light);
+  -webkit-backdrop-filter:blur(2.5px) saturate(.8);backdrop-filter:blur(2.5px) saturate(.8);
+  box-shadow:inset 0 0 0 1px rgb(255 255 255/.6),0 1px 1px rgb(60 45 25/.05),0 18px 34px -22px rgb(60 45 25/.45);
+  transform:rotate(var(--r,0deg));transform-origin:var(--tx,50%) 0;transition:opacity 220ms ease,transform 220ms var(--ease-out);overflow:auto;overscroll-behavior:contain}
+@starting-style{.aslip{opacity:0;transform:translateY(-8px) rotate(var(--r,0deg))}}
+.aslip.out{opacity:0;transform:translateY(-4px) rotate(var(--r,0deg));transition-duration:150ms}
+.aslip .hd{display:flex;align-items:center;gap:8px;min-height:40px}
+.aslip .hd b{font:600 15px var(--sans)} .aslip .hd b q{quotes:none;font-family:var(--serif);color:var(--accent)}
+.aslip .x{margin-left:auto;font:600 15px var(--sans);color:var(--accent);min-height:40px}
+.aslip .a{padding:12px 0;border-top:1px solid rgb(127 127 127/.18)}
+.aslip .a .t{font:400 18px/1.55 var(--serif);margin-top:6px}
+.aslip .a.new{transition:opacity 260ms ease,transform 300ms var(--ease-out)}
+@starting-style{.aslip .a.new{opacity:0;transform:translateY(-8px)}}
+.aslip .add{margin-top:10px}
+.aslip .mine{margin-top:12px}
+.aslip .mine textarea{height:80px}
+.aslip .row{display:flex;gap:8px;margin-top:8px}.aslip .row .send{margin-left:auto}
+@media (prefers-color-scheme:dark){
+  .aslip{background-color:rgb(var(--sheet)/.88);box-shadow:inset 0 .5px 0 rgb(255 255 255/.12),inset 0 0 0 .5px rgb(255 255 255/.05),0 22px 40px -18px rgb(0 0 0/.75)}
+  .cnt{box-shadow:inset 0 0 0 1px rgb(143 176 238/.4)}
+}
+@media (prefers-reduced-transparency:reduce){.aslip{background:rgb(var(--sheet));-webkit-backdrop-filter:none;backdrop-filter:none}}
+@media (prefers-reduced-motion:reduce){.aslip,.aslip .a.new{transition:opacity 160ms ease}@starting-style{.aslip{transform:none}.aslip .a.new{transform:none}}}
+
+/* 같은 밑줄에 붙은 답 묶음 */
+.aslip .xhd{display:flex;align-items:center;justify-content:space-between;margin-top:4px}
+.aslip .xhd .pos{font:500 13px var(--mono);color:var(--sub)}
+.aslip .xhd .flip{font-size:14px;color:var(--accent);min-height:36px}
+.apile{margin-top:6px;--w:calc(100% - 40px)}
+.apile .a.lslip{border-top:0;padding:14px 16px 14px;min-height:150px}
+</style></head>
+<body data-tab="social" class="snap">
+<header class="navbar only-mobile">
+  <a class="back" href="talk.html"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>토론</a><span class="title">발제</span>
+  <a class="ib" href="#" aria-label="더 보기"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></a>
+</header>
+<svg width="0" height="0" style="position:absolute"><defs>
+  <symbol id="s-agree" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="s-diff" viewBox="0 0 24 24"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></symbol>
+  <symbol id="s-q" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></symbol>
+  <symbol id="s-move" viewBox="0 0 24 24"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></symbol>
+</defs></svg>
+
+<!-- 모바일: 발제 → 답 → 답 → 내 답 남기기 -->
+<main class="page only-mobile">
+  <div class="stack">
+  <section class="leaf" data-title="발제"><div class="in prompt">
+    <div class="by"><img src="img/6896606.jpg" alt=""><div>윤서 <span>· 이틀 전 · 에로스의 종말</span></div></div>
+    <p class="s"><span class="frag">경계와 문턱</span>이 사라짐과 <span class="frag">동시에</span> <span class="frag">타자에 대한 환상</span>도 사라진다.</p>
+    <div class="src">한병철 · p.42</div>
+    <p class="ask">가까워질수록 상대를 덜 궁금해하게 되는 걸까요?</p>
+    <div class="tally"><span><b>4</b> 공감</span><span><b>3</b> 다르게 읽음</span><span><b>1</b> 질문</span><span>생각이 바뀐 사람 <b>2</b></span></div>
+    <div class="pacts"><button class="btn line sm press whole">문장 전체에 답하기</button><span class="hint">밑줄을 누르면 그 부분에 붙은 답이 열려요</span></div>
+  </div></section>
+
+  <section class="leaf sheet" data-title="답 1"><div class="in">
+    <div class="ans sheet">
+      <div class="hd"><b>도현</b><span class="stance diff"><svg><use href="#s-diff"/></svg>다르게 읽음</span></div>
+      <div class="on"><q>타자에 대한 환상</q>에 대해</div>
+      <div class="t">환상이 사라져야 진짜 그 사람이 보인다고 읽었어요. 사라지는 건 상상 속의 상대뿐이에요.</div>
+      <div class="ev">사랑은 가지는 것이 아니라 하는 것이다.<small>도현의 기록 · 소유냐 존재냐 p.96</small></div>
+      <div class="ft"><span class="moved on"><svg><use href="#s-move"/></svg>생각이 바뀌었어요 3</span><span class="moved">답글</span></div>
+      <div class="reply sheet"><b>윤서</b>그렇게 보면 환상은 잃는 게 아니라 비우는 거네요.</div>
+    </div>
+  </div></section>
+
+  <section class="leaf sheet free" data-title="답 2"><div class="in">
+    <div class="ans sheet">
+      <div class="hd"><b>하린</b><span class="stance"><svg><use href="#s-agree"/></svg>공감</span></div>
+      <div class="on"><q>경계와 문턱</q>에 대해</div>
+      <div class="t">설렘은 거리에서 나온다고 생각해요. 거리를 지키는 것도 사랑하는 일이에요.</div>
+      <div class="ft"><span class="moved"><svg><use href="#s-move"/></svg>생각이 바뀌었어요 1</span><span class="moved">답글</span></div>
+    </div>
+    <div class="ans sheet">
+      <div class="hd"><b>지우</b><span class="stance"><svg><use href="#s-q"/></svg>질문</span></div>
+      <div class="on"><q>동시에</q>라는 말에 대해</div>
+      <div class="t">경계가 사라지는 것과 환상이 사라지는 게 정말 동시에 일어날까요? 순서가 있을 것 같아요.</div>
+      <div class="ft"><span class="moved">답글 1</span></div>
+    </div>
+  </div></section>
+
+  </div>
+</main>
+
+<!-- 데스크톱: 왼쪽 발제와 내 답, 오른쪽 답들 -->
+<main class="page only-desk"><div class="wrap deb">
+  <div class="l prompt">
+    <div class="by"><img src="img/6896606.jpg" alt=""><div>윤서 <span>· 이틀 전 · 에로스의 종말</span></div></div>
+    <p class="s"><span class="frag">경계와 문턱</span>이 사라짐과 <span class="frag">동시에</span> <span class="frag">타자에 대한 환상</span>도 사라진다.</p>
+    <div class="src">한병철 · p.42</div>
+    <p class="ask">가까워질수록 상대를 덜 궁금해하게 되는 걸까요?</p>
+    <div class="tally"><span><b>4</b> 공감</span><span><b>3</b> 다르게 읽음</span><span><b>1</b> 질문</span><span>생각이 바뀐 사람 <b>2</b></span></div>
+    <div class="pacts"><button class="btn line sm press whole">문장 전체에 답하기</button><span class="hint">밑줄을 누르면 그 부분에 붙은 답이 열려요</span></div>
+  </div>
+  <div>
+    <div class="filters chips"><span class="chip on">생각을 바꾼 답부터</span><span class="chip">다르게 읽음</span><span class="chip">공감</span><span class="chip">질문</span></div>
+    <div class="ans sheet" style="transform:rotate(-.5deg)">
+      <div class="hd"><b>도현</b><span class="stance diff"><svg><use href="#s-diff"/></svg>다르게 읽음</span></div>
+      <div class="on"><q>타자에 대한 환상</q>에 대해</div>
+      <div class="t">환상이 사라져야 진짜 그 사람이 보인다고 읽었어요. 사라지는 건 상상 속의 상대뿐이에요.</div>
+      <div class="ev">사랑은 가지는 것이 아니라 하는 것이다.<small>도현의 기록 · 소유냐 존재냐 p.96</small></div>
+      <div class="ft"><span class="moved on"><svg><use href="#s-move"/></svg>생각이 바뀌었어요 3</span><span class="moved">답글</span></div>
+      <div class="reply sheet"><b>윤서</b>그렇게 보면 환상은 잃는 게 아니라 비우는 거네요.</div>
+    </div>
+    <div class="ans sheet" style="transform:rotate(.4deg)">
+      <div class="hd"><b>하린</b><span class="stance"><svg><use href="#s-agree"/></svg>공감</span></div>
+      <div class="on"><q>경계와 문턱</q>에 대해</div>
+      <div class="t">설렘은 거리에서 나온다고 생각해요. 거리를 지키는 것도 사랑하는 일이에요.</div>
+      <div class="ft"><span class="moved"><svg><use href="#s-move"/></svg>생각이 바뀌었어요 1</span><span class="moved">답글</span></div>
+    </div>
+    <div class="ans sheet" style="transform:rotate(-.3deg)">
+      <div class="hd"><b>지우</b><span class="stance"><svg><use href="#s-q"/></svg>질문</span></div>
+      <div class="on"><q>동시에</q>라는 말에 대해</div>
+      <div class="t">경계가 사라지는 것과 환상이 사라지는 게 정말 동시에 일어날까요? 순서가 있을 것 같아요.</div>
+      <div class="ft"><span class="moved">답글 1</span></div>
+    </div>
+  </div>
+</div></main>
+<script src="shell.js"></script><script src="pile.js?v=10"></script>
+
+<template id="aslip-t">
+  <div class="aslip" role="dialog" aria-modal="false">
+    <div class="hd"><b class="ttl"></b><button class="x" aria-label="닫기">닫기</button></div>
+    <div class="list"></div>
+    <button class="btn ink sm press add">여기에 내 답 붙이기</button>
+    <form class="composer mine" hidden onsubmit="return false">
+      <div class="seg3" role="radiogroup" aria-label="어떻게 읽었나요"><button type="button" class="press">공감</button><button type="button" class="on press">다르게 읽음</button><button type="button" class="press">질문</button></div>
+      <textarea placeholder="근거와 함께 남겨 주세요" aria-label="내 답"></textarea>
+      <div class="row"><span class="btn line sm press">내 기록 붙이기</span><button class="btn ink sm press send" type="button">남기기</button></div>
+    </form>
+  </div>
+</template>
+<script>
+// 밑줄별 답(시안 데이터)
+const ANS={
+ '경계와 문턱':[{who:'하린',st:'공감',t:'설렘은 거리에서 나온다고 생각해요. 거리를 지키는 것도 사랑하는 일이에요.',m:1}],
+ '동시에':[{who:'지우',st:'질문',t:'경계가 사라지는 것과 환상이 사라지는 게 정말 동시에 일어날까요? 순서가 있을 것 같아요.'}],
+ '타자에 대한 환상':[{who:'도현',st:'다르게 읽음',t:'환상이 사라져야 진짜 그 사람이 보인다고 읽었어요. 사라지는 건 상상 속의 상대뿐이에요.',m:3},{who:'민재',st:'공감',t:'오래 만난 사람일수록 궁금한 걸 묻지 않게 되더라고요.'},{who:'하린',st:'질문',t:'환상이 없으면 사랑을 시작할 수는 있을까요?'}],
+ '':[{who:'서진',st:'질문',t:'여기서 말하는 타자는 연인만일까요, 모든 사람일까요?'}]
+};
+const SI={'공감':'s-agree','다르게 읽음':'s-diff','질문':'s-q'};
+const aHTML=a=>`<div class="a${a.n?' new':''}"><div class="hd" style="min-height:0"><b>${a.who}</b><span class="stance${a.st==='다르게 읽음'?' diff':''}"><svg><use href="#${SI[a.st]}"/></svg>${a.st}</span></div><div class="t"></div>${a.m?`<div class="ft"><span class="moved"><svg><use href="#s-move"/></svg>생각이 바뀌었어요 ${a.m}</span></div>`:''}</div>`;
+document.querySelectorAll('.prompt').forEach(pr=>{
+  const sent=pr.querySelector('.s'), frags=[...pr.querySelectorAll('.frag')];
+  let open=null, tab=null, opener=null;
+  const rel=r=>{const b=pr.getBoundingClientRect();return {l:r.left-b.left,t:r.top-b.top,r:r.right-b.left,b:r.bottom-b.top,w:r.width}};
+  // 밑줄마다 답 수 표식: 밑줄 끝 아래에 살짝 걸친다
+  const place=()=>{pr.querySelectorAll('.cnt').forEach(c=>c.remove());
+    frags.forEach(f=>{const n=(ANS[f.textContent]||[]).length;const rs=f.getClientRects();if(!n||!rs.length)return;const r=rel(rs[rs.length-1]);
+      const c=document.createElement('span');c.className='cnt';c.textContent=n;c.setAttribute('aria-hidden','true');
+      c.style.left=(r.r-12)+'px';c.style.top=(r.b-7)+'px';c.onclick=()=>show(f);pr.append(c);});};
+  const close=(back=true)=>{if(!open)return;const o=open;open=null;o.classList.add('out');
+    setTimeout(()=>o.remove(),160);pr.classList.remove('open');
+    frags.forEach(x=>{x.classList.remove('on');x.setAttribute('aria-pressed','false')});if(back)opener?.focus();};
+  const show=f=>{
+    if(open&&open.dataset.k===(f?f.textContent:'')){close();return;}
+    close(false);
+    const k=f?f.textContent:'', list=ANS[k]||[];
+    let top,tx;
+    // 간지 위쪽 가장자리를 그 밑줄 바로 아래에 걸치고, 밑줄이 시작하는 자리로 비켜 놓는다(문단 폭 안에서)
+    const W=pr.clientWidth, sw=Math.min(Math.round(W*.88),560), sb=rel([...sent.getClientRects()].pop()||sent.getBoundingClientRect()).b;
+    let left;
+    if(f){const rs=f.getClientRects(),r=rel(rs[rs.length-1]);top=r.b+2;tx=r.l;left=Math.max(-10,Math.min(r.l-14,W-sw+6));
+      f.classList.add('on');f.setAttribute('aria-pressed','true');}
+    else{top=sb+10;tx=0;left=-10;}
+    const el=document.getElementById('aslip-t').content.firstElementChild.cloneNode(true);
+    el.dataset.k=k;el.style.top=top+'px';el.style.left=left+'px';el.style.setProperty('--tx',(tx-left)+'px');el.style.setProperty('--r',(f?(frags.indexOf(f)%2?.8:-.7):-.4)+'deg');
+    const setT=()=>{const n=(ANS[k]||[]).length;el.querySelector('.ttl').innerHTML=f?`<q></q>에 붙은 답 ${n}`:`문장 전체에 대한 답 ${n}`;if(f)el.querySelector('.ttl q').textContent=k;};setT();
+    el.setAttribute('aria-label',(k||'문장 전체')+'에 붙은 답');
+    const L=el.querySelector('.list');
+    // 답이 하나면 그대로, 여럿이면 그 밑줄 아래에 답 간지가 쌓인다(맨 위가 생각을 가장 많이 바꾼 답)
+    const render=()=>{const arr=[...(ANS[k]||[])].sort((a,b)=>(b.n?1e3:0)+(b.m||0)-((a.n?1e3:0)+(a.m||0)));L.innerHTML='';
+      if(arr.length<2){arr.forEach(a=>{L.insertAdjacentHTML('beforeend',aHTML(a));L.lastElementChild.querySelector('.t').textContent=a.t;});return;}
+      L.innerHTML='<div data-pile-box><div class="xhd"><span class="pos" aria-live="polite"></span><button class="link flip">다음 답</button></div><div class="pile apile" role="group" aria-label="이 부분에 붙은 답 묶음. 맨 위 간지를 옆으로 밀면 다음 답이 나와요"></div></div>';
+      const P=L.querySelector('.pile');[...arr].reverse().forEach(a=>{P.insertAdjacentHTML('beforeend',aHTML(a).replace('class="a','class="a lslip'));P.lastElementChild.querySelector('.t').textContent=a.t;});
+      initPile(P);};
+    render();
+    pr.append(el);open=el;pr.classList.add('open');
+    // 장 아래로 넘치지 않게
+    const leaf=pr.closest('.leaf');if(leaf){const lb=leaf.getBoundingClientRect().bottom-100;el.style.maxHeight=Math.max(220,lb-el.getBoundingClientRect().top)+'px';}
+    el.querySelector('.x').onclick=()=>close();
+    el.querySelector('.add').onclick=e=>{e.currentTarget.hidden=true;const m=el.querySelector('.mine');m.hidden=false;m.querySelector('textarea').focus();};
+    el.querySelectorAll('.seg3 button').forEach(b=>b.onclick=()=>b.parentNode.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)));
+    el.querySelector('.send').onclick=()=>{const ta=el.querySelector('textarea'),st=el.querySelector('.seg3 .on').textContent;
+      const a={who:'나',st,t:ta.value.trim()||'가까워질수록 궁금함이 줄어드는 게 아니라, 묻는 방법이 바뀌는 것 같아요.',n:1};(ANS[k]=ANS[k]||[]).push(a);
+      render();ta.value='';
+      el.querySelector('.mine').hidden=true;el.querySelector('.add').hidden=false;setT();place();};
+    el.querySelector('.x').focus({preventScroll:true});
+  };
+  frags.forEach(f=>{f.tabIndex=0;f.setAttribute('role','button');f.setAttribute('aria-pressed','false');
+    f.setAttribute('aria-label',f.textContent+', 붙은 답 '+(ANS[f.textContent]||[]).length+'개');
+    f.addEventListener('click',()=>{opener=f;show(f)});f.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();opener=f;show(f);}});});
+  pr.querySelector('.whole').addEventListener('click',e=>{opener=e.currentTarget;show(null)});
+  pr.addEventListener('keydown',e=>{if(e.key==='Escape')close();});
+  document.addEventListener('pointerdown',e=>{if(open&&!open.contains(e.target)&&!e.target.closest('.frag,.cnt,.whole'))close(false);});
+  document.fonts.ready.then(place);addEventListener('resize',()=>{close(false);place();});
+});
+</script>
+</body></html>

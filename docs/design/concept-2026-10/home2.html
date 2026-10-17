@@ -1,0 +1,263 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>오늘 · Readiary 시안</title><link rel="stylesheet" href="app.css">
+<style>
+.date{display:flex;align-items:flex-start;gap:16px}
+.date .num{font:400 112px/.86 var(--serif);letter-spacing:-.04em}
+.date .m{font:700 24px var(--sans);padding-top:8px}
+.date .d{font:500 17px var(--sans);color:var(--sub);margin-top:6px}
+.write{margin:34px 0 0 34px}
+.write textarea{width:100%;height:120px;border:0;outline:0;resize:none;background:transparent;font:400 23px/40px var(--serif);color:var(--ink);caret-color:var(--accent)}
+.write textarea::placeholder{color:var(--faint)}
+.bookpick{display:inline-flex;align-items:center;gap:6px;font:600 17px var(--sans);height:44px;border-bottom:1.5px solid var(--ink)}
+.bookpick svg{width:18px;height:18px}
+.row{display:flex;align-items:center;gap:6px;margin-top:6px}
+.pg{font:500 16px var(--sans);color:var(--sub);display:flex;align-items:center;gap:6px}
+.pg input{width:56px;height:44px;border:0;border-bottom:1px solid var(--rule);background:transparent;font:500 17px var(--mono);color:var(--ink);outline:0;text-align:center}
+.ghost{white-space:nowrap;height:44px;padding:0 8px;font:500 16px var(--sans);color:var(--sub)}
+.recall{position:absolute;left:-6px;right:-14px;bottom:calc(var(--tabbar-h) + 28px + env(safe-area-inset-bottom));padding:22px 26px 14px;transform:rotate(-1.4deg);transform-origin:0 100%}
+
+/* 쓰기 보강: 무엇을 남길지, 공개 범위, 임시 저장, 남긴 뒤 */
+.mode{display:flex;gap:18px;margin-bottom:4px}
+.mode button{height:40px;font:600 16px var(--sans);color:var(--faint);box-shadow:inset 0 -2px 0 transparent;transition:color 160ms ease,box-shadow 160ms ease}
+.mode button.on{color:var(--ink);box-shadow:inset 0 -2px 0 var(--ink)}
+.write .notef{height:80px;font-size:19px;color:var(--sub);padding-left:14px;box-shadow:inset 2px 0 0 var(--accent)}
+.row2{display:flex;align-items:center;gap:4px;margin-top:2px;font:500 14px var(--sans);color:var(--sub)}
+.row2 button{display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 8px 0 0;font:500 14px var(--sans);color:var(--sub)}
+.row2 svg{width:17px;height:17px}
+.row2 .lock[aria-pressed=true]{color:var(--ink);font-weight:650}
+.mode .pl{height:40px;display:inline-flex;align-items:center;font:600 16px var(--sans);color:var(--faint);white-space:nowrap}
+.mode .draft{white-space:nowrap;margin-left:auto;align-self:center;font:500 13px var(--sans);color:var(--faint)}
+.row2 button,.wk-hd .link,.mode button{white-space:nowrap}
+.row2 .cam{margin-left:auto;padding:0}
+.saved{padding:6px 0 0}
+.saved-acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.wk-hd{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.wk-hd .link{font-size:15px;min-height:40px;color:var(--accent)}
+.pick-b{display:grid;grid-template-columns:44px 1fr auto;gap:2px 14px;align-items:center;padding:10px 0;border-top:1px solid var(--rule);width:100%;text-align:left}
+.pick-b img{grid-row:span 2;width:44px;border-radius:2px;box-shadow:0 6px 12px -6px rgb(0 0 0/.45)}
+.pick-b b{font:600 17px var(--serif);align-self:end}.pick-b span{font:500 14px var(--sans);color:var(--sub);grid-column:2;align-self:start}
+.pick-b i{grid-row:span 2;grid-column:3;font-style:normal;color:var(--accent);font:700 15px var(--sans)}
+.letter{padding:26px 24px;border-radius:3px;background:#FBF8F1;color:#2A2620;box-shadow:0 16px 36px -18px rgb(30 20 10/.45);
+}
+.letter .h{font:700 20px var(--serif)} .letter .d{font:500 13px var(--sans);color:#6B645A;margin-top:2px}
+.letter p{font:400 16px/1.6 var(--serif);margin-top:16px;padding-top:14px;border-top:1px solid #E8E0D2}
+.letter small{display:block;font:500 12px/1.4 var(--sans);color:#8A8274;margin-bottom:4px}
+.chk{display:flex;align-items:center;gap:12px;min-height:48px;border-top:1px solid var(--rule);font:400 16px/1.45 var(--serif)}
+.chk input{width:20px;height:20px;accent-color:var(--ink);flex:none}
+@media (max-width:1023px){.write textarea:first-of-type{height:80px}}
+
+/* 지난 7일의 일기 */
+.days{margin-top:22px}
+.dayrow{display:grid;grid-template-columns:58px 1fr;gap:12px;padding:14px 0;border-top:1px solid var(--rule)}
+.dayrow .dl{font:500 14px var(--mono);color:var(--sub);line-height:1.5}
+.dayrow .dl b{display:block;font:600 15px var(--sans);color:var(--ink)}
+.dayrow .s{font:400 18px/1.55 var(--serif)}
+.dayrow .bk{font:500 14px var(--sans);color:var(--sub);margin-top:4px}
+.dayrow.rest{padding:8px 0}.dayrow.rest .s{font:500 14px var(--sans);color:var(--faint)}
+.sum{display:flex;gap:18px;margin-top:6px;font:500 15px var(--sans);color:var(--sub)}
+.sum b{font:700 22px var(--serif);color:var(--ink);margin-right:3px}
+
+.books{display:flex;gap:14px;align-items:flex-end}
+.books img{display:block;box-shadow:0 18px 30px -16px rgb(30 20 10/.5);border-radius:2px 4px 4px 2px}
+.frac{font:400 26px var(--serif);white-space:nowrap} .frac span{color:var(--faint)}
+
+/* 데스크톱: 펼친 일기장 두 쪽 */
+@media (min-width:1024px){
+  .spread{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:56px;align-items:start}
+  .spread .left .date .num{font-size:168px}
+  .spread .left .date .m{font-size:30px;padding-top:18px}
+  .spread .left .write{margin-left:0;margin-top:56px}
+  .spread .left .write textarea{height:200px;font-size:26px}
+  .stack{position:relative;padding-top:8px}
+  .stack .back{position:absolute;inset:-6px -10px auto 18px;height:200px;transform:rotate(2.6deg);border-radius:3px}
+  .stack .front{position:relative;padding:30px 32px 20px;transform:rotate(-1deg);border-radius:3px}
+  .week{margin-top:44px;padding:26px 30px 18px;border-radius:3px;transform:rotate(.5deg)}
+  .reading{margin-top:clamp(24px,5vh,72px)}
+}
+@media (min-width:1024px) and (min-height:640px){
+  html:has(body.fit){overflow:hidden}
+  .spread{height:100dvh;padding-top:clamp(24px,4vh,44px)!important;padding-bottom:24px!important}
+  .spread .left .date .num{font-size:clamp(104px,17vh,168px)}
+  .spread .left .write{margin-top:clamp(24px,5vh,56px)}
+  .spread .left .write textarea{height:clamp(84px,19vh,200px)}
+  /* 표지 줄이 왼쪽 쪽을 넘어 간지 밑으로 들어가지 않게: 쪽 폭에서 쪽수 자리를 뺀 만큼만 표지를 키운다 */
+  .spread .reading{container-type:inline-size}
+  .spread .reading img{height:min(clamp(110px,19vh,200px),max(100px,calc((100cqi - 156px) / 2.2)));width:auto}
+  .spread .reading>div:last-child{flex-wrap:wrap;row-gap:14px}
+  .right{height:100%;display:flex;flex-direction:column;min-height:0}
+  .week{flex:1;min-height:0;display:flex;flex-direction:column}
+  .week .days{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;
+    mask-image:linear-gradient(to bottom,#000 calc(100% - 28px),transparent);
+    /* 아래로 흐려지는 끝이 더 있다는 신호. 밝은 스크롤 막대는 간지 위에서 튀므로 숨긴다 */
+    scrollbar-width:none}
+  .week .days::-webkit-scrollbar{display:none}
+}
+</style></head>
+<body data-tab="today" class="snap fit">
+
+<header class="navbar only-mobile" id="nav">
+  <span class="brand">Readiary</span><span class="title" id="navtitle">오늘</span>
+  <a class="ib" href="search.html" aria-label="기록 찾기" data-icon="search"></a><a class="ib bell" href="notifications.html" aria-label="알림, 새 소식 2개" data-icon="bell"></a>
+</header>
+
+<!-- ───────── 모바일 ───────── -->
+<main class="page only-mobile">
+  <section class="leaf" data-title="오늘" aria-label="오늘 쓰기">
+    <div class="in" style="position:relative">
+      <div class="date"><div class="num">6</div><div><div class="m">10월</div><div class="d">화요일 · 이번 주 두 번째 문장</div></div></div>
+      <div class="write"><div class="mode" role="tablist" aria-label="무엇을 남길까요"><button role="tab" aria-selected="true" class="on">책의 문장</button><button role="tab" aria-selected="false">나의 생각</button><a class="pl" href="pilsa.html" aria-label="원고지에 필사">필사</a><span class="draft">임시 저장됨</span></div><div class="form">
+        <textarea placeholder="오늘 마음에 남은 문장을&#10;여기 옮겨 적어 보세요" aria-label="오늘 마음에 남은 문장"></textarea>
+          <textarea class="notef" hidden placeholder="이 문장에 대한 나의 생각" aria-label="나의 생각"></textarea>
+        <button class="bookpick" data-open="pick">소유냐 존재냐 <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
+        <div class="row"><label class="pg">쪽 <input inputmode="numeric" placeholder="184" aria-label="쪽"></label><button class="ghost addnote">생각 덧붙이기</button><button class="btn ink press save" style="margin-left:auto">남기기</button></div>
+        <div class="row2"><button class="lock" aria-pressed="false"><svg viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>친구에게 보임</span></button><button class="cam" data-toast="사진 속 문장을 글자로 옮겨요 (시안)"><svg viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>사진으로 옮기기 <i class="tag-new">제안</i></button></div>
+      </div>
+      <div class="saved" hidden>
+        <div class="kicker">남겼어요 · 소유냐 존재냐 p.184</div>
+        <div class="quote saved-q" style="margin-top:8px"></div>
+        <div class="saved-acts"><a class="btn line sm press" href="entry.html">남긴 기록 보기</a><button class="btn line sm press again-note">생각 덧붙이기</button><button class="btn line sm press" data-open="pages">읽은 쪽 남기기</button></div>
+        <button class="link again" style="margin-top:6px">하나 더 남기기</button>
+      </div>
+    </div></div>
+    <a class="recall sheet" href="entry.html">
+      <div class="kicker">20일 전 · 9월 16일</div>
+      <div class="quote" style="font-size:23px;margin-top:10px">경계와 문턱이 사라짐과 동시에 타자에 대한 환상도 사라진다.</div>
+      <div class="meta" style="margin-top:10px">에로스의 종말 · 한병철</div>
+      <span class="link" style="margin-top:4px">지금의 생각 덧붙이기 <svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+    </a>
+  </section>
+
+  <section class="leaf sheet" data-title="지난 7일" aria-label="지난 7일의 일기">
+    <div class="in">
+      <div class="wk-hd"><div class="h2">지난 7일의 일기</div><button class="link" data-open="letter">독서 편지로</button></div>
+      <div class="sum"><span><b>6</b>문장</span><span><b>2</b>생각</span><span><b>3</b>권에서</span></div>
+      <div class="days">
+        <div class="dayrow"><div class="dl"><b>오늘</b>10.6</div><div><div class="s">가진 것을 잃을까 두려운 마음이 나를 가장 많이 붙잡고 있었다.</div><div class="bk">소유냐 존재냐 · 외 1장</div></div></div>
+        <div class="dayrow"><div class="dl"><b>일</b>10.4</div><div><div class="s">질문을 바꾸면 같은 하루도 다른 얼굴을 한다.</div><div class="bk">철학이 깊을수록 삶은 단순하다 · 생각 1</div></div></div>
+        <div class="dayrow rest"><div class="dl">10.3</div><div class="s">쉬어 간 날</div></div>
+        <div class="dayrow"><div class="dl"><b>목</b>10.2</div><div><div class="s">존재의 방식은 무엇을 하느냐보다 어떻게 머무르느냐에 가깝다.</div><div class="bk">소유냐 존재냐 · 외 1장</div></div></div>
+        <div class="dayrow"><div class="dl"><b>화</b>9.30</div><div><div class="s">소수는 질서와 무질서 사이 어딘가에 있다.</div><div class="bk">리만 가설</div></div></div>
+      </div>
+    </div>
+    <div class="folio">280</div>
+  </section>
+
+  <section class="leaf sheet" data-title="읽던 책" aria-label="읽던 책">
+    <div class="in">
+      <div class="h2">읽던 책</div>
+      <a class="books" href="book.html" style="margin-top:24px">
+        <img src="img/5249396.jpg" width="150" alt="소유냐 존재냐 표지"><img src="img/6896606.jpg" width="96" alt="철학이 깊을수록 삶은 단순하다 표지"><img src="img/1289155.jpg" width="96" alt="리만 가설 표지">
+      </a>
+      <div class="frac" style="margin-top:20px">184 <span>/ 352</span></div>
+      <div class="meta" style="margin-top:6px">소유냐 존재냐 · 오늘 이어 읽는 중</div>
+      <div style="margin-top:22px;padding-top:16px;border-top:1px solid var(--rule)">
+        <div class="label">마지막으로 남긴 문장</div>
+        <div class="note" style="margin-top:6px">가진 것을 잃을까 두려운 마음이 나를 가장 많이 붙잡고 있었다.</div>
+      </div>
+      <a class="link" href="book.html" style="margin-top:10px">책 펼치기 <svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+    </div>
+    <div class="folio">281</div>
+  </section>
+</main>
+
+<!-- ───────── 데스크톱: 펼친 일기장 ───────── -->
+<main class="page only-desk"><div class="wrap spread">
+  <div class="left">
+    <div class="date"><div class="num">6</div><div><div class="m">10월</div><div class="d" style="font-size:19px">화요일 · 이번 주 두 번째 문장</div></div></div>
+    <div class="write"><div class="mode" role="tablist" aria-label="무엇을 남길까요"><button role="tab" aria-selected="true" class="on">책의 문장</button><button role="tab" aria-selected="false">나의 생각</button><a class="pl" href="pilsa.html" aria-label="원고지에 필사">필사</a><span class="draft">임시 저장됨</span></div><div class="form">
+      <textarea placeholder="오늘 마음에 남은 문장을 여기 옮겨 적어 보세요" aria-label="오늘 마음에 남은 문장"></textarea>
+        <textarea class="notef" hidden placeholder="이 문장에 대한 나의 생각" aria-label="나의 생각"></textarea>
+        <button class="bookpick" data-open="pick">소유냐 존재냐 <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
+      <div class="row"><label class="pg">쪽 <input inputmode="numeric" placeholder="184" aria-label="쪽"></label><button class="ghost addnote">생각 덧붙이기</button><button class="btn ink press save" style="margin-left:auto">남기기</button></div>
+        <div class="row2"><button class="lock" aria-pressed="false"><svg viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>친구에게 보임</span></button><button class="cam" data-toast="사진 속 문장을 글자로 옮겨요 (시안)"><svg viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>사진으로 옮기기 <i class="tag-new">제안</i></button></div>
+      </div>
+      <div class="saved" hidden>
+        <div class="kicker">남겼어요 · 소유냐 존재냐 p.184</div>
+        <div class="quote saved-q" style="margin-top:8px"></div>
+        <div class="saved-acts"><a class="btn line sm press" href="entry.html">남긴 기록 보기</a><button class="btn line sm press again-note">생각 덧붙이기</button><button class="btn line sm press" data-open="pages">읽은 쪽 남기기</button></div>
+        <button class="link again" style="margin-top:6px">하나 더 남기기</button>
+    </div></div>
+    <div class="reading">
+      <div class="label" style="margin-bottom:16px">읽던 책</div>
+      <div style="display:flex;gap:28px;align-items:flex-end">
+        <a class="books" href="book.html"><img src="img/5249396.jpg" width="132" alt="소유냐 존재냐 표지"><img src="img/6896606.jpg" width="92" alt="철학이 깊을수록 삶은 단순하다 표지"><img src="img/1289155.jpg" width="92" alt="리만 가설 표지"></a>
+        <div><div class="frac">184 <span>/ 352</span></div><div class="meta" style="margin-top:4px">소유냐 존재냐</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="right">
+    <div class="stack">
+      <div class="back sheet"></div>
+      <a class="front sheet" href="entry.html" style="display:block">
+        <div class="kicker">20일 전 · 9월 16일</div>
+        <div class="quote-lg" style="margin-top:12px">경계와 문턱이 사라짐과 동시에 타자에 대한 환상도 사라진다.</div>
+        <div class="meta" style="margin-top:12px">에로스의 종말 · 한병철</div>
+        <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--rule)"><div class="label">그때의 생각</div><div class="note" style="margin-top:4px">가까워질수록 모르는 부분이 줄어드는 게 꼭 좋은 걸까.</div></div>
+        <span class="link" style="margin-top:6px">지금의 생각 덧붙이기 <svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+      </a>
+    </div>
+    <div class="week sheet">
+      <div style="display:flex;align-items:baseline;gap:14px"><div class="h2" style="font-size:22px">지난 7일의 일기</div><button class="link" data-open="letter" style="white-space:nowrap;font-size:15px;color:var(--accent);min-height:36px">독서 편지로</button><div class="sum" style="margin:0 0 0 auto"><span><b>6</b>문장</span><span><b>2</b>생각</span><span><b>3</b>권</span></div></div>
+      <div class="days" style="margin-top:12px">
+        <div class="dayrow"><div class="dl"><b>오늘</b>10.6</div><div><div class="s">가진 것을 잃을까 두려운 마음이 나를 가장 많이 붙잡고 있었다.</div><div class="bk">소유냐 존재냐 · 외 1장</div></div></div>
+        <div class="dayrow"><div class="dl"><b>일</b>10.4</div><div><div class="s">질문을 바꾸면 같은 하루도 다른 얼굴을 한다.</div><div class="bk">철학이 깊을수록 삶은 단순하다 · 생각 1</div></div></div>
+        <div class="dayrow"><div class="dl"><b>목</b>10.2</div><div><div class="s">존재의 방식은 무엇을 하느냐보다 어떻게 머무르느냐에 가깝다.</div><div class="bk">소유냐 존재냐 · 외 1장</div></div></div>
+        <div class="dayrow"><div class="dl"><b>화</b>9.30</div><div><div class="s">소수는 질서와 무질서 사이 어딘가에 있다.</div><div class="bk">리만 가설</div></div></div>
+      </div>
+    </div>
+  </div>
+</div></main>
+
+
+<dialog class="bsheet" id="pick" aria-labelledby="pick-t"><div class="grab"></div><div class="bd">
+  <div class="hd"><b id="pick-t">어느 책에서 남길까요</b><button class="x" data-close>닫기</button></div>
+  <label class="field" style="margin-top:4px"><input type="search" placeholder="내 책장에서 찾기" aria-label="내 책장에서 찾기"></label>
+  <div class="label" style="margin-top:20px">읽는 중</div>
+  <button class="pick-b" data-close><img src="img/5249396.jpg" alt=""><b>소유냐 존재냐</b><span>184 / 352 · 오늘</span><i>✓</i></button>
+  <button class="pick-b" data-close><img src="img/6896606.jpg" alt=""><b>철학이 깊을수록 삶은 단순하다</b><span>42쪽 · 이틀 전</span></button>
+  <button class="pick-b" data-close><img src="img/1289155.jpg" alt=""><b>리만 가설</b><span>읽는 중 · 일주일 전</span></button>
+  <div style="display:flex;gap:8px;margin-top:18px"><a class="btn line sm press" href="books.html">책장 전체</a><a class="btn line sm press" href="book-new.html">새 책 등록</a></div>
+</div></dialog>
+
+<dialog class="bsheet" id="pages" aria-labelledby="pages-t"><div class="grab"></div><div class="bd">
+  <div class="hd"><b id="pages-t">오늘 읽은 쪽</b><button class="x" data-close>닫기</button></div>
+  <p class="meta">문장 없이 읽은 만큼만 남겨도 돼요. 소유냐 존재냐 · 지금 184 / 352</p>
+  <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:end">
+    <label class="field"><span>어디서부터</span><input inputmode="numeric" value="184"></label><span style="padding-bottom:12px" class="sub">–</span>
+    <label class="field"><span>어디까지</span><input inputmode="numeric" placeholder="212"></label></div>
+  <button class="btn ink press" style="width:100%;margin-top:26px" data-close data-toast="212쪽까지 읽었어요">남기기</button>
+</div></dialog>
+
+<dialog class="bsheet" id="letter" aria-labelledby="letter-t"><div class="grab"></div><div class="bd">
+  <div class="hd"><b id="letter-t">독서 편지로 내보내기</b><button class="x" data-close>닫기</button></div>
+  <p class="meta" style="margin-bottom:16px">지난 7일의 기록을 편지지 이미지로 묶어요. 보낼 곳은 내가 고릅니다.</p>
+  <div class="letter"><div class="h">이번 주에 읽은 것들</div><div class="d">9월 30일 – 10월 6일 · 테스트용계정</div>
+    <p><small>소유냐 존재냐 · 10.6</small>가진 것을 잃을까 두려운 마음이 나를 가장 많이 붙잡고 있었다.</p>
+    <p><small>철학이 깊을수록 삶은 단순하다 · 10.4</small>질문을 바꾸면 같은 하루도 다른 얼굴을 한다.</p></div>
+  <div class="label" style="margin-top:22px">담을 기록</div>
+  <label class="chk"><input type="checkbox" checked>가진 것을 잃을까 두려운 마음이…</label>
+  <label class="chk"><input type="checkbox" checked>질문을 바꾸면 같은 하루도…</label>
+  <label class="chk"><input type="checkbox">존재의 방식은 무엇을 하느냐보다…</label>
+  <div class="lrow" style="border-bottom:1px solid var(--rule)">나의 생각도 담기<button class="switch" role="switch" aria-checked="false" aria-label="나의 생각도 담기"></button></div>
+  <div style="display:flex;gap:8px;margin-top:20px"><button class="btn line press" style="flex:1" data-toast="사진에 저장했어요">저장</button><button class="btn ink press" style="flex:1" data-toast="공유 창을 열어요 (시안)">공유하기</button></div>
+</div></dialog>
+
+<script>
+// 쓰기: 문장/생각 고르기, 생각 덧붙이기, 공개 범위, 남긴 뒤 상태
+document.querySelectorAll('.write').forEach(w=>{
+  const q=w.querySelector('.form textarea'), n=w.querySelector('.notef'), form=w.querySelector('.form'), saved=w.querySelector('.saved');
+  const tabs=[...w.querySelectorAll('.mode button')];
+  tabs.forEach((b,i)=>b.addEventListener('click',()=>{tabs.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-selected',x===b)});
+    q.placeholder=i?'책을 읽다 든 생각을\n여기 적어 보세요':'오늘 마음에 남은 문장을\n여기 옮겨 적어 보세요';
+    q.style.fontWeight=i?400:''; w.querySelector('.addnote').textContent=i?'문장 덧붙이기':'생각 덧붙이기';}));
+  w.querySelector('.addnote').addEventListener('click',()=>{n.hidden=!n.hidden;if(!n.hidden)n.focus();});
+  const lock=w.querySelector('.lock');
+  lock.addEventListener('click',()=>{const on=lock.getAttribute('aria-pressed')!=='true';lock.setAttribute('aria-pressed',on);lock.querySelector('span').textContent=on?'나만 보기':'친구에게 보임';});
+  w.querySelector('.save').addEventListener('click',()=>{w.querySelector('.saved-q').textContent=q.value.trim()||'가진 것을 잃을까 두려운 마음이 나를 가장 많이 붙잡고 있었다.';form.hidden=true;saved.hidden=false;});
+  w.querySelector('.again').addEventListener('click',()=>{q.value='';n.value='';n.hidden=true;saved.hidden=true;form.hidden=false;q.focus();});
+  w.querySelector('.again-note').addEventListener('click',()=>{saved.hidden=true;form.hidden=false;n.hidden=false;n.focus();});
+});
+</script>
+<script src="shell.js"></script>
+</body></html>

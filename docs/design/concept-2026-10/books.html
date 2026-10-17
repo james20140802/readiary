@@ -1,0 +1,135 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>책장 · Readiary 시안</title><link rel="stylesheet" href="app.css">
+<style>
+.t1{font:600 18px var(--serif)}
+.pulled{padding:20px 20px 16px;border-radius:3px;display:grid;grid-template-columns:96px 1fr;gap:18px}
+.pulled img{width:96px;box-shadow:0 14px 24px -14px rgb(0 0 0/.5);border-radius:2px}
+.also{display:flex;gap:12px;margin-top:22px;align-items:flex-end}
+.also img{width:62px;border-radius:2px;box-shadow:0 10px 18px -10px rgb(0 0 0/.5)}
+.m-chips{margin:14px -24px 18px;padding:0 24px}
+.done-row{display:grid;grid-template-columns:52px 1fr auto;gap:14px;align-items:center;padding:12px 0;border-top:1px solid var(--rule)}
+.done-row img,.done-row .ph{width:52px;height:76px;border-radius:2px;box-shadow:0 8px 14px -8px rgb(0 0 0/.45);object-fit:cover}
+.ex{font:600 15px var(--sans);color:var(--accent)}
+.shd{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.shd .seg2{width:140px}
+.bl{display:grid;grid-template-columns:44px 1fr;gap:2px 14px;align-items:center;padding:10px 0;border-top:1px solid var(--rule)}
+.bl img{grid-row:span 2;width:44px;border-radius:2px;box-shadow:0 6px 12px -6px rgb(0 0 0/.45)}
+.bl b{font:600 17px var(--serif);align-self:end}.bl span{font:500 14px var(--sans);color:var(--sub);align-self:start}
+/* 데스크톱 */
+.ledge{display:flex;gap:30px;align-items:flex-end;padding:0 10px;border-bottom:8px solid #CDBFA6;height:clamp(220px,32vh,300px)}
+@media (prefers-color-scheme:dark){.ledge{border-bottom-color:#3C352C}}
+.ledge a{display:block;transition:transform 240ms var(--ease-out)}
+.ledge img{display:block;height:calc(100% - 20px);width:auto;box-shadow:0 22px 34px -18px rgb(30 20 10/.55);border-radius:2px 4px 4px 2px}
+.ledge a{height:100%;display:flex;align-items:flex-end}
+.ledge a.on{transform:translateY(-14px)}
+.ledge a:not(.on) img{height:calc(86% - 20px)}
+.below{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:48px;margin-top:clamp(20px,4vh,40px)}
+.ms .r{display:grid;grid-template-columns:70px 1fr;gap:14px;padding:16px 0;border-top:1px solid var(--rule)}
+.ms .d{font:500 14px/1.5 var(--mono);color:var(--sub)}
+.done-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:30px 26px;margin-top:26px}
+.done-grid img,.done-grid .ph{width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:2px 4px 4px 2px;box-shadow:0 18px 28px -16px rgb(30 20 10/.5);display:block}
+.done-grid .t1{font-size:16px;margin-top:12px}
+</style></head>
+<body data-tab="books" class="snap dsnap">
+<header class="navbar only-mobile">
+  <span class="brand" style="opacity:0"></span><span class="title">책장</span>
+  <a class="ib" href="search.html" aria-label="책과 문장 찾기" data-icon="search"></a><a class="ib" href="book-new.html" aria-label="책 등록" data-icon="plus"></a>
+</header>
+
+<!-- 모바일: 읽는 중 → 서가 → 다 읽은 책 -->
+<main class="page only-mobile">
+  <section class="leaf" data-title="읽는 중"><div class="in">
+    <h1 class="large-title">책장</h1>
+    <div class="meta" style="margin:6px 0 20px">읽는 중 3권 · 서가에 46권</div>
+    <a class="pulled sheet" href="book.html">
+      <img src="img/5249396.jpg" alt="소유냐 존재냐 표지">
+      <div><div class="t1" style="font-size:21px">소유냐 존재냐</div><div class="meta" style="margin-top:2px">에리히 프롬</div>
+        <div class="frac" style="margin-top:12px;font-size:24px">184 <span>/ 352</span></div><div class="meta" style="margin-top:4px">오늘 남김 · 문장 11</div></div>
+      <div style="grid-column:1/-1;border-top:1px solid var(--rule);padding-top:12px">
+        <div class="note" style="font-size:18px">가진 것을 잃을까 두려운 마음이 나를 가장 많이 붙잡고 있었다.</div>
+        <div style="display:flex;gap:8px;margin-top:14px"><span class="btn ink sm">이어서 남기기</span><span class="btn line sm">책 펼치기</span></div>
+      </div>
+    </a>
+    <div class="also"><img src="img/6896606.jpg" alt="철학이 깊을수록 삶은 단순하다"><img src="img/1289155.jpg" alt="리만 가설"><span class="meta" style="margin-left:6px">함께 읽는 중 2권</span></div>
+  </div></section>
+  <section class="leaf sheet" data-title="서가"><div class="in">
+    <div class="shd"><div class="h2">서가</div><div class="seg2 vw" role="tablist" aria-label="보기"><button class="on" role="tab">책등</button><button role="tab">목록</button></div></div>
+    <div class="chips m-chips"><span class="chip on">최근 읽은 순</span><span class="chip">제목순</span><span class="chip">문장 많은 순</span><span class="chip">읽는 중만</span><span class="chip">다 읽은 책만</span></div>
+    <div class="m-shelves vwa"></div>
+    <div class="blist" hidden>
+      <a class="bl" href="book.html"><img src="img/5249396.jpg" alt=""><b>소유냐 존재냐</b><span>에리히 프롬 · 184 / 352</span></a>
+      <a class="bl" href="book.html"><img src="img/6896606.jpg" alt=""><b>철학이 깊을수록 삶은 단순하다</b><span>42쪽 · 읽는 중</span></a>
+      <a class="bl" href="book.html"><img src="img/1289155.jpg" alt=""><b>리만 가설</b><span>읽는 중</span></a>
+      <a class="bl" href="excerpt.html"><img src="img/1239611.jpg" alt=""><b>왜 나는 너를 사랑하는가</b><span>다 읽음 · 문장 14</span></a>
+      <a class="bl" href="excerpt.html"><img src="img/545848.jpg" alt=""><b>정의란 무엇인가</b><span>다 읽음 · 문장 9</span></a>
+    </div>
+    <a class="link" href="#" style="margin-top:10px">46권 모두 보기 <svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+  </div></section>
+  <section class="leaf sheet free" data-title="다 읽은 책"><div class="in">
+    <div class="h2">다 읽은 책</div>
+    <div class="meta" style="margin:6px 0 14px">발췌집이 41권 쌓였어요</div>
+    <div class="done-row"><img src="img/1239611.jpg" alt=""><div><div class="t1">왜 나는 너를 사랑하는가</div><div class="meta">9월 21일 · 문장 14</div></div><a class="ex" href="excerpt.html">발췌집</a></div>
+    <div class="done-row"><img src="img/545848.jpg" alt=""><div><div class="t1">정의란 무엇인가</div><div class="meta">3월 30일 · 문장 9</div></div><a class="ex" href="excerpt.html">발췌집</a></div>
+    <div class="done-row"><div class="ph" style="background:#2F3E5C"></div><div><div class="t1">작별하지 않는다</div><div class="meta">2월 11일 · 문장 22</div></div><a class="ex" href="excerpt.html">발췌집</a></div>
+    <div class="done-row"><div class="ph" style="background:#C9B48A"></div><div><div class="t1">월든</div><div class="meta">1월 3일 · 문장 7</div></div><a class="ex" href="excerpt.html">발췌집</a></div>
+  </div></section>
+</main>
+
+<!-- 데스크톱: 장마다 한 화면. 오른쪽 위 버튼으로도 전환 -->
+<nav class="dseg" aria-label="책장 보기"><a class="on" href="#reading">읽는 중</a><a href="#shelf">서가</a><a href="#done">다 읽은 책</a></nav>
+<main class="page only-desk">
+  <section class="dleaf" id="reading">
+    <h1 class="large-title">책장</h1>
+    <div class="ledge" style="margin-top:22px">
+      <a class="on" href="book.html"><img src="img/5249396.jpg" alt="소유냐 존재냐"></a>
+      <a href="#"><img src="img/6896606.jpg" alt="철학이 깊을수록 삶은 단순하다"></a>
+      <a href="#"><img src="img/1289155.jpg" alt="리만 가설"></a>
+    </div>
+    <div class="below">
+      <div class="sheet" style="padding:26px 30px;border-radius:3px;transform:rotate(-.5deg);align-self:start">
+        <div class="h2" style="font-size:30px">소유냐 존재냐</div>
+        <div class="meta" style="margin-top:4px;font-size:16px">에리히 프롬 · 차경아 옮김</div>
+        <div class="frac" style="margin-top:18px;font-size:32px">184 <span>/ 352</span></div>
+        <div class="meta" style="margin-top:6px">9월 29일부터 · 문장 11 · 생각 3</div>
+        <div style="display:flex;gap:10px;margin-top:22px"><a class="btn ink press" href="book.html">이어서 남기기</a><a class="btn line press" href="book.html">완독</a><a class="btn line" href="book.html">책 펼치기</a></div>
+      </div>
+      <div class="ms">
+        <div class="label" style="margin-bottom:6px">이 책에서 남긴 기록</div>
+        <div class="r"><div class="d">10.6<br>p.184</div><div class="note" style="font-size:20px">가진 것을 잃을까 두려운 마음이 나를 가장 많이 붙잡고 있었다.</div></div>
+        <div class="r"><div class="d">10.2<br>p.131</div><div class="note" style="font-size:20px">존재의 방식은 무엇을 하느냐보다 어떻게 머무르느냐에 가깝다.</div></div>
+        <div class="r"><div class="d">9.29<br>p.96</div><div class="note" style="font-size:20px">사랑은 가지는 것이 아니라 하는 것이다.</div></div>
+      </div>
+    </div>
+  </section>
+  <section class="dleaf" id="shelf">
+    <div style="display:flex;align-items:baseline;gap:14px;margin-bottom:22px;padding-right:330px"><div class="h2" style="font-size:32px">서가</div><span class="meta">46권</span>
+      <div class="chips" style="margin-left:auto"><span class="chip on">최근 읽은 순</span><span class="chip">제목순</span><span class="chip">문장 많은 순</span><span class="chip">읽는 중만</span></div><div class="seg2 vw" role="tablist" aria-label="보기" style="width:150px"><button class="on" role="tab">책등</button><button role="tab">목록</button></div></div>
+    <div class="d-shelves vwa"></div>
+    <div class="blist" hidden>
+      <a class="bl" href="book.html"><img src="img/5249396.jpg" alt=""><b>소유냐 존재냐</b><span>에리히 프롬 · 184 / 352</span></a>
+      <a class="bl" href="book.html"><img src="img/6896606.jpg" alt=""><b>철학이 깊을수록 삶은 단순하다</b><span>42쪽 · 읽는 중</span></a>
+      <a class="bl" href="book.html"><img src="img/1289155.jpg" alt=""><b>리만 가설</b><span>읽는 중</span></a>
+      <a class="bl" href="excerpt.html"><img src="img/1239611.jpg" alt=""><b>왜 나는 너를 사랑하는가</b><span>다 읽음 · 문장 14</span></a>
+      <a class="bl" href="excerpt.html"><img src="img/545848.jpg" alt=""><b>정의란 무엇인가</b><span>다 읽음 · 문장 9</span></a>
+    </div>
+  </section>
+  <section class="dleaf" id="done">
+    <div style="display:flex;align-items:baseline;gap:14px"><div class="h2" style="font-size:32px">다 읽은 책</div><span class="meta">41권 · 발췌집으로 묶였어요</span></div>
+    <div class="done-grid">
+      <a href="excerpt.html"><img src="img/1239611.jpg" alt=""><div class="t1">왜 나는 너를 사랑하는가</div><div class="meta">9월 21일 · 문장 14</div></a>
+      <a href="excerpt.html"><img src="img/545848.jpg" alt=""><div class="t1">정의란 무엇인가</div><div class="meta">3월 30일 · 문장 9</div></a>
+      <a href="excerpt.html"><div class="ph" style="background:#2F3E5C"></div><div class="t1">작별하지 않는다</div><div class="meta">2월 11일 · 문장 22</div></a>
+      <a href="excerpt.html"><div class="ph" style="background:#C9B48A"></div><div class="t1">월든</div><div class="meta">1월 3일 · 문장 7</div></a>
+      <a href="excerpt.html"><div class="ph" style="background:#7A2E2B"></div><div class="t1">데미안</div><div class="meta">12월 20일 · 문장 16</div></a>
+      <a href="excerpt.html"><div class="ph" style="background:#B9C7A8"></div><div class="t1">채식주의자</div><div class="meta">11월 8일 · 문장 5</div></a>
+    </div>
+  </section>
+</main>
+<script src="shell.js"></script>
+<script src="shelf.js"></script>
+<script>fillShelves('.m-shelves',10,3); fillShelves('.d-shelves',16,3,{scale:1.25});
+document.querySelectorAll('.vw').forEach(v=>v.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const list=b.textContent==='목록';
+  const sec=v.closest('section');sec.querySelector('.vwa').hidden=list;sec.querySelector('.blist').hidden=!list;}));
+</script>
+</body></html>

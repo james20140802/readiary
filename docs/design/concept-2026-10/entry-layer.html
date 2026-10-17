@@ -1,0 +1,176 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>9월 16일의 기록 (겹쳐 읽기) · Readiary 시안</title><link rel="stylesheet" href="app.css?v=3">
+<style>
+.date{display:flex;align-items:flex-start;gap:14px}
+.date .num{font:400 96px/.86 var(--serif);letter-spacing:-.04em}
+.date .m{font:700 22px var(--sans);padding-top:6px}
+/* 괘선(40px)에 글줄을 맞춘다 */
+.onrule{font:600 25px/40px var(--serif);letter-spacing:-.01em;margin-top:38px;padding-left:34px}
+.onrule-n{font:400 20px/40px var(--serif);color:var(--sub);padding-left:34px;margin-top:0}
+.src{padding-left:34px;margin-top:12px}
+.slips{margin-top:34px;position:relative}
+.slip{padding:18px 20px 16px;border-radius:3px}
+.slip+.slip{margin-top:-8px}
+.slip .l{font:600 14px var(--sans);color:var(--sub)}
+.slip .t{font:400 19px/1.6 var(--serif);margin-top:6px}
+.row{display:flex;align-items:center;gap:10px;min-height:52px;border-top:1px solid var(--rule);font:500 16px var(--sans)}
+.row .v{margin-left:auto;color:var(--sub)}
+.row svg{width:18px;height:18px;color:var(--faint)}
+.cm{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;padding:14px 0;border-top:1px solid var(--rule)}
+.cm b{font:600 15px var(--sans)} .cm span{font:400 17px/1.55 var(--serif);grid-column:1/-1}
+.cin{display:flex;gap:8px;align-items:center;margin-top:10px;padding-top:12px;border-top:1px solid var(--rule)}
+.cin input{flex:1;min-width:0;height:44px;border:0;outline:0;background:transparent;font:400 17px var(--serif);color:var(--ink)}
+.cin input::placeholder{color:var(--faint)}
+.row{text-align:left}
+.vis{display:flex;align-items:flex-start;gap:12px;padding:14px 0;border-top:1px solid var(--rule);width:100%;text-align:left;font:600 17px var(--sans)}
+.vis small{display:block;font:500 14px/1.5 var(--sans);color:var(--sub);margin-top:2px}
+.vis i{margin-left:auto;font-style:normal;color:var(--accent)}
+.scard{padding:26px 24px;border-radius:4px;background:#FBF8F1;color:#2A2620;box-shadow:0 18px 40px -18px rgb(30 20 10/.5);transform:rotate(-1deg);margin:6px 8px 0}
+.scard .q{font:600 21px/1.65 var(--serif)} .scard small{display:block;font:500 13px var(--sans);color:#6B645A;margin-top:14px}
+.lk{display:flex;align-items:center;gap:12px;min-height:56px;border-top:1px solid var(--rule);font:600 16px var(--sans)}
+@media (min-width:1024px){
+  .ent{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:64px;align-items:start}
+  .date .num{font-size:150px}
+  .date .m{font-size:28px;padding-top:16px}
+  .onrule{font-size:32px;line-height:56px;padding-left:0;margin-top:56px;background:repeating-linear-gradient(to bottom,transparent 0 55px,var(--rule) 55px 56px)}
+  .onrule-n{font-size:22px;padding-left:0;margin-top:16px}
+  .src{padding-left:0}
+  .aside{position:sticky;top:44px}
+  .slips{margin-top:0}
+  .slip:nth-child(1){transform:rotate(-1.2deg)} .slip:nth-child(2){transform:rotate(.9deg)}
+}
+
+/* ── 겹쳐 읽기: 덧붙인 생각은 그때의 생각 아래에 간지 묶음으로 쌓인다. 맨 위(가장 최근)만 또렷하고,
+   아래 간지의 글은 트레이싱지 너머로 어렴풋이 비친다. 맨 위를 옆으로 밀면 네모 그대로 비켜났다가 묶음 맨 아래로 들어간다 ── */
+.layer{margin-top:24px;padding-left:34px}
+.then .label{color:var(--faint)}
+.then .onrule-n{padding-left:0;margin-top:2px}
+.pilehd{display:flex;align-items:baseline;gap:8px;margin-top:22px}
+.pilehd .pos{font:500 13px var(--mono);color:var(--faint)}
+.pile{margin-top:10px;--w:calc(100% - 30px)}
+.lslip .l{font:600 13px var(--sans);color:var(--sub)}
+.lslip .t{font:400 19px/1.55 var(--serif);margin-top:4px}
+.lslip.new{transition:transform 360ms var(--ease-out),opacity 260ms ease}
+@starting-style{.lslip.new{opacity:0;transform:translate(0,-16px) rotate(-2deg)}}
+.lacts{display:flex;gap:8px;margin-top:26px;padding-left:34px;flex-wrap:wrap}
+@media (min-width:1024px){
+  .layer{padding-left:0;margin-top:36px;max-width:600px}
+  .then .onrule-n{font-size:22px;line-height:40px}
+  .lslip .t{font-size:21px}
+  .lacts{padding-left:0}
+}
+</style></head>
+<body data-tab="today" class="snap">
+<header class="navbar only-mobile">
+  <a class="back" href="home2.html"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>오늘</a><span class="title">9월 16일</span>
+  <a class="ib" href="#" data-open="emenu" aria-label="더 보기"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></a><a class="ib" href="#" data-open="share" aria-label="공유"><svg viewBox="0 0 24 24"><path d="M12 2v13"/><path d="m16 6-4-4-4 4"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/></svg></a>
+</header>
+<!-- 모바일: 문장 → 덧붙인 생각 → 공개와 반응 -->
+<main class="page only-mobile">
+  <section class="leaf" data-title="9월 16일"><div class="in">
+    <div class="date"><div class="num">16</div><div><div class="m">9월</div><div class="meta" style="margin-top:6px;font-size:16px">화요일 · 20일 전</div></div></div>
+    <p class="onrule">경계와 문턱이 사라짐과 동시에 타자에 대한 환상도 사라진다.</p>
+    <div class="meta src">에로스의 종말 · 한병철 · p.42</div>
+    <div class="layer"><div class="then"><div class="label">그때의 생각 · 9월 16일</div><p class="onrule-n">가까워질수록 모르는 부분이 줄어드는 게 꼭 좋은 걸까.</p></div>
+    <div class="pilehd"><span class="label">덧붙인 생각</span><span class="pos" aria-live="polite"></span></div>
+    <div class="pile" role="group" aria-label="덧붙인 생각 묶음. 맨 위 간지를 옆으로 밀면 아래로 넘어가요">
+      <article class="lslip"><div class="l">이틀 뒤 · 9월 18일</div><div class="t">이 문장을 친구에게 보냈다.</div></article>
+      <article class="lslip"><div class="l">20일 뒤 · 오늘</div><div class="t">모르는 채로 남겨 두는 것도 존중일지 모른다.</div></article>
+    </div>
+    <div class="lacts"><button class="btn ink sm press" data-open="refl">지금의 생각 덧붙이기</button><button class="btn line sm press flip">다음 간지</button></div></div>
+  </div></section>
+  <section class="leaf sheet free" data-title="공개와 반응"><div class="in">
+    <div class="h2">누가 볼 수 있나요</div>
+    <div style="margin-top:16px">
+      <button class="row" data-open="vis" style="width:100%"><span>공개 범위</span><span class="v">친구에게 보임</span><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
+      <button class="row" data-open="share" style="width:100%"><span>외부 링크</span><span class="v">꺼짐</span><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
+    </div>
+    <div style="margin-top:30px"><div class="label" style="margin-bottom:4px"><button data-open="likers" style="font:inherit;color:inherit;min-height:40px">좋아요 3명 보기</button> · 댓글 2</div>
+      <div class="cm"><b>윤서</b><span>나도 이 책에서 이 문장에 멈췄어.</span></div>
+      <div class="cm"><b>도현</b><span>환상이 사라지는 게 꼭 나쁜 건 아닌 듯.</span></div>
+      <form class="cin" onsubmit="return false"><input placeholder="댓글 남기기" aria-label="댓글"><button class="btn ink sm press">남기기</button></form></div>
+  </div></section>
+</main>
+
+<main class="page only-desk"><div class="wrap ent">
+  <div>
+    <div class="date"><div class="num">16</div><div><div class="m">9월</div><div class="meta" style="margin-top:6px;font-size:16px">화요일 · 20일 전</div></div></div>
+    <div class="top-sentinel"></div>
+    <p class="onrule">경계와 문턱이 사라짐과 동시에 타자에 대한 환상도 사라진다.</p>
+    <div class="meta src">에로스의 종말 · 한병철 · p.42</div>
+    <div class="layer"><div class="then"><div class="label">그때의 생각 · 9월 16일</div><p class="onrule-n">가까워질수록 모르는 부분이 줄어드는 게 꼭 좋은 걸까.</p></div>
+    <div class="pilehd"><span class="label">덧붙인 생각</span><span class="pos" aria-live="polite"></span></div>
+    <div class="pile" role="group" aria-label="덧붙인 생각 묶음. 맨 위 간지를 옆으로 밀면 아래로 넘어가요">
+      <article class="lslip"><div class="l">이틀 뒤 · 9월 18일</div><div class="t">이 문장을 친구에게 보냈다.</div></article>
+      <article class="lslip"><div class="l">20일 뒤 · 오늘</div><div class="t">모르는 채로 남겨 두는 것도 존중일지 모른다.</div></article>
+    </div>
+    <div class="lacts"><button class="btn ink sm press" data-open="refl">지금의 생각 덧붙이기</button><button class="btn line sm press flip">다음 간지</button></div></div>
+  </div>
+  <div class="aside">
+        <div style="display:flex;gap:8px;margin-top:34px;flex-wrap:wrap"><button class="btn line press" data-open="share">공유</button><button class="btn line press" data-open="emenu">더 보기</button></div>
+    <div style="margin-top:28px">
+      <button class="row" data-open="vis" style="width:100%"><span>공개 범위</span><span class="v">친구에게 보임</span><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
+      <button class="row" data-open="share" style="width:100%"><span>외부 링크</span><span class="v">꺼짐</span><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
+    </div>
+    <div style="margin-top:22px">
+      <div class="label" style="margin-bottom:4px"><button data-open="likers" style="font:inherit;color:inherit;min-height:40px">좋아요 3명 보기</button> · 댓글 2</div>
+      <div class="cm"><b>윤서</b><span>나도 이 책에서 이 문장에 멈췄어.</span></div>
+      <div class="cm"><b>도현</b><span>환상이 사라지는 게 꼭 나쁜 건 아닌 듯.</span></div>
+      <form class="cin" onsubmit="return false"><input placeholder="댓글 남기기" aria-label="댓글"><button class="btn ink sm press">남기기</button></form>
+    </div>
+  </div>
+</div></main>
+
+<dialog class="bsheet" id="refl" aria-labelledby="refl-t"><div class="grab"></div><div class="bd">
+  <div class="hd"><b id="refl-t">20일 뒤, 오늘의 생각</b><button class="x" data-close>닫기</button></div>
+  <p class="meta" style="font-family:var(--serif);font-size:16px;line-height:1.6">경계와 문턱이 사라짐과 동시에 타자에 대한 환상도 사라진다.</p>
+  <label class="longf"><span>지금 다시 읽으니</span><textarea rows="3" placeholder="그때와 무엇이 달라졌나요"></textarea></label>
+  <div class="lrow" style="margin-top:14px;border-bottom:1px solid var(--rule)">이 생각만 나만 보기<button class="switch" role="switch" aria-checked="false" aria-label="이 생각만 나만 보기"></button></div>
+  <p class="meta" style="margin-top:8px">쓰다 닫아도 이 기기에 남아 있어요.</p>
+  <button class="btn ink press" style="width:100%;margin-top:18px" data-close data-toast="생각을 덧붙였어요">덧붙이기</button>
+</div></dialog>
+<dialog class="bsheet menu" id="emenu" aria-label="기록 메뉴"><div class="grab"></div><div class="bd">
+  <button class="lrow" data-open="share">공유하기</button>
+  <a class="lrow" href="book.html">원문 고치기</a>
+  <button class="lrow danger" data-open="del">지우기</button>
+</div></dialog>
+<dialog class="bsheet" id="share" aria-labelledby="share-t"><div class="grab"></div><div class="bd">
+  <div class="hd"><b id="share-t">문장 카드로 공유</b><button class="x" data-close>닫기</button></div>
+  <div class="scard"><div class="q">경계와 문턱이 사라짐과 동시에 타자에 대한 환상도 사라진다.</div><small>에로스의 종말 · 한병철 · 테스트용계정의 문장</small></div>
+  <p class="meta" style="margin-top:22px;line-height:1.55">공유하면 링크를 가진 누구나 이 문장을 볼 수 있어요. 생각과 덧붙인 생각은 담기지 않아요. 나만 보기로 바꾸면 링크가 닫혀요.</p>
+  <div style="display:flex;gap:8px;margin-top:16px"><button class="btn line press" style="flex:1" data-toast="이미지를 저장하고 링크를 복사했어요">이미지 저장</button><button class="btn ink press" style="flex:1" data-toast="공유 창을 열어요 (시안)">공유하기</button></div>
+  <a class="link" href="share.html" style="font-size:15px;margin-top:6px">받는 사람이 보는 화면</a>
+</div></dialog>
+<dialog class="bsheet" id="vis" aria-labelledby="vis-t"><div class="grab"></div><div class="bd">
+  <div class="hd"><b id="vis-t">누가 볼 수 있나요</b><button class="x" data-close>닫기</button></div>
+  <button class="vis" data-close><div>친구에게 보임<small>친구의 소셜과 내 서재에서 보여요. 인터넷 전체에 공개되지는 않아요.</small></div><i>✓</i></button>
+  <button class="vis" data-close data-toast="나만 보기로 바꿨어요. 공유 링크도 닫혔어요"><div>나만 보기<small>나에게만 보여요. 열려 있던 공유 링크도 닫혀요.</small></div></button>
+</div></dialog>
+<dialog class="bsheet" id="likers" aria-labelledby="likers-t"><div class="grab"></div><div class="bd">
+  <div class="hd"><b id="likers-t">좋아요 3</b><button class="x" data-close>닫기</button></div>
+  <a class="lk" href="friend.html"><img class="av" src="img/6896606.jpg" alt="">윤서</a>
+  <a class="lk" href="friend.html"><img class="av" src="img/1289155.jpg" alt="">도현</a>
+  <a class="lk" href="friend.html"><img class="av" src="img/545848.jpg" alt="">지우</a>
+</div></dialog>
+<dialog class="bsheet" id="del" aria-labelledby="del-t"><div class="grab"></div><div class="bd">
+  <div class="hd"><b id="del-t">이 기록을 지울까요</b></div>
+  <p class="note" style="font-size:17px">덧붙인 생각 2개와 댓글 2개도 함께 지워지고 되돌릴 수 없어요.</p>
+  <div style="display:flex;gap:8px;margin-top:20px"><button class="btn line press" style="flex:1" data-close>그대로 두기</button><a class="btn press" style="flex:1;background:#B3402E;color:#fff" href="book.html">지우기</a></div>
+</div></dialog>
+<script src="shell.js"></script>
+<script src="pile.js?v=10"></script>
+<script>
+// 지금의 생각을 덧붙이면 묶음 맨 위에 새 간지가 내려앉는다
+document.querySelector('#refl .btn.ink').addEventListener('click',()=>{
+  const ta=document.querySelector('#refl textarea'), t=ta.value.trim()||'다시 읽으니 문턱이 있어야 들어갈 수도 있다는 생각이 든다.';
+  document.querySelectorAll('.pile').forEach(pile=>{
+    // 가장 최근 간지가 맨 위에 오도록, 넘겨 두었던 순서를 날짜순으로 되돌린 뒤 얹는다
+    [...pile.children].sort((a,b)=>b.dataset.i-a.dataset.i).forEach(x=>pile.append(x));
+    [...pile.children].forEach(x=>x.dataset.i=+x.dataset.i+1);
+    pile.insertAdjacentHTML('beforeend','<article class="lslip new"><div class="l">오늘 · 방금</div><div class="t"></div></article>');
+    const s=pile.lastElementChild;s.querySelector('.t').textContent=t;s.dataset.i=1;lay(pile);});
+  ta.value='';
+});
+</script>
+</body></html>

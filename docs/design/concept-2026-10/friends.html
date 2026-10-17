@@ -1,0 +1,62 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>친구 · Readiary 시안</title><link rel="stylesheet" href="app.css">
+<style>
+.add{display:flex;align-items:flex-end;gap:10px}
+.add .field{flex:1}
+.fr{display:grid;grid-template-columns:44px 1fr auto;gap:2px 14px;align-items:center;padding:12px 0;border-top:1px solid var(--rule)}
+.fr .av{grid-row:span 2;width:44px;height:44px}
+.fr b,.fr .fn{font:600 17px var(--sans);align-self:end}.fr span{font:500 14px var(--sans);color:var(--sub);grid-column:2;align-self:start}
+.fr .r{grid-row:1 / span 2;grid-column:3;display:flex;gap:6px;align-self:center}
+.fr .more{width:44px;height:44px;display:grid;place-items:center;color:var(--sub)}
+.fr .more svg{width:20px;height:20px}
+.inv{padding:20px 22px;border-radius:3px;margin-top:26px}
+.panel[hidden]{display:none}
+@media (min-width:1024px){.cols{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:56px;align-items:start}.inv{margin-top:0;position:sticky;top:44px}}
+</style></head>
+<body data-tab="social" class="plain">
+<header class="navbar only-mobile"><a class="back" href="social.html"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>소셜</a><span class="title">친구</span></header>
+<main class="page"><div class="wrap" style="max-width:1040px"><div class="top-sentinel"></div>
+<h1 class="large-title">친구</h1>
+<div class="cols"><div>
+  <form class="add" onsubmit="event.preventDefault();document.getElementById('ask').showModal()">
+    <label class="field"><span>닉네임#태그로 찾기</span><input placeholder="yunseo#2041" autocapitalize="off" value="minjae#3318"></label>
+    <button class="btn ink sm press" style="margin-bottom:4px">찾기</button></form>
+  <div class="seg2" role="tablist" style="margin-top:24px"><button role="tab" class="on" data-p="list">친구 5</button><button role="tab" data-p="in">받은 요청 1</button><button role="tab" data-p="out">보낸 요청 1</button></div>
+  <section class="panel" id="list" style="margin-top:10px">
+    <div class="fr"><img class="av" src="img/6896606.jpg" alt=""><a class="fn" href="friend.html">윤서</a><span>철학이 깊을수록 삶은 단순하다를 읽는 중</span><span class="r"><button class="more" data-open="fmenu" aria-label="윤서 더 보기"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button></span></div>
+    <div class="fr"><img class="av" src="img/1289155.jpg" alt=""><a class="fn" href="friend.html">도현</a><span>리만 가설 · 118쪽</span><span class="r"><button class="more" data-open="fmenu" aria-label="도현 더 보기"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button></span></div>
+    <div class="fr"><img class="av" src="img/1239611.jpg" alt=""><a class="fn" href="friend.html">하린</a><span>어제 한 권을 다 읽었어요</span><span class="r"><button class="more" data-open="fmenu" aria-label="하린 더 보기"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button></span></div>
+    <div class="fr"><img class="av" src="img/5249396.jpg" alt=""><a class="fn" href="friend.html">민재</a><span>소유냐 존재냐 · 96쪽</span><span class="r"><button class="more" data-open="fmenu" aria-label="민재 더 보기"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button></span></div>
+  </section>
+  <section class="panel" id="in" hidden style="margin-top:10px">
+    <div class="fr"><img class="av" src="img/545848.jpg" alt=""><b>지우</b><span>jiwoo#2041 · 12분 전</span><span class="r"><button class="btn ink sm press" data-toast="이제 지우와 친구예요">수락</button><button class="btn line sm press">거절</button></span></div>
+  </section>
+  <section class="panel" id="out" hidden style="margin-top:10px">
+    <div class="fr"><div class="av"></div><b>서진</b><span>seojin#7720 · 사흘 전</span><span class="r"><button class="btn line sm press">요청 취소</button></span></div>
+  </section>
+</div>
+<aside class="inv sheet">
+  <div class="h2" style="font-size:21px">함께 읽을 사람 부르기</div>
+  <p class="note" style="font-size:16px;margin-top:6px;color:var(--sub)">링크를 받은 사람이 로그인하면 바로 나에게 친구 신청을 보낼 수 있어요.</p>
+  <div class="tagc" style="font:500 15px var(--mono);margin-top:14px">readiary#0417</div>
+  <div style="display:flex;gap:8px;margin-top:12px"><button class="btn ink sm press" data-toast="공유 창을 열어요 (시안)">초대 링크 보내기</button><button class="btn line sm press" data-toast="링크를 복사했어요">복사</button></div>
+</aside>
+</div>
+</div></main>
+<dialog class="bsheet" id="ask" aria-labelledby="ask-t"><div class="grab"></div><div class="bd">
+  <div class="hd"><b id="ask-t">친구 신청</b><button class="x" data-close>닫기</button></div>
+  <div class="fr" style="border-top:0"><img class="av" src="img/5249396.jpg" alt=""><b>민재</b><span>minjae#3318</span></div>
+  <p class="meta" style="margin-top:8px">수락하면 서로의 ‘친구에게 보임’ 기록과 서가를 볼 수 있어요.</p>
+  <button class="btn ink press" style="width:100%;margin-top:18px" data-close data-toast="민재에게 친구 신청을 보냈어요">신청 보내기</button>
+</div></dialog>
+<dialog class="bsheet menu" id="fmenu" aria-label="친구 메뉴"><div class="grab"></div><div class="bd">
+  <a class="lrow" href="friend.html">서재 보기</a>
+  <button class="lrow danger" data-close data-toast="친구를 끊었어요">친구 끊기</button>
+</div></dialog>
+<script src="shell.js"></script>
+<script>
+document.querySelectorAll('.seg2 [data-p]').forEach(b=>b.addEventListener('click',()=>document.querySelectorAll('.panel').forEach(p=>p.hidden=p.id!==b.dataset.p)));
+document.querySelectorAll('.fr .more').forEach(b=>b.addEventListener('click',e=>e.preventDefault()));
+</script>
+</body></html>

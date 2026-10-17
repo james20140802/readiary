@@ -1,0 +1,94 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>토론 · Readiary 시안</title><link rel="stylesheet" href="app.css"><link rel="stylesheet" href="debate.css">
+<style>
+.seg{display:grid;grid-template-columns:1fr 1fr;height:44px;padding:2px;border-radius:10px;background:rgb(127 127 127/.14);margin:14px 0 18px}
+.seg a{display:flex;align-items:center;justify-content:center;border-radius:8px;font:600 14px var(--sans);color:var(--sub)}
+.seg a.on{background:rgb(var(--sheet));color:var(--ink);box-shadow:0 1px 3px rgb(0 0 0/.12)}
+.card{display:block;padding:22px 22px 18px;border-radius:3px}
+.card .s{font-size:23px}
+.top-ans{margin-top:16px;padding-top:14px;border-top:1px solid var(--rule)}
+.top-ans .l{font:600 13px var(--sans);color:var(--sub)}
+.top-ans .t{font:400 17px/1.55 var(--serif);margin-top:4px}
+.closed-row{display:block;padding:16px 0;border-top:1px solid var(--rule)}
+.closed-row .s{font:600 18px/1.55 var(--serif)}
+.closed-row .c{font:400 16px/1.55 var(--serif);color:var(--sub);margin-top:6px;padding-left:12px;box-shadow:inset 2px 0 0 var(--ink)}
+@media (min-width:1024px){
+  .seg{height:36px}
+  .board{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.75fr);gap:56px;align-items:start}
+  .board .card .s{font-size:26px}
+  .board .card+.card{margin-top:22px}
+}
+</style></head>
+<body data-tab="social" class="snap">
+<header class="navbar only-mobile"><span class="brand" style="opacity:0"></span><span class="title">토론</span>
+  <a class="ib" href="#" aria-label="발제하기" data-icon="plus"></a></header>
+
+<!-- 모바일: 토론 하나에 한 장 -->
+<main class="page only-mobile">
+  <section class="leaf" data-title="토론"><div class="in">
+    <h1 class="large-title">소셜</h1>
+    <div class="seg"><a href="social.html">친구의 문장</a><a class="on" href="talk.html">토론</a></div>
+    <div class="meta" style="margin:-6px 0 14px">진행 중 3 · 정리됨 5</div>
+    <a class="card sheet prompt" href="debate.html">
+      <div class="by"><img src="img/6896606.jpg" alt=""><div>윤서 <span>· 에로스의 종말</span></div></div>
+      <p class="s" style="margin-top:12px"><span class="frag">경계와 문턱</span>이 사라짐과 <span class="frag">동시에</span> <span class="frag">타자에 대한 환상</span>도 사라진다.</p>
+      <p class="ask" style="font-size:18px">가까워질수록 상대를 덜 궁금해하게 되는 걸까요?</p>
+      <div class="tally" style="font-size:14px"><span><b>4</b> 공감</span><span><b>3</b> 다르게 읽음</span><span><b>1</b> 질문</span></div>
+      <div class="top-ans"><div class="l">생각을 가장 많이 바꾼 답 · 도현</div><div class="t">사라지는 건 상상 속의 상대뿐이에요.</div></div>
+    </a>
+  </div></section>
+  <section class="leaf sheet" data-title="토론"><div class="in">
+    <a class="card sheet prompt" href="debate.html" style="margin-top:6px">
+      <div class="by"><img src="img/1289155.jpg" alt=""><div>도현 <span>· 리만 가설</span></div></div>
+      <p class="s" style="margin-top:12px">소수는 <span class="frag">질서와 무질서 사이</span> 어딘가에 있다.</p>
+      <p class="ask" style="font-size:18px">수학은 발견하는 걸까요, 만들어 내는 걸까요?</p>
+      <div class="tally" style="font-size:14px"><span><b>1</b> 공감</span><span><b>2</b> 다르게 읽음</span><span><b>2</b> 질문</span></div>
+      <div class="top-ans"><div class="l">새 답 · 윤서</div><div class="t">질서를 찾는 건 사람이니까, 반쯤은 만드는 것 같아요.</div></div>
+    </a>
+    <a class="card sheet" href="#" style="margin-top:18px;box-shadow:inset 0 0 0 1px var(--rule)">
+      <div style="font:600 17px var(--sans)">발제하기</div>
+      <div class="rules" style="margin-top:6px">내 기록 중 하나를 고르고, 친구들에게 묻고 싶은 질문 하나를 붙여요.</div>
+    </a>
+  </div></section>
+  <section class="leaf sheet free" data-title="정리된 토론"><div class="in">
+    <div class="h2">정리된 토론</div><div class="cap" style="margin:6px 0 10px;font:500 14px var(--sans);color:var(--sub)">발제한 사람이 남긴 정리예요</div>
+    <a class="closed-row" href="#"><div class="s">사랑은 가지는 것이 아니라 하는 것이다.</div><div class="c">'하는 것'은 매일 다시 고르는 일이라는 쪽으로 모였어요.</div><div class="meta" style="margin-top:6px;font-size:13px">하린 · 답 9 · 생각이 바뀐 사람 4</div></a>
+    <a class="closed-row" href="#"><div class="s">질문을 바꾸면 같은 하루도 다른 얼굴을 한다.</div><div class="c">질문을 바꾸는 건 혼자보다 같이 할 때 쉽다는 결론.</div><div class="meta" style="margin-top:6px;font-size:13px">윤서 · 답 6 · 생각이 바뀐 사람 2</div></a>
+  </div></section>
+</main>
+
+<!-- 데스크톱: 진행 중인 토론 + 정리된 토론과 규칙 -->
+<main class="page only-desk"><div class="wrap">
+  <div style="display:flex;align-items:center;gap:16px"><h1 class="large-title">소셜</h1><div class="seg" style="margin:0 auto 0 12px;width:260px"><a href="social.html">친구의 문장</a><a class="on" href="talk.html">토론</a></div><span class="btn ink sm">발제하기</span></div>
+  <div class="board" style="margin-top:28px">
+    <div>
+      <a class="card sheet prompt" href="debate.html" style="transform:rotate(-.4deg)">
+        <div class="by"><img src="img/6896606.jpg" alt=""><div>윤서 <span>· 이틀 전 · 에로스의 종말</span></div></div>
+        <p class="s" style="margin-top:12px"><span class="frag">경계와 문턱</span>이 사라짐과 <span class="frag">동시에</span> <span class="frag">타자에 대한 환상</span>도 사라진다.</p>
+        <p class="ask">가까워질수록 상대를 덜 궁금해하게 되는 걸까요?</p>
+        <div class="tally"><span><b>4</b> 공감</span><span><b>3</b> 다르게 읽음</span><span><b>1</b> 질문</span><span>생각이 바뀐 사람 <b>2</b></span></div>
+        <div class="top-ans"><div class="l">생각을 가장 많이 바꾼 답 · 도현</div><div class="t">환상이 사라져야 진짜 그 사람이 보인다고 읽었어요. 사라지는 건 상상 속의 상대뿐이에요.</div></div>
+      </a>
+      <a class="card sheet prompt" href="debate.html" style="transform:rotate(.4deg)">
+        <div class="by"><img src="img/1289155.jpg" alt=""><div>도현 <span>· 어제 · 리만 가설</span></div></div>
+        <p class="s" style="margin-top:12px">소수는 <span class="frag">질서와 무질서 사이</span> 어딘가에 있다.</p>
+        <p class="ask">수학은 발견하는 걸까요, 만들어 내는 걸까요?</p>
+        <div class="tally"><span><b>1</b> 공감</span><span><b>2</b> 다르게 읽음</span><span><b>2</b> 질문</span></div>
+      </a>
+    </div>
+    <div>
+      <div class="h2" style="font-size:22px">정리된 토론</div>
+      <div style="margin-top:10px">
+        <a class="closed-row" href="#"><div class="s">사랑은 가지는 것이 아니라 하는 것이다.</div><div class="c">'하는 것'은 매일 다시 고르는 일이라는 쪽으로 모였어요.</div><div class="meta" style="margin-top:6px;font-size:13px">하린 · 답 9 · 생각이 바뀐 사람 4</div></a>
+        <a class="closed-row" href="#"><div class="s">질문을 바꾸면 같은 하루도 다른 얼굴을 한다.</div><div class="c">질문을 바꾸는 건 혼자보다 같이 할 때 쉽다는 결론.</div><div class="meta" style="margin-top:6px;font-size:13px">윤서 · 답 6 · 생각이 바뀐 사람 2</div></a>
+      </div>
+      <div class="sheet" style="margin-top:26px;padding:18px 20px;border-radius:3px">
+        <div style="font:600 16px var(--sans)">이렇게 이야기해요</div>
+        <div class="rules" style="margin-top:8px">사람이 아니라 문장에 답해요.<br>공감, 다르게 읽음, 질문 중 하나를 골라요.<br>좋아요 대신, 생각이 바뀌었을 때 알려요.<br>발제한 사람이 정리를 남기면 닫혀요.</div>
+      </div>
+    </div>
+  </div>
+</div></main>
+<script src="shell.js"></script>
+</body></html>
