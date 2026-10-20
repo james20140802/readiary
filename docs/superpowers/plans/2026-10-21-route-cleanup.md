@@ -358,9 +358,10 @@ Expected: `books entry error.tsx layout.tsx notifications profile search social 
 - [ ] **Step 2: import 경로와 주소 문자열 변환** (순서 중요: 구체적인 규칙 먼저)
 
 ```bash
-# 옛 주소 자체를 다루는 파일(이동 규칙과 그 테스트, proxy 테스트)은 제외한다 — 바꾸면 이동 규칙이 망가진다
+# 옛 주소 자체를 다루는 파일(이동 규칙과 그 테스트, proxy 테스트)은 제외한다 — 바꾸면 이동 규칙이 망가진다.
+# 알림 주소(lib/push)는 Task 4에서 서비스 워커와 함께 바꾼다.
 FILES=$(grep -rlE "protected" app components lib hooks --include='*.ts' --include='*.tsx' --include='*.js' \
-  | grep -vE '^lib/routes\.ts$|^lib/__tests__/routes\.test\.ts$|^lib/auth/__tests__/proxy\.test\.ts$')
+  | grep -vE '^lib/routes\.ts$|^lib/__tests__/routes\.test\.ts$|^lib/auth/__tests__/proxy\.test\.ts$|^lib/push/')
 # proxy 테스트는 요청 주소만 바꾼다(matcher 테스트의 '/protected/:path*'는 그대로)
 perl -pi -e "s#request\('/protected/dashboard'\)#request('/today')#g; s#request\('/protected/books#request('/books#g; s#%2Fprotected%2Fbooks#%2Fbooks#g" lib/auth/__tests__/proxy.test.ts
 perl -pi -e '
@@ -381,7 +382,7 @@ Expected로 남는 것과 처리:
 - `app/auth/callback/page.tsx` 주석 "예전엔 '/protected'로 보냈는데…" → 그대로 둔다(과거 사실).
 - `components/Header.tsx` 17~19행 주석의 "/protected 를 미리" → "앱 화면을 미리"로 고친다.
 - `lib/pwa/__tests__/runtime-caching.test.ts`의 `'/_next/data/build/protected.json'` → 그대로(경로 이름일 뿐).
-- `worker/index.js` 두 곳 → Task 4에서.
+- `worker/index.js` 두 곳, `lib/push/send.ts`, `lib/push/__tests__/*` → Task 4에서.
 - 그 밖의 것이 나오면 같은 규칙(옛 주소 → 새 주소)으로 고친다.
 
 - [ ] **Step 4: `/protected` 루트 기대값 정리**
@@ -391,7 +392,7 @@ Expected로 남는 것과 처리:
 - [ ] **Step 5: 전체 검사**
 
 Run: `npm test`
-Expected: PASS(worker 관련 2개 제외 — `lib/push/__tests__/worker.test.ts`, `send.test.ts`가 아직 옛 주소면 Task 4에서). 그 외 실패가 있으면 변환 누락이니 고친다.
+Expected: PASS(`lib/push`는 아직 옛 주소끼리 맞물려 통과한다). 실패가 있으면 변환 누락이니 고친다.
 
 Run: `npm run lint`
 Expected: PASS
