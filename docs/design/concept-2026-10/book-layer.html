@@ -32,7 +32,7 @@
 
 /* ── 표지 위 간지: 실제 책 표지 위에 기록 간지가 반쯤 얹히고, 표지는 간지 너머로 하얗게 바래 비친다. 간지를 옆으로 밀면 둘이 벌어지며 표지가 드러난다 ── */
 .bstack{position:relative;height:452px;margin-top:4px;outline-offset:6px;touch-action:pan-y;user-select:none;-webkit-user-select:none}
-.bstack .cv{position:absolute;right:var(--cr,38px);top:var(--ct,10px);width:186px;border-radius:2px 5px 5px 2px;
+.bstack .cv{position:absolute;right:var(--cr,38px);top:var(--ct,10px);width:186px;aspect-ratio:auto 2/3;background:rgb(var(--sheet));border-radius:2px 5px 5px 2px;
   box-shadow:inset 0 0 0 1px rgb(0 0 0/.06),0 22px 34px -18px rgb(30 20 10/.55);transform:translateX(var(--cx,0)) rotate(2deg);transition:transform 300ms var(--ease-out)}
 .bstack{--vl:0px;--vt:62px;--vw:calc(100% - 96px)}
 .bstack .vel{position:absolute;left:var(--vl);top:var(--vt);width:var(--vw);min-height:330px;border-radius:2px;

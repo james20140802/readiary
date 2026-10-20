@@ -57,7 +57,7 @@ if (dsegLinks.length) {
 // 시트 열기·닫기: [data-open="id"] → dialog#id. 바깥(배경)을 누르거나 [data-close]로 닫는다.
 document.addEventListener('click', e => {
   const o = e.target.closest('[data-open]');
-  if (o) { e.preventDefault(); document.getElementById(o.dataset.open)?.showModal(); return; }
+  if (o) { e.preventDefault(); o.closest('dialog')?.close(); document.getElementById(o.dataset.open)?.showModal(); return; }  // 시트 안에서 다른 시트를 열면 앞 시트는 닫는다(이어지는 단계)
   const c = e.target.closest('[data-close]');
   if (c) { e.preventDefault(); c.closest('dialog')?.close(); if (c.dataset.toast) toast(c.dataset.toast); return; }  // 닫으며 알릴 것도 있다
   if (e.target.matches('dialog.bsheet')) e.target.close();
@@ -70,3 +70,12 @@ document.addEventListener('click', e => {
 });
 function toast(msg){ let el = document.querySelector('.toast'); if (!el) { el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role','status'); document.body.append(el); }
   el.textContent = msg; el.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('show'), 1800); }
+
+// 버튼·라디오 역할을 맡은 span도 키보드로 쓴다: 라디오는 초점을 받고, Enter·Space는 누름과 같다
+document.querySelectorAll('[role="radio"]:not([tabindex])').forEach(r => r.tabIndex = 0);
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  const el = e.target.closest('[role="button"],[role="radio"]');
+  if (!el || el.matches('button,a,input,textarea,select')) return;
+  e.preventDefault(); el.click();
+});
