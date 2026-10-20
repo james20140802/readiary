@@ -59,7 +59,7 @@ document.addEventListener('click', e => {
   const o = e.target.closest('[data-open]');
   if (o) { e.preventDefault(); document.getElementById(o.dataset.open)?.showModal(); return; }
   const c = e.target.closest('[data-close]');
-  if (c) { e.preventDefault(); c.closest('dialog')?.close(); return; }
+  if (c) { e.preventDefault(); c.closest('dialog')?.close(); if (c.dataset.toast) toast(c.dataset.toast); return; }  // 닫으며 알릴 것도 있다
   if (e.target.matches('dialog.bsheet')) e.target.close();
   const s = e.target.closest('.switch');
   if (s) s.setAttribute('aria-checked', s.getAttribute('aria-checked') !== 'true');

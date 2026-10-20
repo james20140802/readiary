@@ -169,7 +169,7 @@ document.querySelector('#refl .btn.ink').addEventListener('click',()=>{
     [...pile.children].sort((a,b)=>b.dataset.i-a.dataset.i).forEach(x=>pile.append(x));
     [...pile.children].forEach(x=>x.dataset.i=+x.dataset.i+1);
     pile.insertAdjacentHTML('beforeend','<article class="lslip new"><div class="l">오늘 · 방금</div><div class="t"></div></article>');
-    const s=pile.lastElementChild;s.querySelector('.t').textContent=t;s.dataset.i=1;lay(pile);});
+    const s=pile.lastElementChild;s.querySelector('.t').textContent=t;s.dataset.i=1;toss(s,+(s.previousElementSibling?.dataset.t||0));lay(pile);});
   ta.value='';
 });
 </script>
