@@ -1,12 +1,12 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import type { EmailOtpType } from '@supabase/supabase-js';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { sanitizeRedirectPath } from '@/lib/auth/safeRedirect';
+import { DEFAULT_REDIRECT_PATH, sanitizeRedirectPath } from '@/lib/auth/safeRedirect';
 import { PENDING_REDIRECT_KEY, toPendingRedirect } from '@/lib/auth/pendingRedirect';
 import { CONSENTED_AT_KEY, consentStamp } from '@/lib/auth/consent';
 import { OAUTH_CONSENT_PARAM } from '@/lib/auth/oauthRedirect';
 
-const DEFAULT_NEXT = '/protected/dashboard';
+const DEFAULT_NEXT = DEFAULT_REDIRECT_PATH;
 
 /** Supabase가 OAuth 실패(사용자 취소, 제공자 거절)를 알릴 때 붙이는 쿼리 — 하나라도 있으면 실패다 */
 const OAUTH_ERROR_PARAMS = ['error', 'error_code', 'error_description'] as const;

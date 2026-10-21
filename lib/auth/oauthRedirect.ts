@@ -1,6 +1,7 @@
-import { sanitizeRedirectPath } from '@/lib/auth/safeRedirect';
-
-const DEFAULT_REDIRECT = '/protected/dashboard';
+import {
+  DEFAULT_REDIRECT_PATH as DEFAULT_REDIRECT,
+  sanitizeRedirectPath,
+} from '@/lib/auth/safeRedirect';
 
 /** 가입 화면에서 동의를 마치고 Google로 떠났다는 표시 — 서버 착지가 메타데이터에 옮겨 적는다 */
 export const OAUTH_CONSENT_PARAM = 'consent';
