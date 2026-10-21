@@ -14,7 +14,7 @@ export default function FriendProfileHeader({ profile, showBackButton = true }: 
     <div className="mb-6 flex items-center">
       {showBackButton && <BackButton />}
       <Link
-        href={`/protected/social/u/${profile.nickname + '-' + profile.tag}`}
+        href={`/social/u/${profile.nickname + '-' + profile.tag}`}
         className={`flex items-center gap-4 ${!showBackButton && 'mb-4'} hover:opacity-80 transition ${showBackButton && 'mx-4'}`}
       >
         <Avatar

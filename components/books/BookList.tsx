@@ -103,8 +103,8 @@ export default function BookList({ books, stats, isFriend = false, nicknameAndTa
   const getDetailHref = useCallback(
     (userBook: MyBook) =>
       isFriend && nicknameAndTag !== ''
-        ? `/protected/social/u/${nicknameAndTag}/books/${userBook.book_id}`
-        : `/protected/books/${userBook.book_id}`,
+        ? `/social/u/${nicknameAndTag}/books/${userBook.book_id}`
+        : `/books/${userBook.book_id}`,
     [isFriend, nicknameAndTag]
   );
 
@@ -130,7 +130,7 @@ export default function BookList({ books, stats, isFriend = false, nicknameAndTa
           ub,
           stats,
           getDetailHref(ub),
-          isFriend ? undefined : `/protected/books/${ub.book_id}/entry/new`
+          isFriend ? undefined : `/books/${ub.book_id}/entry/new`
         )
       ),
     [processed, stats, getDetailHref, isFriend]
@@ -143,7 +143,7 @@ export default function BookList({ books, stats, isFriend = false, nicknameAndTa
         <p className="font-serif text-[15px] text-ink-sub">아직 빈 책장입니다.</p>
         {!isFriend && (
           <Link
-            href="/protected/books/new"
+            href="/books/new"
             className="mt-2 inline-block font-serif text-[13.5px] text-accent hover:underline"
           >
             첫 책 꽂기 →
@@ -241,7 +241,7 @@ export default function BookList({ books, stats, isFriend = false, nicknameAndTa
                 </Link>
                 {!isFriend && !isFinished && (
                   <Link
-                    href={`/protected/books/${ub.book_id}/entry/new`}
+                    href={`/books/${ub.book_id}/entry/new`}
                     className="shrink-0 text-[12.5px] text-ink-sub transition-colors hover:text-accent"
                   >
                     기록 →

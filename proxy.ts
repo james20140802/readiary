@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { hasProfile } from '@/lib/auth/profilePresence';
 import { sanitizeRedirectPath } from '@/lib/auth/safeRedirect';
+import { HOME_PATH, isAppRoute } from '@/lib/routes';
 
 export async function proxy(request: NextRequest) {
   return await updateSession(request);
@@ -79,19 +80,19 @@ export async function updateSession(request: NextRequest) {
     return redirectWithAuthCookies(url);
   }
 
+  const { pathname } = request.nextUrl;
   if (
     !user &&
-    !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/auth') &&
-    (request.nextUrl.pathname.startsWith('/protected') ||
-      request.nextUrl.pathname.startsWith('/onboarding'))
+    !pathname.startsWith('/login') &&
+    !pathname.startsWith('/auth') &&
+    (isAppRoute(pathname) || pathname.startsWith('/onboarding'))
   ) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     url.search = '';
-    if (request.nextUrl.pathname.startsWith('/protected')) {
-      url.searchParams.set('redirect', request.nextUrl.pathname + request.nextUrl.search);
+    if (isAppRoute(pathname)) {
+      url.searchParams.set('redirect', pathname + request.nextUrl.search);
     }
     return redirectWithAuthCookies(url);
   }
@@ -109,7 +110,7 @@ export async function updateSession(request: NextRequest) {
 
   if (user && profile && request.nextUrl.pathname.startsWith('/onboarding')) {
     const url = request.nextUrl.clone();
-    url.pathname = '/protected/dashboard';
+    url.pathname = HOME_PATH;
     return redirectWithAuthCookies(url);
   }
 
@@ -132,5 +133,21 @@ export async function updateSession(request: NextRequest) {
 export const config = {
   // /invite 는 보호 대상은 아니지만, 오래 방치된 세션으로 열릴 때가 많아 여기서 토큰을 갱신해야
   // 서버 컴포넌트의 getUser()가 만료 토큰으로 실패해 로그인으로 튕기지 않는다
-  matcher: ['/', '/login', '/signup', '/onboarding/:path*', '/protected/:path*', '/invite/:path*'],
+  // 리터럴이어야 한다(Next가 정적으로 읽는다) — lib/routes.ts의 APP_ROUTE_PREFIXES와 맞춘다(테스트가 확인)
+  matcher: [
+    '/',
+    '/login',
+    '/signup',
+    '/onboarding/:path*',
+    '/invite/:path*',
+    '/today/:path*',
+    '/books/:path*',
+    '/entry/:path*',
+    '/profile/:path*',
+    '/settings/:path*',
+    '/social/:path*',
+    '/search/:path*',
+    '/notifications/:path*',
+    '/pilsa/:path*',
+  ],
 };

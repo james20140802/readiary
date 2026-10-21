@@ -123,8 +123,8 @@ export default function OnboardingForm({
           const redirectTo =
             typeof result.redirectTo === 'string' ? sanitizeRedirectPath(result.redirectTo) : null;
           navigating.current = true;
-          action.navigate(redirectTo ?? '/protected/dashboard');
-          leaveOnboarding(redirectTo ?? '/protected/dashboard');
+          action.navigate(redirectTo ?? '/today');
+          leaveOnboarding(redirectTo ?? '/today');
           return;
         }
 
@@ -135,8 +135,8 @@ export default function OnboardingForm({
         } else if (res.status === 409 && result.code === 'profile_exists') {
           toast.info(result.error || '이미 프로필이 존재합니다.');
           navigating.current = true;
-          action.navigate('/protected/dashboard');
-          leaveOnboarding('/protected/dashboard');
+          action.navigate('/today');
+          leaveOnboarding('/today');
           return;
         } else {
           setUncertainEmailAttempt(res.status >= 500);

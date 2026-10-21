@@ -25,7 +25,7 @@ export default function WeeklyTimeline({
         <p className="font-serif text-section-title">기록을 불러오지 못했어요.</p>
         <p className="text-body-sm text-ink-sub">연결을 확인한 뒤 다시 불러와 주세요.</p>
         <Button asChild variant="secondary">
-          <a href="/protected/notifications/weekly">다시 불러오기</a>
+          <a href="/notifications/weekly">다시 불러오기</a>
         </Button>
       </section>
     );
@@ -38,7 +38,7 @@ export default function WeeklyTimeline({
           최근 7일 동안 남긴 기록이 없어요. 마음에 남은 문장이나 생각 하나를 남겨 보세요.
         </p>
         <Button asChild variant="secondary">
-          <Link href="/protected/dashboard">기록 남기기</Link>
+          <Link href="/today">기록 남기기</Link>
         </Button>
       </section>
     );
@@ -88,7 +88,7 @@ export default function WeeklyTimeline({
               {items.map((entry) => (
                 <li key={entry.id} className="py-6 first:pt-0 last:pb-2">
                   <Link
-                    href={`/protected/entry/${entry.id}`}
+                    href={`/entry/${entry.id}`}
                     prefetch={false}
                     className="group block rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-4 focus-visible:ring-offset-paper"
                   >

@@ -1,8 +1,8 @@
 import { format, parseISO, subMonths, subYears } from 'date-fns';
 import Card from '@/components/ui/Card';
 import Seal from '@/components/ui/Seal';
-import { WeeklyStreakSection } from '@/app/protected/dashboard/_components/WeeklyStreakSection';
-import { MonthlyRecapCard } from '@/app/protected/dashboard/_components/MonthlyRecapCard';
+import { WeeklyStreakSection } from '@/app/(app)/today/_components/WeeklyStreakSection';
+import { MonthlyRecapCard } from '@/app/(app)/today/_components/MonthlyRecapCard';
 import { weekDatesKST } from '@/lib/dashboard/streak';
 import { todayKST } from '@/lib/dates';
 import SlideHeading from './SlideHeading';

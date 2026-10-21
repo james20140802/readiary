@@ -23,7 +23,7 @@ function jsonResponse(status: number, body: unknown = {}) {
 async function loadModule({
   responses,
   refresh = REFRESH_OK,
-  pathname = '/protected/books/1',
+  pathname = '/books/1',
   search = '?tab=x',
 }: {
   responses: Response[];
@@ -180,7 +180,7 @@ describe('apiFetch', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(assign).toHaveBeenCalledTimes(1);
     expect(assign).toHaveBeenCalledWith(
-      '/login?redirect=%2Fprotected%2Fbooks%2F1%3Ftab%3Dx&error=session-expired'
+      '/login?redirect=%2Fbooks%2F1%3Ftab%3Dx&error=session-expired'
     );
   });
 
@@ -202,7 +202,7 @@ describe('apiFetch', () => {
     const { apiFetch, assign } = await loadModule({
       responses: [jsonResponse(401, { code: 'session_expired' })],
       refresh: REFRESH_FAIL,
-      pathname: '/protected/dashboard',
+      pathname: '/today',
       search: '',
     });
 

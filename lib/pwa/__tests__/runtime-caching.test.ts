@@ -33,15 +33,7 @@ function context(
 }
 
 describe('isPersonalizedSameOriginRequest', () => {
-  it.each([
-    '/',
-    '/terms',
-    '/privacy',
-    '/login',
-    '/reset-password',
-    '/protected/dashboard',
-    '/share/e/x',
-  ])(
+  it.each(['/', '/terms', '/privacy', '/login', '/reset-password', '/today', '/share/e/x'])(
     '문서 내비게이션은 공개 화면이라도 잡는다 — 루트 레이아웃이 로그인 상태를 싣는다: %s',
     (path) => {
       expect(
@@ -56,7 +48,7 @@ describe('isPersonalizedSameOriginRequest', () => {
     expect(isPersonalizedSameOriginRequest(context('/terms', { headers: { RSC: '1' } }))).toBe(
       true
     );
-    expect(isPersonalizedSameOriginRequest(context('/protected/books/abc?_rsc=1a2b'))).toBe(true);
+    expect(isPersonalizedSameOriginRequest(context('/books/abc?_rsc=1a2b'))).toBe(true);
   });
 
   it.each([
@@ -96,7 +88,7 @@ describe('isPersonalizedSameOriginRequest', () => {
     )() as typeof isPersonalizedSameOriginRequest;
     for (const [path, init] of [
       ['/terms', { mode: 'navigate' as const }],
-      ['/protected/x?_rsc=1'],
+      ['/x?_rsc=1'],
       ['/_next/static/a.js'],
       ['/icons/a.png'],
     ] as const) {

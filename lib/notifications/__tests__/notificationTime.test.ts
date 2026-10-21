@@ -1,7 +1,7 @@
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import NotificationList from '@/app/protected/social/_components/NotificationList';
+import NotificationList from '@/app/(app)/social/_components/NotificationList';
 
 afterEach(() => {
   vi.useRealTimers();

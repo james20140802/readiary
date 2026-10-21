@@ -1,8 +1,13 @@
 import type { NextConfig } from 'next';
 import withPWA from 'next-pwa';
 import { buildRuntimeCaching } from './lib/pwa/runtime-caching';
+import { LEGACY_REDIRECTS } from './lib/routes';
 
 const nextConfig: NextConfig = {
+  // 옛 /protected 주소는 proxy보다 먼저 새 주소로 영구 이동한다 — lib/routes.ts
+  async redirects() {
+    return [...LEGACY_REDIRECTS];
+  },
   images: {
     remotePatterns: [
       {

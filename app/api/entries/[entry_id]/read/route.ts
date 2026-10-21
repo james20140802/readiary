@@ -48,7 +48,7 @@ export async function GET(
     if (friendshipError) return failed();
     if (!friendship) return unavailable();
   }
-  let detailHref = `/protected/entry/${entryId}`;
+  let detailHref = `/entry/${entryId}`;
   if (ownerId !== user.id) {
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
@@ -56,7 +56,7 @@ export async function GET(
       .eq('id', ownerId)
       .maybeSingle();
     if (profileError || !profile) return failed();
-    detailHref = `/protected/social/u/${profile.nickname}-${profile.tag}/entry/${entryId}`;
+    detailHref = `/social/u/${profile.nickname}-${profile.tag}/entry/${entryId}`;
   }
   const summaries = await fetchReflectionSummaries([entryId]);
   const entry: EntryReadData = {

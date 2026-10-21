@@ -30,9 +30,7 @@ describe('emailConfirmRedirectTo', () => {
     expect(emailConfirmRedirectTo(ORIGIN, 'https://evil.test')).toBe(
       'https://readiary.test/auth/confirm'
     );
-    expect(emailConfirmRedirectTo(ORIGIN, '/protected/dashboard')).toBe(
-      'https://readiary.test/auth/confirm'
-    );
+    expect(emailConfirmRedirectTo(ORIGIN, '/today')).toBe('https://readiary.test/auth/confirm');
   });
 
   it('환경 변수로 착지를 바꿔도 next 는 그 위에 붙는다', () => {

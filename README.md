@@ -49,7 +49,7 @@ npm run dev
 app/                 # Next.js App Router 기반 디렉토리
  ├─ layout.tsx       # 전체 레이아웃 (Navbar 포함)
  ├─ page.tsx         # 홈 (랜딩) 페이지
- ├─ protected/       # 로그인 후 접근 가능한 보호된 영역
+ ├─ (app)/          # 로그인 후 접근 가능한 앱 화면 (주소에는 나타나지 않는 route group)
  ├─ onboarding/      # 회원가입 후 추가정보 입력
 components/          # 재사용 가능한 UI 컴포넌트
 lib/                 # Supabase 클라이언트 등 유틸

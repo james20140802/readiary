@@ -2,7 +2,7 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { load } from 'cheerio';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import NotificationList from '@/app/protected/social/_components/NotificationList';
+import NotificationList from '@/app/(app)/social/_components/NotificationList';
 import type { NotificationItem, NotificationType } from '@/lib/notifications/types';
 
 const referenceTime = '2026-09-29T12:00:00.000Z';
@@ -48,10 +48,10 @@ describe('알림의 이동 의미', () => {
         .map((_, el) => $(el).attr('href'))
         .get()
     ).toEqual([
-      '/protected/entry/entry-1',
-      '/protected/entry/entry-2',
-      '/protected/social/friends',
-      '/protected/social/friends?tab=pending',
+      '/entry/entry-1',
+      '/entry/entry-2',
+      '/social/friends',
+      '/social/friends?tab=pending',
     ]);
     expect($.text()).not.toContain('연결된 기록을 열 수 없어요');
   });

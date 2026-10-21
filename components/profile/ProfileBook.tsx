@@ -568,7 +568,7 @@ export default function ProfileBook({
           </>
         ) : (
           <Link
-            href="/protected/profile/edit#bookmark"
+            href="/profile/edit#bookmark"
             inert={isFlipped || turned}
             className={`${FACE} flex justify-center rounded-[3px] border border-dashed border-hairline-strong pt-6 font-serif text-[12px] tracking-[0.08em] text-ink-faint transition-colors hover:border-accent hover:text-accent motion-reduce:!delay-0`}
             style={{ writingMode: 'vertical-rl', clipPath: clip, transition: faceTransition }}
@@ -775,7 +775,7 @@ export default function ProfileBook({
                     ) : isOwnProfile ? (
                       <>
                         <Link
-                          href="/protected/profile/edit"
+                          href="/profile/edit"
                           className="font-serif text-[13.5px] text-ink-faint transition-colors hover:text-accent"
                         >
                           띠지에 한 줄 소개를 써 두세요 →
@@ -831,7 +831,7 @@ export default function ProfileBook({
                       </blockquote>
                     ) : isOwnProfile ? (
                       <Link
-                        href="/protected/profile/edit#featured-quote"
+                        href="/profile/edit#featured-quote"
                         className="font-serif text-[14px] leading-relaxed text-ink-faint transition-colors hover:text-accent"
                       >
                         뒷표지에 실을 문장을
@@ -990,7 +990,7 @@ export default function ProfileBook({
                 초대 링크
               </button>
               <Link
-                href="/protected/profile/edit"
+                href="/profile/edit"
                 className="px-1 py-1.5 transition-colors hover:text-ink-sub"
               >
                 프로필 수정

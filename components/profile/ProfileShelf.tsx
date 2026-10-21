@@ -48,7 +48,7 @@ export default function ProfileShelf({ books, total, shelfHref, isOwnProfile }: 
           <p className="font-serif text-[15px] text-ink-sub">아직 빈 책장입니다.</p>
           {isOwnProfile && (
             <Link
-              href="/protected/books/new"
+              href="/books/new"
               className="mt-2 inline-block font-serif text-[13.5px] text-accent hover:underline"
             >
               첫 책 꽂기 →

@@ -62,7 +62,7 @@ export default function EntryCard({
   // 방금 좋아요를 켰는지 — 그때만 하트가 부푼다(globals.css .heart-pop)
   const [likePopped, setLikePopped] = useState(false);
 
-  const targetHref = href ?? `/protected/entry/${id}`;
+  const targetHref = href ?? `/entry/${id}`;
   const pages = formatPages(fromPage, toPage);
 
   const handleLikeToggle = async () => {
@@ -181,7 +181,7 @@ export default function EntryCard({
               </button>
             ) : (
               <Link
-                href={`/protected/entry/${id}/edit`}
+                href={`/entry/${id}/edit`}
                 className="text-button-sm text-ink-faint transition-colors hover:text-accent"
               >
                 원문 수정

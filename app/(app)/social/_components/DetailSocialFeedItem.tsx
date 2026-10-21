@@ -1,0 +1,578 @@
+'use client';
+
+import ReflectionPreview from '@/components/reflections/ReflectionPreview';
+import { useState, useRef, useEffect, useLayoutEffect, type RefObject } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { formatDistance } from 'date-fns';
+import { ko } from 'date-fns/locale';
+import { MoreHorizontal, User, BookOpen, Maximize2, Repeat } from 'lucide-react';
+import { DetailSocialFeedEntry } from '@/types/entry';
+import SocialActionBar from '@/components/social/SocialActionBar';
+import { toZonedTime } from 'date-fns-tz';
+import CommentBottomSheet from '@/components/comments/CommentBottomSheet';
+import LikersBottomSheet from '@/components/social/LikersBottomSheet';
+import { useLike } from '@/components/social/useLike';
+import { getImageUrl } from '@/utils/profile';
+import { Avatar } from '@/components/ui/Avatar';
+import { EASE_IN_OUT, FOLD_DURATION } from '@/lib/motion';
+
+interface Props {
+  item: DetailSocialFeedEntry;
+  userId: string;
+}
+
+/**
+ * 피드 카드 — 친구가 부쳐 온 엽서.
+ * 문장이 있으면 앞면(그림 대신 문장), 뒤집으면 뒷면(감상·주소칸·우표 표지·서명).
+ * 문장이 없는 기록은 뒷면 한 장으로만 온다.
+ */
+export default function DetailSocialFeedItem({ item, userId }: Props) {
+  const router = useRouter();
+  const { profile, entry, initialLikeCount, initialLiked, initialCommentCount } = item;
+  const { book } = entry;
+
+  const timeZone = 'Asia/Seoul';
+  const now = toZonedTime(new Date(), timeZone);
+  const targetDate = toZonedTime(new Date(entry.created_at), timeZone);
+  const timeLabel = formatDistance(targetDate, now, { addSuffix: true, locale: ko });
+
+  const hasQuote = Boolean(entry.quote);
+  // 회전 각도를 누적해 스와이프 방향 그대로 돌게 한다 (홀수 배 180° = 뒷면)
+  const [flipAngle, setFlipAngle] = useState(0);
+  const isFlipped = (Math.abs(flipAngle) / 180) % 2 === 1;
+  const flip = (dir: 1 | -1) => setFlipAngle((prev) => prev + dir * 180);
+  const [isFrontExpanded, setIsFrontExpanded] = useState(false);
+  const [isBackExpanded, setIsBackExpanded] = useState(false);
+  const [isCommentOpen, setIsCommentOpen] = useState(false);
+  const [isLikersOpen, setIsLikersOpen] = useState(false);
+  const [commentCount, setCommentCount] = useState(initialCommentCount);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  // 액션 바가 앞·뒷면에 하나씩 있으므로 좋아요 상태는 한 벌을 공유한다
+  const like = useLike(entry.id, initialLiked, initialLikeCount);
+
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+    if (isMenuOpen) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isMenuOpen]);
+
+  const userProfilePath = `/social/u/${profile.nickname}-${profile.tag}`;
+  const bookDetailPath = `/social/u/${profile.nickname}-${profile.tag}/books/${book.id}`;
+  const entryDetailPath = `/social/u/${profile.nickname}-${profile.tag}/entry/${entry.id}`;
+
+  // "더 보기"는 추측이 아니라 실제 잘림 여부로 — 인용구는 FitText가, 감상은 실측이 알려준다
+  const [isFrontClamped, setIsFrontClamped] = useState(false);
+  const [isBackClamped, setIsBackClamped] = useState(false);
+
+  // 감상은 글자 크기를 고정하고 line-clamp로만 자른다 — 잘렸는지만 재서 "더 보기"를 띄운다
+  const noteRef = useRef<HTMLParagraphElement>(null);
+  const quoteRef = useRef<HTMLDivElement>(null);
+  const toggleFront = useHeightFold(
+    quoteRef,
+    isFrontExpanded,
+    setIsFrontExpanded,
+    measureQuoteCollapsed
+  );
+  const toggleBack = useHeightFold(
+    noteRef,
+    isBackExpanded,
+    setIsBackExpanded,
+    measureNoteCollapsed
+  );
+  useEffect(() => {
+    const el = noteRef.current;
+    if (!el || isBackExpanded) return;
+    const measure = () => setIsBackClamped(el.scrollHeight > el.clientHeight + 1);
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [entry.note, isBackExpanded]);
+
+  // 시작·끝이 같으면(한쪽만 입력해도 같은 값이 채워진다) 한 번만 적는다
+  const readRange =
+    entry.from_page != null && entry.to_page != null
+      ? entry.from_page === entry.to_page
+        ? `${entry.from_page}p`
+        : `${entry.from_page}-${entry.to_page}p`
+      : entry.from_page != null || entry.to_page != null
+        ? `${entry.to_page ?? entry.from_page}p`
+        : null;
+
+  const dateLabel = [
+    new Date(entry.date + 'T00:00:00').toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    }),
+    readRange,
+  ]
+    .filter(Boolean)
+    .join(' · ');
+
+  const addressLine = [book.author, dateLabel].filter(Boolean).join(' · ');
+
+  // 아날로그 낱장 느낌 — 기록 id에서 뽑은 결정적 기울기·어긋남
+  const seed = Array.from(entry.id).reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+  const tilt = ((seed % 5) - 2) * 0.35; // -0.7° ~ 0.7°
+  const shift = ((seed % 3) - 1) * 4; // -4px, 0, 4px
+  const stampTilt = ((seed % 7) - 3) * 1.2; // 우표는 조금 더 비뚤게
+
+  const expandControls = (
+    clamped: boolean,
+    expanded: boolean,
+    setExpanded: (next: boolean) => void
+  ) => (
+    <>
+      {clamped && !expanded && (
+        <button
+          onClick={() => setExpanded(true)}
+          className="mt-2 self-start text-button-sm font-bold text-accent hover:text-accent-hover transition-colors"
+        >
+          ...더 보기
+        </button>
+      )}
+      {expanded && (
+        <button
+          onClick={() => setExpanded(false)}
+          className="mt-2 self-start text-button-sm font-medium text-ink-faint hover:text-ink-sub transition-colors"
+        >
+          접기
+        </button>
+      )}
+    </>
+  );
+
+  // 좌우로 문지르면 뒤집힌다 — 세로 스크롤·텍스트 선택·버튼 클릭과는 겹치지 않게
+  const swipeStart = useRef<{ x: number; y: number } | null>(null);
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    if ((e.target as HTMLElement).closest('button, a')) return;
+    swipeStart.current = { x: e.clientX, y: e.clientY };
+  };
+  const handlePointerUp = (e: React.PointerEvent) => {
+    const start = swipeStart.current;
+    swipeStart.current = null;
+    if (!start) return;
+    const dx = e.clientX - start.x;
+    const dy = e.clientY - start.y;
+    if (Math.abs(dx) < 48 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    if (!window.getSelection()?.isCollapsed) return; // 문장을 긁는 중이면 뒤집지 않는다
+    flip(dx > 0 ? 1 : -1); // 문지른 방향으로 돈다
+  };
+
+  const flipButton = (label: string) => (
+    <button
+      onClick={() => flip(1)}
+      aria-label={label}
+      className="flex shrink-0 items-center gap-1 text-button-sm font-medium text-ink-faint hover:text-accent transition-colors"
+    >
+      <Repeat size={13} /> 뒤집기
+    </button>
+  );
+
+  // 뒷면 — 감상(사연) · 세로 구분선 · 우표(표지)와 괘선 주소칸 · 서명 줄
+  const backFace = (
+    <div className="flex flex-1 flex-col px-5 pt-4 pb-4 sm:px-6">
+      <div className="flex items-start justify-between">
+        <span className="text-seal text-ink-faint pt-1.5">POST CARD</span>
+        <div className="relative shrink-0" ref={menuRef}>
+          <button
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="text-ink-faint hover:text-ink-sub p-2 -my-1 -mr-2 hover:bg-card-raised rounded-full transition-colors"
+            aria-label="더 보기 메뉴"
+          >
+            <MoreHorizontal size={18} />
+          </button>
+          {isMenuOpen && (
+            <>
+              <div className="fixed inset-0 z-10" onClick={() => setIsMenuOpen(false)} />
+              <div className="absolute right-0 mt-1 w-36 bg-card border border-hairline rounded-xl z-20 py-1 overflow-hidden menu-pop">
+                <button
+                  onClick={() => {
+                    router.push(userProfilePath);
+                    setIsMenuOpen(false);
+                  }}
+                  className="flex items-center gap-2 w-full px-3 py-2 text-button-sm font-medium text-ink-sub hover:bg-card-raised transition-colors"
+                >
+                  <User size={13} className="text-ink-faint" /> 프로필 방문
+                </button>
+                <button
+                  onClick={() => {
+                    router.push(bookDetailPath);
+                    setIsMenuOpen(false);
+                  }}
+                  className="flex items-center gap-2 w-full px-3 py-2 text-button-sm font-medium text-ink-sub hover:bg-card-raised transition-colors"
+                >
+                  <BookOpen size={13} className="text-ink-faint" /> 도서 정보
+                </button>
+                <button
+                  onClick={() => {
+                    router.push(entryDetailPath);
+                    setIsMenuOpen(false);
+                  }}
+                  className="flex items-center gap-2 w-full px-3 py-2 text-button-sm font-semibold text-accent hover:bg-accent-soft border-t border-hairline transition-colors"
+                >
+                  <Maximize2 size={13} /> 상세 보기
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-3 flex-1 sm:flex sm:gap-5">
+        {/* 사연 칸 */}
+        <div className="flex min-w-0 flex-1 flex-col">
+          {entry.note && (
+            <p
+              ref={noteRef}
+              className={`text-body text-pretty text-ink-sub whitespace-pre-wrap ${
+                isBackExpanded ? '' : NOTE_CLAMP
+              }`}
+            >
+              {entry.note}
+            </p>
+          )}
+          {expandControls(isBackClamped, isBackExpanded, toggleBack)}
+          <ReflectionPreview
+            entryId={entry.id}
+            summary={entry.reflectionSummary}
+            href={entryDetailPath}
+            compactOnNarrow
+          />
+        </div>
+
+        {/* 세로 구분선 — 엽서 뒷면의 사연|주소 경계 */}
+        <div className="hidden sm:block w-px self-stretch bg-hairline" />
+
+        {/* 주소 칸 — 우표 자리의 표지, 괘선 위의 책 */}
+        <div className="mt-5 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3 sm:mt-0 sm:flex sm:w-44 sm:flex-col sm:items-stretch sm:gap-0">
+          <div
+            className="perforated-stamp col-start-2 row-start-1 self-end"
+            style={{ transform: `rotate(${stampTilt}deg)` }}
+          >
+            <div className="relative h-14 w-10 overflow-hidden bg-card">
+              <Image
+                src={book.cover_url ?? '/images/default-book-cover.png'}
+                alt={`『${book.title}』 표지`}
+                fill
+                className="object-cover"
+                sizes="40px"
+              />
+            </div>
+          </div>
+          <div className="col-start-1 row-start-1 min-w-0 sm:mt-auto sm:pt-5">
+            <p className="truncate border-b border-hairline-strong pb-1.5 font-serif text-body font-semibold text-ink">
+              『{book.title}』
+            </p>
+            <p className="line-clamp-2 border-b border-hairline-strong pb-1.5 pt-2 text-caption text-ink-faint">
+              {addressLine}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* 서명 줄 */}
+      <div className="mt-4 flex items-center justify-between gap-3">
+        <Link href={userProfilePath} className="flex items-center gap-2 group min-w-0">
+          <Avatar
+            alt={`${profile.nickname}의 프로필 이미지`}
+            fallbackText={profile.nickname.charAt(0).toUpperCase()}
+            src={getImageUrl(profile.profile_image) || undefined}
+            size="sm"
+          />
+          <span className="text-caption text-ink-faint shrink-0">from.</span>
+          <span className="text-body-sm font-semibold text-ink group-hover:underline truncate">
+            {profile.name}
+          </span>
+        </Link>
+        <div className="flex shrink-0 items-center gap-3">
+          <span className="text-caption text-ink-faint">{timeLabel}</span>
+          {hasQuote && flipButton('앞면의 문장 보기')}
+        </div>
+      </div>
+    </div>
+  );
+
+  // 앞면 — 그림 대신 문장이 실린 면
+  const frontFace = hasQuote ? (
+    <div className="flex flex-1 flex-col px-6 pt-5 pb-4">
+      <span aria-hidden className="font-serif text-quote-mark leading-none text-accent">
+        “
+      </span>
+      <blockquote className="mt-1">
+        <FitText
+          boxRef={quoteRef}
+          text={entry.quote ?? ''}
+          capPx={QUOTE_CAP_PX}
+          capPxSm={QUOTE_CAP_PX_SM}
+          expanded={isFrontExpanded}
+          className="font-serif text-quote text-pretty text-ink whitespace-pre-wrap"
+          onClampedChange={setIsFrontClamped}
+        />
+      </blockquote>
+      {expandControls(isFrontClamped, isFrontExpanded, toggleFront)}
+      <div className="mt-auto flex items-end justify-between gap-3 pt-5">
+        <div className="min-w-0">
+          <p className="truncate text-caption font-medium text-ink-sub">
+            『{book.title}』{book.author ? ` · ${book.author}` : ''}
+          </p>
+          <Link href={userProfilePath} className="mt-1.5 flex items-center gap-1.5 group min-w-0">
+            <Avatar
+              alt={`${profile.nickname}의 프로필 이미지`}
+              fallbackText={profile.nickname.charAt(0).toUpperCase()}
+              src={getImageUrl(profile.profile_image) || undefined}
+              size="sm"
+            />
+            <span className="truncate text-caption text-ink-faint group-hover:underline">
+              {profile.name} · {timeLabel}
+            </span>
+          </Link>
+        </div>
+        {flipButton('뒷면의 감상 보기')}
+      </div>
+    </div>
+  ) : null;
+
+  // 타공 테두리·액션 바까지 포함한 엽서 낱장 — 앞·뒷면이 각각 온전한 한 장이라
+  // 뒤집을 때 카드 전체가 돌아간다. 높이 100% 대신 flex stretch를 끝까지 연결한다.
+  // 자동 높이의 겹친 grid 안에서 WebKit이 자손의 % 높이를 내용 높이로 계산해
+  // 앞뒷면 테두리와 액션 바가 서로 다른 높이에 그려지는 것을 피한다.
+  const postcard = (face: React.ReactNode) => (
+    <div className="perforated flex flex-1 flex-col">
+      <div className="flex flex-1 flex-col bg-card">
+        {face}
+        <SocialActionBar
+          entryId={entry.id}
+          initialLikeCount={initialLikeCount}
+          initialLiked={initialLiked}
+          like={like}
+          commentCount={commentCount}
+          onCommentClick={() => setIsCommentOpen(true)}
+          onLikeCountClick={() => setIsLikersOpen(true)}
+        />
+      </div>
+    </div>
+  );
+
+  return (
+    <article aria-label="상세 소셜 피드 항목">
+      {/* transform이 걸린 요소는 fixed 자손의 containing block이 된다 —
+          기울기는 바텀시트를 포함하지 않는 래퍼에만 건다.
+
+          기울인 엽서는 제 레이아웃 상자 밖으로 몇 px 삐져나온다(어긋남 4px + 회전 ≤4px +
+          그림자 꼬리). iOS WebKit은 화면을 떠날 때 레이아웃 상자 자리만 지우고 그 삐져나온
+          조각은 남겨 두어, 다음 화면 본문 칸 양 옆에 타공 가장자리가 유령처럼 남았다.
+          그래서 본문 칸의 여백(main의 px-4)만큼 넓힌 상자 안에서 기울여, 삐져나온 조각도
+          지워지는 상자 안에 들게 한다. overflow로 자르지는 않는다 — 뒤집는 동안은
+          가까운 변이 원근으로 커져 여백보다 더 나갔다 들어오므로 잘리면 눈에 띈다 */}
+      <div className="-mx-4 px-4 [container-type:inline-size]">
+        <div style={{ transform: `rotate(${tilt}deg) translateX(${shift}px)` }}>
+          {hasQuote ? (
+            <div
+              className="[perspective:1200px] [touch-action:pan-y]"
+              onPointerDown={handlePointerDown}
+              onPointerUp={handlePointerUp}
+            >
+              <div
+                className="grid min-w-0 grid-cols-[minmax(0,1fr)] transition-transform duration-500 motion-reduce:duration-0 [transform-style:preserve-3d]"
+                style={{ transform: `rotateY(${flipAngle}deg)` }}
+              >
+                <div
+                  inert={isFlipped}
+                  className="flex min-w-0 flex-col [grid-area:1/1] [backface-visibility:hidden]"
+                >
+                  {postcard(frontFace)}
+                </div>
+                <div
+                  inert={!isFlipped}
+                  className="flex min-w-0 flex-col [grid-area:1/1] [backface-visibility:hidden] [transform:rotateY(180deg)]"
+                >
+                  {postcard(backFace)}
+                </div>
+              </div>
+            </div>
+          ) : (
+            postcard(backFace)
+          )}
+        </div>
+      </div>
+
+      <LikersBottomSheet
+        entryId={entry.id}
+        isOpen={isLikersOpen}
+        onClose={() => setIsLikersOpen(false)}
+      />
+
+      <CommentBottomSheet
+        entryId={entry.id}
+        currentUserId={userId}
+        isOpen={isCommentOpen}
+        onClose={() => setIsCommentOpen(false)}
+        onCountChange={setCommentCount}
+      />
+    </article>
+  );
+}
+
+/**
+ * '더 보기·접기'가 순간 전환되지 않고 높이째 늘었다 줄었다 한다 — ClampedText·hooks/useFold와 같은
+ * 220ms --ease-in-out. 펼친 높이는 글 길이마다 달라 바뀐 뒤의 높이를 재어 Web Animations로 잇는다.
+ * 펼칠 때는 먼저 다 보이게 바꾸고 직전 높이에서 늘인다. 접을 때는 거꾸로 하면 line-clamp가 글을 먼저
+ * 잘라 빈칸만 줄어들므로, 글을 둔 채 높이부터 줄이고 다 줄어든 뒤에 접힌 상태로 바꾼다.
+ * 접힌 높이는 접는 순간 measureCollapsed로 다시 잰다 — 펼친 사이 화면을 돌려 sm 경계를 넘으면
+ * 상한과 줄 수가 바뀌므로, 펼치기 전 높이를 기억해 두면 끝에서 튄다.
+ * 높이는 offsetHeight로 잰다 — 엽서는 기울어 있어 getBoundingClientRect가 몇 px 크게 나온다.
+ * 줄이는 모션에서는 지금처럼 한 번에 바뀐다.
+ */
+function useHeightFold(
+  ref: RefObject<HTMLElement | null>,
+  expanded: boolean,
+  setExpanded: (next: boolean) => void,
+  measureCollapsed: (el: HTMLElement) => number
+) {
+  const anim = useRef<Animation | null>(null);
+  const expandFrom = useRef<number | null>(null);
+  const timing = {
+    duration: FOLD_DURATION * 1000,
+    easing: `cubic-bezier(${EASE_IN_OUT.join(',')})`,
+  };
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    const from = expandFrom.current;
+    expandFrom.current = null;
+    // 접힘으로 바뀌었으면 끝 높이에 붙잡아 둔 애니메이션을 놓는다 — 이제 클래스가 같은 높이로 자른다
+    anim.current?.cancel();
+    anim.current = null;
+    if (!el || from == null || !expanded) return;
+    const h = (px: number) => ({ height: `${px}px`, maxHeight: 'none', overflow: 'hidden' });
+    anim.current = el.animate([h(from), h(el.scrollHeight)], timing);
+    // timing은 매 렌더 같은 값이라 의존성에서 뺀다
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [expanded, ref]);
+
+  return (next: boolean) => {
+    const el = ref.current;
+    if (
+      !el ||
+      typeof el.animate !== 'function' ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) {
+      setExpanded(next);
+      return;
+    }
+    const current = el.offsetHeight;
+    if (next) {
+      expandFrom.current = current;
+      setExpanded(true);
+      return;
+    }
+    // 펼치던 중이면 그 높이(current)에서 되돌린다 — 애니메이션을 놓아야 접힌 높이를 잴 수 있다
+    anim.current?.cancel();
+    const to = measureCollapsed(el);
+    const h = (px: number) => ({ height: `${px}px`, maxHeight: 'none', overflow: 'hidden' });
+    const a = el.animate([h(current), h(to)], { ...timing, fill: 'forwards' });
+    anim.current = a;
+    a.onfinish = () => {
+      if (anim.current === a) setExpanded(false);
+    };
+  };
+}
+
+const QUOTE_CAP_PX = 170;
+const QUOTE_CAP_PX_SM = 220;
+const NOTE_CLAMP = 'line-clamp-4 sm:line-clamp-5';
+
+/** FitText의 접힌 상한 — 10% 여유를 두고 줄 높이의 배수로 스냅한다 */
+function snappedCap(el: HTMLElement, capPx: number, capPxSm: number) {
+  const cap = (window.innerWidth >= 640 ? capPxSm : capPx) * 1.1;
+  const linePx = parseFloat(getComputedStyle(el).lineHeight);
+  return Math.max(1, Math.floor(cap / linePx)) * linePx;
+}
+
+/** 지금 화면에서 앞면 문장이 접혔을 때의 높이 — 상한을 잠깐 걸어 재고 되돌린다(그리기 전이라 보이지 않는다) */
+function measureQuoteCollapsed(el: HTMLElement) {
+  const prev = el.style.maxHeight;
+  el.style.maxHeight = `${snappedCap(el, QUOTE_CAP_PX, QUOTE_CAP_PX_SM)}px`;
+  const height = el.offsetHeight;
+  el.style.maxHeight = prev;
+  return height;
+}
+
+/** 지금 화면에서 뒷면 감상이 접혔을 때의 높이 — line-clamp를 잠깐 걸어 재고 뗀다 */
+function measureNoteCollapsed(el: HTMLElement) {
+  const classes = NOTE_CLAMP.split(' ');
+  el.classList.add(...classes);
+  const height = el.offsetHeight;
+  el.classList.remove(...classes);
+  return height;
+}
+
+interface FitTextProps {
+  /** 높이째 접고 펼칠 상자 — useHeightFold가 잰다 */
+  boxRef?: RefObject<HTMLDivElement | null>;
+  text: string;
+  /** 본문 상한 높이 px (모바일) */
+  capPx: number;
+  /** 본문 상한 높이 px (sm 이상) */
+  capPxSm: number;
+  /** 펼친 상태 — 접힌 채 맞춘 글자 크기는 그대로 두고 높이 상한만 푼다 */
+  expanded?: boolean;
+  className?: string;
+  onClampedChange: (clamped: boolean) => void;
+}
+
+/**
+ * 토큰의 글자 크기를 유지하고, 정해진 상한 높이에서 접는다.
+ * 상한에는 10% 여유를 두고, 줄 높이의 배수로 스냅해 반쯤 잘린 줄이 생기지 않으며,
+ * 넘치는 글은 onClampedChange(true)로 알려 "더 보기"에서 모두 읽게 한다.
+ * 펼치면(expanded) 크기는 유지한 채 잘라내지만 않는다 — 크기가 튀지 않게.
+ */
+function FitText({
+  boxRef,
+  text,
+  capPx,
+  capPxSm,
+  expanded = false,
+  className,
+  onClampedChange,
+}: FitTextProps) {
+  const ownRef = useRef<HTMLDivElement>(null);
+  const ref = boxRef ?? ownRef;
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const fit = () => {
+      el.style.maxHeight = 'none';
+      const cap = snappedCap(el, capPx, capPxSm);
+      onClampedChange(el.scrollHeight > cap + 1);
+      el.style.maxHeight = expanded ? 'none' : `${cap}px`;
+    };
+
+    fit();
+    const observer = new ResizeObserver(fit);
+    observer.observe(el);
+    window.addEventListener('resize', fit);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', fit);
+    };
+  }, [ref, text, capPx, capPxSm, expanded, onClampedChange]);
+
+  return (
+    <div ref={ref} className={`overflow-hidden ${className ?? ''}`}>
+      {text}
+    </div>
+  );
+}

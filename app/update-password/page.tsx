@@ -138,7 +138,7 @@ export default function UpdatePasswordPage() {
               : '링크가 만료됐거나 이미 사용됐다면 재설정을 다시 요청해주세요.'}
           </p>
           <Button asChild variant="secondary" fullWidth>
-            <Link href={hasSession ? '/protected/profile/update-password' : '/reset-password'}>
+            <Link href={hasSession ? '/profile/update-password' : '/reset-password'}>
               {hasSession ? '프로필에서 비밀번호 변경' : '재설정 다시 요청하기'}
             </Link>
           </Button>

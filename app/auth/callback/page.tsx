@@ -44,7 +44,7 @@ export default function AuthCallbackPage() {
       const next: Destination = data ? 'dashboard' : 'onboarding';
       setDestination(next);
       // 예전엔 '/protected'로 보냈는데 그 경로에는 페이지가 없어 404가 났다
-      router.replace(next === 'dashboard' ? '/protected/dashboard' : '/onboarding');
+      router.replace(next === 'dashboard' ? '/today' : '/onboarding');
     };
 
     checkSession();

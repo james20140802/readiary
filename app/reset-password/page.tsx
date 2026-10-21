@@ -37,7 +37,7 @@ export default function ResetPasswordPage() {
     if (fromAlert || invalidLink) return;
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        router.replace('/protected/profile/update-password');
+        router.replace('/profile/update-password');
       }
     });
   }, [supabase, router, fromAlert, invalidLink]);

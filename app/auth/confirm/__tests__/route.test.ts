@@ -99,7 +99,7 @@ describe('GET /auth/confirm', () => {
   it('가입 인증 성공 + 프로필 있음 → 홈', async () => {
     buildSupabaseStub({ profile: { id: 'user-1' } });
     const res = await get('?token_hash=abc&type=email');
-    expect(location(res)).toBe('https://readiary.test/protected/dashboard');
+    expect(location(res)).toBe('https://readiary.test/today');
   });
 
   it('프로필이 있으면 next(같은 오리진 경로만)로 보낸다', async () => {
@@ -136,7 +136,7 @@ describe('GET /auth/confirm', () => {
     const bare = await get(
       '?token_hash=abc&type=email&next=' + encodeURIComponent('https://readiary.test/auth/callback')
     );
-    expect(location(bare)).toBe('https://readiary.test/protected/dashboard');
+    expect(location(bare)).toBe('https://readiary.test/today');
   });
 
   it('next가 Site URL 루트로 대체됐거나 다른 오리진이면 홈으로', async () => {
@@ -144,11 +144,11 @@ describe('GET /auth/confirm', () => {
     const root = await get(
       '?token_hash=abc&type=email&next=' + encodeURIComponent('https://readiary.test')
     );
-    expect(location(root)).toBe('https://readiary.test/protected/dashboard');
+    expect(location(root)).toBe('https://readiary.test/today');
     const other = await get(
       '?token_hash=abc&type=email&next=' + encodeURIComponent('https://evil.test/invite/x')
     );
-    expect(location(other)).toBe('https://readiary.test/protected/dashboard');
+    expect(location(other)).toBe('https://readiary.test/today');
   });
 
   it('로컬·프리뷰 오리진에서 요청한 메일도 착지 안의 next 경로는 살린다 — 링크는 늘 Site URL로 열리므로', async () => {
@@ -163,13 +163,13 @@ describe('GET /auth/confirm', () => {
       '?token_hash=abc&type=email&next=' +
         encodeURIComponent('http://localhost:3000/auth/confirm?next=https%3A%2F%2Fevil.test')
     );
-    expect(location(evil)).toBe('https://readiary.test/protected/dashboard');
+    expect(location(evil)).toBe('https://readiary.test/today');
   });
 
   it('next가 외부 주소면 홈으로 대체한다', async () => {
     buildSupabaseStub({ profile: { id: 'user-1' } });
     const res = await get('?token_hash=abc&type=signup&next=https%3A%2F%2Fevil.test');
-    expect(location(res)).toBe('https://readiary.test/protected/dashboard');
+    expect(location(res)).toBe('https://readiary.test/today');
   });
 
   it('가입 인증 실패 → 로그인 + error=invalid-link', async () => {
@@ -206,7 +206,7 @@ describe('GET /auth/confirm', () => {
     const res = await get('?code=pkce-code');
     expect(exchangeCodeForSession).toHaveBeenCalledWith('pkce-code');
     expect(verifyOtp).not.toHaveBeenCalled();
-    expect(location(res)).toBe('https://readiary.test/protected/dashboard');
+    expect(location(res)).toBe('https://readiary.test/today');
   });
 
   it('PKCE 교환 실패(다른 브라우저 등) → 로그인 + error=invalid-link', async () => {
@@ -227,7 +227,7 @@ describe('GET /auth/confirm', () => {
   it('next가 없거나 기본 목적지면 메타데이터를 건드리지 않는다', async () => {
     const { updateUser } = buildSupabaseStub();
     await get('?code=pkce-code');
-    await get('?code=pkce-code&next=%2Fprotected%2Fdashboard');
+    await get('?code=pkce-code&next=%2Ftoday');
     expect(updateUser).not.toHaveBeenCalled();
   });
 
@@ -259,7 +259,7 @@ describe('GET /auth/confirm', () => {
     const { updateUser } = buildSupabaseStub({ profile: { id: 'user-1' } });
     const res = await get('?code=pkce-code&consent=1');
     expect(updateUser).not.toHaveBeenCalled();
-    expect(location(res)).toBe('https://readiary.test/protected/dashboard');
+    expect(location(res)).toBe('https://readiary.test/today');
   });
 
   it('실어 두기에 실패해도 온보딩으로는 보낸다', async () => {
