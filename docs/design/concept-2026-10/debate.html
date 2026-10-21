@@ -1,0 +1,122 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>문장 토론 · Readiary 시안</title><link rel="stylesheet" href="app.css"><link rel="stylesheet" href="debate.css">
+<style>
+@media (min-width:1024px){
+  .deb{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:56px;align-items:start}
+  .deb .l{position:sticky;top:40px}
+  .prompt .s{font-size:32px}
+  .filters{display:flex;gap:8px;margin-bottom:16px}
+}
+</style></head>
+<body data-tab="social" class="snap">
+<header class="navbar only-mobile">
+  <a class="back" href="talk.html"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>토론</a><span class="title">발제</span>
+  <a class="ib" href="#" aria-label="더 보기"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></a>
+</header>
+<svg width="0" height="0" style="position:absolute"><defs>
+  <symbol id="s-agree" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="s-diff" viewBox="0 0 24 24"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></symbol>
+  <symbol id="s-q" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></symbol>
+  <symbol id="s-move" viewBox="0 0 24 24"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></symbol>
+</defs></svg>
+
+<!-- 모바일: 발제 → 답 → 답 → 내 답 남기기 -->
+<main class="page only-mobile">
+  <div class="stack">
+  <section class="leaf" data-title="발제"><div class="in prompt">
+    <div class="by"><img src="img/6896606.jpg" alt=""><div>윤서 <span>· 이틀 전 · 에로스의 종말</span></div></div>
+    <p class="s"><span class="frag">경계와 문턱</span>이 사라짐과 <span class="frag">동시에</span> <span class="frag">타자에 대한 환상</span>도 사라진다.</p>
+    <div class="src">한병철 · p.42</div>
+    <p class="ask">가까워질수록 상대를 덜 궁금해하게 되는 걸까요?</p>
+    <div class="tally"><span><b>4</b> 공감</span><span><b>3</b> 다르게 읽음</span><span><b>1</b> 질문</span><span>생각이 바뀐 사람 <b>2</b></span></div>
+    <form class="composer reply-box" onsubmit="return false">
+      <div class="target" aria-live="polite">밑줄을 눌러 답할 부분을 고르세요</div>
+      <div class="seg3" role="radiogroup" aria-label="어떻게 읽었나요"><button type="button" class="press">공감</button><button type="button" class="on press">다르게 읽음</button><button type="button" class="press">질문</button></div>
+      <textarea placeholder="근거와 함께 남겨 주세요" aria-label="내 답"></textarea>
+      <div class="row"><span class="btn line sm press">내 기록 붙이기</span><span class="btn ink sm press">남기기</span></div>
+    </form>
+  </div></section>
+
+  <section class="leaf sheet" data-title="답 1"><div class="in">
+    <div class="ans sheet">
+      <div class="hd"><b>도현</b><span class="stance diff"><svg><use href="#s-diff"/></svg>다르게 읽음</span></div>
+      <div class="on"><q>타자에 대한 환상</q>에 대해</div>
+      <div class="t">환상이 사라져야 진짜 그 사람이 보인다고 읽었어요. 사라지는 건 상상 속의 상대뿐이에요.</div>
+      <div class="ev">사랑은 가지는 것이 아니라 하는 것이다.<small>도현의 기록 · 소유냐 존재냐 p.96</small></div>
+      <div class="ft"><span class="moved on"><svg><use href="#s-move"/></svg>생각이 바뀌었어요 3</span><span class="moved">답글</span></div>
+      <div class="reply sheet"><b>윤서</b>그렇게 보면 환상은 잃는 게 아니라 비우는 거네요.</div>
+    </div>
+  </div></section>
+
+  <section class="leaf sheet free" data-title="답 2"><div class="in">
+    <div class="ans sheet">
+      <div class="hd"><b>하린</b><span class="stance"><svg><use href="#s-agree"/></svg>공감</span></div>
+      <div class="on"><q>경계와 문턱</q>에 대해</div>
+      <div class="t">설렘은 거리에서 나온다고 생각해요. 거리를 지키는 것도 사랑하는 일이에요.</div>
+      <div class="ft"><span class="moved"><svg><use href="#s-move"/></svg>생각이 바뀌었어요 1</span><span class="moved">답글</span></div>
+    </div>
+    <div class="ans sheet">
+      <div class="hd"><b>지우</b><span class="stance"><svg><use href="#s-q"/></svg>질문</span></div>
+      <div class="on"><q>동시에</q>라는 말에 대해</div>
+      <div class="t">경계가 사라지는 것과 환상이 사라지는 게 정말 동시에 일어날까요? 순서가 있을 것 같아요.</div>
+      <div class="ft"><span class="moved">답글 1</span></div>
+    </div>
+  </div></section>
+
+  </div>
+</main>
+
+<!-- 데스크톱: 왼쪽 발제와 내 답, 오른쪽 답들 -->
+<main class="page only-desk"><div class="wrap deb">
+  <div class="l prompt">
+    <div class="by"><img src="img/6896606.jpg" alt=""><div>윤서 <span>· 이틀 전 · 에로스의 종말</span></div></div>
+    <p class="s"><span class="frag">경계와 문턱</span>이 사라짐과 <span class="frag">동시에</span> <span class="frag">타자에 대한 환상</span>도 사라진다.</p>
+    <div class="src">한병철 · p.42</div>
+    <p class="ask">가까워질수록 상대를 덜 궁금해하게 되는 걸까요?</p>
+    <div class="tally"><span><b>4</b> 공감</span><span><b>3</b> 다르게 읽음</span><span><b>1</b> 질문</span><span>생각이 바뀐 사람 <b>2</b></span></div>
+    <form class="composer reply-box sheet" onsubmit="return false">
+      <div class="target" aria-live="polite">밑줄을 눌러 답할 부분을 고르세요</div>
+      <div class="seg3" role="radiogroup" aria-label="어떻게 읽었나요"><button type="button" class="press">공감</button><button type="button" class="on press">다르게 읽음</button><button type="button" class="press">질문</button></div>
+      <textarea placeholder="근거와 함께 남겨 주세요" aria-label="내 답"></textarea>
+      <div class="row"><span class="btn line sm press">내 기록 붙이기</span><span class="btn ink sm press">남기기</span></div>
+    </form>
+  </div>
+  <div>
+    <div class="filters chips"><span class="chip on">생각을 바꾼 답부터</span><span class="chip">다르게 읽음</span><span class="chip">공감</span><span class="chip">질문</span></div>
+    <div class="ans sheet" style="transform:rotate(-.5deg)">
+      <div class="hd"><b>도현</b><span class="stance diff"><svg><use href="#s-diff"/></svg>다르게 읽음</span></div>
+      <div class="on"><q>타자에 대한 환상</q>에 대해</div>
+      <div class="t">환상이 사라져야 진짜 그 사람이 보인다고 읽었어요. 사라지는 건 상상 속의 상대뿐이에요.</div>
+      <div class="ev">사랑은 가지는 것이 아니라 하는 것이다.<small>도현의 기록 · 소유냐 존재냐 p.96</small></div>
+      <div class="ft"><span class="moved on"><svg><use href="#s-move"/></svg>생각이 바뀌었어요 3</span><span class="moved">답글</span></div>
+      <div class="reply sheet"><b>윤서</b>그렇게 보면 환상은 잃는 게 아니라 비우는 거네요.</div>
+    </div>
+    <div class="ans sheet" style="transform:rotate(.4deg)">
+      <div class="hd"><b>하린</b><span class="stance"><svg><use href="#s-agree"/></svg>공감</span></div>
+      <div class="on"><q>경계와 문턱</q>에 대해</div>
+      <div class="t">설렘은 거리에서 나온다고 생각해요. 거리를 지키는 것도 사랑하는 일이에요.</div>
+      <div class="ft"><span class="moved"><svg><use href="#s-move"/></svg>생각이 바뀌었어요 1</span><span class="moved">답글</span></div>
+    </div>
+    <div class="ans sheet" style="transform:rotate(-.3deg)">
+      <div class="hd"><b>지우</b><span class="stance"><svg><use href="#s-q"/></svg>질문</span></div>
+      <div class="on"><q>동시에</q>라는 말에 대해</div>
+      <div class="t">경계가 사라지는 것과 환상이 사라지는 게 정말 동시에 일어날까요? 순서가 있을 것 같아요.</div>
+      <div class="ft"><span class="moved">답글 1</span></div>
+    </div>
+  </div>
+</div></main>
+<script src="shell.js"></script>
+<script>
+// 문장의 밑줄을 누르면 그 부분에 답한다. 다시 누르면 문장 전체.
+document.querySelectorAll('main').forEach(m=>{
+  const frags=[...m.querySelectorAll('.prompt .frag')], t=m.querySelector('.reply-box .target');
+  frags.forEach(f=>{f.tabIndex=0;f.setAttribute('role','button');
+    const pick=()=>{const on=!f.classList.contains('on');frags.forEach(x=>{x.classList.remove('on');x.setAttribute('aria-pressed','false')});
+      if(on){f.classList.add('on');f.setAttribute('aria-pressed','true');t.innerHTML='<q>'+f.textContent+'</q>에 대한 답';}
+      else t.textContent='문장 전체에 대한 답';};
+    f.addEventListener('click',pick);f.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pick();}});});
+  m.querySelectorAll('.seg3 button').forEach(b=>b.addEventListener('click',()=>{b.parentNode.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b))}));
+});
+</script>
+</body></html>

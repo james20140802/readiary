@@ -1,0 +1,54 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>나 · 시안 2 · Readiary</title><link rel="stylesheet" href="app.css"><link rel="stylesheet" href="profile.css">
+<style>.made{display:flex;gap:16px;align-items:flex-end;padding:0 4px;border-bottom:6px solid #CDBFA6;height:200px;margin-top:20px}
+@media (prefers-color-scheme:dark){.made{border-bottom-color:#3C352C}}
+.made img{display:block;width:92px;border-radius:2px 4px 4px 2px;box-shadow:0 18px 28px -14px rgb(30 20 10/.55)}
+.made img:first-child{width:120px}
+.why{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+.why div{font:400 15px/1.5 var(--serif);color:var(--sub)}
+.stat{display:grid;grid-template-columns:1fr 1fr;gap:18px 12px;margin-top:18px}
+.stat b{display:block;font:700 34px var(--serif)} .stat span{font:500 15px var(--sans);color:var(--sub)}
+@media (min-width:1024px){.made{height:340px;gap:30px}.made img{width:180px}.made img:first-child{width:220px}.why div{font-size:17px}
+  .stat{grid-template-columns:repeat(4,1fr)}}</style></head>
+<body data-tab="me" class="snap dsnap">
+<header class="navbar only-mobile"><span class="brand" style="opacity:0"></span><span class="title">나</span>
+  <a class="ib" href="#" aria-label="설정"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></a></header>
+
+<main class="page only-mobile">
+  <section class="leaf" data-title="나를 만든 책"><div class="in">
+    <div class="variants"><a class="" href="me1.html">1 문장 표지</a><a class="on" href="me2.html">2 나의 서재</a><a class="" href="me3.html">3 일기장 권수</a></div><div class="who"><div class="n">테스트용계정</div><div class="bio">출퇴근길에 조금씩 읽어요. 철학책을 좋아해요.</div></div>
+    <div class="label" style="margin-top:24px">나를 만든 책</div>
+    <div class="made"><img src="img/5249396.jpg" alt="소유냐 존재냐"><img src="img/6896606.jpg" alt="철학이 깊을수록 삶은 단순하다"><img src="img/1239611.jpg" alt="왜 나는 너를 사랑하는가"></div>
+    <div class="why"><div>가진 것보다 머무는 법을 생각하게 했다.</div><div>질문을 고쳐 쓰는 법.</div><div>사랑을 처음부터 다시 읽었다.</div></div>
+  </div></section>
+  <section class="leaf sheet" data-title="서가"><div class="in">
+    <div class="h2">읽은 책 46권</div><div class="cap" style="margin:6px 0 18px">친구에게 보이는 서가예요</div>
+    <div class="m-shelves"></div>
+  </div></section>
+  <section class="leaf sheet free" data-title="올해의 독서"><div class="in">
+    <div class="h2">올해의 독서</div>
+    <div class="stat"><div><b>46</b><span>남긴 문장</span></div><div><b>12</b><span>덧붙인 생각</span></div><div><b>2</b><span>다 읽은 책</span></div><div><b>31</b><span>기록한 날</span></div></div>
+    <div class="label" style="margin-top:30px;margin-bottom:12px">가장 많이 돌아본 문장</div><div class="mark sheet" style="transform:rotate(-.8deg)"><div class="q">생각이 깊어진다는 것은 무엇을 내려놓을지 알게 되는 일이다.</div><div class="s">철학이 깊을수록 삶은 단순하다</div></div>
+<div class="mark sheet" style="transform:rotate(.6deg)"><div class="q">사랑은 가지는 것이 아니라 하는 것이다.</div><div class="s">소유냐 존재냐 · p.96</div></div>
+<div class="mark sheet" style="transform:rotate(-.4deg)"><div class="q">경계와 문턱이 사라짐과 동시에 타자에 대한 환상도 사라진다.</div><div class="s">에로스의 종말 · p.42</div></div>
+  </div></section>
+</main>
+<nav class="dseg"><a class="on" href="#made">나를 만든 책</a><a href="#all">서가</a><a href="#year">올해의 독서</a></nav>
+<main class="page only-desk">
+  <section class="dleaf" id="made">
+    <div style="max-width:640px"><div class="variants"><a class="" href="me1.html">1 문장 표지</a><a class="on" href="me2.html">2 나의 서재</a><a class="" href="me3.html">3 일기장 권수</a></div><div class="who"><div class="n">테스트용계정</div><div class="bio">출퇴근길에 조금씩 읽어요. 철학책을 좋아해요.</div></div></div>
+    <div class="label" style="margin-top:30px">나를 만든 책</div>
+    <div class="made" style="max-width:900px"><img src="img/5249396.jpg" alt="소유냐 존재냐"><img src="img/6896606.jpg" alt="철학이 깊을수록 삶은 단순하다"><img src="img/1239611.jpg" alt="왜 나는 너를 사랑하는가"></div>
+    <div class="why" style="max-width:900px"><div>가진 것보다 머무는 법을 생각하게 했다.</div><div>질문을 고쳐 쓰는 법.</div><div>사랑을 처음부터 다시 읽었다.</div></div>
+  </section>
+  <section class="dleaf" id="all"><div class="h2" style="font-size:30px;margin-bottom:22px">읽은 책 46권</div><div class="d-shelves"></div></section>
+  <section class="dleaf two" id="year">
+    <div><div class="h2" style="font-size:30px">올해의 독서</div><div class="stat" style="grid-template-columns:1fr 1fr">
+      <div><b>46</b><span>남긴 문장</span></div><div><b>12</b><span>덧붙인 생각</span></div><div><b>2</b><span>다 읽은 책</span></div><div><b>31</b><span>기록한 날</span></div></div></div>
+    <div><div class="label" style="margin-bottom:14px">가장 많이 돌아본 문장</div><div class="mark sheet" style="transform:rotate(-.8deg)"><div class="q">생각이 깊어진다는 것은 무엇을 내려놓을지 알게 되는 일이다.</div><div class="s">철학이 깊을수록 삶은 단순하다</div></div>
+<div class="mark sheet" style="transform:rotate(.6deg)"><div class="q">사랑은 가지는 것이 아니라 하는 것이다.</div><div class="s">소유냐 존재냐 · p.96</div></div>
+<div class="mark sheet" style="transform:rotate(-.4deg)"><div class="q">경계와 문턱이 사라짐과 동시에 타자에 대한 환상도 사라진다.</div><div class="s">에로스의 종말 · p.42</div></div></div>
+  </section>
+</main><script src="shell.js"></script><script src="shelf.js"></script><script>fillShelves('.m-shelves',10,3);fillShelves('.d-shelves',16,3,{scale:1.25});</script>
+</body></html>

@@ -1,0 +1,49 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>찾기 · Readiary 시안</title><link rel="stylesheet" href="app.css">
+<style>
+.sbox{display:flex;align-items:center;gap:10px;height:52px;margin-top:14px;padding:0 4px;border-bottom:1.5px solid var(--ink)}
+.sbox svg{width:22px;height:22px;color:var(--sub);flex:none}
+.sbox input{flex:1;min-width:0;height:100%;border:0;outline:0;background:transparent;font:500 20px var(--sans);color:var(--ink)}
+.sbox .clr{font:500 15px var(--sans);color:var(--sub);min-height:44px}
+.seg2{margin:18px 0 6px}
+mark{background:linear-gradient(transparent 58%,rgb(45 95 184/.22) 58%);color:inherit}
+@media (prefers-color-scheme:dark){mark{background:linear-gradient(transparent 58%,rgb(143 176 238/.3) 58%)}}
+.bk-r{display:grid;grid-template-columns:44px 1fr auto;gap:2px 14px;align-items:center;padding:12px 0;border-top:1px solid var(--rule)}
+.bk-r img,.bk-r .ph{grid-row:span 2;width:44px;height:64px;object-fit:cover;border-radius:2px;box-shadow:0 6px 12px -6px rgb(0 0 0/.45)}
+.bk-r b{font:600 18px var(--serif);align-self:end}.bk-r span{font:500 14px var(--sans);color:var(--sub);grid-column:2;align-self:start}
+.bk-r i{grid-row:span 2;grid-column:3;font:500 14px var(--sans);font-style:normal;color:var(--sub)}
+.en-r{display:grid;grid-template-columns:58px 1fr;gap:12px;padding:16px 0;border-top:1px solid var(--rule)}
+.en-r .d{font:500 14px/1.5 var(--mono);color:var(--sub)}
+.en-r .q{font:600 19px/1.6 var(--serif)} .en-r .n{font:400 17px/1.6 var(--serif);color:var(--sub);margin-top:6px}
+.en-r .src{font:500 14px var(--sans);color:var(--sub);margin-top:6px}
+.recent{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.more{display:flex;justify-content:center;margin-top:10px}
+@media (min-width:1024px){.res{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:56px;align-items:start}}
+</style></head>
+<body data-tab="search" class="plain">
+<header class="navbar only-mobile"><a class="back" href="home2.html"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>오늘</a><span class="title">찾기</span></header>
+<main class="page"><div class="wrap">
+  <div class="top-sentinel"></div>
+  <h1 class="large-title">찾기</h1>
+  <p class="meta" style="margin-top:6px">책 제목·지은이, 내가 남긴 문장과 생각에서 찾아요.</p>
+  <label class="sbox"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><input type="search" value="사랑" aria-label="찾을 말"><button class="clr" type="button">지우기</button></label>
+  <div class="recent" aria-label="최근 찾은 말"><span class="chip">환상</span><span class="chip">한병철</span><span class="chip">존재</span></div>
+  <div class="seg2" role="tablist" style="max-width:420px"><button role="tab" class="on" aria-selected="true">전체 7</button><button role="tab">책 2</button><button role="tab">기록 5</button></div>
+  <div class="res">
+    <section class="sec" style="margin-top:22px">
+      <div class="label">책</div>
+      <a class="bk-r" href="excerpt.html"><img src="img/1239611.jpg" alt=""><b>왜 나는 너를 <mark>사랑</mark>하는가</b><span>알랭 드 보통 · 다 읽음</span><i>문장 14</i></a>
+      <a class="bk-r" href="book.html"><div class="ph" style="background:#B9C7A8"></div><b><mark>사랑</mark>의 기술</b><span>에리히 프롬 · 서가</span><i>문장 0</i></a>
+    </section>
+    <section class="sec" style="margin-top:22px">
+      <div class="label">기록</div>
+      <a class="en-r" href="entry.html"><div class="d">9.29<br>p.96</div><div><div class="q"><mark>사랑</mark>은 가지는 것이 아니라 하는 것이다.</div><div class="src">소유냐 존재냐</div></div></a>
+      <a class="en-r" href="entry.html"><div class="d">9.21<br>p.12</div><div><div class="q"><mark>사랑</mark>에 빠지는 일은 상대를 다 알기 전에 시작된다.</div><div class="src">왜 나는 너를 사랑하는가</div></div></a>
+      <a class="en-r" href="entry.html"><div class="d">9.20</div><div><div class="n" style="margin-top:0;color:var(--ink)">첫사랑 얘기는 왜 늘 계절로 기억될까. <mark>사랑</mark>보다 날씨를 기억하는 것 같다.</div><div class="src">왜 나는 너를 사랑하는가 · 생각</div></div></a>
+      <div class="more"><button class="btn line sm press">기록 더 보기</button></div>
+    </section>
+  </div>
+</div></main>
+<script src="shell.js"></script>
+</body></html>

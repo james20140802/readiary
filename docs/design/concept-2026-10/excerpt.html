@@ -1,0 +1,80 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>발췌집 · 왜 나는 너를 사랑하는가 · Readiary 시안</title><link rel="stylesheet" href="app.css?v=3">
+<style>
+.tp{text-align:center;padding:30px 0 10px}
+.tp .k{font:600 13px var(--sans);letter-spacing:.16em;color:var(--sub)}
+.tp h1{font:700 30px/1.35 var(--serif);margin-top:18px}
+.tp .a{font:500 16px var(--sans);color:var(--sub);margin-top:8px}
+.tp .c{font:400 17px/1.7 var(--serif);margin-top:26px;color:var(--sub)}
+.ex-q{padding:26px 4px;border-top:1px solid var(--rule)}
+.ex-q .q{font:600 22px/1.65 var(--serif)}
+.ex-q .n{font:400 17px/1.65 var(--serif);color:var(--sub);margin-top:10px;padding-left:12px;box-shadow:inset 2px 0 0 var(--rule)}
+.ex-q .pg{font:500 13px var(--mono);color:var(--faint);margin-top:10px}
+.colo{margin-top:30px;padding-top:20px;border-top:1px solid var(--ink);font:500 14px/1.9 var(--sans);color:var(--sub)}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.opts button{padding:16px;border-radius:10px;box-shadow:inset 0 0 0 1px var(--rule);text-align:left;font:600 16px var(--sans)}
+.opts button small{display:block;font:500 13px/1.5 var(--sans);color:var(--sub);margin-top:4px}
+.opts button[aria-pressed=true]{box-shadow:inset 0 0 0 2px var(--ink)}
+.prev{display:flex;gap:10px;overflow-x:auto;margin-top:16px;padding-bottom:6px;scrollbar-width:none}
+.card45{flex:none;width:150px;aspect-ratio:4/5;background:#FBF8F1;color:#2A2620;border-radius:4px;padding:16px 14px;display:flex;flex-direction:column;box-shadow:0 10px 24px -12px rgb(30 20 10/.45);font:600 13px/1.6 var(--serif)}
+.card45 small{margin-top:auto;font:500 10px var(--sans);color:#8A8274}
+@media (min-width:1024px){.book2{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:72px;align-items:start}.book2 .tp{position:sticky;top:44px;text-align:left}}
+
+/* ── 발췌집 = 옮겨 적은 문장이 한 장씩 쌓인 간지 묶음. 한 장의 비율(4:5)은 카드로 내보낼 때와 같다 ── */
+.xhd{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px}
+.xhd .pos{font:500 13px var(--mono);color:var(--sub)}
+.xbtns{display:flex;gap:14px}.xbtns [hidden]{display:none}.xbtns .link{font-size:15px;min-height:40px}.xbtns .flip{color:var(--accent)}
+.xpile{margin-top:8px;--w:calc(100% - 50px)}
+.xc{aspect-ratio:4/5;max-height:440px;display:flex;flex-direction:column;padding:26px 24px 20px}
+.xc .q{font:600 22px/1.65 var(--serif);letter-spacing:-.01em}
+.xc .n{font:400 17px/1.6 var(--serif);color:var(--sub);margin-top:14px;padding-left:12px;box-shadow:inset 2px 0 0 rgb(127 127 127/.3)}
+.xc .pg{display:flex;justify-content:space-between;margin-top:auto;font:500 13px var(--mono);color:var(--faint)}
+/* 한 줄로 펼치기: 묶음을 풀어 처음부터 차례로 읽는다(훑어보기·찾기용) */
+.xpile.flat{display:flex;flex-direction:column-reverse;gap:14px;margin-bottom:0!important}
+.xpile.flat .lslip{transform:none!important;opacity:1!important;width:auto;aspect-ratio:auto;max-height:none;min-height:0;cursor:auto}
+.xpile.flat .lslip .pg{margin-top:14px}
+@media (min-width:1024px){.xpile{max-width:500px}.xc .q{font-size:24px}}
+</style></head>
+<body data-tab="books" class="plain">
+<header class="navbar only-mobile"><a class="back" href="books.html"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>책장</a><span class="title">발췌집</span>
+  <a class="ib" href="#" data-open="exp" aria-label="이미지로 내보내기"><svg viewBox="0 0 24 24"><path d="M12 2v13"/><path d="m16 6-4-4-4 4"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/></svg></a></header>
+<main class="page"><div class="wrap" style="max-width:1100px"><div class="top-sentinel"></div>
+<div class="book2">
+  <div class="tp">
+    <div class="k">발췌집</div>
+    <h1>왜 나는 너를<br>사랑하는가</h1>
+    <div class="a">알랭 드 보통</div>
+    <p class="c">8월 30일부터 9월 21일까지,<br>문장 열네 개를 옮겨 적었습니다.<br><span style="font-size:14px">시안에는 여섯 장만 담았어요</span></p>
+    <div style="display:flex;gap:8px;margin-top:22px" class="acts-x"><button class="btn ink sm press" data-open="exp">이미지로 내보내기</button><a class="btn line sm press" href="book.html">책 펼치기</a></div>
+  </div>
+  <div>
+    <div data-pile-box>
+      <div class="xhd"><span class="pos" aria-live="polite"></span><span class="xbtns"><button class="link flat-t" aria-pressed="false">한 줄로 펼치기</button><button class="link flip">다음 장</button></span></div>
+      <div class="pile xpile" role="group" aria-label="옮겨 적은 문장 묶음. 맨 위 간지를 옆으로 밀면 다음 문장이 나와요"><article class="lslip xc"><p class="q">끝은 대개 처음에 이미 적혀 있다.</p><div class="pg"><span>p.240</span><span>9월 21일</span></div></article><article class="lslip xc"><p class="q">기억은 늘 조금씩 이야기를 고쳐 쓴다.</p><div class="n">그래서 다시 읽는 게 필요하다.</div><div class="pg"><span>p.203</span><span>9월 18일</span></div></article><article class="lslip xc"><p class="q">함께 있을 때 가장 외로운 순간이 있다.</p><div class="pg"><span>p.176</span><span>9월 14일</span></div></article><article class="lslip xc"><p class="q">우리는 상대를 사랑하는 것이 아니라 상대에 대한 우리의 생각을 사랑한다.</p><div class="pg"><span>p.131</span><span>9월 9일</span></div></article><article class="lslip xc"><p class="q">오해도 이해의 한 방식이다.</p><div class="n">이 문장 때문에 이 책을 끝까지 읽었다.</div><div class="pg"><span>p.58</span><span>9월 2일</span></div></article><article class="lslip xc"><p class="q">사랑에 빠지는 일은 상대를 다 알기 전에 시작된다.</p><div class="pg"><span>p.12</span><span>8월 30일</span></div></article></div>
+    </div>
+    <div class="colo">왜 나는 너를 사랑하는가 발췌집<br>엮은이 테스트용계정 · 2026년 9월 21일 완독<br>문장 14 · 생각 3</div>
+    <div style="margin-top:22px;display:flex;gap:8px"><button class="btn line sm press" data-open="unfin">완독 취소</button></div>
+  </div>
+</div>
+</div></main>
+<dialog class="bsheet" id="exp" aria-labelledby="exp-t"><div class="grab"></div><div class="bd">
+  <div class="hd"><b id="exp-t">이미지로 내보내기</b><button class="x" data-close>닫기</button></div>
+  <div class="opts"><button aria-pressed="false" onclick="this.parentNode.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b===this))">한 장으로<small>긴 이미지 하나</small></button><button aria-pressed="true" onclick="this.parentNode.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b===this))">카드로 나누어<small>4:5 카드 16장 · 인스타그램에 맞게</small></button></div>
+  <div class="prev"><div class="card45" style="font-size:16px">왜 나는 너를<br>사랑하는가<small>발췌집 · 테스트용계정</small></div><div class="card45">사랑에 빠지는 일은 상대를 다 알기 전에 시작된다.<small>p.12</small></div><div class="card45">오해도 이해의 한 방식이다.<small>p.58</small></div></div>
+  <div style="display:flex;gap:8px;margin-top:18px"><button class="btn line press" style="flex:1" data-toast="사진에 저장했어요">저장</button><button class="btn ink press" style="flex:1" data-toast="공유 창을 열어요 (시안)">공유하기</button></div>
+  <p class="meta" style="margin-top:12px">아이폰에서 저장이 안 되면 이미지를 길게 눌러 ‘사진에 저장’을 고르세요.</p>
+</div></dialog>
+<dialog class="bsheet" id="unfin" aria-labelledby="unfin-t"><div class="grab"></div><div class="bd">
+  <div class="hd"><b id="unfin-t">다시 읽는 중으로 돌릴까요</b><button class="x" data-close>닫기</button></div>
+  <p class="note" style="font-size:17px">남긴 기록은 그대로예요. 다시 완독하면 발췌집도 다시 묶여요.</p>
+  <div style="display:flex;gap:8px;margin-top:18px"><button class="btn line press" style="flex:1" data-close>그대로 두기</button><a class="btn ink press" style="flex:1" href="book.html">읽는 중으로</a></div>
+</div></dialog>
+<script src="shell.js"></script><script src="pile.js?v=10"></script>
+<script>
+document.querySelectorAll('.flat-t').forEach(b=>b.addEventListener('click',()=>{const box=b.closest('[data-pile-box]'),pile=box.querySelector('.pile');
+  const on=pile.classList.toggle('flat');b.setAttribute('aria-pressed',on);b.textContent=on?'다시 묶기':'한 줄로 펼치기';box.querySelector('.flip').hidden=on;box.querySelector('.pos').hidden=on;
+  if(on){[...pile.children].sort((a,c)=>c.dataset.i-a.dataset.i).forEach(x=>pile.append(x));}
+  pile.querySelectorAll('.lslip').forEach(x=>{x.setAttribute('aria-hidden','false');x.inert=false;});if(!on)lay(pile);}));
+</script>
+</body></html>

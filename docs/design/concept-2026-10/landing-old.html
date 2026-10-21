@@ -1,0 +1,39 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><link rel="stylesheet" href="base.css">
+<style>
+body{background:var(--paper);width:1440px;height:900px;overflow:hidden;position:relative}
+nav{height:72px;display:flex;align-items:center;padding:0 64px;gap:32px;font:500 16px var(--sans);color:var(--ink-sub)}
+nav b{font:700 22px var(--serif);color:var(--ink);margin-right:auto}
+.cover{position:absolute;box-shadow:0 30px 50px -24px rgb(30 24 16/.55)}
+</style></head><body class="grain">
+<nav><b>Readiary</b><span>둘러보기</span><span>로그인</span><span class="btn ink" style="height:42px;font-size:15px">기록 시작하기</span></nav>
+
+<div style="position:absolute;left:64px;top:210px;width:560px">
+  <h1 class="serif" style="font-size:76px;line-height:1.12;font-weight:700;letter-spacing:-.03em">읽은 자리에<br>한 장 겹쳐 두세요</h1>
+  <p style="font-size:21px;line-height:1.6;color:var(--ink-sub);margin-top:28px">마음에 남은 문장을 적어 두면,<br>한 달 뒤에도 일 년 뒤에도 그 자리에서 다시 만납니다.</p>
+  <div style="display:flex;gap:12px;margin-top:40px"><span class="btn ink" style="height:56px;padding:0 30px;font-size:18px">기록 시작하기</span><span class="btn line" style="height:56px;padding:0 26px;font-size:18px">둘러보기</span></div>
+</div>
+
+<!-- 책상 위: 표지들 -->
+<img class="cover" src="img/5249396.jpg" style="left:760px;top:120px;width:300px;transform:rotate(-5deg)">
+<img class="cover" src="img/6896606.jpg" style="left:1060px;top:90px;width:280px;transform:rotate(4deg)">
+<img class="cover" src="img/545848.jpg" style="left:1180px;top:500px;width:250px;transform:rotate(-2deg)">
+<img class="cover" src="img/1239611.jpg" style="left:700px;top:560px;width:230px;transform:rotate(6deg)">
+
+<!-- 겹쳐 놓은 트레이싱지 -->
+<div class="vellum" style="--solid:40px;position:absolute;left:820px;top:300px;width:440px;padding:34px 34px 30px;transform:rotate(-2.2deg);border-radius:3px">
+  <div class="mono" style="font-size:14px;color:var(--ink-sub)">2025. 10. 6.  p.87</div>
+  <div class="serif" style="font-size:30px;line-height:1.5;font-weight:600;margin-top:14px;letter-spacing:-.01em">생각이 깊어진다는 것은 무엇을 내려놓을지 알게 되는 일이다.</div>
+  <div style="margin-top:22px;padding-top:16px;border-top:1px solid var(--line)">
+    <div style="font:600 14px var(--sans);color:var(--ink-sub)">1년 뒤에 덧붙인 생각</div>
+    <div class="serif" style="font-size:19px;line-height:1.6;margin-top:6px">올해는 조금 더 내려놓았다.</div>
+  </div>
+</div>
+<div class="vellum flat" style="position:absolute;left:1120px;top:250px;width:250px;padding:20px 22px;transform:rotate(5deg);border-radius:3px">
+  <div style="font:600 14px var(--sans)">윤서</div>
+  <div class="serif" style="font-size:18px;line-height:1.55;margin-top:6px">질문을 바꾸면 같은 하루도 다른 얼굴을 한다.</div>
+</div>
+<div class="vellum" style="--solid:20px;position:absolute;left:700px;top:700px;width:300px;padding:20px 22px;transform:rotate(-4deg);border-radius:3px">
+  <div class="mono" style="font-size:13px;color:var(--ink-sub)">대출 카드  10.6  p.184</div>
+  <div class="serif" style="font-size:18px;line-height:1.55;margin-top:6px">가진 것을 잃을까 두려운 마음.</div>
+</div>
+</body></html>

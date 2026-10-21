@@ -1,0 +1,244 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Readiary · 읽은 자리에 한 장 겹쳐 두세요</title><link rel="stylesheet" href="app.css">
+<style>
+/* 랜딩: 겹쳐 비치는 트레이싱지 묶음이 장면마다 다르게 쌓인다. 움직임은 스크롤에 묶이고, 동작 줄이기에서는 멈춘 그림으로 남는다 */
+body{overflow-x:clip}
+.lnav{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:8px;height:64px;padding:0 max(20px,4vw);
+  background:rgb(var(--paper-rgb,244 240 232)/.72);-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4)}
+@media (prefers-color-scheme:dark){.lnav{--paper-rgb:26 23 20}}
+.lnav b{font:700 22px var(--serif);margin-right:auto}
+.lnav a{font:500 15px var(--sans);color:var(--sub);min-height:44px;display:inline-flex;align-items:center;padding:0 10px}
+.lnav .btn{height:40px;font-size:15px;padding:0 18px;color:var(--paper)}
+.sec2{position:relative;padding:clamp(56px,9vh,110px) max(20px,6vw)}
+.in2{max-width:1180px;margin:0 auto}
+.h1{font:700 clamp(44px,6.4vw,84px)/1.12 var(--serif);letter-spacing:-.03em}
+.h2l{font:700 clamp(32px,4.2vw,54px)/1.2 var(--serif);letter-spacing:-.02em}
+.lead{font:400 clamp(18px,1.6vw,21px)/1.65 var(--serif);color:var(--sub);margin-top:20px;max-width:30em}
+.ctas{display:flex;gap:10px;margin-top:34px;flex-wrap:wrap}
+.ctas .btn{height:54px;padding:0 28px;font-size:17px}
+.v{position:absolute;border-radius:2px;padding:7% 7% 6%;background-color:rgb(var(--sheet)/.58);background-image:var(--grain),var(--vellum-light);
+  -webkit-backdrop-filter:blur(1.6px) saturate(.8);backdrop-filter:blur(1.6px) saturate(.8);
+  box-shadow:inset 0 0 0 1px rgb(255 255 255/.6),0 1px 1px rgb(60 45 25/.05),0 18px 34px -24px rgb(60 45 25/.4)}
+@media (prefers-color-scheme:dark){.v{background-color:rgb(var(--sheet)/.68);box-shadow:inset 0 .5px 0 rgb(255 255 255/.12),inset 0 0 0 .5px rgb(255 255 255/.05),0 18px 34px -18px rgb(0 0 0/.7)}}
+.v .k{font:500 2.6cqi var(--mono);color:var(--sub)}
+.v .q{font:600 4.4cqi/1.55 var(--serif);margin-top:4%;letter-spacing:-.01em}
+.v .s{font:400 3.4cqi/1.55 var(--serif);margin-top:4%}
+.cv{position:absolute;border-radius:2px 6px 6px 2px;box-shadow:0 30px 50px -26px rgb(30 20 10/.55)}
+
+/* 1. 첫 화면: 표지 위에 문장 간지 세 장 */
+.hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:4vw;align-items:center}
+.hero-s{padding-top:clamp(28px,6vh,72px)}
+.hstage{position:relative;aspect-ratio:1/1.08;container-type:inline-size;max-width:620px;width:100%;justify-self:end}
+.hstage .cv{left:2%;top:10%;width:44%;transform:rotate(-6deg)}
+.hstage .a{left:24%;top:4%;width:58%;transform:rotate(-2.5deg)}
+.hstage .b{left:40%;top:47%;width:54%;transform:rotate(4deg)}
+.hstage .c{left:10%;top:68%;width:48%;transform:rotate(-4.5deg)}
+@media (prefers-reduced-motion:no-preference){
+  .hstage .v,.hstage .cv{animation:land 900ms cubic-bezier(.23,1,.32,1) both}
+  .hstage .a{animation-delay:120ms}.hstage .b{animation-delay:240ms}.hstage .c{animation-delay:360ms}
+  @supports (animation-timeline:scroll()){
+    .hstage{animation:drift linear both;animation-timeline:scroll(root);animation-range:0 90vh}
+  }
+}
+@keyframes land{from{opacity:0;translate:0 26px;rotate:0deg}}
+@keyframes drift{to{transform:translateY(-6%) rotate(-1.5deg);opacity:.5}}
+
+/* 2. 적는다: 쓰는 장면 하나 */
+.write2{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:5vw;align-items:center}
+.pad{position:relative;padding:34px 34px 26px;border-radius:2px;background:rgb(var(--sheet));box-shadow:inset 0 0 0 1px rgb(60 45 25/.07),0 24px 50px -30px rgb(60 45 25/.45);
+  background-image:repeating-linear-gradient(to bottom,transparent 0 39px,var(--rule) 39px 40px);background-position:0 92px}
+@media (prefers-color-scheme:dark){.pad{box-shadow:inset 0 0 0 1px rgb(255 255 255/.05),0 24px 50px -24px rgb(0 0 0/.7)}}
+.pad .dd{display:flex;align-items:flex-end;gap:12px}.pad .dd b{font:400 84px/.8 var(--serif);letter-spacing:-.04em}.pad .dd span{font:600 17px var(--sans);padding-bottom:4px}
+.pad .tabs{display:flex;gap:16px;margin-top:22px;font:600 15px var(--sans);color:var(--faint)}.pad .tabs .on{color:var(--ink);box-shadow:inset 0 -2px 0 var(--ink)}
+.pad .tw{font:400 24px/40px var(--serif);min-height:120px;margin-top:6px}
+.pad .tw i{display:inline-block;width:2px;height:26px;background:var(--accent);vertical-align:-5px;margin-left:2px}
+.pad .row{display:flex;align-items:center;gap:12px;margin-top:6px;font:500 15px var(--sans);color:var(--sub)}
+.pad .row .btn{margin-left:auto;height:44px;font-size:16px}
+.pad .ok{position:absolute;right:-14px;bottom:-28px;padding:12px 16px;border-radius:2px;transform:rotate(2deg);font:600 14px var(--sans);opacity:0;transition:opacity 300ms ease,translate 400ms cubic-bezier(.23,1,.32,1);translate:0 10px}
+.pad.done .ok{opacity:1;translate:0 0}
+.notes{display:flex;gap:18px;margin-top:26px;flex-wrap:wrap;font:500 15px var(--sans);color:var(--sub)}
+.notes span{display:inline-flex;align-items:center;gap:8px}.notes span::before{content:"";width:16px;height:1px;background:var(--sub)}
+
+/* 3. 다시 만난다: 1년 전 문장 위로 오늘의 간지가 내려앉는다(고정된 장면 위에서 스크롤로) */
+.again{height:230vh;padding:0}
+.again .pin{position:sticky;top:64px;height:calc(100dvh - 64px);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:5vw;align-items:center;padding:0 max(20px,6vw);max-width:1300px;margin:0 auto}
+.astage{position:relative;aspect-ratio:1/1;container-type:inline-size;max-width:560px;width:100%}
+.astage .base{position:absolute;inset:4% 6% 22% 2%;padding:8%;border-radius:2px;background:var(--paper) repeating-linear-gradient(to bottom,transparent 0 calc(7.2cqi - 1px),var(--rule) calc(7.2cqi - 1px) 7.2cqi);background-position:0 4.6cqi;box-shadow:inset 0 0 0 1px rgb(60 45 25/.07),0 20px 40px -28px rgb(60 45 25/.4);transform:rotate(-1.5deg)}
+@media (prefers-color-scheme:dark){.astage .base{box-shadow:inset 0 0 0 1px rgb(255 255 255/.05),0 20px 40px -20px rgb(0 0 0/.7)}}
+.astage .base .k{font:500 2.8cqi var(--mono);color:var(--sub)} .astage .base .q{font:600 5cqi/7.2cqi var(--serif);margin-top:5%}
+.astage .base .n{font:400 4cqi/7.2cqi var(--serif);color:var(--sub)}
+.astage .over{left:20%;top:40%;width:72%;transform:rotate(.9deg);transform-origin:0 0}
+.astage .over2{left:6%;top:63%;width:62%;transform:rotate(-3deg)}
+@media (prefers-reduced-motion:no-preference){@supports (animation-timeline:view()){
+  .again{view-timeline:--again block}
+  .astage .over{animation:settle2 linear both;animation-timeline:--again;animation-range:contain 0% contain 40%}
+  .astage .over2{animation:settle3 linear both;animation-timeline:--again;animation-range:contain 35% contain 75%}
+  .again .t1{animation:fadeout linear both;animation-timeline:--again;animation-range:contain 30% contain 45%}
+  .again .t2{animation:fadein linear both;animation-timeline:--again;animation-range:contain 40% contain 55%}
+}}
+@keyframes settle2{from{opacity:0;transform:translateY(40%) rotate(9deg)}}
+@keyframes settle3{from{opacity:0;transform:translateY(50%) rotate(-10deg)}}
+@keyframes fadeout{to{opacity:0}}@keyframes fadein{from{opacity:0}}
+.again .copy{position:relative;display:grid}.again .copy>div{grid-area:1/1}
+
+/* 4. 다 읽으면 발췌집: 쌓인 카드가 스크롤에 맞춰 부채처럼 펼쳐진다 */
+.fan{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:5vw;align-items:center}
+.fstage{position:relative;height:clamp(340px,44vw,520px);container-type:inline-size}
+.fstage .v{width:46%;aspect-ratio:4/5;padding:6% 6% 5%;display:flex;flex-direction:column;left:27%;top:6%;transform:rotate(var(--r))}
+.fstage .v .q{font-size:3.3cqi}.fstage .v .k{margin-top:auto;font-size:2.1cqi}
+.fstage .v:nth-child(1){--r:-7deg;--x:-46%}.fstage .v:nth-child(2){--r:-2deg;--x:-16%}.fstage .v:nth-child(3){--r:3deg;--x:16%}.fstage .v:nth-child(4){--r:8deg;--x:46%}
+@media (prefers-reduced-motion:no-preference){@supports (animation-timeline:view()){
+  .fstage .v{animation:fanout linear both;animation-timeline:view();animation-range:entry 30% cover 50%}
+}}
+@supports not (animation-timeline:view()){.fstage .v{translate:var(--x) 0}}
+@media (prefers-reduced-motion:reduce){.fstage .v{translate:var(--x) 0}}
+@keyframes fanout{from{translate:0 0;rotate:calc(var(--r) * -1)}to{translate:var(--x) 0}}
+
+/* 5. 같이 읽는다: 밑줄 아래에 걸친 답 간지 */
+.talk2{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:5vw;align-items:center}
+.tstage{position:relative;container-type:inline-size;padding-bottom:8%}
+.tstage .s{font:600 clamp(24px,2.6vw,34px)/1.75 var(--serif);letter-spacing:-.01em}
+.tstage mark{background:linear-gradient(transparent 60%,rgb(45 95 184/.24) 60%);color:var(--accent)}
+@media (prefers-color-scheme:dark){.tstage mark{background:linear-gradient(transparent 60%,rgb(143 176 238/.3) 60%)}}
+.tstage .ask{font:700 clamp(17px,1.5vw,20px)/1.5 var(--sans);margin-top:16px;padding-left:14px;box-shadow:inset 3px 0 0 var(--accent)}
+.tstage .v{position:relative;margin:-.35em 0 0 18%;width:74%;padding:5% 6%;transform:rotate(1.5deg);transform-origin:0 0}
+.tstage .v .who{display:flex;align-items:center;gap:8px;font:600 2.6cqi var(--sans)}
+.tstage .v .who em{font-style:normal;color:var(--accent);box-shadow:inset 0 0 0 1.5px var(--accent);border-radius:999px;padding:.2em .7em;font-size:.9em}
+.tstage .v .s2{font:400 3.2cqi/1.6 var(--serif);margin-top:3%}
+.tstage .v .mv{display:inline-block;margin-top:4%;font:600 2.3cqi var(--sans);color:var(--accent)}
+
+/* 6. 한 해가 한 권: 표지 뒤로 달마다의 간지가 비켜 나온다 */
+.year{text-align:center}
+.ystage{position:relative;width:min(560px,100%);aspect-ratio:1.25/1;margin:44px auto 0;container-type:inline-size}
+.ystage .v{width:44%;aspect-ratio:3/4;top:8%;padding:6%;text-align:left}
+.ystage .v .m{font:700 5cqi var(--serif)}.ystage .v .q{font-size:2.9cqi;margin-top:6%}
+.ystage .m1{left:4%;transform:rotate(-9deg)}.ystage .m2{left:16%;transform:rotate(-4deg)}.ystage .m3{left:44%;transform:rotate(5deg)}.ystage .m4{left:54%;transform:rotate(10deg)}
+.tcov{position:absolute;left:30%;top:2%;width:40%;aspect-ratio:7/10;border-radius:2px 6px 6px 2px;background:#26395E;color:#F3EEE4;padding:5% 5% 4% 7%;display:flex;flex-direction:column;text-align:left;
+  box-shadow:inset 8px 0 10px -6px rgb(0 0 0/.35),0 30px 46px -22px rgb(20 20 40/.55)}
+.tcov .by{font:600 2.2cqi var(--sans);opacity:.8}.tcov .ti{font:600 3.8cqi/1.5 var(--serif);margin-top:auto}.tcov .ft{display:flex;justify-content:space-between;margin-top:8%;font:500 2.1cqi var(--mono);opacity:.7}
+@media (prefers-reduced-motion:no-preference){@supports (animation-timeline:view()){
+  .ystage .v{animation:tuck linear both;animation-timeline:view();animation-range:entry 20% cover 45%}
+}}
+@keyframes tuck{from{left:30%;rotate:0deg;opacity:.4}}
+
+.close2{text-align:center;padding-bottom:60px}
+.close2 .ctas{justify-content:center}
+.foot{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;padding:28px 20px calc(28px + env(safe-area-inset-bottom));border-top:1px solid var(--rule);font:500 14px var(--sans);color:var(--sub)}
+.foot a{min-height:44px;display:inline-flex;align-items:center}
+
+@media (max-width:860px){
+  .hero,.write2,.fan,.talk2,.again .pin{grid-template-columns:1fr}
+  .hero{min-height:0;padding-top:28px;gap:36px}
+  .hstage{justify-self:center;max-width:440px}
+  .again{height:240vh}
+  .again .pin{align-content:center;gap:24px}
+  .astage{max-width:380px;justify-self:center}
+  .fan .copy,.talk2 .copy{order:-1}
+  .fstage{height:clamp(260px,80vw,380px)}
+  .pad{padding:26px 22px 22px}.pad .dd b{font-size:64px}.pad .tw{font-size:21px}
+  .tstage .v{margin-left:8%;width:88%}
+  .fstage .v .q{font-size:4.4cqi}.fstage .v .k{font-size:2.8cqi}
+  .lnav a.hide-s{display:none}
+}
+</style></head>
+<body>
+<header class="lnav"><b>Readiary</b><a class="hide-s" href="#look">둘러보기</a><a href="auth.html">로그인</a><a class="btn ink press" href="auth.html#signup">기록 시작하기</a></header>
+
+<section class="sec2 hero-s"><div class="in2 hero">
+  <div>
+    <h1 class="h1">읽은 자리에<br>한 장 겹쳐 두세요</h1>
+    <p class="lead">마음에 남은 문장을 적어 두면, 한 달 뒤에도 일 년 뒤에도 그 자리에서 다시 만나요.</p>
+    <div class="ctas"><a class="btn ink press" href="auth.html#signup">기록 시작하기</a><a class="btn line press" href="#look">둘러보기</a></div>
+  </div>
+  <div class="hstage" aria-hidden="true">
+    <img class="cv" src="img/6896606.jpg" alt="">
+    <div class="v a"><div class="k">2025. 10. 6.  p.87</div><div class="q">생각이 깊어진다는 것은 무엇을 내려놓을지 알게 되는 일이다.</div></div>
+    <div class="v b"><div class="k">1년 뒤, 오늘</div><div class="s">올해는 조금 더 내려놓았다. 내려놓은 자리에 다른 책이 들어왔다.</div></div>
+    <div class="v c"><div class="k">윤서의 문장</div><div class="s">질문을 바꾸면 같은 하루도 다른 얼굴을 한다.</div></div>
+  </div>
+</div></section>
+
+<section class="sec2" id="look"><div class="in2 write2">
+  <div class="copy">
+    <h2 class="h2l">책을 덮기 전에,<br>한 줄</h2>
+    <p class="lead">책의 문장이든 나의 생각이든 하나만 있어도 돼요. 쪽수를 몰라도, 전자책이어도 괜찮아요.</p>
+    <div class="notes"><span>문장이나 생각 하나</span><span>쪽수는 선택</span><span>원고지 필사도</span></div>
+  </div>
+  <div class="pad" id="pad">
+    <div class="dd"><b>6</b><span>10월 · 화요일</span></div>
+    <div class="tabs"><span class="on">책의 문장</span><span>나의 생각</span><span>필사</span></div>
+    <div class="tw" aria-label="가진 것을 잃을까 두려운 마음이 나를 가장 많이 붙잡고 있었다."><span id="tw"></span><i aria-hidden="true"></i></div>
+    <div class="row"><span>소유냐 존재냐 · p.184</span><span class="btn ink">남기기</span></div>
+    <div class="ok sheet">남겼어요 · 이번 주 두 번째 문장</div>
+  </div>
+</div></section>
+
+<section class="again" aria-labelledby="again-h"><div class="pin">
+  <div class="copy">
+    <div class="t1"><h2 class="h2l" id="again-h">지난 문장이<br>오늘 다시 찾아와요</h2><p class="lead">1년 전 오늘 남긴 문장, 오래 잊고 있던 문장이 조용히 돌아와요.</p></div>
+    <div class="t2"><h2 class="h2l">그때와 지금의 생각이<br>한 장씩 겹쳐요</h2><p class="lead">다시 읽은 날의 생각을 덧붙이면, 그 위에 트레이싱지처럼 한 장이 더 얹혀요.</p></div>
+  </div>
+  <div class="astage" aria-hidden="true">
+    <div class="base"><div class="k">2025. 10. 6.  에로스의 종말 p.42</div><div class="q">경계와 문턱이 사라짐과 동시에 타자에 대한 환상도 사라진다.</div><div class="n">가까워질수록 모르는 부분이 줄어드는 게 꼭 좋은 걸까.</div></div>
+    <div class="v over"><div class="k">이틀 뒤</div><div class="s">이 문장을 친구에게 보냈다.</div></div>
+    <div class="v over2"><div class="k">1년 뒤, 오늘</div><div class="s">모르는 채로 남겨 두는 것도 존중일지 모른다.</div></div>
+  </div>
+</div></section>
+
+<section class="sec2"><div class="in2 fan">
+  <div class="copy">
+    <h2 class="h2l">다 읽으면,<br>한 권의 발췌집</h2>
+    <p class="lead">옮겨 적은 문장이 한 장씩 묶여요. 넘겨 읽고, 카드로 꺼내 보낼 수도 있어요.</p>
+  </div>
+  <div class="fstage" aria-hidden="true">
+    <div class="v"><div class="q">사랑에 빠지는 일은 상대를 다 알기 전에 시작된다.</div><div class="k">p.12</div></div>
+    <div class="v"><div class="q">오해도 이해의 한 방식이다.</div><div class="k">p.58</div></div>
+    <div class="v"><div class="q">기억은 늘 조금씩 이야기를 고쳐 쓴다.</div><div class="k">p.203</div></div>
+    <div class="v"><div class="q">끝은 대개 처음에 이미 적혀 있다.</div><div class="k">p.240</div></div>
+  </div>
+</div></section>
+
+<section class="sec2"><div class="in2 talk2">
+  <div class="tstage" aria-hidden="true">
+    <p class="ask" style="margin:0 0 14px">가까워질수록 상대를 덜 궁금해하게 되는 걸까요?</p>
+    <p class="s">경계와 문턱이 사라짐과 동시에 <mark>타자에 대한 환상</mark>도 사라진다.</p>
+    <div class="v"><div class="who">도현 <em>다르게 읽음</em></div><div class="s2">환상이 사라져야 진짜 그 사람이 보인다고 읽었어요.</div><span class="mv">생각이 바뀌었어요 3</span></div>
+  </div>
+  <div class="copy">
+    <h2 class="h2l">같은 문장,<br>다르게 읽기</h2>
+    <p class="lead">친구의 문장에서 마음이 걸린 부분에 밑줄을 긋고 답해요. 좋아요 대신, 생각이 바뀌었을 때 알려요.</p>
+  </div>
+</div></section>
+
+<section class="sec2 year"><div class="in2">
+  <h2 class="h2l">한 해가<br>한 권의 일기장으로</h2>
+  <p class="lead" style="margin-left:auto;margin-right:auto">달마다 가장 오래 머문 문장이 차례가 되고, 내가 고른 한 문장이 표지가 돼요.</p>
+  <div class="ystage" aria-hidden="true">
+    <div class="v m1"><div class="m">3월</div><div class="q">첫 기록. 정의란 무엇인가 1쪽.</div></div>
+    <div class="v m2"><div class="m">5월</div><div class="q">사랑은 가지는 것이 아니라 하는 것이다.</div></div>
+    <div class="v m3"><div class="m">9월</div><div class="q">경계와 문턱이 사라짐과 동시에…</div></div>
+    <div class="v m4"><div class="m">10월</div><div class="q">가진 것을 잃을까 두려운 마음이…</div></div>
+    <div class="tcov"><div class="by">나의 이름 지음</div><div class="ti">생각이 깊어진다는 것은 무엇을 내려놓을지 알게 되는 일이다</div><div class="ft"><span>2026</span><span>문장 46</span></div></div>
+  </div>
+</div></section>
+
+<section class="sec2 close2"><div class="in2">
+  <h2 class="h1" style="font-size:clamp(36px,5vw,64px)">오늘 읽은 한 줄부터</h2>
+  <p class="lead" style="margin-left:auto;margin-right:auto">가입은 메일 주소 하나면 돼요.</p>
+  <div class="ctas"><a class="btn ink press" href="auth.html#signup">기록 시작하기</a></div>
+</div></section>
+<footer class="foot"><a href="#">이용 약관</a><a href="#">개인정보처리방침</a><a href="#">문의</a></footer>
+
+<script>
+// 쓰는 장면: 화면에 들어오면 한 번만 한 글자씩 적히고, 다 적히면 "남겼어요"가 얹힌다
+(()=>{const pad=document.getElementById('pad'),tw=document.getElementById('tw'),T='가진 것을 잃을까 두려운 마음이 나를 가장 많이 붙잡고 있었다.';
+  if(matchMedia('(prefers-reduced-motion:reduce)').matches){tw.textContent=T;pad.classList.add('done');return;}
+  new IntersectionObserver(([e],o)=>{if(!e.isIntersecting)return;o.disconnect();let i=0;const ch=[...T];
+    const step=()=>{tw.textContent=ch.slice(0,++i).join('');if(i<ch.length)setTimeout(step,i%7===0?140:65);else setTimeout(()=>pad.classList.add('done'),400);};setTimeout(step,300);},{threshold:.6}).observe(pad);})();
+// 간지 가장자리는 줄 사이에: 덧붙인 생각 간지의 위쪽 가장자리를 '그때의 생각' 줄 바로 위에 맞춘다
+(()=>{const st=document.querySelector('.astage'),n=st.querySelector('.base .n'),o1=st.querySelector('.over'),o2=st.querySelector('.over2');
+  const fit=()=>{const S=st.getBoundingClientRect().top,line=n.getBoundingClientRect().top-S;o1.style.top=(line+2)+'px';o2.style.top=(line+o1.offsetHeight-14)+'px';};
+  document.fonts.ready.then(fit);addEventListener('resize',fit);})();
+</script>
+</body></html>

@@ -1,0 +1,229 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><link rel="stylesheet" href="base.css">
+<style>
+body{background:#CFCDC7;padding:90px 70px 70px}
+.board{display:grid;grid-template-columns:repeat(3,390px);gap:110px 90px}
+.cell{position:relative}
+.ruled{background-image:repeating-linear-gradient(to bottom,transparent 0 37px,var(--line) 37px 38px);}
+.card-lib{background:#E7E0CB;color:#2A2720;border:1px solid #D6CDB3}
+.dark .card-lib{background:#2A2721;color:#E5DFD2;border-color:#3A362E}
+.card-lib .row{display:grid;grid-template-columns:76px 1fr 58px;border-top:1px solid rgb(140 120 80/.35);height:38px;align-items:center;padding:0 16px}
+.card-lib .head{border-top:0;height:34px;font:600 13px var(--sans);color:#6F6650;letter-spacing:.02em}
+.dark .card-lib .head{color:#A59D8B}
+.page-text{font:400 15px/1.85 var(--serif);color:#9C978C;text-align:justify}
+.leader{display:flex;align-items:baseline;gap:8px;font:400 18px var(--serif)}
+.leader i{flex:1;border-bottom:2px dotted var(--ink-faint);transform:translateY(-5px)}
+</style></head><body>
+<svg width="0" height="0" style="position:absolute"><defs>
+<symbol id="i-pen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/></symbol>
+<symbol id="i-lib" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></symbol>
+<symbol id="i-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+<symbol id="i-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/></symbol>
+</defs></svg>
+
+<div class="board">
+
+<!-- 1. 오늘 · 기록 -->
+<div class="cell"><div class="label">① 오늘 · 읽던 책 위에 한 장 겹쳐 쓰기</div>
+<div class="phone grain">
+  <div class="status"><span>9:41</span><span>●●●</span></div>
+  <div class="scroll">
+    <div style="padding:18px 24px 0">
+      <div class="serif" style="font-size:46px;font-weight:700;letter-spacing:-.02em;line-height:1.1">10월 6일</div>
+      <div style="font-size:17px;color:var(--ink-sub);margin-top:8px">화요일. 『소유냐 존재냐』 184쪽부터</div>
+    </div>
+    <img src="img/5249396.jpg" style="position:absolute;top:118px;left:168px;width:230px;transform:rotate(4deg);box-shadow:0 20px 40px -18px rgb(0 0 0/.5)">
+    <div class="vellum" style="--solid:70px;position:absolute;top:196px;left:16px;right:16px;height:318px;border-radius:4px;padding:84px 22px 0">
+      <div class="ruled" style="height:152px;border-left:3px solid var(--accent);padding-left:14px">
+        <div class="serif" style="font-size:21px;line-height:38px;color:var(--ink-faint)">마음에 남은 문장을<br>옮겨 적어요</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:22px">
+        <span class="mono" style="font-size:15px;color:var(--ink-sub)">p.184</span>
+        <span style="flex:1"></span>
+        <span class="btn line" style="height:44px;padding:0 16px;font-size:15px">생각 덧붙이기</span>
+        <span class="btn ink" style="height:44px;font-size:15px">남기기</span>
+      </div>
+    </div>
+    <div class="card-lib" style="position:absolute;top:540px;left:16px;right:16px;border-radius:3px">
+      <div class="row head"><span>날짜</span><span>읽은 곳</span><span>기록</span></div>
+      <div class="row mono" style="font-size:15px"><span>9.29</span><span>p.62-96</span><span>2</span></div>
+      <div class="row mono" style="font-size:15px"><span>10.2</span><span>p.96-131</span><span>1</span></div>
+      <div class="row mono" style="font-size:15px;font-weight:600"><span>10.6</span><span>p.131-184</span><span style="color:var(--accent)">오늘</span></div>
+    </div>
+    <div class="cap" style="position:absolute;top:516px;left:20px;font-size:13px;letter-spacing:.04em">이 책의 대출 카드</div>
+  </div>
+  <div class="tabs"><div class="tab on">오늘</div><div class="tab"><svg><use href="#i-lib"/></svg>책장</div><div class="tab"><svg><use href="#i-users"/></svg>돌려 읽기</div><div class="tab"><svg><use href="#i-book"/></svg>나의 책</div></div>
+  <div class="home-ind"></div>
+</div></div>
+
+<!-- 2. 다시 만나기 -->
+<div class="cell"><div class="label">② 다시 만나기 · 1년 전의 간지를 들춘다</div>
+<div class="phone grain">
+  <div class="status"><span>9:41</span><span>●●●</span></div>
+  <div class="scroll">
+    <div style="padding:18px 24px 0">
+      <div class="serif" style="font-size:40px;font-weight:700;letter-spacing:-.02em;line-height:1.1">1년 전 오늘</div>
+      <div style="font-size:17px;color:var(--ink-sub);margin-top:8px">2025년 10월 6일에 남긴 세 장</div>
+    </div>
+    <!-- 책의 쪽 -->
+    <div style="position:absolute;top:126px;left:28px;right:28px;height:470px;background:#FBFAF7;padding:30px 26px;box-shadow:0 1px 2px rgb(0 0 0/.06)">
+      <p class="page-text">우리는 실망할 때마다 세상이 틀렸다고 말하지만, 대개는 우리가 세상에 걸어 둔 기대의 모양이 틀렸던 것이다. 질문을 바꾸면 같은 하루도 다른 얼굴을 한다. 그래서 철학은 답을 주기보다 질문을 고쳐 쓰게 한다. 생각이 깊어진다는 것은 복잡해지는 일이 아니라, 무엇을 내려놓을지 알게 되는 일이다.</p>
+      <p class="page-text" style="margin-top:12px">걷는 사람은 길을 다 알지 못해도 걷는다. 한 걸음이 다음 걸음의 이유가 된다.</p>
+      <div class="mono" style="position:absolute;bottom:18px;left:0;right:0;text-align:center;font-size:13px;color:#A8A397">87</div>
+    </div>
+    <!-- 아래에 깔린 간지들 -->
+    <div class="vellum flat" style="position:absolute;top:214px;left:44px;right:20px;height:250px;transform:rotate(3deg);border-radius:3px"></div>
+    <div class="vellum" style="--solid:60px;position:absolute;top:236px;left:20px;right:36px;height:300px;transform:rotate(-1.6deg);border-radius:3px;padding:200px 22px 0">
+      <div style="font:600 14px var(--sans);color:var(--ink-sub)">그때의 생각</div>
+      <div class="serif" style="font-size:18px;line-height:1.6;margin-top:6px">실망은 기대의 모양을 보여 준다.</div>
+    </div>
+    <!-- 맨 위 간지 -->
+    <div class="vellum" style="--solid:40px;position:absolute;top:196px;left:22px;right:22px;height:220px;border-radius:3px;padding:30px 24px">
+      <div class="serif" style="font-size:24px;line-height:1.55;font-weight:600;letter-spacing:-.01em">생각이 깊어진다는 것은 무엇을 내려놓을지 알게 되는 일이다.</div>
+      <div class="mono" style="font-size:14px;color:var(--ink-sub);margin-top:16px">p.87</div>
+    </div>
+    <div style="position:absolute;top:640px;left:24px;right:24px;display:flex;gap:10px">
+      <span class="btn ink" style="flex:1;justify-content:center">지금의 생각 덧붙이기</span>
+      <span class="btn line">다음 장</span>
+    </div>
+  </div>
+  <div class="tabs"><div class="tab on">오늘</div><div class="tab"><svg><use href="#i-lib"/></svg>책장</div><div class="tab"><svg><use href="#i-users"/></svg>돌려 읽기</div><div class="tab"><svg><use href="#i-book"/></svg>나의 책</div></div>
+  <div class="home-ind"></div>
+</div></div>
+
+<!-- 3. 책 상세 -->
+<div class="cell"><div class="label">③ 책 상세 · 띠지에 내 문장, 원고에 간지</div>
+<div class="phone grain">
+  <div class="status"><span>9:41</span><span>●●●</span></div>
+  <div class="scroll">
+    <div style="position:relative;margin:16px 0 0 24px;width:150px;height:217px">
+      <img src="img/5249396.jpg" style="width:150px;display:block;box-shadow:0 18px 30px -16px rgb(0 0 0/.55)">
+      <div class="vellum flat" style="position:absolute;left:-1px;right:-1px;bottom:0;height:70px;--blur:3px;border-radius:0;padding:10px 10px;border-left:0;border-right:0">
+        <div class="serif" style="font-size:14px;line-height:1.45;font-weight:600">가진 것으로 나를<br>설명하지 않기</div>
+      </div>
+    </div>
+    <div style="position:absolute;top:24px;left:194px;right:20px">
+      <div class="serif" style="font-size:26px;font-weight:700;line-height:1.25">소유냐<br>존재냐</div>
+      <div style="font-size:16px;color:var(--ink-sub);margin-top:6px">에리히 프롬</div>
+      <div class="serif" style="font-size:24px;margin-top:22px">184 <span style="color:var(--ink-faint)">/ 352</span></div>
+      <span class="btn line" style="height:40px;font-size:15px;margin-top:12px;padding:0 16px">완독</span>
+    </div>
+    <div style="margin:34px 24px 0;border-top:1px solid var(--line)"></div>
+    <div style="padding:0 24px">
+      <div style="display:grid;grid-template-columns:62px 1fr;gap:12px;padding:22px 0">
+        <div class="mono" style="font-size:14px;color:var(--ink-sub);line-height:1.5">10.6<br>p.184</div>
+        <div class="serif" style="font-size:20px;line-height:1.65">가진 것을 잃을까 두려운 마음이 나를 가장 많이 붙잡고 있었다.</div>
+      </div>
+      <div style="display:grid;grid-template-columns:62px 1fr;gap:12px;padding:20px 0;border-top:1px solid var(--line);position:relative">
+        <div class="mono" style="font-size:14px;color:var(--ink-sub);line-height:1.5">10.2<br>p.131</div>
+        <div class="serif" style="font-size:20px;line-height:1.65">존재의 방식은 무엇을 하느냐보다 어떻게 머무르느냐에 가깝다.</div>
+        <div class="vellum flat" style="grid-column:2;margin:6px -8px 0 18px;padding:14px 16px;transform:rotate(1.4deg);border-radius:3px">
+          <div style="font:600 13px var(--sans);color:var(--ink-sub)">나흘 뒤에 덧붙인 생각</div>
+          <div class="serif" style="font-size:17px;line-height:1.6;margin-top:4px">책장 정리를 하다 이 문장이 다시 생각났다.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="tabs"><div class="tab"><svg><use href="#i-pen"/></svg>오늘</div><div class="tab on">책장</div><div class="tab"><svg><use href="#i-users"/></svg>돌려 읽기</div><div class="tab"><svg><use href="#i-book"/></svg>나의 책</div></div>
+  <div class="home-ind"></div>
+</div></div>
+
+<!-- 4. 돌려 읽기 -->
+<div class="cell"><div class="label">④ 돌려 읽기 · 같은 책 위에 친구의 간지</div>
+<div class="phone grain">
+  <div class="status"><span>9:41</span><span>●●●</span></div>
+  <div class="scroll">
+    <div style="padding:18px 24px 0">
+      <div class="serif" style="font-size:38px;font-weight:700;letter-spacing:-.02em;line-height:1.1">돌려 읽기</div>
+      <div style="font-size:17px;color:var(--ink-sub);margin-top:8px">이번 주, 친구 세 명이 남긴 문장</div>
+    </div>
+    <div style="position:absolute;top:128px;left:0;right:0;height:300px;overflow:hidden">
+      <img src="img/6896606.jpg" style="position:absolute;width:390px;top:-250px;left:0;filter:saturate(.9)">
+    </div>
+    <div class="vellum" style="--solid:30px;position:absolute;top:176px;left:18px;right:30px;border-radius:3px;padding:20px 22px 18px;transform:rotate(-1.2deg)">
+      <div style="display:flex;justify-content:space-between;font:600 15px var(--sans)"><span>윤서</span><span class="mono" style="font-weight:400;color:var(--ink-sub);font-size:14px">p.42</span></div>
+      <div class="serif" style="font-size:21px;line-height:1.6;margin-top:10px">질문을 바꾸면 같은 하루도 다른 얼굴을 한다.</div>
+      <div style="font:500 14px var(--sans);color:var(--ink-sub);margin-top:14px">『철학이 깊을수록 삶은 단순하다』</div>
+    </div>
+    <div class="vellum" style="--solid:30px;position:absolute;top:366px;left:34px;right:16px;border-radius:3px;padding:20px 22px 18px;transform:rotate(1.1deg)">
+      <div style="display:flex;justify-content:space-between;font:600 15px var(--sans)"><span>도현</span><span class="mono" style="font-weight:400;color:var(--ink-sub);font-size:14px">p.118</span></div>
+      <div class="serif" style="font-size:21px;line-height:1.6;margin-top:10px">걷는 사람은 길을 다 알지 못해도 걷는다.</div>
+      <div style="display:flex;gap:18px;font:500 15px var(--sans);color:var(--ink-sub);margin-top:14px"><span>좋아요 4</span><span>생각 2</span><span style="margin-left:auto;color:var(--accent);font-weight:600">들추면 생각</span></div>
+    </div>
+    <div style="position:absolute;top:574px;left:24px;right:24px;border-top:1px solid var(--line);padding-top:18px;display:flex;gap:14px;align-items:center">
+      <img src="img/1239611.jpg" style="width:44px;box-shadow:0 6px 12px -6px rgb(0 0 0/.5)">
+      <div><div style="font:600 16px var(--sans)">하린이 『왜 나는 너를 사랑하는가』를 다 읽었어요</div><div class="cap" style="margin-top:4px">발췌집 12장</div></div>
+    </div>
+  </div>
+  <div class="tabs"><div class="tab"><svg><use href="#i-pen"/></svg>오늘</div><div class="tab"><svg><use href="#i-lib"/></svg>책장</div><div class="tab on">돌려 읽기</div><div class="tab"><svg><use href="#i-book"/></svg>나의 책</div></div>
+  <div class="home-ind"></div>
+</div></div>
+
+<!-- 5. 나라는 책 -->
+<div class="cell"><div class="label">⑤ 나의 책 · 읽은 책으로 엮은 한 권</div>
+<div class="phone grain">
+  <div class="status"><span>9:41</span><span>●●●</span></div>
+  <div class="scroll">
+    <div style="position:relative;margin:14px auto 0;width:220px;height:308px;box-shadow:0 26px 44px -20px rgb(0 0 0/.55);overflow:hidden;border-radius:2px 6px 6px 2px">
+      <div style="position:absolute;inset:0;display:grid;grid-template-columns:1fr 1fr 1fr;grid-auto-rows:110px">
+        <img src="img/545848.jpg" style="width:100%;height:100%;object-fit:cover"><img src="img/1289155.jpg" style="width:100%;height:100%;object-fit:cover"><img src="img/6896606.jpg" style="width:100%;height:100%;object-fit:cover">
+        <img src="img/1239611.jpg" style="width:100%;height:100%;object-fit:cover"><img src="img/5249396.jpg" style="width:100%;height:100%;object-fit:cover"><img src="img/545848.jpg" style="width:100%;height:100%;object-fit:cover;object-position:bottom">
+        <img src="img/5249396.jpg" style="width:100%;height:100%;object-fit:cover;object-position:bottom"><img src="img/6896606.jpg" style="width:100%;height:100%;object-fit:cover;object-position:bottom"><img src="img/1289155.jpg" style="width:100%;height:100%;object-fit:cover;object-position:bottom">
+      </div>
+      <div class="vellum" style="--blur:5px;position:absolute;inset:0;background:linear-gradient(to bottom,rgb(var(--vellum)/.88) 0,rgb(var(--vellum)/.82) 130px,rgb(var(--vellum)/.38) 190px,rgb(var(--vellum)/.5) 100%);border:0;padding:34px 22px 0 30px">
+        <div class="serif" style="font-size:30px;font-weight:700;line-height:1.2">테스트용계정</div>
+        <div class="serif" style="font-size:17px;line-height:1.5;margin-top:10px;color:var(--ink-sub)">올해 읽은 다섯 권으로<br>엮은 책</div>
+        <div class="mono" style="position:absolute;bottom:18px;left:30px;font-size:13px;color:var(--ink-sub)">2026 · 제1권</div>
+      </div>
+      <div style="position:absolute;left:0;top:0;bottom:0;width:10px;background:linear-gradient(90deg,rgb(0 0 0/.22),transparent)"></div>
+    </div>
+    <div style="padding:24px 28px 0">
+      <div style="font:600 14px var(--sans);color:var(--ink-sub);letter-spacing:.04em;margin-bottom:12px">차례</div>
+      <div class="leader"><span class="mono" style="font-size:14px;width:20px">1</span><span>정의란 무엇인가</span><i></i><span class="mono" style="font-size:15px">1</span></div>
+      <div class="leader" style="margin-top:12px"><span class="mono" style="font-size:14px;width:20px">2</span><span>리만 가설</span><i></i><span class="mono" style="font-size:15px">4</span></div>
+      <div class="leader" style="margin-top:12px"><span class="mono" style="font-size:14px;width:20px">3</span><span>소유냐 존재냐</span><i></i><span class="mono" style="font-size:15px">11</span></div>
+      <div class="leader" style="margin-top:12px;color:var(--ink-faint)"><span class="mono" style="font-size:14px;width:20px">4</span><span>철학이 깊을수록…</span><i></i><span class="mono" style="font-size:15px">19</span></div>
+      <div style="margin-top:30px;padding-top:16px;border-top:1px solid var(--line);display:grid;grid-template-columns:96px 1fr;row-gap:6px;font-size:15px">
+        <span class="cap">지은이</span><span>테스트용계정</span>
+        <span class="cap">처음 펴낸 날</span><span>2026년 3월 8일</span>
+        <span class="cap">엮은 기록</span><span>문장 23장, 생각 9장</span>
+      </div>
+    </div>
+  </div>
+  <div class="tabs"><div class="tab"><svg><use href="#i-pen"/></svg>오늘</div><div class="tab"><svg><use href="#i-lib"/></svg>책장</div><div class="tab"><svg><use href="#i-users"/></svg>돌려 읽기</div><div class="tab on">나의 책</div></div>
+  <div class="home-ind"></div>
+</div></div>
+
+<!-- 6. 오늘 · 다크 -->
+<div class="cell"><div class="label">⑥ 오늘 · 다크모드 (등불 없이, 색만 전환)</div>
+<div class="phone grain dark">
+  <div class="status" style="color:var(--ink)"><span>9:41</span><span>●●●</span></div>
+  <div class="scroll">
+    <div style="padding:18px 24px 0">
+      <div class="serif" style="font-size:46px;font-weight:700;letter-spacing:-.02em;line-height:1.1">10월 6일</div>
+      <div style="font-size:17px;color:var(--ink-sub);margin-top:8px">화요일. 『소유냐 존재냐』 184쪽부터</div>
+    </div>
+    <img src="img/5249396.jpg" style="position:absolute;top:118px;left:168px;width:230px;transform:rotate(4deg);filter:brightness(.82)">
+    <div class="vellum" style="--solid:70px;position:absolute;top:196px;left:16px;right:16px;height:318px;border-radius:4px;padding:84px 22px 0">
+      <div class="ruled" style="height:152px;border-left:3px solid var(--accent);padding-left:14px">
+        <div class="serif" style="font-size:21px;line-height:38px;color:var(--ink-faint)">마음에 남은 문장을<br>옮겨 적어요</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:22px">
+        <span class="mono" style="font-size:15px;color:var(--ink-sub)">p.184</span>
+        <span style="flex:1"></span>
+        <span class="btn line" style="height:44px;padding:0 16px;font-size:15px">생각 덧붙이기</span>
+        <span class="btn ink" style="height:44px;font-size:15px">남기기</span>
+      </div>
+    </div>
+    <div class="card-lib" style="position:absolute;top:540px;left:16px;right:16px;border-radius:3px">
+      <div class="row head"><span>날짜</span><span>읽은 곳</span><span>기록</span></div>
+      <div class="row mono" style="font-size:15px"><span>9.29</span><span>p.62-96</span><span>2</span></div>
+      <div class="row mono" style="font-size:15px"><span>10.2</span><span>p.96-131</span><span>1</span></div>
+      <div class="row mono" style="font-size:15px;font-weight:600"><span>10.6</span><span>p.131-184</span><span style="color:var(--accent)">오늘</span></div>
+    </div>
+    <div class="cap" style="position:absolute;top:516px;left:20px;font-size:13px;letter-spacing:.04em">이 책의 대출 카드</div>
+  </div>
+  <div class="tabs"><div class="tab on">오늘</div><div class="tab"><svg><use href="#i-lib"/></svg>책장</div><div class="tab"><svg><use href="#i-users"/></svg>돌려 읽기</div><div class="tab"><svg><use href="#i-book"/></svg>나의 책</div></div>
+  <div class="home-ind" style="background:#ECE8E0"></div>
+</div></div>
+
+</div></body></html>

@@ -1,0 +1,51 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>윤서의 서재 · Readiary 시안</title><link rel="stylesheet" href="app.css">
+<style>
+.tcover{position:relative;width:min(220px,58vw);aspect-ratio:7/10;background:#3E5446;color:#F3EEE4;border-radius:2px 6px 6px 2px;padding:22px 22px 18px 28px;display:flex;flex-direction:column;
+  box-shadow:inset 8px 0 10px -6px rgb(0 0 0/.35),0 28px 44px -20px rgb(20 20 40/.55)}
+.tcover .by{font:600 12px var(--sans);letter-spacing:.06em;opacity:.8}
+.tcover .ti{font:600 21px/1.5 var(--serif);margin-top:auto}
+.tcover .ft{display:flex;justify-content:space-between;margin-top:20px;font:500 12px var(--mono);opacity:.7}
+.cur{display:grid;grid-template-columns:72px 1fr;gap:16px;align-items:end;margin-top:14px}
+.cur img{width:72px;border-radius:2px;box-shadow:0 14px 22px -12px rgb(0 0 0/.5)}
+.ex{display:grid;grid-template-columns:52px 1fr auto;gap:14px;align-items:center;padding:12px 0;border-top:1px solid var(--rule)}
+.ex img{width:52px;border-radius:2px;box-shadow:0 8px 14px -8px rgb(0 0 0/.45)}
+.ex b{font:600 17px var(--serif)} .ex .go{font:600 15px var(--sans);color:var(--accent)}
+@media (min-width:1024px){.fp{display:grid;grid-template-columns:300px minmax(0,1fr);gap:72px;align-items:start}.fp .l{position:sticky;top:44px}.tcover{width:280px}}
+</style></head>
+<body data-tab="social" class="plain">
+<header class="navbar only-mobile"><a class="back" href="friends.html"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>친구</a><span class="title">윤서의 서재</span></header>
+<main class="page"><div class="wrap"><div class="top-sentinel"></div>
+<div class="fp">
+  <div class="l">
+    <div class="tcover"><div class="by">윤서 지음</div><div class="ti">질문을 바꾸면 같은 하루도 다른 얼굴을 한다</div><div class="ft"><span>2026</span><span>문장 31</span></div></div>
+    <div style="margin-top:20px;font:700 20px var(--sans)">윤서 <span class="meta" style="font-family:var(--mono)">yunseo#2041</span></div>
+    <p class="note" style="font-size:17px;color:var(--sub);margin-top:4px">밤에 조금씩, 소리 내어 읽어요.</p>
+    <div class="meta" style="margin-top:10px">친구 · 함께한 책 18 · 남긴 문장 31 · 완독 9</div>
+  </div>
+  <div>
+    <section class="sec" style="margin-top:28px">
+      <div class="label">지금 읽는 책</div>
+      <a class="cur" href="book.html"><img src="img/6896606.jpg" alt=""><div><div style="font:600 19px var(--serif)">철학이 깊을수록 삶은 단순하다</div><div class="frac" style="font-size:22px;margin-top:6px">42 <span>/ 280</span></div></div></a>
+    </section>
+    <section class="sec">
+      <div class="label">친구에게 보이는 최근 문장</div>
+      <a class="en" href="entry.html" style="display:block;padding:16px 0;border-top:1px solid var(--rule)"><div class="quote" style="font-size:20px">질문을 바꾸면 같은 하루도 다른 얼굴을 한다.</div><div class="meta" style="margin-top:6px">철학이 깊을수록 삶은 단순하다 · p.42 · 오늘</div></a>
+      <a class="en" href="entry.html" style="display:block;padding:16px 0;border-top:1px solid var(--rule)"><div class="quote" style="font-size:20px">경계와 문턱이 사라짐과 동시에 타자에 대한 환상도 사라진다.</div><div class="meta" style="margin-top:6px">에로스의 종말 · p.42 · 이틀 전</div></a>
+    </section>
+    <section class="sec">
+      <div style="display:flex;align-items:baseline;justify-content:space-between"><div class="label">서가 18권</div><a class="link" href="books.html" style="font-size:15px">서가 전체</a></div>
+      <div class="f-shelf" style="margin-top:10px"></div>
+    </section>
+    <section class="sec">
+      <div class="label">발췌집</div>
+      <a class="ex" href="excerpt.html"><img src="img/1239611.jpg" alt=""><div><b>왜 나는 너를 사랑하는가</b><div class="meta">9월 21일 · 문장 12</div></div><span class="go">펼치기</span></a>
+      <a class="ex" href="excerpt.html"><img src="img/545848.jpg" alt=""><div><b>정의란 무엇인가</b><div class="meta">3월 30일 · 문장 9</div></div><span class="go">펼치기</span></a>
+    </section>
+  </div>
+</div>
+</div></main>
+<script src="shell.js"></script><script src="shelf.js"></script>
+<script>fillShelves('.f-shelf',innerWidth>1023?14:9,1);</script>
+</body></html>
