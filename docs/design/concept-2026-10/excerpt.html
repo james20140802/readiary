@@ -75,6 +75,6 @@
 document.querySelectorAll('.flat-t').forEach(b=>b.addEventListener('click',()=>{const box=b.closest('[data-pile-box]'),pile=box.querySelector('.pile');
   const on=pile.classList.toggle('flat');b.setAttribute('aria-pressed',on);b.textContent=on?'다시 묶기':'한 줄로 펼치기';box.querySelector('.flip').hidden=on;box.querySelector('.pos').hidden=on;
   if(on){[...pile.children].sort((a,c)=>c.dataset.i-a.dataset.i).forEach(x=>pile.append(x));}
-  pile.querySelectorAll('.lslip').forEach(x=>x.setAttribute('aria-hidden','false'));if(!on)lay(pile);}));
+  pile.querySelectorAll('.lslip').forEach(x=>{x.setAttribute('aria-hidden','false');x.inert=false;});if(!on)lay(pile);}));
 </script>
 </body></html>

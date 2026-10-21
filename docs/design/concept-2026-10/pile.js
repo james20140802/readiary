@@ -13,7 +13,7 @@ function lay(pile){const ss=[...pile.querySelectorAll(':scope>.lslip')], n=ss.le
   ss.forEach((s,i)=>{const d=n-1-i, hid=n>4&&d>2&&i>0, k=n>4&&i===0?3:Math.min(d,3);
     const [x,y]=hid?MID:SLOT[k], f=hid?TILT_MID:TILT[k], j=k&&!hid?1:0;
     s.style.setProperty('--x',x+j*s.dataset.jx+'px');s.style.setProperty('--y',y+j*s.dataset.jy+'px');s.style.setProperty('--r',(s.dataset.t*f).toFixed(2)+'deg');
-    s.style.zIndex=i+1;s.classList.toggle('top',i===n-1);s.setAttribute('aria-hidden',i===n-1?'false':'true');s.style.opacity=hid?0:'';});
+    s.style.zIndex=i+1;s.classList.toggle('top',i===n-1);s.setAttribute('aria-hidden',i===n-1?'false':'true');s.inert=i!==n-1;s.style.opacity=hid?0:'';});
   pile.style.marginBottom=Math.min(n-1,3)*15+10+'px';   // 비켜 쌓인 만큼 아래 자리를 비운다
   const box=pile.closest('[data-pile-box]')||pile.parentNode, pos=box.querySelector('.pos'), top=ss[n-1];
   if(pos&&top) pos.textContent=(top.dataset.name?top.dataset.name+' · ':'')+`${top.dataset.i}/${n}`;}

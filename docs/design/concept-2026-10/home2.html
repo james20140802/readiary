@@ -250,7 +250,9 @@ document.querySelectorAll('.write').forEach(w=>{
   const tabs=[...w.querySelectorAll('.mode button')];
   tabs.forEach((b,i)=>b.addEventListener('click',()=>{tabs.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-selected',x===b)});
     q.placeholder=i?'책을 읽다 든 생각을\n여기 적어 보세요':'오늘 마음에 남은 문장을\n여기 옮겨 적어 보세요';
-    q.style.fontWeight=i?400:''; w.querySelector('.addnote').textContent=i?'문장 덧붙이기':'생각 덧붙이기';}));
+    q.style.fontWeight=i?400:''; w.querySelector('.addnote').textContent=i?'문장 덧붙이기':'생각 덧붙이기';
+    n.placeholder=i?'이 생각을 남기게 한 문장':'이 문장에 대한 나의 생각'; n.setAttribute('aria-label',i?'책의 문장':'나의 생각');
+    q.setAttribute('aria-label',i?'오늘 든 생각':'오늘 마음에 남은 문장');}));
   w.querySelector('.addnote').addEventListener('click',()=>{n.hidden=!n.hidden;if(!n.hidden)n.focus();});
   const lock=w.querySelector('.lock');
   lock.addEventListener('click',()=>{const on=lock.getAttribute('aria-pressed')!=='true';lock.setAttribute('aria-pressed',on);lock.querySelector('span').textContent=on?'나만 보기':'친구에게 보임';});

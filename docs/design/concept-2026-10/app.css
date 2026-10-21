@@ -277,3 +277,6 @@ dialog.bsheet::backdrop{background:rgb(20 14 8/.32);transition:background-color 
 
 /* 간지를 넘기는 동안 잠시 화면 밖으로 나가도 페이지가 옆으로 밀리지 않게(clip은 스크롤 상자를 만들지 않아 sticky가 그대로다) */
 html,body{overflow-x:clip}
+
+/* 표지(img/)가 없는 클론에서도 책 비율 자리를 지킨다. 이미지가 있으면 실제 비율을 쓴다 */
+img[src^="img/"]{aspect-ratio:auto 2/3;background:rgb(var(--sheet))}
