@@ -21,31 +21,31 @@ const request = (path: string) => new NextRequest('https://readiary.test' + path
 describe('proxy authentication and profile cache', () => {
   it('still verifies auth on every request, while skipping repeated profile lookups', async () => {
     const { updateSession } = await import('../../../proxy');
-    await updateSession(request('/protected/dashboard'));
-    await updateSession(request('/protected/books'));
+    await updateSession(request('/today'));
+    await updateSession(request('/books'));
     expect(getUser).toHaveBeenCalledTimes(2);
     expect(lookup).toHaveBeenCalledTimes(1);
   });
   it('a cached profile never admits a revoked session', async () => {
     const { updateSession } = await import('../../../proxy');
-    await updateSession(request('/protected/dashboard'));
+    await updateSession(request('/today'));
     getUser.mockResolvedValue({ data: { user: null } });
-    const response = await updateSession(request('/protected/books?sort=recent'));
+    const response = await updateSession(request('/books?sort=recent'));
     expect(response.status).toBe(307);
     expect(response.headers.get('location')).toBe(
-      'https://readiary.test/login?redirect=%2Fprotected%2Fbooks%3Fsort%3Drecent'
+      'https://readiary.test/login?redirect=%2Fbooks%3Fsort%3Drecent'
     );
   });
   it('onboarding reads the source even after a cache hit', async () => {
     const { updateSession } = await import('../../../proxy');
-    await updateSession(request('/protected/dashboard'));
+    await updateSession(request('/today'));
     await updateSession(request('/onboarding'));
     expect(lookup).toHaveBeenCalledTimes(2);
   });
   it('lookup failures return a non-cacheable 503 instead of a false onboarding redirect', async () => {
     lookup.mockResolvedValue({ data: null, error: { code: 'timeout' } });
     const { updateSession } = await import('../../../proxy');
-    const response = await updateSession(request('/protected/dashboard'));
+    const response = await updateSession(request('/today'));
     expect(response.status).toBe(503);
     expect(response.headers.get('cache-control')).toBe('no-store');
     expect(response.headers.get('location')).toBeNull();
@@ -62,7 +62,7 @@ describe('proxy authentication and profile cache', () => {
     });
     lookup.mockResolvedValue({ data: null, error: null });
     const { updateSession } = await import('../../../proxy');
-    const response = await updateSession(request('/protected/dashboard'));
+    const response = await updateSession(request('/today'));
     expect(response.headers.get('location')).toBe('https://readiary.test/onboarding');
     expect(response.cookies.get('refreshed')?.value).toBe('new-token');
   });

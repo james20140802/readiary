@@ -144,7 +144,7 @@ export default function LibrarySearch({ userId }: { userId: string }) {
                     <Link
                       prefetch={false}
                       onClick={remember}
-                      href={`/protected/books/${book.bookId}`}
+                      href={`/books/${book.bookId}`}
                       className="flex gap-4 py-4 hover:bg-card focus-visible:outline-accent rounded-sm"
                     >
                       {book.coverUrl && (
@@ -196,7 +196,7 @@ export default function LibrarySearch({ userId }: { userId: string }) {
                     <Link
                       prefetch={false}
                       onClick={remember}
-                      href={`/protected/entry/${entry.id}`}
+                      href={`/entry/${entry.id}`}
                       className="block py-6 hover:bg-card focus-visible:outline-accent rounded-sm"
                     >
                       {entry.quote && (

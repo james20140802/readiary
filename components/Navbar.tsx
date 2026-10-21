@@ -16,15 +16,15 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { href: '/protected/dashboard', label: '홈', icon: <Home size={20} strokeWidth={1.75} /> },
+  { href: '/today', label: '홈', icon: <Home size={20} strokeWidth={1.75} /> },
   {
-    href: '/protected/books',
+    href: '/books',
     label: '내 책',
     icon: <LibraryBig size={20} strokeWidth={1.75} />,
-    also: ['/protected/entry', '/protected/search'],
+    also: ['/entry', '/search'],
   },
-  { href: '/protected/social', label: '소셜', icon: <Globe size={20} strokeWidth={1.75} /> },
-  { href: '/protected/profile', label: '프로필', icon: <UserRound size={20} strokeWidth={1.75} /> },
+  { href: '/social', label: '소셜', icon: <Globe size={20} strokeWidth={1.75} /> },
+  { href: '/profile', label: '프로필', icon: <UserRound size={20} strokeWidth={1.75} /> },
 ];
 
 const startsWithPath = (pathname: string, base: string) =>
@@ -82,7 +82,7 @@ export default function Navbar({ loggedIn, showNav, hasUnread }: NavbarProps) {
         <div className="mx-auto flex w-full max-w-screen-md items-center justify-between text-button text-ink-sub">
           {/* Header 의 로고와 같은 이유로 GNB 가 보일 때만 프리페치 (온보딩 등 bare 화면 제외) */}
           <Link
-            href={loggedIn ? '/protected/dashboard' : '/'}
+            href={loggedIn ? '/today' : '/'}
             className="flex items-center gap-2 font-serif text-section-title font-bold tracking-wide text-ink"
             prefetch={showNav}
           >
@@ -111,7 +111,7 @@ export default function Navbar({ loggedIn, showNav, hasUnread }: NavbarProps) {
               })}
 
               <Link
-                href="/protected/search"
+                href="/search"
                 aria-label="책과 기록 검색"
                 className="rounded-md p-2 text-ink-sub focus-visible:outline-accent"
               >
@@ -120,10 +120,10 @@ export default function Navbar({ loggedIn, showNav, hasUnread }: NavbarProps) {
 
               {/* 알림 종 — 데스크톱에서는 전역 크롬에 상주 (모바일은 Header가 담당) */}
               <Link
-                href="/protected/social/notifications"
+                href="/social/notifications"
                 className={clsx(
                   'relative flex items-center rounded-md px-2.5 py-1.5 transition hover:bg-card-raised',
-                  pathname === '/protected/social/notifications' ? 'text-ink' : 'text-ink-faint'
+                  pathname === '/social/notifications' ? 'text-ink' : 'text-ink-faint'
                 )}
                 aria-label="알림"
               >

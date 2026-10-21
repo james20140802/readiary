@@ -1,0 +1,71 @@
+import { getServerUser } from '@/lib/supabase/getServerUser';
+import { notFound } from 'next/navigation';
+import { fetchProfileData } from '@/lib/profile/fetchProfileData';
+import { fetchRetrospectData } from '@/lib/profile/fetchRetrospectData';
+import { fetchFeaturedQuote } from '@/lib/profile/fetchFeaturedQuote';
+import { fetchFeaturedBookmark } from '@/lib/profile/fetchFeaturedBookmark';
+import { fetchBookReadingStats } from '@/lib/queries/fetchBookReadingStats';
+import { getUserStats } from '@/lib/stats/getUserStats';
+import { PROFILE_SHELF_LIMIT, toShelfBook } from '@/lib/books/shelfBook';
+import ProfileBook from '@/components/profile/ProfileBook';
+import ProfileShelf from '@/components/profile/ProfileShelf';
+import ProfileExcerpts from '@/components/profile/ProfileExcerpts';
+
+const excerptsHref = (bookId: string) => `/books/${bookId}/excerpts`;
+
+export default async function ProfilePage() {
+  const {
+    data: { user },
+    error: userError,
+  } = await getServerUser();
+
+  if (!user || userError) {
+    return <p className="text-center mt-10 text-danger">로그인이 필요합니다.</p>;
+  }
+
+  const [{ profile, userBooks }, stats, retrospect, readingStats] = await Promise.all([
+    fetchProfileData(user.id),
+    getUserStats(user.id),
+    fetchRetrospectData(user.id),
+    fetchBookReadingStats(),
+  ]);
+
+  if (!profile || !userBooks) {
+    return notFound();
+  }
+
+  const [featuredQuote, bookmark] = await Promise.all([
+    fetchFeaturedQuote(profile.featured_entry_id, profile.id),
+    fetchFeaturedBookmark(profile.bookmark_user_book_id, profile.id),
+  ]);
+
+  const shelfBooks = userBooks
+    .slice(0, PROFILE_SHELF_LIMIT)
+    .map((ub) =>
+      toShelfBook(ub, readingStats, `/books/${ub.book_id}`, `/books/${ub.book_id}/entry/new`)
+    );
+  const finishedBooks = retrospect?.finishedBooks ?? [];
+
+  return (
+    <div className="pb-16">
+      <section className="space-y-8">
+        <ProfileBook
+          user={user}
+          profile={profile}
+          stats={stats}
+          monthly={retrospect?.monthly ?? []}
+          featuredQuote={featuredQuote}
+          bookmark={bookmark}
+          bookmarkHref={bookmark ? excerptsHref(bookmark.bookId) : null}
+          canBookmark={userBooks.some((ub) => ub.is_finished)}
+        />
+        <ProfileShelf books={shelfBooks} total={userBooks.length} shelfHref="/books" isOwnProfile />
+        {retrospect ? (
+          <ProfileExcerpts books={finishedBooks} hrefFor={excerptsHref} />
+        ) : (
+          <p className="mt-10 text-body-sm text-ink-faint">회고 정보를 불러올 수 없습니다.</p>
+        )}
+      </section>
+    </div>
+  );
+}

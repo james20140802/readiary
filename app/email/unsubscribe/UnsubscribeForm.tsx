@@ -62,7 +62,7 @@ export default function UnsubscribeForm() {
         </p>
       )}
       <a
-        href="/protected/notifications/settings"
+        href="/notifications/settings"
         className="inline-flex min-h-11 items-center underline underline-offset-4"
       >
         알림 설정으로 이동

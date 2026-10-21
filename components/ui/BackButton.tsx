@@ -14,7 +14,7 @@ export default function BackButton() {
       router.back();
     } else {
       // 히스토리가 없다면 무조건 메인 페이지로 보냅니다.
-      router.push('/protected/dashboard');
+      router.push('/today');
     }
   };
 

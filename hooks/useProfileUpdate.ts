@@ -142,8 +142,8 @@ export function useProfileUpdate(initialProfile: Profile | null) {
       );
 
       navigating = true;
-      setDestination('/protected/profile');
-      router.push('/protected/profile');
+      setDestination('/profile');
+      router.push('/profile');
       router.refresh();
       return { success: true };
     } catch (error) {

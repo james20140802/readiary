@@ -73,7 +73,7 @@ describe('on-demand record reading', () => {
       canWrite: true,
       entryIsPrivate: true,
       viewerId: 'viewer',
-      detailHref: `/protected/entry/${id}`,
+      detailHref: `/entry/${id}`,
     });
     expect(entries.eq).toHaveBeenCalledWith('id', id);
     expect(from).not.toHaveBeenCalledWith('friends');
@@ -85,7 +85,7 @@ describe('on-demand record reading', () => {
     expect(response.status).toBe(200);
     expect(await response.json()).toMatchObject({
       canWrite: false,
-      detailHref: `/protected/social/u/reader-1234/entry/${id}`,
+      detailHref: `/social/u/reader-1234/entry/${id}`,
     });
     expect(friends.eq).toHaveBeenCalledWith('status', 'accepted');
     setup({ owner: 'other', friend: true, privateEntry: true });

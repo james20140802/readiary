@@ -14,11 +14,11 @@ interface HeaderProps {
 export default function Header({ loggedIn, showNav, hasUnread }: HeaderProps) {
   return (
     <header className="fixed left-0 top-0 z-50 flex h-[var(--app-mobile-header-height)] w-full items-center justify-between border-b border-hairline bg-paper/90 px-4 pt-[var(--app-safe-top)] backdrop-blur-md md:hidden">
-      {/* 프리페치는 GNB가 보이는 화면에서만 — 온보딩처럼 프로필이 아직 없는 화면에서 /protected 를 미리
+      {/* 프리페치는 GNB가 보이는 화면에서만 — 온보딩처럼 프로필이 아직 없는 화면에서 앱 화면을 미리
           받아오면 proxy 가 /onboarding 으로 돌려보낸 결과가 라우터 캐시에 5분간 남아, 프로필을 만든 뒤
-          router.push('/protected/dashboard') 가 서버에 가지 않고 온보딩 화면을 다시 그린다 */}
+          router.push('/today') 가 서버에 가지 않고 온보딩 화면을 다시 그린다 */}
       <Link
-        href={loggedIn ? '/protected/dashboard' : '/'}
+        href={loggedIn ? '/today' : '/'}
         className="flex items-center space-x-2"
         prefetch={showNav}
       >
@@ -30,14 +30,14 @@ export default function Header({ loggedIn, showNav, hasUnread }: HeaderProps) {
       {showNav && (
         <div className="flex items-center">
           <Link
-            href="/protected/search"
+            href="/search"
             aria-label="책과 기록 검색"
             className="p-3 text-ink-sub focus-visible:outline-accent"
           >
             <Search size={20} strokeWidth={1.75} />
           </Link>
           <Link
-            href="/protected/social/notifications"
+            href="/social/notifications"
             className="relative -mr-3 p-3 text-ink-sub"
             aria-label="알림"
           >

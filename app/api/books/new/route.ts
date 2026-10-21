@@ -49,8 +49,8 @@ export async function POST(req: Request) {
       );
     }
     // 등록 직후 목록·홈으로 돌아갔을 때 캐시된 화면이 새 책을 빠뜨리지 않도록
-    revalidatePath('/protected/books');
-    revalidatePath('/protected/dashboard');
+    revalidatePath('/books');
+    revalidatePath('/today');
 
     return Response.json({
       success: true,

@@ -1,0 +1,69 @@
+import PushSeen from '@/components/PushSeen';
+import { getServerUser } from '@/lib/supabase/getServerUser';
+// app/(app)/social/page.tsx
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
+import { Users } from 'lucide-react';
+import { fetchDetailSocialFeedEntries } from '@/lib/queries/fetchSocialFeedEntries';
+import { fetchFriendList, fetchReceivedFriendRequests } from '@/lib/friends/fetchFriendList';
+import { FEED_PAGINATION_LIMIT } from '@/constants/social';
+import DetailSocailFeedList from './_components/DetailSocialFeedList';
+
+interface SocialPageProps {
+  searchParams: Promise<{ invite?: string }>;
+}
+
+export default async function SocialPage({ searchParams }: SocialPageProps) {
+  const { invite } = await searchParams;
+  // 초대 링크는 친구 페이지가 담당한다
+  if (invite) redirect(`/social/friends?invite=${encodeURIComponent(invite)}`);
+
+  const {
+    data: { user },
+  } = await getServerUser();
+  if (!user) return null;
+
+  const [feed, acceptedFriends, pendingFriends] = await Promise.all([
+    fetchDetailSocialFeedEntries(0, FEED_PAGINATION_LIMIT),
+    fetchFriendList(),
+    fetchReceivedFriendRequests(),
+  ]);
+
+  const friendCount = acceptedFriends?.length ?? 0;
+  const pendingCount = pendingFriends?.length ?? 0;
+
+  return (
+    <div className="space-y-4">
+      <PushSeen kind="friends" />
+      <header className="px-1 flex items-baseline justify-between">
+        <h1 className="text-page-title text-ink">소셜</h1>
+        <Link
+          href="/social/friends"
+          className="text-button-sm text-ink-faint hover:text-ink transition-colors"
+        >
+          친구 {friendCount}명
+          {pendingCount > 0 && (
+            <span className="text-accent font-medium"> · 받은 요청 {pendingCount}</span>
+          )}
+          {' →'}
+        </Link>
+      </header>
+
+      {feed.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 gap-3 border-2 border-dashed border-hairline rounded-2xl">
+          <Users size={32} className="text-ink-faint" />
+          <p className="text-body-sm font-medium text-ink">친구들의 활동이 아직 없어요</p>
+          <p className="text-caption text-ink-faint">친구를 추가하면 피드가 채워져요</p>
+          <Link
+            href="/social/friends"
+            className="mt-1 text-button-sm font-semibold text-accent bg-accent-soft px-3 py-1.5 rounded-full border border-accent/20"
+          >
+            친구 찾기
+          </Link>
+        </div>
+      ) : (
+        <DetailSocailFeedList initialFeed={feed} userId={user.id} />
+      )}
+    </div>
+  );
+}

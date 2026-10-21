@@ -200,7 +200,7 @@ export default function BookDetailContent({
               style={justFinished ? { animationDelay: '220ms' } : undefined}
             >
               <Link
-                href={`/protected/books/${book_id}/excerpts`}
+                href={`/books/${book_id}/excerpts`}
                 className="font-serif text-button-sm text-accent hover:underline"
               >
                 발췌집 보기 →
@@ -230,7 +230,7 @@ export default function BookDetailContent({
             </h2>
             {!isFriend && (
               <Button asChild size="sm" variant="primary">
-                <Link href={`/protected/books/${book_id}/entry/new`}>기록 남기기</Link>
+                <Link href={`/books/${book_id}/entry/new`}>기록 남기기</Link>
               </Button>
             )}
           </div>
@@ -313,7 +313,7 @@ export default function BookDetailContent({
                     userId={userId}
                     href={
                       isFriend && friendProfile
-                        ? `/protected/social/u/${friendProfile.nickname + '-' + friendProfile.tag}/entry/${data.entry.id}`
+                        ? `/social/u/${friendProfile.nickname + '-' + friendProfile.tag}/entry/${data.entry.id}`
                         : undefined
                     }
                     initialCommentCount={data.initialCommentCount}

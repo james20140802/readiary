@@ -6,7 +6,7 @@ describe('buildOAuthRedirectTo', () => {
     expect(buildOAuthRedirectTo('https://www.readiary.net', null)).toBe(
       'https://www.readiary.net/auth/confirm'
     );
-    expect(buildOAuthRedirectTo('https://www.readiary.net', '/protected/dashboard')).toBe(
+    expect(buildOAuthRedirectTo('https://www.readiary.net', '/today')).toBe(
       'https://www.readiary.net/auth/confirm'
     );
   });

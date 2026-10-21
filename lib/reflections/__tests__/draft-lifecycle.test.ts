@@ -172,10 +172,10 @@ describe('draft retention through refresh and failed storage', () => {
       )
     );
     expect(screen.getByRole('link', { name: '이어 남긴 생각 1개 보기' }).getAttribute('href')).toBe(
-      '/protected/entry/entry#reflections'
+      '/entry/entry#reflections'
     );
     expect(screen.getByRole('link', { name: '지금의 생각 남기기' }).getAttribute('href')).toBe(
-      '/protected/entry/entry?reflect=1#reflections'
+      '/entry/entry?reflect=1#reflections'
     );
     expect(screen.queryByRole('textbox')).toBeNull();
     expect(apiFetch).not.toHaveBeenCalled();

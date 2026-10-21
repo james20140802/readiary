@@ -52,7 +52,7 @@ export default function ReflectionPreview({
     return trailingAction ? <div className="mt-6 flex justify-end">{trailingAction}</div> : null;
   const hasThoughts = (current?.total ?? 0) > 0;
   if (!hasThoughts && !own && !trailingAction) return null;
-  const detailHref = href ?? `/protected/entry/${entryId}`;
+  const detailHref = href ?? `/entry/${entryId}`;
   const focusClass =
     'rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent';
   const viewLabel = `이어 남긴 생각 ${current?.total ?? 0}개 보기`;

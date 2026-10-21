@@ -78,12 +78,7 @@ export default function AppShell({ initialLoggedIn, initialUnread, children }: A
   // 보호 라우트 프리페치는 로그인한 뒤에만 — 비로그인 방문자가 매번 /login 리다이렉트만 받아오던 낭비
   useEffect(() => {
     if (!showNav) return;
-    for (const href of [
-      '/protected/dashboard',
-      '/protected/books',
-      '/protected/social',
-      '/protected/profile',
-    ]) {
+    for (const href of ['/today', '/books', '/social', '/profile']) {
       router.prefetch(href);
     }
   }, [showNav, router]);

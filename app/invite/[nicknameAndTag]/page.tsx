@@ -16,5 +16,5 @@ export default async function InvitePage({ params }: Props) {
   if (!user) {
     redirect(`/login?redirect=${encodeURIComponent(`/invite/${nicknameAndTag}`)}`);
   }
-  redirect(`/protected/social?invite=${encodeURIComponent(nicknameAndTag)}`);
+  redirect(`/social?invite=${encodeURIComponent(nicknameAndTag)}`);
 }

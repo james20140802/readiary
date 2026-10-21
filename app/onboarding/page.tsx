@@ -25,7 +25,7 @@ export default async function OnboardingPage() {
   const { data: profile } = await supabase.from('profiles').select('id').eq('id', user.id).single();
 
   if (profile) {
-    redirect('/protected/dashboard');
+    redirect('/today');
   }
 
   // 로그인 화면의 Google 버튼으로 처음 온 사람은 아직 약관·개인정보 동의를 하지 않았다 — 여기서 받는다

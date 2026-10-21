@@ -29,7 +29,7 @@ export default function BookActionsMenu({
       const response = await apiFetch(`/api/books/${userBookId}`, { method: 'DELETE' });
       if (!response.ok) throw new Error('delete failed');
       // A fresh document clears visited pages from the client Router Cache.
-      window.location.replace('/protected/books');
+      window.location.replace('/books');
     } catch (cause) {
       if (!(cause instanceof SessionExpiredError)) {
         setError('삭제를 완료했는지 확인하지 못했어요. 다시 시도해 주세요.');

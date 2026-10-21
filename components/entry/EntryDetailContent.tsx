@@ -82,7 +82,7 @@ export default function EntryDetailContent({
         throw new Error('함께 삭제할 생각 수가 변경됐어요. 다시 확인해 주세요.');
       }
       if (!res.ok) throw new Error('삭제 실패');
-      router.push(`/protected/books/${book.id}`);
+      router.push(`/books/${book.id}`);
     } catch (error) {
       setDeleteError((error as Error).message);
       deletion.release();
@@ -91,8 +91,8 @@ export default function EntryDetailContent({
 
   const bookUrl =
     isFriend && friendProfile
-      ? `/protected/social/u/${friendProfile.nickname + '-' + friendProfile.tag}/books/${book.id}`
-      : `/protected/books/${book.id}`;
+      ? `/social/u/${friendProfile.nickname + '-' + friendProfile.tag}/books/${book.id}`
+      : `/books/${book.id}`;
 
   const pages = formatPages(entry.from_page, entry.to_page);
 
@@ -190,7 +190,7 @@ export default function EntryDetailContent({
                   <>
                     <span aria-hidden className="h-4 w-px bg-hairline" />
                     <Link
-                      href={`/protected/entry/${entry.id}/edit`}
+                      href={`/entry/${entry.id}/edit`}
                       className="text-button-sm text-ink-faint transition-colors hover:text-accent"
                     >
                       원문 수정

@@ -112,7 +112,7 @@ export default function LikersBottomSheet({ entryId, isOpen, onClose }: Props) {
                         <li key={liker.id}>
                           {liker.is_accessible ? (
                             <Link
-                              href={`/protected/social/u/${liker.nickname}-${liker.tag}`}
+                              href={`/social/u/${liker.nickname}-${liker.tag}`}
                               className="flex items-center justify-between py-3 group"
                             >
                               {row}
