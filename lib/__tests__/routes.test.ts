@@ -1,3 +1,4 @@
+import { compile, match } from 'next/dist/compiled/path-to-regexp';
 import { describe, expect, it } from 'vitest';
 import { APP_ROUTE_PREFIXES, HOME_PATH, LEGACY_REDIRECTS, isAppRoute } from '../routes';
 import { sanitizeRedirectPath } from '../auth/safeRedirect';
@@ -46,12 +47,36 @@ describe('app routes', () => {
 });
 
 describe('legacy redirects', () => {
-  it('sends the old dashboard to /today before the generic rule', () => {
-    expect(LEGACY_REDIRECTS).toEqual([
-      { source: '/protected', destination: '/today', permanent: true },
-      { source: '/protected/dashboard/:path*', destination: '/today/:path*', permanent: true },
-      { source: '/protected/:path*', destination: '/:path*', permanent: true },
-    ]);
+  // Next가 redirects를 컴파일할 때와 같은 path-to-regexp·옵션으로 규칙을 맞춰 본다
+  const rules = LEGACY_REDIRECTS.map((rule) => ({
+    match: match(rule.source, {
+      strict: true,
+      sensitive: false,
+      delimiter: '/',
+      decode: decodeURIComponent,
+    }),
+    toPath: compile(rule.destination, { validate: false }),
+  }));
+  const destinationsFor = (pathname: string) =>
+    rules.flatMap((rule) => {
+      const found = rule.match(pathname);
+      return found ? [rule.toPath(found.params)] : [];
+    });
+
+  it.each([
+    ['/protected', '/today'],
+    ['/protected/dashboard', '/today'],
+    ['/protected/dashboard/x', '/today/x'],
+    ['/protected/books', '/books'],
+    ['/protected/books/1/entry/new', '/books/1/entry/new'],
+    ['/protected/social/notifications', '/social/notifications'],
+    ['/protected/dashboards', '/dashboards'],
+  ])('%s → %s through exactly one rule (Vercel does not keep rule order)', (from, to) => {
+    expect(destinationsFor(from)).toEqual([to]);
+  });
+
+  it('every rule is permanent (308)', () => {
+    expect(LEGACY_REDIRECTS.every((rule) => rule.permanent)).toBe(true);
   });
 
   it('an old-style return path still passes sanitizing (the redirect rule then takes it)', () => {
