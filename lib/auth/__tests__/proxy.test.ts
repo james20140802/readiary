@@ -66,4 +66,36 @@ describe('proxy authentication and profile cache', () => {
     expect(response.headers.get('location')).toBe('https://readiary.test/onboarding');
     expect(response.cookies.get('refreshed')?.value).toBe('new-token');
   });
+
+  it('sends a logged-out visitor of a new app route to login, keeping the full return path', async () => {
+    getUser.mockResolvedValue({ data: { user: null } });
+    const { updateSession } = await import('../../../proxy');
+    const response = await updateSession(request('/books?sort=recent'));
+    expect(response.status).toBe(307);
+    expect(response.headers.get('location')).toBe(
+      'https://readiary.test/login?redirect=%2Fbooks%3Fsort%3Drecent'
+    );
+  });
+
+  it('does not guard look-alike public paths', async () => {
+    getUser.mockResolvedValue({ data: { user: null } });
+    const { updateSession } = await import('../../../proxy');
+    const response = await updateSession(request('/bookstore'));
+    expect(response.headers.get('location')).toBeNull();
+  });
+
+  it('sends a finished onboarding to /today', async () => {
+    const { updateSession } = await import('../../../proxy');
+    const response = await updateSession(request('/onboarding'));
+    expect(response.headers.get('location')).toBe('https://readiary.test/today');
+  });
+
+  it('matcher lists every app route literally', async () => {
+    const { config } = await import('../../../proxy');
+    const { APP_ROUTE_PREFIXES } = await import('../../routes');
+    for (const prefix of APP_ROUTE_PREFIXES) {
+      expect(config.matcher).toContain(`${prefix}/:path*`);
+    }
+    expect(config.matcher).not.toContain('/protected/:path*');
+  });
 });
