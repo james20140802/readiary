@@ -13,13 +13,13 @@ self.addEventListener('push', (event) => {
         typeof message.body === 'string' ? message.body.slice(0, 160) : '돌아볼 독서 소식이 있어요',
       icon: '/icons/icon-192x192-v2.png',
       tag: 'readiary-reading',
-      data: { url: '/protected/notifications/inbox' },
+      data: { url: '/notifications/inbox' },
     })
   );
 });
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   event.waitUntil(
-    self.clients.openWindow(new URL('/protected/notifications/inbox', self.location.origin).href)
+    self.clients.openWindow(new URL('/notifications/inbox', self.location.origin).href)
   );
 });

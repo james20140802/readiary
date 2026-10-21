@@ -28,7 +28,7 @@ export async function sendClaim(db: SupabaseClient<PushDatabase>, id: string) {
         JSON.stringify({
           title: 'Readiary',
           body: current.items.length === 1 ? current.items[0].label : '돌아볼 독서 소식이 모였어요',
-          url: '/protected/notifications/inbox',
+          url: '/notifications/inbox',
           tag: 'readiary-reading',
         }),
         {

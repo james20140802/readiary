@@ -49,7 +49,7 @@ describe('push dispatch', () => {
     const args = vi.mocked(webpush.sendNotification).mock.calls[0];
     expect(JSON.parse(args[1] as string)).toMatchObject({
       body: '돌아볼 독서 소식이 모였어요',
-      url: '/protected/notifications/inbox',
+      url: '/notifications/inbox',
     });
   });
 });

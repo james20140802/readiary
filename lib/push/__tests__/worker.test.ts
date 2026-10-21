@@ -34,6 +34,6 @@ describe('generated-worker source behavior', () => {
       notification: { close: vi.fn(), data: { url: 'https://evil.test' } },
       waitUntil,
     });
-    expect(openWindow).toHaveBeenCalledWith('https://readiary.test/protected/notifications/inbox');
+    expect(openWindow).toHaveBeenCalledWith('https://readiary.test/notifications/inbox');
   });
 });
