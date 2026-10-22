@@ -577,8 +577,13 @@ li {
     transform 320ms var(--ease-out),
     opacity 200ms ease;
 }
+/* 맨 위 장만 잡힌다(아래 장은 inert) */
+.pile-slip:not([inert]) {
+  cursor: grab;
+}
 .pile-slip[data-drag] {
   transition: none;
+  cursor: grabbing;
 }
 @media (prefers-reduced-motion: reduce) {
   .pile-slip,
