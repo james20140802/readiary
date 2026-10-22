@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { Check } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Sheet from '@/components/ui/Sheet';
 import { LargeTitle } from '@/components/shell/LargeTitle';
@@ -48,11 +49,9 @@ export default function LabHeader() {
               >
                 <span className="font-serif text-[17px] font-semibold text-ink">{b.title}</span>
                 {b.current && (
-                  <span
-                    aria-label="지금 고른 책"
-                    className="font-sans text-caption font-bold text-accent"
-                  >
-                    ✓
+                  <span className="text-accent">
+                    <Check size={16} strokeWidth={1.75} aria-hidden />
+                    <span className="sr-only">지금 읽는 책</span>
                   </span>
                 )}
                 <span className="font-sans text-caption text-ink-sub">{b.meta}</span>

@@ -82,7 +82,7 @@
 화면 뒤에는 일기장 괘선이 고정으로 깔리고 본문이 그 위에 얹힌다. 구현은 `components/ui/RuledPaper.tsx`와 `app/globals.css`의 `.diary-ruled`이며 `AppShell`에 올라 있다.
 
 - 괘선은 40px 간격의 `hairline` 가는 선이고, 격자는 화면 위에서 18px 내려서 시작한다.
-- 여백선은 왼쪽 51px 자리의 1px `margin` 색 세로선이다. 괘선만 있는 변형은 `.diary-ruled--plain`, 데스크톱에서 사이드바 옆으로 비켜 앉는 변형은 `.diary-ruled--beside-sidebar`다(사이드바는 이후 PR에서 들어온다).
+- 여백선은 왼쪽 51px 자리의 1px `margin` 색 세로선이다. 괘선만 있는 변형은 `.diary-ruled--plain`, 데스크톱에서 사이드바 옆으로 비켜 앉는 변형은 `.diary-ruled--beside-sidebar`다(사이드바는 화면 이전 PR에서 들어온다).
 - 도구 화면(찾기·알림·설정 같은 곳)은 여백선 없이 괘선만 깐다. 여백선은 간지 틀을 쓰는 화면에만 있다.
 - 화면 틀은 `lib/shell/routes.ts`의 `frameFor(pathname)`이 경로로 정한다.
 - 본문 `main`은 `relative`만 두고 `z-index`는 주지 않는다. DOM 순서상 괘선 뒤에 오므로 위에 그려지고, 스태킹 컨텍스트를 만들지 않아 본문 안의 고정 오버레이(내보내기 창·확인 창)가 탭 바·상단 바 위로 뜬다.
@@ -97,7 +97,7 @@
 
 ## 표면 규칙 (Surfaces)
 
-- **깊이는 간지에만.** 반투명 트레이싱지 재질(간지)에만 얕은 그림자와 약한 `backdrop-filter`를 허용하고, 일반 카드·도구·입력은 `shadow-*` 없이 헤어라인으로 위계를 만든다. 간지는 쌓여 있을 법한 것(회상, 덧붙인 생각 묶음, 발췌집, 달마다 간지, 책 한 권의 기록, 바텀 시트, 탭 바·상단 바의 스크롤 재질)에만 쓰며 강한 블러의 글라스모피즘으로 바꾸지 않는다. 간지 재질 부품은 이후 PR에서 들어온다.
+- **깊이는 간지에만.** 반투명 트레이싱지 재질(간지)에만 얕은 그림자와 약한 `backdrop-filter`를 허용하고, 일반 카드·도구·입력은 `shadow-*` 없이 헤어라인으로 위계를 만든다. 간지는 쌓여 있을 법한 것(회상, 덧붙인 생각 묶음, 발췌집, 달마다 간지, 책 한 권의 기록, 바텀 시트, 탭 바·상단 바의 스크롤 재질)에만 쓰며 강한 블러의 글라스모피즘으로 바꾸지 않는다. 간지 재질 부품은 화면 이전 PR에서 들어온다.
 - 일반 위계는 헤어라인 굵기·톤(`hairline` → `hairline-strong`)과 배경 단차(`paper` → `card` → `card-raised`)로 만든다.
 - 곡률은 절제: 카드 `rounded-md`(6px), 알약형(버튼·칩) `rounded-full`. 큰 라운드(`rounded-2xl` 이상) 지양.
 - 기울어진 도장 박스(스탬프)와 물건을 픽셀로 그린 소품 장식 금지. 날짜 표식은 `<Seal>` 컴포넌트. 한자 장식(讀 등)은 허용.
@@ -146,7 +146,9 @@
 
 ## 화면 틀 (Shell)
 
-모든 앱 화면은 `components/AppShell.tsx`가 감싼다. 어떤 틀에 앉는지는 `lib/shell/routes.ts`의 `frameFor(pathname)`이 경로로 정하며, 틀 다섯 가지(`landing`·`bare`·`leaves`·`feed`·`plain`)와 각각의 바탕은 위 "바탕"의 표를 따른다. 내비(상단 바·탭 바·사이드바)는 로그인한 앱 화면에서만 보이고(`showsNav`), `bare`·`landing`에는 없다. 랜딩은 로그인 전용 `GuestBar`를 쓴다.
+모든 앱 화면은 `components/AppShell.tsx`가 감싼다. 어떤 틀에 앉는지는 `lib/shell/routes.ts`의 `frameFor(pathname)`이 경로로 정하며, 틀 다섯 가지(`landing`·`bare`·`leaves`·`feed`·`plain`)와 각각의 바탕은 위 "바탕"의 표를 따른다. 내비(상단 바·탭 바·사이드바)는 로그인한 앱 화면에서만 보이고(`showsNav`), `bare`·`landing`에는 없다. 랜딩은 비로그인 방문자용 `GuestBar`를 쓴다.
+
+견본 예외: `/design-lab*`은 비로그인에도 내비를 보여 준다(견본 확인용이며 메뉴만 그린다. 알림 조회·화면 미리 불러오기 같은 데이터 작업은 로그인했을 때만 한다). 이 예외는 main 머지 전에 걷어 낸다.
 
 - **상단 바**: 화면이 `useTopBar({ title?, brand?, back? })`로 작은 제목과 뒤로 가기를 정한다. 화면을 떠나면 브랜드 표시로 돌아간다. 오른쪽 동작 버튼은 설정값이 아니라 `TopBarActions` 컴포넌트를 자식으로 렌더해 포털로 꽂는다. 하나라도 있으면 기본 찾기·알림이 숨는다. 큰 제목은 `LargeTitle`을 쓰고, 이것이 화면 밖으로 나가면 바가 간지 재질과 작은 제목으로 바뀐다. 높이 52px, 큰 제목은 `text-page-title`(lg 이상 `text-page-title-lg`)다.
 - **탭 바(모바일)와 사이드바(데스크톱)**: 크기·여백·재질 값의 원본은 `components/shell/TabBar.tsx`와 `Sidebar.tsx`다. 이 문서에 숫자를 따로 적지 않는다. 탭 이름은 **오늘·책장·소셜·나** 넷이며(`NAV_TABS`), 찾기와 알림은 상단 아이콘이다. 지금 화면이 어느 탭에 속하는지는 `tabFor(pathname)`이 정한다.
@@ -155,7 +157,7 @@
 
 ## 장 넘김 (Leaves)
 
-한 화면씩 끊기는 장 구조다. 모바일은 `Leaves` 안에 `Leaf`를 놓고, 데스크톱은 `DesktopLeaves` 안에 `DesktopLeaf`를 놓은 뒤 `LeafSwitch`로 장을 옮긴다. 둘은 `lg`에서 서로 바뀌어 보이므로 같은 내용을 양쪽에 둔다.
+한 화면씩 끊기는 장 구조다. 모바일은 `Leaves` 안에 `Leaf`를 놓고, 데스크톱은 `DesktopLeaves` 안에 `DesktopLeaf`를 놓은 뒤 `LeafSwitch`로 장을 옮긴다. 둘은 `lg`에서 서로 바뀌어 보이므로 같은 내용을 양쪽에 둔다. 데스크톱의 scroll-snap은 `DesktopLeaves`가 마운트될 때만(`html:has(.dleaves)`, 1024px 이상) 켜진다.
 
 - **덮이면 연결된 것, 넘어가면 다음 것**: 앞 장 위에 얹히는 관계(문장과 그 위의 덧붙인 생각처럼)는 `LeafStack`으로 묶는다. 첫 장이 고정되고 뒤 장이 간지로 덮는다. 서로 독립된 다음 장은 묶지 않고 나란히 둔다. 앞 장이 그대로 위로 밀려 나간다.
 - **간지 장**: 쌓여 있을 법한 장만 `vellum`을 준다. 마지막에 오는 긴 장은 `free`로 화면보다 길어도 되게 한다.
@@ -174,7 +176,7 @@
 - 포커스 가두기·Esc·바깥 누르기는 Headless UI가, 들어오고 나가는 움직임은 framer가 맡는다(320ms `EASE_DRAWER`, 데스크톱 200ms `EASE_OUT`).
 - 시트 위에 시트를 열어도 안전하다. `InertBackground`가 참조 횟수를 세므로 안쪽 시트가 닫혀도 바깥 시트 뒤의 배경은 계속 비활성으로 남는다.
 - `Modal`은 이제 `Sheet`를 감싸 시트 모양으로 열린다.
-- 기존 시트(`EntryEditSheet`, `CommentBottomSheet`, `LikersBottomSheet`, `WeeklyLetterSheet` 등)는 이 PR에서 옮기지 않는다. 각 화면 이전 PR에서 `Sheet`로 바꾼다.
+- 기존 시트(`EntryEditSheet`, `CommentBottomSheet`, `LikersBottomSheet`, `WeeklyLetterSheet` 등)는 화면 이전 PR에서 옮긴다. 각 화면 이전 PR에서 `Sheet`로 바꾼다.
 
 ## 움직임 (Motion)
 
