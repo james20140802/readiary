@@ -559,3 +559,24 @@ li {
       0 18px;
   }
 }
+
+/* 간지 묶음(Pile) 한 장의 자리 — 재질은 .vellum-slip, 자리·transform은 컴포넌트가 정한다 */
+.pile-slip {
+  grid-area: 1 / 1;
+  width: calc(100% - 52px);
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+  transition:
+    transform 320ms var(--ease-out),
+    opacity 200ms ease;
+}
+.pile-slip[data-drag] {
+  transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pile-slip,
+  .pile-slip[data-drag] {
+    transition: opacity 160ms ease;
+  }
+}
