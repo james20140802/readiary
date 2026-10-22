@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import {
   REDUCED_MS,
   FLIP_MS,
@@ -40,6 +40,8 @@ interface PileProps<T> {
   /** 위치 표시 앞에 붙는 이름(예: '10월') */
   getName?: (item: T) => string;
   renderHeader?: (h: PileHeaderProps) => ReactNode;
+  /** 간지가 묶음 폭보다 좁은 만큼(px) — 비켜 쌓인 장이 들어갈 자리. 시안: 기록 30, 토론 40, 발췌집 50, 기본 52 */
+  slipInset?: number;
   className?: string;
 }
 
@@ -60,6 +62,7 @@ export default function Pile<T>({
   nextLabel = '다음',
   getName,
   renderHeader,
+  slipInset = 52,
   className,
 }: PileProps<T>) {
   const keys = items.map(getKey);
@@ -303,7 +306,9 @@ export default function Pile<T>({
         role="group"
         aria-label={label}
         className="grid"
-        style={{ marginBottom: pileMarginBottom(n) }}
+        style={
+          { marginBottom: pileMarginBottom(n), '--pile-inset': `${slipInset}px` } as CSSProperties
+        }
       >
         {items.map((item, i) => {
           const key = keys[i];

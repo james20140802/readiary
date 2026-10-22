@@ -72,6 +72,22 @@ const renderPile = (list = items) =>
   );
 
 describe('Pile', () => {
+  it('간지 폭은 기본으로 묶음보다 52px 좁고, 화면마다 덜 좁힐 수 있다', () => {
+    renderPile();
+    expect(screen.getByRole('group').style.getPropertyValue('--pile-inset')).toBe('52px');
+    cleanup();
+    render(
+      React.createElement(Pile<string>, {
+        items,
+        getKey: (s) => s,
+        label: '덧붙인 생각 묶음',
+        renderSlip: (s) => s,
+        slipInset: 30,
+      })
+    );
+    expect(screen.getByRole('group').style.getPropertyValue('--pile-inset')).toBe('30px');
+  });
+
   it('맨 위 장만 초점을 받는다', () => {
     renderPile();
     expect(screen.getByText('가').closest('[inert]')).toBeNull();
