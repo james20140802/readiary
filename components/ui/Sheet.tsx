@@ -36,7 +36,14 @@ export default function Sheet({
   return (
     <AnimatePresence>
       {open && (
-        <Dialog static open={open} onClose={onClose} className="relative z-[100]">
+        <Dialog
+          static
+          open={open}
+          onClose={onClose}
+          // 이름은 role="dialog"가 붙는 Dialog 자신에 둔다 — 안쪽 패널의 aria-label은 대화상자 이름이 되지 않는다
+          aria-label={title ? undefined : ariaLabel}
+          className="relative z-[100]"
+        >
           <InertBackground />
           <motion.div
             aria-hidden
@@ -49,7 +56,6 @@ export default function Sheet({
           <div className="fixed inset-0 flex items-end justify-center lg:items-center">
             <DialogPanel as={Fragment}>
               <motion.div
-                aria-label={title ? undefined : ariaLabel}
                 initial={isDesktop ? { opacity: 0, scale: 0.97 } : { y: '100%' }}
                 animate={isDesktop ? { opacity: 1, scale: 1 } : { y: 0 }}
                 exit={isDesktop ? { opacity: 0, scale: 0.97 } : { y: '100%' }}

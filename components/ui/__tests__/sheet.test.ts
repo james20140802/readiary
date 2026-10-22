@@ -42,6 +42,17 @@ describe('Sheet', () => {
     fireEvent.keyDown(document.activeElement ?? document.body, { key: 'Escape' });
     expect(onClose).toHaveBeenCalled();
   });
+  it('제목이 없으면 ariaLabel이 대화상자 이름이 된다', () => {
+    render(
+      h(Sheet, {
+        open: true,
+        onClose: () => {},
+        ariaLabel: '기록 남기기',
+        children: h('p', null, '내용'),
+      })
+    );
+    expect(screen.getByRole('dialog', { name: '기록 남기기' })).toBeTruthy();
+  });
   it('닫혀 있으면 그리지 않는다', () => {
     render(h(Sheet, { open: false, onClose: () => {}, title: 'x', children: 'y' }));
     expect(screen.queryByRole('dialog')).toBeNull();
