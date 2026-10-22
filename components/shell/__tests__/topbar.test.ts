@@ -1,12 +1,15 @@
 // @vitest-environment jsdom
-import { Fragment, createElement as h, type ReactNode } from 'react';
-import { act, cleanup, render, screen } from '@testing-library/react';
+import { Fragment, createElement as h, useState, type ReactNode } from 'react';
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { TopBarProvider, useTopBar, type TopBarConfig } from '@/components/shell/TopBarContext';
+import {
+  TopBarActions,
+  TopBarProvider,
+  useTopBar,
+  type TopBarConfig,
+} from '@/components/shell/TopBarContext';
 import { TopBar } from '@/components/shell/TopBar';
 import { LargeTitle } from '@/components/shell/LargeTitle';
-
-vi.mock('next/navigation', () => ({ usePathname: () => '/today' }));
 
 // 콜백을 테스트가 직접 호출하는 가짜 IntersectionObserver
 const observers: FakeIO[] = [];
@@ -94,20 +97,103 @@ describe('TopBar', () => {
     expect(screen.getByText('Readiary')).toBeTruthy();
   });
 
-  it('렌더마다 새 객체·요소를 넘겨도 무한 갱신이 없다', () => {
+  it('렌더마다 새 객체를 넘겨도 무한 갱신이 없다', () => {
     const rendered = vi.fn();
     function Counting() {
       rendered();
-      useTopBar({
-        title: '찾기',
-        back: { href: '/today', label: '오늘' },
-        actions: h('span', null, 'x'),
-      });
+      useTopBar({ title: '찾기', back: { href: '/today', label: '오늘' } });
       return null;
     }
     renderWithProvider(h(Fragment, null, h(Counting), h(TopBar, { hasUnread: false })));
     expect(rendered.mock.calls.length).toBeLessThan(5);
-    expect(screen.getByText('x')).toBeTruthy();
+  });
+
+  it('화면이 넣은 버튼이 보이고 기본 찾기는 숨는다', () => {
+    renderWithProvider(
+      h(
+        Fragment,
+        null,
+        h(TopBarActions, null, h('button', null, 'A')),
+        h(TopBar, { hasUnread: false })
+      )
+    );
+    expect(screen.getByText('A')).toBeTruthy();
+    expect(screen.queryByRole('link', { name: '책과 기록 찾기' })).toBeNull();
+  });
+
+  it('같은 제목에서 버튼만 바뀌어도 최신이 보인다', () => {
+    const page = (label: string) =>
+      h(
+        TopBarProvider,
+        null,
+        h(Configure, { title: 't' }),
+        h(TopBarActions, null, h('button', null, label)),
+        h(TopBar, { hasUnread: false })
+      );
+    const { rerender } = render(page('A'));
+    rerender(page('B'));
+    expect(screen.getByText('B')).toBeTruthy();
+    expect(screen.queryByText('A')).toBeNull();
+  });
+
+  it('버튼의 onClick은 상태가 바뀐 뒤의 최신 클로저를 부른다', () => {
+    const seen = vi.fn();
+    function Page() {
+      const [n, setN] = useState(0);
+      return h(
+        Fragment,
+        null,
+        h('button', { onClick: () => setN(n + 1) }, 'inc'),
+        h(TopBarActions, null, h('button', { onClick: () => seen(n) }, 'act'))
+      );
+    }
+    renderWithProvider(h(Fragment, null, h(Page), h(TopBar, { hasUnread: false })));
+    fireEvent.click(screen.getByText('inc'));
+    fireEvent.click(screen.getByText('act'));
+    expect(seen).toHaveBeenCalledWith(1);
+  });
+
+  it('버튼이 사라지면 기본 찾기·알림이 돌아온다', () => {
+    const { rerender } = renderWithProvider(
+      h(
+        Fragment,
+        null,
+        h(TopBarActions, null, h('button', null, 'A')),
+        h(TopBar, { hasUnread: false })
+      )
+    );
+    rerender(h(TopBarProvider, null, h(TopBar, { hasUnread: false })));
+    expect(screen.getByRole('link', { name: '책과 기록 찾기' })).toBeTruthy();
+  });
+
+  it('앞 화면이 늦게 언마운트되어도 다음 화면의 제목을 지우지 않는다', () => {
+    const { rerender } = render(
+      h(
+        TopBarProvider,
+        null,
+        h(Configure, { key: 'a', title: 'A' }),
+        h(TopBar, { hasUnread: false })
+      )
+    );
+    // 다음 화면 B가 먼저 마운트되고 A가 뒤에 빠진다
+    rerender(
+      h(
+        TopBarProvider,
+        null,
+        h(Configure, { key: 'a', title: 'A' }),
+        h(Configure, { key: 'b', title: 'B' }),
+        h(TopBar, { hasUnread: false })
+      )
+    );
+    rerender(
+      h(
+        TopBarProvider,
+        null,
+        h(Configure, { key: 'b', title: 'B' }),
+        h(TopBar, { hasUnread: false })
+      )
+    );
+    expect(screen.getByText('B')).toBeTruthy();
   });
 
   it('큰 제목이 가려지면 바가 간지 재질로 바뀐다', () => {

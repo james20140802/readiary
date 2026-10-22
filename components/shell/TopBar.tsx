@@ -8,7 +8,7 @@ const ICON_BUTTON = 'relative grid h-11 w-11 place-items-center rounded-full tex
 
 /** 모바일 상단 바. 스크롤해 큰 제목이 가려지면 작은 제목과 간지 재질이 나타난다. lg 이상에서는 사이드바가 맡는다. */
 export function TopBar({ hasUnread }: { hasUnread: boolean }) {
-  const { config, scrolled, leafTitle } = useTopBarState();
+  const { config, scrolled, leafTitle, actionsCount, setActionsSlot } = useTopBarState();
   const title = leafTitle ?? config.title ?? '';
 
   return (
@@ -29,11 +29,15 @@ export function TopBar({ hasUnread }: { hasUnread: boolean }) {
         <span className="mr-auto" />
       )}
       {title && (
-        <span className="topbar-title pointer-events-none absolute bottom-[14px] left-[70px] right-[70px] overflow-hidden text-ellipsis whitespace-nowrap text-center font-sans text-[17px] font-semibold">
+        <span
+          aria-hidden={!scrolled}
+          className="topbar-title pointer-events-none absolute bottom-[14px] left-[70px] right-[70px] overflow-hidden text-ellipsis whitespace-nowrap text-center font-sans text-[17px] font-semibold"
+        >
           {title}
         </span>
       )}
-      {config.actions ?? (
+      <span ref={setActionsSlot} className="contents" />
+      {actionsCount === 0 && (
         <>
           <Link href="/search" aria-label="책과 기록 찾기" className={ICON_BUTTON}>
             <Search size={23} strokeWidth={1.75} aria-hidden="true" />
