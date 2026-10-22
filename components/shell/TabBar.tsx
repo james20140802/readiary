@@ -14,7 +14,7 @@ const ICONS: Record<(typeof NAV_TABS)[number]['key'], LucideIcon> = {
 };
 
 /** 모바일 하단의 떠 있는 탭 바. lg 이상에서는 사이드바가 맡는다. */
-export function TabBar() {
+export function TabBar({ prefetch = false }: { prefetch?: boolean }) {
   const current = tabFor(usePathname());
 
   return (
@@ -29,7 +29,7 @@ export function TabBar() {
           <Link
             key={key}
             href={href}
-            prefetch
+            prefetch={prefetch}
             aria-current={active ? 'page' : undefined}
             className={clsx(
               'flex flex-col items-center justify-center gap-0.5 rounded-[28px] text-tab transition-transform duration-150 active:scale-[0.96] motion-reduce:active:scale-100',

@@ -27,7 +27,13 @@ const ITEM =
   'relative flex h-11 items-center gap-3 rounded-[10px] px-3 font-sans text-[16px] font-medium text-ink transition-colors hover:bg-ink/5';
 
 /** 데스크톱(lg 이상) 왼쪽에 떠 있는 사이드바. 모바일에서는 탭 바가 맡는다. */
-export function Sidebar({ hasUnread }: { hasUnread: boolean }) {
+export function Sidebar({
+  hasUnread,
+  prefetch = false,
+}: {
+  hasUnread: boolean;
+  prefetch?: boolean;
+}) {
   const current = tabFor(usePathname());
 
   return (
@@ -35,7 +41,11 @@ export function Sidebar({ hasUnread }: { hasUnread: boolean }) {
       aria-label="주요 메뉴"
       className="sidebar-material sidebar-glass fixed bottom-3 left-3 top-3 z-30 hidden w-[calc(var(--app-side)-24px)] flex-col rounded-[18px] px-3 py-[18px] lg:flex"
     >
-      <Link href="/today" prefetch className="px-3 pb-[22px] pt-1 font-serif text-[24px] font-bold">
+      <Link
+        href="/today"
+        prefetch={prefetch}
+        className="px-3 pb-[22px] pt-1 font-serif text-[24px] font-bold"
+      >
         Readiary
       </Link>
 
@@ -47,7 +57,7 @@ export function Sidebar({ hasUnread }: { hasUnread: boolean }) {
             <Link
               key={key}
               href={href}
-              prefetch
+              prefetch={prefetch}
               aria-current={active ? 'page' : undefined}
               className={clsx(ITEM, active && 'side-item-on font-[650]')}
             >

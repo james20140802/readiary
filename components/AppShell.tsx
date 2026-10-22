@@ -83,7 +83,7 @@ export default function AppShell({ initialLoggedIn, initialUnread, children }: A
       {nav && (frame === 'plain' || frame === 'leaves' || frame === 'feed') && (
         <TopBar hasUnread={hasUnread} />
       )}
-      {nav && <Sidebar hasUnread={hasUnread} />}
+      {nav && <Sidebar hasUnread={hasUnread} prefetch={dataNav} />}
       {frame === 'landing' && <GuestBar />}
       <main className={clsx('relative w-full', mainClass(frame, nav))}>
         {frame === 'plain' || frame === 'feed' ? (
@@ -100,7 +100,7 @@ export default function AppShell({ initialLoggedIn, initialUnread, children }: A
         )}
       </main>
       {/* fixed라 화면은 같고, 키보드 순서는 본문 다음이 되도록 main 뒤에 둔다 */}
-      {nav && <TabBar />}
+      {nav && <TabBar prefetch={dataNav} />}
     </TopBarProvider>
   );
 }
