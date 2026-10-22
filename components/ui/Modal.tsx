@@ -1,9 +1,6 @@
 'use client';
 
-import { Dialog, Transition } from '@headlessui/react';
-import { Fragment } from 'react';
-import { useMediaQuery } from 'react-responsive';
-import clsx from 'clsx';
+import Sheet from '@/components/ui/Sheet';
 
 interface ModalProps {
   isOpen: boolean;
@@ -11,47 +8,11 @@ interface ModalProps {
   children: React.ReactNode;
 }
 
+/** 확인 창 — 이제 Sheet 위에 얹힌다(모바일은 아래에서 올라오고 데스크톱은 가운데 창). 제목 없이 내용만 받는다 */
 export default function Modal({ isOpen, onClose, children }: ModalProps) {
-  const isMobile = useMediaQuery({ maxWidth: 768 });
-
   return (
-    <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-[100]" onClose={onClose}>
-        <Transition.Child
-          as={Fragment}
-          enter="ease-ink-out duration-200"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-ink-out duration-150"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <div className="fixed inset-0 bg-ink/30" />
-        </Transition.Child>
-
-        <div className="fixed inset-0 overflow-y-auto">
-          <div
-            className={clsx(
-              'flex min-h-full justify-center px-4 py-8 text-center',
-              isMobile ? 'items-end' : 'items-start'
-            )}
-          >
-            <Transition.Child
-              as={Fragment}
-              enter="ease-ink-out duration-200"
-              enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-              enterTo="opacity-100 translate-y-0 sm:scale-100"
-              leave="ease-ink-out duration-150"
-              leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-              leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-            >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-lg bg-card border border-hairline-strong p-6 text-left align-middle transition-all">
-                {children}
-              </Dialog.Panel>
-            </Transition.Child>
-          </div>
-        </div>
-      </Dialog>
-    </Transition>
+    <Sheet open={isOpen} onClose={onClose}>
+      {children}
+    </Sheet>
   );
 }
