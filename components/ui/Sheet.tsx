@@ -54,7 +54,9 @@ export default function Sheet({ open, onClose, title, closeLabel = '닫기', chi
                   aria-hidden
                   className="mx-auto mt-2 h-[5px] w-9 rounded-[3px] bg-[rgb(127_127_127/.35)] lg:hidden"
                 />
-                <div className="px-[22px] pb-[calc(26px+var(--app-safe-bottom))] pt-[10px]">
+                <div
+                  className={`px-[22px] pb-[calc(26px+var(--app-safe-bottom))] ${title ? 'pt-[10px]' : 'pt-[22px]'}`}
+                >
                   {title && (
                     <div className="flex min-h-12 items-center gap-2">
                       <DialogTitle as="h2" className="font-sans text-[18px] font-bold">
