@@ -65,16 +65,17 @@ export default function AppShell({ initialLoggedIn, initialUnread, children }: A
   const frame = frameFor(pathname);
   const nav = showsNav(frame, loggedIn, pathname);
   const ruled = ruledFor(frame);
+  const dataNav = loggedIn && nav; // 견본(/design-lab)은 비로그인에도 메뉴를 보이지만 데이터는 묻지 않는다
   // 뱃지 조회는 셸에서 한 번만 — 모바일 상단 바·데스크톱 사이드바가 같은 값을 나눠 쓴다
-  const hasUnread = useUnreadNotifications(nav, initialUnread);
+  const hasUnread = useUnreadNotifications(dataNav, initialUnread);
 
   // 보호 라우트 프리페치는 로그인한 뒤에만 — 비로그인 방문자가 매번 /login 리다이렉트만 받아오던 낭비
   useEffect(() => {
-    if (!nav) return;
+    if (!dataNav) return;
     for (const href of ['/today', '/books', '/social', '/profile']) {
       router.prefetch(href);
     }
-  }, [nav, router]);
+  }, [dataNav, router]);
 
   return (
     <TopBarProvider>
@@ -82,7 +83,6 @@ export default function AppShell({ initialLoggedIn, initialUnread, children }: A
       {nav && (frame === 'plain' || frame === 'leaves' || frame === 'feed') && (
         <TopBar hasUnread={hasUnread} />
       )}
-      {nav && <TabBar />}
       {nav && <Sidebar hasUnread={hasUnread} />}
       {frame === 'landing' && <GuestBar />}
       <main className={clsx('relative w-full', mainClass(frame, nav))}>
@@ -99,6 +99,8 @@ export default function AppShell({ initialLoggedIn, initialUnread, children }: A
           children
         )}
       </main>
+      {/* fixed라 화면은 같고, 키보드 순서는 본문 다음이 되도록 main 뒤에 둔다 */}
+      {nav && <TabBar />}
     </TopBarProvider>
   );
 }
