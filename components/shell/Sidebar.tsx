@@ -49,7 +49,7 @@ export function Sidebar({
         Readiary
       </Link>
 
-      <nav className="flex flex-col gap-0.5">
+      <nav className="flex flex-col">
         {NAV_TABS.map(({ key, href, label }) => {
           const Icon = ICONS[key];
           const active = current === key;
@@ -72,7 +72,7 @@ export function Sidebar({
           );
         })}
 
-        <div className="mt-[14px] flex flex-col gap-0.5">
+        <div className="mt-[14px] flex flex-col">
           <Link
             href="/search"
             aria-current={current === 'search' ? 'page' : undefined}
@@ -109,7 +109,10 @@ export function Sidebar({
 
       <div className="flex-1" />
 
-      <Button asChild className="h-[46px] w-full rounded-[23px]">
+      <Button
+        asChild
+        className="h-[46px] w-full rounded-[23px] !min-h-0 !gap-3 !text-[16px] !font-medium"
+      >
         <Link href="/books/new">
           <Plus size={20} strokeWidth={1.75} aria-hidden="true" />책 등록
         </Link>

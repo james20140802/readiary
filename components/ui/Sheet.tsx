@@ -58,7 +58,7 @@ export default function Sheet({
                     ? { duration: 0.2, ease: EASE_OUT }
                     : { duration: 0.32, ease: EASE_DRAWER }
                 }
-                className="mx-auto max-h-[88dvh] w-full max-w-[560px] overflow-auto overscroll-contain rounded-t-[18px] bg-sheet text-ink shadow-[0_-10px_40px_-10px_rgb(30_20_10/.35)] lg:rounded-2xl lg:shadow-[0_30px_80px_-20px_rgb(30_20_10/.45)]"
+                className="mx-auto max-h-[88dvh] w-full max-w-[560px] overflow-auto overscroll-contain rounded-t-[18px] bg-sheet text-ink shadow-[0_-10px_40px_-10px_rgb(30_20_10/.35)] lg:rounded-[16px] lg:shadow-[0_30px_80px_-20px_rgb(30_20_10/.45)]"
               >
                 <div
                   aria-hidden
