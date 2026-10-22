@@ -10,6 +10,16 @@ module.exports = {
     extend: {
       colors: {
         paper: 'rgb(var(--paper) / <alpha-value>)',
+        margin: 'rgb(var(--margin) / <alpha-value>)',
+        sheet: 'rgb(var(--sheet) / <alpha-value>)',
+        flag: {
+          yellow: 'rgb(var(--flag-yellow) / <alpha-value>)',
+          pink: 'rgb(var(--flag-pink) / <alpha-value>)',
+          orange: 'rgb(var(--flag-orange) / <alpha-value>)',
+          green: 'rgb(var(--flag-green) / <alpha-value>)',
+          blue: 'rgb(var(--flag-blue) / <alpha-value>)',
+          purple: 'rgb(var(--flag-purple) / <alpha-value>)',
+        },
         card: {
           DEFAULT: 'rgb(var(--card) / <alpha-value>)',
           raised: 'rgb(var(--card-raised) / <alpha-value>)',

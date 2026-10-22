@@ -38,7 +38,7 @@ export default async function OgImage({ params }: { params: Promise<{ entry_id: 
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          backgroundColor: '#F7F3EC',
+          backgroundColor: '#F4F0E8',
           padding: '72px 80px',
           fontFamily: 'MaruBuri',
         }}

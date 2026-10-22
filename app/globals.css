@@ -13,19 +13,31 @@
   --app-mobile-header-height: calc(3.5rem + var(--app-safe-top));
   --app-mobile-nav-padding: max(0.5rem, var(--app-safe-bottom));
   --app-mobile-nav-height: calc(3rem + 0.5rem + var(--app-mobile-nav-padding) + 1px);
-  --paper: 247 243 236; /* #F7F3EC 종이 */
+  --paper: 244 240 232; /* #F4F0E8 종이 */
   --card: 253 251 247; /* #FDFBF7 카드 */
   --card-raised: 242 236 225; /* #F2ECE1 돌출 표면 */
   --ink: 34 30 26; /* #221E1A 먹 */
-  --ink-sub: 110 102 92; /* #6E665C 회갈 */
-  --ink-faint: 163 154 141; /* #A39A8D 옅은 먹 */
+  --ink-sub: 107 100 90; /* #6B645A 회갈 */
+  --ink-faint: 158 150 138; /* #9E968A 옅은 먹 */
   --ink-invert: 253 251 247; /* 먹 배경 위 글자 */
-  --hairline: 227 220 208; /* #E3DCD0 */
+  --hairline: 224 217 204; /* #E0D9CC */
   --hairline-strong: 207 197 180; /* #CFC5B4 */
   --accent: 45 95 184; /* #2D5FB8 파란 잉크 — 브랜드 대표색 (2026-08-31 확정, 주홍 후보 폐기) */
   --accent-hover: 36 80 158;
   --danger: 166 61 47; /* #A63D2F 가라앉힌 적갈 */
   --success: 74 124 89; /* #4A7C59 가라앉힌 초록 */
+  /* 일기장과 간지 — 좌측 여백선, 반투명 시트, 플래그(간지) 여섯 색.
+     플래그는 라이트·다크가 같은 값이라 :root에만 둔다. 다크에서 "알파 .5 + 안쪽 테두리"는
+     플래그 부품(이번 범위 밖)이 입힌다. */
+  --margin: 142 169 221; /* #8EA9DD 여백선 */
+  --sheet: 251 250 246; /* #FBFAF6 시트 */
+  --sheet-alpha: 0.62; /* 시트 불투명도 */
+  --flag-yellow: 242 201 76; /* #F2C94C */
+  --flag-pink: 238 122 154; /* #EE7A9A */
+  --flag-orange: 242 150 72; /* #F29648 */
+  --flag-green: 104 190 132; /* #68BE84 */
+  --flag-blue: 92 140 232; /* #5C8CE8 */
+  --flag-purple: 156 128 214; /* #9C80D6 */
   /* 움직임 — 들어오고 나가는 UI는 빠르게 시작해 조용히 멈춘다.
      같은 값이 lib/motion.ts(framer)와 tailwind.config.js(ease-ink-*)에도 있다 */
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
@@ -36,19 +48,22 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --paper: 27 22 18; /* #1B1612 어두운 종이 */
+    --paper: 26 23 20; /* #1A1714 어두운 종이 */
     --card: 36 30 25; /* #241E19 */
     --card-raised: 46 39 33;
-    --ink: 234 226 214; /* #EAE2D6 미색 먹 */
-    --ink-sub: 154 143 129; /* #9A8F81 */
+    --ink: 236 229 218; /* #ECE5DA 미색 먹 */
+    --ink-sub: 177 168 153; /* #B1A899 */
     --ink-faint: 142 132 118; /* #8E8476 — 카드 위 4.5:1 (소형 메타 텍스트 가독성) */
     --ink-invert: 27 22 18;
-    --hairline: 58 50 42; /* #3A322A */
+    --hairline: 46 42 37; /* #2E2A25 */
     --hairline-strong: 74 64 54;
     --accent: 133 169 236; /* #85A9EC 밤의 잉크 */
     --accent-hover: 159 188 240;
     --danger: 201 106 87;
     --success: 127 174 143;
+    --margin: 79 102 148; /* #4F6694 */
+    --sheet: 38 35 31; /* #26231F */
+    --sheet-alpha: 0.74;
   }
   html {
     color-scheme: dark;
