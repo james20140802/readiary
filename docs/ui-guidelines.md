@@ -91,7 +91,7 @@
 | --- | --- | --- |
 | `landing` | `/` | 없음. 랜딩이 자체 종이를 쓴다 |
 | `bare` | 인증 절차·공개 링크·약관(`/login`, `/signup`, `/onboarding`, `/auth`, `/reset-password`, `/update-password`, `/share`, `/invite`, `/privacy`, `/terms`, `/email`) | 괘선만 |
-| `leaves` | `LEAVES_ROUTES`에 등록한 화면. 지금은 비어 있고 화면 이전 PR이 하나씩 더한다 | 괘선 + 여백선 |
+| `leaves` | `LEAVES_ROUTES`에 등록한 화면. 지금은 견본(`/design-lab/leaves`)뿐이고 화면 이전 PR이 하나씩 더한다 | 괘선 + 여백선 |
 | `feed` | 소셜 피드용으로 예약한 틀. 아직 쓰는 경로가 없다 | 괘선 + 여백선 |
 | `plain` | 그 밖의 모든 화면 | 괘선만 |
 
@@ -111,7 +111,8 @@
 | `Button` | 알약형. primary=먹 배경, secondary=헤어라인 아웃라인, ghost/danger/success |
 | `Card` | 헤어라인 카드. `raised`는 진한 헤어라인(그림자 없음) |
 | `Input`/`Textarea` | 기본(`box`): 카드 표면 + strong 헤어라인, 포커스에 accent 1px. `Input variant="line"`: 기존 1px 밑줄의 색만 accent로 변경(두께·위치 유지). `Textarea variant="line"`과 기록 입력: 밑줄 없이 왼쪽 24px 길이의 accent 표시, 함께 묶인 라벨도 accent로 변경 |
-| `Modal` | `bg-ink/30` 스크림 + 헤어라인 패널 |
+| `Sheet` | 간지 바텀 시트. 모바일은 아래에서 올라오고 lg 이상은 가운데 창. 자세한 규칙은 아래 "바텀 시트" |
+| `Modal` | 내부적으로 `Sheet`를 감싼다. 새 화면은 `Sheet`를 바로 쓴다 |
 | `Tabs` | 밑줄형, 활성=accent. 최소 높이 44px, 선택 여부는 aria-pressed로 제공하며 Tab·Enter/Space로 조작한다. 검색은 fullWidth로 균등 배치한다. |
 | `Seal` | 잉크색 날짜/상태 라벨 ("1년 전 오늘", "완독") |
 | `Chip` | 알약형 선택 칩, `dot`으로 잉크 점 |
@@ -143,13 +144,45 @@
 - 움직임 줄이기: 이동 없이 순서만 바꾸고 160ms 동안 흐려진다.
 - DOM 순서는 `items` 순서로 고정하고 쌓임은 `z-index`로만 표현한다. 넘기는 동안 노드를 옮기면 포커스와 읽기 순서가 끊기기 때문이다.
 
+## 화면 틀 (Shell)
+
+모든 앱 화면은 `components/AppShell.tsx`가 감싼다. 어떤 틀에 앉는지는 `lib/shell/routes.ts`의 `frameFor(pathname)`이 경로로 정하며, 틀 다섯 가지(`landing`·`bare`·`leaves`·`feed`·`plain`)와 각각의 바탕은 위 "바탕"의 표를 따른다. 내비(상단 바·탭 바·사이드바)는 로그인한 앱 화면에서만 보이고(`showsNav`), `bare`·`landing`에는 없다. 랜딩은 로그인 전용 `GuestBar`를 쓴다.
+
+- **상단 바**: 화면이 `useTopBar({ title?, brand?, back? })`로 작은 제목과 뒤로 가기를 정한다. 화면을 떠나면 브랜드 표시로 돌아간다. 오른쪽 동작 버튼은 설정값이 아니라 `TopBarActions` 컴포넌트를 자식으로 렌더해 포털로 꽂는다. 하나라도 있으면 기본 찾기·알림이 숨는다. 큰 제목은 `LargeTitle`을 쓰고, 이것이 화면 밖으로 나가면 바가 간지 재질과 작은 제목으로 바뀐다. 높이 52px, 큰 제목은 `text-page-title`(lg 이상 `text-page-title-lg`)다.
+- **탭 바(모바일)와 사이드바(데스크톱)**: 크기·여백·재질 값의 원본은 `components/shell/TabBar.tsx`와 `Sidebar.tsx`다. 이 문서에 숫자를 따로 적지 않는다. 탭 이름은 **오늘·책장·소셜·나** 넷이며(`NAV_TABS`), 찾기와 알림은 상단 아이콘이다. 지금 화면이 어느 탭에 속하는지는 `tabFor(pathname)`이 정한다.
+- **경계**: 1024px(`lg`) 아래는 탭 바, 이상은 사이드바다. 두 내비를 같은 화면에 함께 그리지 않는다.
+- 새 내비 항목이나 경로 접두사를 더할 때는 `lib/shell/routes.ts`를 고치고 `routes` 테스트를 함께 갱신한다.
+
+## 장 넘김 (Leaves)
+
+한 화면씩 끊기는 장 구조다. 모바일은 `Leaves` 안에 `Leaf`를 놓고, 데스크톱은 `DesktopLeaves` 안에 `DesktopLeaf`를 놓은 뒤 `LeafSwitch`로 장을 옮긴다. 둘은 `lg`에서 서로 바뀌어 보이므로 같은 내용을 양쪽에 둔다.
+
+- **덮이면 연결된 것, 넘어가면 다음 것**: 앞 장 위에 얹히는 관계(문장과 그 위의 덧붙인 생각처럼)는 `LeafStack`으로 묶는다. 첫 장이 고정되고 뒤 장이 간지로 덮는다. 서로 독립된 다음 장은 묶지 않고 나란히 둔다. 앞 장이 그대로 위로 밀려 나간다.
+- **간지 장**: 쌓여 있을 법한 장만 `vellum`을 준다. 마지막에 오는 긴 장은 `free`로 화면보다 길어도 되게 한다.
+- **도구 화면은 장 넘김을 쓰지 않는다**: 찾기·알림·설정·폼은 `plain` 틀의 흐르는 화면이다. 끊기는 스크롤은 읽는 화면에만 쓴다.
+- **스크롤 안내를 넣지 않는다**: 다음 장 머리를 탭 바 위에 걸쳐 보이기, 처음 한 번 살짝 올라오기 같은 힌트는 하지 않기로 했다.
+- **화면 추가**: `lib/shell/routes.ts`의 `LEAVES_ROUTES`에 경로를 더하면 `frameFor`가 `leaves`를 돌려주고 여백선이 깔린다. 그 화면이 `Leaves`를 렌더해야 장 넘김이 켜진다(`html:has(.leaves)`).
+- **높이**: 장 높이는 `--vh`다. `useStableViewportHeight`가 폭이 바뀔 때(회전·분할 화면)만 다시 재므로 주소창이 접히는 스크롤 중에는 장이 출렁이지 않는다.
+- **움직임 줄이기**: 덮이는 장의 기울어져 내려앉기와 덮인 장의 가라앉기는 스크롤에 맞물린 효과라 `prefers-reduced-motion`에서는 끈다. 장은 여전히 한 장씩 넘어간다.
+- **상단 바 연동**: `Leaves`가 보이는 장의 제목을 상단 바에 알리고, 첫 장이 아닐 때 바를 간지 재질로 바꾼다. 장마다 `title`을 준다.
+
+## 바텀 시트 (Sheet)
+
+`components/ui/Sheet.tsx`가 간지 재질의 시트다. 모바일은 아래에서 올라오고(손잡이 포함), lg 이상은 가운데 창이다.
+
+- 사용: `open`, `onClose`를 넘기고, 머리줄이 필요하면 `title`(과 `closeLabel`, 기본 '닫기')을 준다. 제목이 없으면 손잡이와 몸만 그린다.
+- 포커스 가두기·Esc·바깥 누르기는 Headless UI가, 들어오고 나가는 움직임은 framer가 맡는다(320ms `EASE_DRAWER`, 데스크톱 200ms `EASE_OUT`).
+- 시트 위에 시트를 열어도 안전하다. `InertBackground`가 참조 횟수를 세므로 안쪽 시트가 닫혀도 바깥 시트 뒤의 배경은 계속 비활성으로 남는다.
+- `Modal`은 이제 `Sheet`를 감싸 시트 모양으로 열린다.
+- 기존 시트(`EntryEditSheet`, `CommentBottomSheet`, `LikersBottomSheet`, `WeeklyLetterSheet` 등)는 이 PR에서 옮기지 않는다. 각 화면 이전 PR에서 `Sheet`로 바꾼다.
+
 ## 움직임 (Motion)
 
 움직임은 장식이 아니라 변화를 이어 주는 도구다. 자주 쓰는 동작은 빠르고 조용하게, 한 권에 한 번뿐인 순간(완독 등)만 조금 천천히 한다.
 
 - 곡선은 토큰만 쓴다. `--ease-out`(들어오고 나감, 기본) · `--ease-in-out`(화면 안 이동) · `--ease-drawer`(시트·서랍). Tailwind는 `ease-ink-out`·`ease-ink-in-out`·`ease-drawer`, framer는 `lib/motion.ts`의 `EASE_*`다. Tailwind 기본 `ease-out`/`ease-in`은 약해서 쓰지 않는다.
 - 책장 넘김 3D 동작만 `EASE_PAGE`(`[0.4, 0, 0.2, 1]`, CSS는 `--ease-page`·Tailwind `ease-page`)를 쓴다.
-- 바닥 시트는 `SHEET_TRANSITION`(350ms, 스프링 아님).
+- 바닥 시트는 `Sheet`의 320ms `EASE_DRAWER`(스프링 아님)다. 화면 이전 전의 시트들은 아직 `SHEET_TRANSITION`(350ms)을 쓰며, 각 화면 PR에서 `Sheet`로 옮기며 사라진다.
 - 목록이 처음 그려질 때는 `.ink-in`(320ms, 6px 떠오름)으로 차례 등장한다. 순번은 `lib/motion.ts`의 `inkIn(i)`로 주고 간격은 40ms, 여섯 번째부터는 함께 나타난다. 다시 그려지거나 정렬만 바뀔 때는 움직이지 않는다. 끝난 뒤 transform이 남지 않게 `backwards`를 쓰지만, 등장하는 동안에는 조상의 transform·opacity가 `fixed` 자손을 가두므로 항목 안에서 여는 시트는 `components/ui/BodyPortal`로 body에 띄운다.
 - 책 상세의 기록은 구분선이 먼저 그어지고 그 아래 기록이 뒤따라 떠오른다(`.ruled-item` 안의 `.rule-draw`·`.ink-in`). 선은 360ms `--ease-in-out`, 순번마다 100ms 간격이고, 기록은 선이 반쯤 넘어갔을 때 떠오른다. `--ease-out`은 옅은 헤어라인이 첫 0.1초에 거의 다 그어져 움직임이 보이지 않으므로 쓰지 않는다. 선은 항목마다 늘 렌더하고 첫 줄만 감춰 정렬로 다시 그어지지 않게 한다. 필터는 빠졌던 항목을 새로 마운트하므로, 필터를 한 번 만진 뒤로는 목록에 `.ruled-list-settled`를 붙여 등장 애니메이션을 끈다. 줄이는 모션에서는 나타남만 남긴다.
 - 눌림은 `Button`처럼 `scale(0.97)`·150ms로 조용히. 불투명도로 눌림을 표현하지 않는다.
