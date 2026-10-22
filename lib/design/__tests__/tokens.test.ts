@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
@@ -63,5 +64,49 @@ describe('색 토큰', () => {
       expect(readTokens('light')[`--flag-${k}`]).toBe(v);
       expect(readTokens('dark')[`--flag-${k}`] ?? v).toBe(v);
     }
+  });
+});
+
+const require = createRequire(import.meta.url);
+const tailwindConfig = require(join(process.cwd(), 'tailwind.config.js'));
+const fontSize = tailwindConfig.theme.extend.fontSize as Record<
+  string,
+  [string, { lineHeight: string; fontWeight?: string; letterSpacing?: string }]
+>;
+
+describe('글자 토큰', () => {
+  it.each([
+    ['page-title', '2.125rem', '1.15', '700'],
+    ['page-title-lg', '2.5rem', '1.15', '700'],
+    ['section-title', '1.625rem', '1.3', '700'],
+    ['quote', '1.5625rem', '1.6', '600'],
+    ['quote-lg', '1.875rem', '1.55', '600'],
+    ['note', '1.1875rem', '1.65', '400'],
+    ['body', '1.0625rem', '1.6', '400'],
+    ['body-sm', '0.9375rem', '1.5', '400'],
+    ['input', '1.125rem', '1.5', undefined],
+    ['button', '1.0625rem', '1.25', '600'],
+    ['button-sm', '0.9375rem', '1.25', '600'],
+    ['button-lg', '1.0625rem', '1.25', '600'],
+    ['caption', '0.9375rem', '1.4', '500'],
+    ['overline', '0.875rem', '1.4', '600'],
+    ['tab', '0.75rem', '1', '600'],
+    ['fine', '0.8125rem', '1.5', '500'],
+  ])('%s 글자는 시안 크기다', (name, size, lh, weight) => {
+    const [s, o] = fontSize[name];
+    expect(s).toBe(size);
+    expect(o.lineHeight).toBe(lh);
+    expect(o.fontWeight).toBe(weight);
+  });
+
+  it.each([
+    ['page-title', '-0.01em'],
+    ['page-title-lg', '-0.01em'],
+    ['section-title', '-0.01em'],
+    ['quote', '-0.01em'],
+    ['quote-lg', '-0.015em'],
+    ['overline', undefined],
+  ])('%s 자간은 시안 값이다', (name, spacing) => {
+    expect(fontSize[name][1].letterSpacing).toBe(spacing);
   });
 });

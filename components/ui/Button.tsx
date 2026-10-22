@@ -50,9 +50,9 @@ export default function Button({
   };
 
   const sizes = {
-    sm: 'min-h-8 px-4 py-1 text-button-sm gap-1.5',
-    md: 'min-h-10 px-5 py-2 text-button',
-    lg: 'min-h-12 px-7 py-3 text-button-lg',
+    sm: 'min-h-10 px-4 py-1 text-button-sm gap-1.5',
+    md: 'min-h-12 px-[22px] py-2 text-button',
+    lg: 'min-h-12 px-[22px] py-3 text-button-lg',
   };
 
   const Comp = asChild ? Slot : 'button';
