@@ -59,7 +59,7 @@ export default async function OgImage({ params }: { params: Promise<{ entry_id: 
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'flex-end',
-            borderTop: '1px solid #E3DCD0',
+            borderTop: '1px solid #E0D9CC',
             paddingTop: 28,
           }}
         >
@@ -68,7 +68,7 @@ export default async function OgImage({ params }: { params: Promise<{ entry_id: 
               『{entry.bookTitle}』
             </div>
             {attribution && (
-              <div style={{ display: 'flex', fontSize: 20, color: '#6E665C' }}>{attribution}</div>
+              <div style={{ display: 'flex', fontSize: 20, color: '#6B645A' }}>{attribution}</div>
             )}
           </div>
           <div
@@ -76,7 +76,7 @@ export default async function OgImage({ params }: { params: Promise<{ entry_id: 
               display: 'flex',
               fontSize: 21,
               letterSpacing: '0.16em',
-              color: '#A39A8D',
+              color: '#9E968A',
             }}
           >
             READIARY

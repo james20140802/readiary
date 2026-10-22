@@ -94,7 +94,7 @@ export default function AppShell({ initialLoggedIn, initialUnread, children }: A
       {ruled && <RuledPaper variant={ruled} />}
       <main
         className={clsx(
-          'relative z-[1] w-full',
+          'relative w-full',
           !fullBleed &&
             'mx-auto max-w-screen-md px-4 pt-[calc(var(--app-mobile-header-height)+1.5rem)] md:pt-[6rem] md:pb-16',
           !fullBleed && (showNav ? 'pb-[calc(var(--app-mobile-nav-height)+1.5rem)]' : 'pb-8')
