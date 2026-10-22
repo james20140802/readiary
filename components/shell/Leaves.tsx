@@ -39,10 +39,11 @@ function createRegistry(): LeavesRegistry {
  */
 export function Leaves({ children }: { children: React.ReactNode }) {
   useStableViewportHeight();
-  const { setLeafTitle, setScrolled } = useTopBarState();
+  const { setLeafTitle, setScrolled, claimScroll } = useTopBarState();
   const [registry] = useState(createRegistry);
 
   useEffect(() => {
+    const release = claimScroll();
     const seen = new Set<Element>();
     const io = new IntersectionObserver(
       (entries) => {
@@ -64,10 +65,11 @@ export function Leaves({ children }: { children: React.ReactNode }) {
     return () => {
       io.disconnect();
       registry.attach(null);
+      release();
       setLeafTitle(null);
       setScrolled(false);
     };
-  }, [registry, setLeafTitle, setScrolled]);
+  }, [registry, setLeafTitle, setScrolled, claimScroll]);
 
   return (
     <LeavesContext.Provider value={registry}>

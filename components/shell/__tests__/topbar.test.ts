@@ -224,3 +224,42 @@ describe('TopBar', () => {
     expect(screen.getByRole('heading', { level: 1, name: '찾기' })).toBeTruthy();
   });
 });
+
+describe('TopBar 창 스크롤 대체 감지', () => {
+  let frames: FrameRequestCallback[] = [];
+  function scrollTo(y: number) {
+    Object.defineProperty(window, 'scrollY', { value: y, configurable: true });
+    act(() => {
+      fireEvent.scroll(window);
+      const run = frames;
+      frames = [];
+      run.forEach((cb) => cb(0));
+    });
+  }
+  beforeEach(() => {
+    frames = [];
+    vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => frames.push(cb));
+    vi.stubGlobal('cancelAnimationFrame', () => {});
+    Object.defineProperty(window, 'scrollY', { value: 0, configurable: true });
+  });
+
+  it('큰 제목이 없으면 창이 스크롤될 때 바가 간지 재질로 바뀐다', () => {
+    renderWithProvider(h(TopBar, { hasUnread: false }));
+    expect(document.querySelector('.topbar--scrolled')).toBeNull();
+    scrollTo(10);
+    expect(document.querySelector('.topbar--scrolled')).not.toBeNull();
+    scrollTo(0);
+    expect(document.querySelector('.topbar--scrolled')).toBeNull();
+  });
+
+  it('큰 제목이 있으면 스크롤 이벤트가 표식의 판단을 덮지 않는다', () => {
+    renderWithProvider(
+      h(Fragment, null, h(LargeTitle, null, '찾기'), h(TopBar, { hasUnread: false }))
+    );
+    scrollTo(10);
+    expect(document.querySelector('.topbar--scrolled')).toBeNull();
+    act(() => io.trigger({ isIntersecting: false }));
+    scrollTo(0);
+    expect(document.querySelector('.topbar--scrolled')).not.toBeNull();
+  });
+});

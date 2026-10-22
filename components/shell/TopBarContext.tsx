@@ -1,6 +1,14 @@
 'use client';
 
-import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { createPortal } from 'react-dom';
 
 export interface TopBarConfig {
@@ -23,6 +31,8 @@ interface TopBarState {
   actionsCount: number;
   setActionsCount(update: (n: number) => number): void;
   setScrolled(v: boolean): void;
+  /** LargeTitle·Leaves가 scrolled를 직접 정할 때 부른다. 돌려받은 함수로 해제한다 */
+  claimScroll(): () => void;
   setLeafTitle(t: string | null): void;
 }
 
@@ -34,6 +44,31 @@ export function TopBarProvider({ children }: { children: React.ReactNode }) {
   const [leafTitle, setLeafTitle] = useState<string | null>(null);
   const [actionsSlot, setActionsSlot] = useState<HTMLElement | null>(null);
   const [actionsCount, setActionsCount] = useState(0);
+  const [scrollOwners, setScrollOwners] = useState(0);
+  const claimScroll = useCallback(() => {
+    setScrollOwners((n) => n + 1);
+    return () => setScrollOwners((n) => n - 1);
+  }, []);
+
+  // 큰 제목 표식·장 묶음이 없는 화면(아직 이전하지 않은 화면)은 창 스크롤로 재질을 바꾼다
+  useEffect(() => {
+    if (scrollOwners > 0) return;
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      setScrolled(window.scrollY > 0);
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, [scrollOwners]);
+
   const value = useMemo(
     () => ({
       config,
@@ -41,13 +76,14 @@ export function TopBarProvider({ children }: { children: React.ReactNode }) {
       leafTitle,
       setConfig,
       setScrolled,
+      claimScroll,
       setLeafTitle,
       actionsSlot,
       setActionsSlot,
       actionsCount,
       setActionsCount,
     }),
-    [config, scrolled, leafTitle, actionsSlot, actionsCount]
+    [config, scrolled, leafTitle, actionsSlot, actionsCount, claimScroll]
   );
   return <TopBarContext.Provider value={value}>{children}</TopBarContext.Provider>;
 }
