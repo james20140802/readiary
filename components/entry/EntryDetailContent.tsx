@@ -235,6 +235,7 @@ export default function EntryDetailContent({
 
       {/* 삭제 확인 모달 */}
       <Modal
+        ariaLabel="정말 삭제하시겠어요?"
         isOpen={isDeleteDialogOpen}
         onClose={() => {
           if (!deletion.isLocked()) setIsDeleteDialogOpen(false);

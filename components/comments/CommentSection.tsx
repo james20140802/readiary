@@ -207,6 +207,7 @@ export default function CommentSection({
 
       {/* 삭제 확인 모달 */}
       <Modal
+        ariaLabel="정말 삭제하시겠어요?"
         isOpen={!!deleteModalCommentId}
         onClose={() => {
           if (!deletion.isLocked()) setDeleteModalCommentId(null);
@@ -227,7 +228,11 @@ export default function CommentSection({
       </Modal>
 
       {/* 에러 모달 */}
-      <Modal isOpen={!!errorModalMessage} onClose={() => setErrorModalMessage(null)}>
+      <Modal
+        ariaLabel="알림"
+        isOpen={!!errorModalMessage}
+        onClose={() => setErrorModalMessage(null)}
+      >
         <div className="space-y-4">
           <h2 className="text-section-title font-bold text-ink">알림</h2>
           <p className="text-caption text-ink-sub">{errorModalMessage}</p>

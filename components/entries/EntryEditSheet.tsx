@@ -191,6 +191,7 @@ export default function EntryEditSheet({
 
       {/* 삭제 확인 — entry 상세와 같은 문구 */}
       <Modal
+        ariaLabel="정말 삭제하시겠어요?"
         isOpen={isDeleteOpen}
         onClose={() => {
           if (!isDeleting) setIsDeleteOpen(false);
