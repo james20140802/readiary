@@ -437,3 +437,42 @@ li {
     color: rgb(var(--accent));
   }
 }
+
+/* 일기장 괘선 — 화면 뒤에 고정으로 깔린다. 본문은 relative z-[1]로 위에 얹는다 */
+.diary-ruled {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      to right,
+      transparent 51px,
+      rgb(var(--margin)) 51px,
+      rgb(var(--margin)) 52px,
+      transparent 52px
+    ),
+    repeating-linear-gradient(to bottom, transparent 0 39px, rgb(var(--hairline)) 39px 40px);
+  background-position:
+    0 0,
+    0 18px;
+}
+.diary-ruled--plain {
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0 39px,
+    rgb(var(--hairline)) 39px 40px
+  );
+  background-position: 0 18px;
+}
+@media (min-width: 1024px) {
+  /* --app-side는 사이드바 도입 PR에서 정의한다 */
+  .diary-ruled--beside-sidebar {
+    left: var(--app-side);
+  }
+  .diary-ruled--beside-sidebar:not(.diary-ruled--plain) {
+    background-position:
+      -20px 0,
+      0 18px;
+  }
+}
