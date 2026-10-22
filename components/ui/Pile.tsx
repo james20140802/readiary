@@ -302,7 +302,7 @@ export default function Pile<T>({
         role="group"
         aria-label={label}
         className="grid"
-        style={{ marginBottom: n > 0 ? pileMarginBottom(n) : 0 }}
+        style={{ marginBottom: pileMarginBottom(n) }}
       >
         {items.map((item, i) => {
           const key = keys[i];

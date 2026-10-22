@@ -70,6 +70,7 @@ export function awayIndexForBack(n: number): number {
 
 /** 비켜 쌓인 만큼 아래 자리를 비운다. */
 export function pileMarginBottom(n: number): number {
+  if (n <= 0) return 0;
   return Math.min(n - 1, 3) * 15 + 10;
 }
 

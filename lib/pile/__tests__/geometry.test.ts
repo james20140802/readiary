@@ -44,6 +44,7 @@ describe('간지 묶음 계산', () => {
   it('아래 자리 여백', () => {
     expect(pileMarginBottom(1)).toBe(10);
     expect(pileMarginBottom(9)).toBe(55);
+    expect(pileMarginBottom(0)).toBe(0);
   });
   it('빼는 거리: 다음 장 너머, 최소 48px는 화면에', () => {
     expect(flipOutX(24, 300, 390)).toBe(286);

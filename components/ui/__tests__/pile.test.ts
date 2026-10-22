@@ -156,6 +156,8 @@ describe('Pile', () => {
       ptr(slipOf('가'), 'pointerdown', 10);
       ptr(window, 'pointermove', 110);
       ptr(window, 'pointermove', 210);
+      // 끌기가 시작된 뒤 타이머가 한 번 돌아도 차단은 남아 있어야 한다
+      act(() => vi.advanceTimersByTime(0));
       ptr(window, 'pointerup', 210);
       expect(tap(link).defaultPrevented).toBe(true);
       act(() => vi.advanceTimersByTime(560 * 0.38));
