@@ -683,3 +683,121 @@ li {
     transition: opacity 160ms ease;
   }
 }
+
+/* ── 장 넘김 ──
+   모바일 .leaves: 한 화면씩 끊긴다.
+   넘기기(기본): 서로 독립된 다음 장 — 앞 장이 그대로 위로 밀려 나간다.
+   덮기(.leaf-stack): 앞 장 위에 얹히는 관계 — 첫 장이 고정되고 뒤 장들이 간지로 덮는다. */
+@media (max-width: 1023px) {
+  html:has(.leaves) {
+    scroll-snap-type: y mandatory;
+  }
+  .leaves .leaf {
+    position: relative;
+    height: var(--vh, 100svh);
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    overflow: hidden;
+    padding: calc(60px + var(--app-safe-top)) 24px
+      calc(var(--app-tabbar-h) + 30px + var(--app-safe-bottom));
+  }
+  .leaves .leaf-stack > .leaf:first-child {
+    position: sticky;
+    top: 0;
+  }
+  .leaves .leaf-stack > .leaf.vellum + .leaf,
+  .leaves .leaf-stack > .leaf + .leaf.vellum {
+    border-radius: 14px 14px 0 0;
+  }
+  /* 마지막 장은 어떤 브라우저 바 상태에서도 화면보다 짧지 않아야 장 머리까지 닿는다(짧으면 끝에서 멈춰 위가 비어 보임) */
+  .leaves .leaf--free {
+    height: auto;
+    min-height: max(var(--vh, 100svh), 100lvh);
+    overflow: visible;
+  }
+  /* 덮이는 장은 도착하며 살짝 기울어져 내려앉고, 덮인 장은 안으로 가라앉는다 */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .leaves .leaf-stack {
+        timeline-scope: --cover;
+      }
+      .leaves .leaf-stack > .leaf:nth-child(2) {
+        view-timeline-name: --cover;
+      }
+      .leaves .leaf-stack > .leaf + .leaf > .leaf-in {
+        animation: leaf-settle linear both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 100%;
+      }
+      .leaves .leaf-stack > .leaf:first-child > .leaf-in {
+        animation: leaf-sink linear both;
+        animation-timeline: --cover;
+        animation-range: entry 0% entry 100%;
+      }
+    }
+  }
+}
+@keyframes leaf-settle {
+  from {
+    transform: translateY(24px) rotate(1.6deg);
+    transform-origin: 100% 0;
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes leaf-sink {
+  to {
+    transform: scale(0.965);
+    opacity: 0.4;
+    filter: blur(1.5px);
+  }
+}
+
+/* 데스크톱 .dleaves: 한 화면씩 끊기고, 오른쪽 위 전환 버튼(.dseg)으로도 이동한다 */
+@media (min-width: 1024px) {
+  html:has(.dleaves) {
+    scroll-snap-type: y mandatory;
+  }
+  .dleaf {
+    position: relative;
+    min-height: 100dvh;
+    max-width: 1400px;
+    padding: 40px 56px 40px 80px;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+  .dleaf + .dleaf {
+    border-top: 1px solid rgb(var(--hairline));
+  }
+  .dseg {
+    background: rgb(var(--sheet) / 0.7);
+    -webkit-backdrop-filter: blur(20px) saturate(1.6);
+    backdrop-filter: blur(20px) saturate(1.6);
+  }
+  .dseg-item[aria-current='true'] {
+    background: rgb(var(--sheet));
+    color: rgb(var(--ink));
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.12);
+  }
+}
+/* 밤의 선택 표시: 어두운 종이 위에선 종이색 알약이 바탕에 묻힌다. 고른 칸은 빛을 한 겹 더 받고, 나머지 글자는 한 단계 물러난다 */
+@media (prefers-color-scheme: dark) {
+  .dseg-item {
+    color: #978e81;
+  }
+  .dseg-item[aria-current='true'] {
+    background: rgb(255 255 255 / 0.14);
+    color: #f6f0e6;
+    box-shadow:
+      inset 0 0.5px 0 rgb(255 255 255 / 0.14),
+      0 1px 4px rgb(0 0 0 / 0.45);
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .dseg {
+    background: rgb(var(--sheet));
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
