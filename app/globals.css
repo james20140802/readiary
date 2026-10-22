@@ -146,6 +146,51 @@
   }
 }
 
+/* 모바일 상단 바: 평소엔 종이 위에 떠 있고, 큰 제목이 가려지면 간지(시트) 재질이 된다 */
+.topbar {
+  height: var(--app-mobile-header-height);
+  padding: var(--app-safe-top) 10px 0 16px;
+  transition:
+    background-color 200ms ease,
+    box-shadow 200ms ease;
+}
+.topbar-brand,
+.topbar-title {
+  transition: opacity 160ms ease;
+}
+.topbar-title {
+  opacity: 0;
+}
+.topbar-dot {
+  position: absolute;
+  top: 11px;
+  right: 11px;
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: rgb(var(--accent));
+  box-shadow: 0 0 0 2px rgb(var(--paper));
+}
+.topbar--scrolled {
+  background: rgb(var(--sheet) / 0.72);
+  -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  backdrop-filter: blur(20px) saturate(1.6);
+  box-shadow: 0 0.5px 0 rgb(0 0 0 / 0.12);
+}
+.topbar--scrolled .topbar-brand {
+  opacity: 0;
+}
+.topbar--scrolled .topbar-title {
+  opacity: 1;
+}
+@media (prefers-reduced-transparency: reduce) {
+  .topbar--scrolled {
+    background: rgb(var(--sheet));
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
 /* 가로 넘침은 clip으로 막는다 — hidden은 스크롤 상자를 만들어 sticky·scroll-snap을 깬다 */
 html,
 body {
