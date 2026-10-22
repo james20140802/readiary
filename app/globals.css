@@ -176,13 +176,19 @@ body {
   /* 한국어 조판: 어절 단위로만 줄바꿈 — 한 어절이 한 줄보다 길 때만 예외적으로 끊는다 */
   word-break: keep-all;
   overflow-wrap: break-word;
-  overflow-y: scroll;
-  -ms-overflow-style: none;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-body::-webkit-scrollbar {
+/* 스크롤은 창(뷰포트)만 맡는다. body·html에 overflow-y를 주면 body가 스크롤 상자가 되어
+   window.scrollY가 0에 머물고 scroll-snap·sticky·useScroll(랜딩 장 넘김)이 멈춘다.
+   스크롤바 숨김은 뷰포트 스크롤러인 html에 둔다. */
+html {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar {
   display: none;
 }
 
