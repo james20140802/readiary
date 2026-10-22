@@ -204,6 +204,20 @@ describe('Pile', () => {
       expect(screen.getByText('1/5')).toBeTruthy();
     });
 
+    it('밀다가 브라우저가 가져가면(취소) 넘기지 않고 제자리로 돌아온다', () => {
+      renderPile();
+      const slip = slipOf('가');
+      ptr(slip, 'pointerdown', 10);
+      ptr(window, 'pointermove', 110);
+      ptr(window, 'pointermove', 210);
+      ptr(window, 'pointercancel', 210);
+      act(() => vi.advanceTimersByTime(560));
+      expect(screen.getByText('1/5')).toBeTruthy();
+      expect(animations.length).toBe(0);
+      expect(slip.hasAttribute('data-drag')).toBe(false);
+      expect(translateX(slip)).toBeLessThan(50);
+    });
+
     it('세로로 먼저 움직이면 넘기지 않는다', () => {
       renderPile();
       ptr(slipOf('가'), 'pointerdown', 10, 0);

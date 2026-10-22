@@ -220,7 +220,7 @@ export default function Pile<T>({
     const stop = () => {
       window.removeEventListener('pointermove', move);
       window.removeEventListener('pointerup', up);
-      window.removeEventListener('pointercancel', up);
+      window.removeEventListener('pointercancel', cancel);
       cleanupDrag.current = null;
     };
     const restore = () => {
@@ -268,8 +268,13 @@ export default function Pile<T>({
       }
     }
     window.addEventListener('pointermove', move);
+    // 브라우저가 몸짓을 가져가면(세로 스크롤 등) 넘기지 않고 제자리로 돌린다.
+    function cancel() {
+      stop();
+      if (live) restore();
+    }
     window.addEventListener('pointerup', up);
-    window.addEventListener('pointercancel', up);
+    window.addEventListener('pointercancel', cancel);
     cleanupDrag.current = stop;
   };
 
