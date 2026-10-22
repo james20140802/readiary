@@ -78,11 +78,12 @@ export default function Pile<T>({
   });
 
   // items가 바뀌면 사라진 키는 빼고 새 키는 맨 아래에 넣는다.
+  // order는 아래→위라 새 키도 뒤집어 넣는다 — 나중에 받은 items도 앞의 것이 위에 온다.
   const effOrder = (() => {
     const set = new Set(keys);
     const kept = order.filter((k) => set.has(k));
     const have = new Set(kept);
-    const added = keys.filter((k) => !have.has(k));
+    const added = keys.filter((k) => !have.has(k)).reverse();
     return added.length || kept.length !== order.length ? [...added, ...kept] : order;
   })();
   const n = effOrder.length;

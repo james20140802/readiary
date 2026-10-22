@@ -123,6 +123,21 @@ describe('Pile', () => {
     expect(screen.getByText('3/5')).toBeTruthy();
   });
 
+  it('나중에 받은 장들도 첫 장이 맨 위다', () => {
+    const view = renderPile([]);
+    view.rerender(
+      React.createElement(Pile<string>, {
+        items,
+        getKey: (s) => s,
+        label: '덧붙인 생각 묶음',
+        renderSlip: (s) => React.createElement('a', { href: `#${s}` }, s),
+      })
+    );
+    expect(screen.getByText('가').closest('[inert]')).toBeNull();
+    expect(screen.getByText('마').closest('[inert]')).not.toBeNull();
+    expect(screen.getByText('1/5')).toBeTruthy();
+  });
+
   it('한 장이면 다음이 비활성', () => {
     renderPile(['가']);
     expect((screen.getByRole('button', { name: '다음' }) as HTMLButtonElement).disabled).toBe(true);
