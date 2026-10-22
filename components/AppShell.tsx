@@ -85,7 +85,8 @@ export default function AppShell({ initialLoggedIn, initialUnread, children }: A
       )}
       {nav && <Sidebar hasUnread={hasUnread} prefetch={dataNav} />}
       {frame === 'landing' && <GuestBar />}
-      <main className={clsx('relative w-full', mainClass(frame, nav))}>
+      {/* w-full을 주지 않는다 — 블록은 사이드바 여백(ml)을 뺀 폭을 스스로 채운다. w-full이면 폭 100%에 여백이 더해져 오른쪽이 화면 밖으로 밀린다 */}
+      <main className={clsx('relative', mainClass(frame, nav))}>
         {frame === 'plain' || frame === 'feed' ? (
           <div
             className={clsx(
