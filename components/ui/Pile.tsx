@@ -165,16 +165,16 @@ export default function Pile<T>({
     }
     busy.current = true;
     const to = placeSlips(newOrder.map((k) => newPoses[k] ?? initialPose(0)))[0];
-    const rect = el.getBoundingClientRect();
-    const slotLeft = rect.left - from.x;
-    const ox = flipOutX(slotLeft, below.getBoundingClientRect().right, window.innerWidth);
-    const keyframes = flipKeyframes(from, ox, to);
-    // 끌다 놓았다면 끌린 자리에서 이어서 시작한다.
-    const live = getComputedStyle(el).transform;
-    if (el.hasAttribute('data-drag') && live && live !== 'none') keyframes[0].transform = live;
+    // 끌다 놓았다면 끌린 자리에서 이어서 시작한다(끌린 transform은 측정 전에 읽어 둔다).
+    const dragged = el.hasAttribute('data-drag') ? getComputedStyle(el).transform : '';
     el.removeAttribute('data-drag');
     el.style.transition = 'none';
+    // 끌린 만큼 어긋나지 않게, 제자리 transform으로 되돌린 뒤 제자리 왼쪽을 잰다.
     el.style.transform = slipTransform(from);
+    const slotLeft = el.getBoundingClientRect().left - from.x;
+    const ox = flipOutX(slotLeft, below.getBoundingClientRect().right, window.innerWidth);
+    const keyframes = flipKeyframes(from, ox, to);
+    if (dragged && dragged !== 'none') keyframes[0].transform = dragged;
     const a = el.animate(keyframes, { duration: FLIP_MS });
     anim.current = a;
     const rest = ord.filter((k) => k !== topKey).map((k) => els.current.get(k));
@@ -186,7 +186,7 @@ export default function Pile<T>({
       setPoses(newPoses);
       setOrder(newOrder);
     }, FLIP_MS * FLIP_TURN);
-    a.onfinish = () => {
+    const settle = () => {
       el.style.transition = '';
       rest.forEach((r) => {
         if (r) r.style.transitionDuration = '';
@@ -194,6 +194,9 @@ export default function Pile<T>({
       anim.current = null;
       busy.current = false;
     };
+    a.onfinish = settle;
+    // 도중에 취소(언마운트·항목 제거)돼도 busy가 남지 않게 한다.
+    a.oncancel = settle;
   }, []);
 
   const onPointerDown = (e: React.PointerEvent<HTMLElement>, key: string) => {
@@ -238,10 +241,6 @@ export default function Pile<T>({
           /* 포인터가 이미 끝났으면 무시 */
         }
         el.setAttribute('data-drag', '');
-        // 끌고 난 뒤 따라오는 클릭(링크 열림)은 막는다
-        const block = (c: Event) => c.preventDefault();
-        el.addEventListener('click', block, { once: true, capture: true });
-        setTimeout(() => el.removeEventListener('click', block, { capture: true }), 0);
       }
       dx = dragOffset(mx, lim);
       if (!reduce) {
@@ -252,6 +251,10 @@ export default function Pile<T>({
     function up(ev: PointerEvent) {
       stop();
       if (!live) return;
+      // 끌고 난 뒤 pointerup 바로 뒤에 따라오는 클릭(링크 열림)은 막는다. 탭(끌지 않음)은 막지 않는다.
+      const block = (c: Event) => c.preventDefault();
+      el.addEventListener('click', block, { once: true, capture: true });
+      setTimeout(() => el.removeEventListener('click', block, { capture: true }), 0);
       const elapsed = Math.max(1, ev.timeStamp - t0);
       if (shouldFlip(dx, lim, elapsed)) {
         if (reduce) restore();
@@ -299,7 +302,7 @@ export default function Pile<T>({
         role="group"
         aria-label={label}
         className="grid"
-        style={{ marginBottom: pileMarginBottom(n) }}
+        style={{ marginBottom: n > 0 ? pileMarginBottom(n) : 0 }}
       >
         {items.map((item, i) => {
           const key = keys[i];
