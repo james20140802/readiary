@@ -33,8 +33,8 @@ export default function PileDemo() {
       label="덧붙인 생각 묶음"
       nextLabel="다음 생각"
       renderSlip={(t) => (
-        <div className="px-5 py-4">
-          <div className="font-mono text-fine text-ink-sub">{t.date}</div>
+        <div>
+          <div className="font-sans text-fine font-semibold text-ink-sub">{t.date}</div>
           <p className="mt-1 font-serif text-note text-ink">{t.note}</p>
         </div>
       )}
