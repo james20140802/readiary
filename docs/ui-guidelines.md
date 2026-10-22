@@ -18,7 +18,7 @@
 | `text-ink` | `#221E1A` | `#ECE5DA` | 기본 글 (먹) |
 | `text-ink-sub` | `#6B645A` | `#B1A899` | 보조 글 |
 | `text-ink-faint` | `#9E968A` | `#8E8476` | 흐린 글·플레이스홀더 |
-| `text-ink-invert` | 카드색 | 종이색 | 먹 배경 위 글 |
+| `text-ink-invert` | 카드색 `#FDFBF7` | `#1B1612` | 먹 배경 위 글 |
 | `border-hairline` | `#E0D9CC` | `#2E2A25` | 기본 헤어라인, 일기장 괘선 |
 | `border-hairline-strong` | `#CFC5B4` | `#4A4036` | 강조 헤어라인(위계) |
 | `*-accent` | `#2D5FB8` | `#85A9EC` | 강조(잉크). 아껴 쓴다 |
