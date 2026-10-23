@@ -166,7 +166,7 @@ export function layoutFlags(flags: { id: string; ratio: number }[], height: numb
   let prev: { y: number; tier: number } | null = null;
   for (const f of flags) {
     const y = FLAG_EDGE + f.ratio * span;
-    const tier = prev && y - prev.y < FLAG_CROWD ? (prev.tier + 1) % FLAG_TIERS : 0;
+    const tier: number = prev && y - prev.y < FLAG_CROWD ? (prev.tier + 1) % FLAG_TIERS : 0;
     placed.push({ id: f.id, y, tier, len: FLAG_LEN + tier * FLAG_LEN_STEP });
     prev = { y, tier };
   }
