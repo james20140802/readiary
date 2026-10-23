@@ -94,10 +94,11 @@ export default function EntryLayer({
           )}
         </TopBarActions>
       )}
+      {/* 996px = 기존 본문 860px + 좌우 여백 136px. 데스크톱의 가운데 정렬을 유지한다. */}
       <div
         className={clsx(
           styles.root,
-          snap && 'lg:max-w-[1400px] lg:pb-16 lg:pl-20 lg:pr-14 lg:pt-11'
+          snap && 'lg:mx-auto lg:max-w-[996px] lg:pb-16 lg:pl-20 lg:pr-14 lg:pt-11'
         )}
       >
         <Wrap>

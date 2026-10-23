@@ -27,6 +27,12 @@ function matches(pathname: string, prefix: string): boolean {
 export function frameFor(pathname: string): Frame {
   if (pathname === '/') return 'landing';
   if (BARE_PREFIXES.some((p) => matches(pathname, p))) return 'bare';
+  if (
+    /^\/entry\/[^/]+$/.test(pathname) ||
+    /^\/social\/u\/[^/]+\/entry\/[^/]+$/.test(pathname) ||
+    pathname === '/design-lab/entry'
+  )
+    return 'leaves';
   if (LEAVES_ROUTES.some((p) => matches(pathname, p))) return 'leaves';
   return 'plain';
 }
