@@ -97,7 +97,7 @@ export default function FriendLibraryView({
         {/* 표지 — 이 사람이 고른 대표 문장이 책 제목이 된다 */}
         <div
           aria-hidden
-          className="flex aspect-[7/10] w-[min(220px,58vw)] flex-col rounded-[2px_6px_6px_2px] bg-ink pb-[18px] pl-7 pr-[22px] pt-[22px] text-paper shadow-[inset_8px_0_10px_-6px_rgb(0_0_0/.35),0_28px_44px_-20px_rgb(20_20_40/.55)] lg:w-[280px]"
+          className="flex aspect-[7/10] w-[min(220px,58vw)] flex-col rounded-[6px] bg-ink pb-[18px] pl-7 pr-[22px] pt-[22px] text-paper lg:w-[280px]"
         >
           <span className="font-sans text-[12px] font-semibold tracking-[0.06em] opacity-80">
             {profile.name} 지음
