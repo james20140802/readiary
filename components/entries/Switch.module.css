@@ -5,7 +5,7 @@
   width: 51px;
   height: 31px;
   border-radius: 16px;
-  background: rgb(127 127 127 / 0.28);
+  background: rgb(var(--switch-track) / 0.28);
   transition: background-color 200ms ease;
   margin-left: auto;
 }
@@ -17,7 +17,7 @@
   width: 27px;
   height: 27px;
   border-radius: 50%;
-  background: #fff;
+  background: rgb(var(--switch-thumb));
   box-shadow: 0 2px 5px rgb(0 0 0 / 0.25);
   transition: transform 200ms var(--ease-out);
 }
