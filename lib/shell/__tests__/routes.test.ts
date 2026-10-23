@@ -9,7 +9,15 @@ describe('frameFor', () => {
     ['/invite/x', 'bare'],
     ['/privacy', 'bare'],
     ['/today', 'plain'],
-    ['/books/1', 'plain'],
+    ['/books', 'leaves'],
+    ['/books/1', 'leaves'],
+    ['/books/new', 'plain'],
+    ['/books/1/excerpts', 'plain'],
+    ['/books/1/entry/new', 'plain'],
+    ['/bookstore', 'plain'],
+    ['/design-lab/books', 'leaves'],
+    ['/design-lab/books/detail', 'leaves'],
+    ['/design-lab/books/new', 'plain'],
     ['/sharing', 'plain'],
   ])('%s의 틀은 %s', (p, f) => expect(frameFor(p)).toBe(f));
 });
