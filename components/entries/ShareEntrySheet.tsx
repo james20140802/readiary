@@ -22,9 +22,9 @@ interface Props {
 }
 
 /**
- * 문장 카드로 공유하는 시트(시안 entry-layer.html #share). 카드 이미지를 만들고 공유 링크를 연 뒤,
- * '공유하기'는 기기의 공유 창으로, '이미지 저장'은 내려받기 + 링크 복사로 보낸다.
- * 공유 창이 없는 환경의 '공유하기'도 저장과 같은 길로 간다(예전 공유 버튼과 같은 동작).
+ * 문장 카드로 공유하는 시트(시안 entry-layer.html #share).
+ * '이미지 저장'은 카드 그림만 내려받는다 — 공유 링크를 열거나 복사하지 않는다.
+ * '공유하기'만 공유 링크를 열고 기기의 공유 창으로 보낸다. 공유 창이 없으면 내려받기 + 링크 복사.
  */
 export default function ShareEntrySheet({
   open,
@@ -46,23 +46,29 @@ export default function ShareEntrySheet({
       const dataUrl = await toPng(cardRef.current, { pixelRatio: 2, cacheBust: true });
       const blob = await (await fetch(dataUrl)).blob();
       const file = new File([blob], 'readiary-sentence.png', { type: 'image/png' });
+      const download = () => {
+        const anchor = document.createElement('a');
+        anchor.href = dataUrl;
+        anchor.download = 'readiary-sentence.png';
+        anchor.click();
+      };
+
+      if (mode === 'save') {
+        download();
+        toast.success('카드 이미지를 저장했어요.');
+        return;
+      }
+
       const { data: enabled, error } = await createSupabaseClient().rpc('enable_entry_share', {
         p_entry_id: entryId,
       });
       if (error || !enabled) throw new Error('공유 링크를 만들 수 없습니다.');
       const shareUrl = `${window.location.origin}/share/e/${entryId}`;
 
-      if (
-        mode === 'share' &&
-        typeof navigator.share === 'function' &&
-        navigator.canShare?.({ files: [file] })
-      ) {
+      if (typeof navigator.share === 'function' && navigator.canShare?.({ files: [file] })) {
         await navigator.share({ files: [file], title: 'Readiary 문장 카드', url: shareUrl });
       } else {
-        const anchor = document.createElement('a');
-        anchor.href = dataUrl;
-        anchor.download = 'readiary-sentence.png';
-        anchor.click();
+        download();
         let linkCopied = true;
         try {
           await navigator.clipboard.writeText(shareUrl);
