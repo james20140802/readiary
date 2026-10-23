@@ -22,7 +22,9 @@ export default function NotificationsHeader() {
         </Link>
       </TopBarActions>
       <div className="flex items-end justify-between gap-3">
-        <LargeTitle>알림</LargeTitle>
+        <div>
+          <LargeTitle>알림</LargeTitle>
+        </div>
         <Link
           href={SETTINGS_HREF}
           className="hidden min-h-11 items-center font-sans text-[15px] font-semibold text-ink-sub hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent lg:inline-flex"

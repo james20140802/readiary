@@ -129,11 +129,6 @@ export default function FriendLibraryView({
           </p>
         )}
         <p className="mt-2.5 font-sans text-[15px] font-medium text-ink-sub">{statLine}</p>
-        {!isOwn && (
-          <div className="mt-1">
-            <RemoveFriendButton friendId={profile.id} name={profile.name} />
-          </div>
-        )}
       </div>
 
       <div>
@@ -258,6 +253,12 @@ export default function FriendLibraryView({
             </ul>
           )}
         </section>
+
+        {!isOwn && (
+          <div className="mt-[34px] border-t border-hairline pt-2">
+            <RemoveFriendButton friendId={profile.id} name={profile.name} />
+          </div>
+        )}
       </div>
     </div>
   );

@@ -79,9 +79,7 @@ export default function FeedPost({ item, userId, now, index }: Props) {
             >
               {profile.name}
             </Link>
-            <p className="truncate font-sans text-[14px] font-medium text-ink-sub lg:hidden">
-              {source}
-            </p>
+            <p className="font-sans text-[14px] font-medium text-ink-sub lg:hidden">{source}</p>
             <p className="hidden truncate font-sans text-[14px] font-medium text-ink-sub lg:block">
               {sourceDesk}
             </p>

@@ -43,7 +43,7 @@ export default function SocialFeedView({
   pageSize,
   loadPage,
 }: SocialFeedViewProps) {
-  useTopBar({ title: '친구의 문장' });
+  useTopBar({ title: '친구의 문장', brand: false });
   const now = useMemo(() => new Date(referenceTime), [referenceTime]);
 
   const [feed, setFeed] = useState(initialFeed);
@@ -126,7 +126,9 @@ export default function SocialFeedView({
 
       <div className={clsx(styles.wide, 'relative z-[1]')}>
         <div className="flex items-center gap-4">
-          <LargeTitle>소셜</LargeTitle>
+          <div>
+            <LargeTitle>소셜</LargeTitle>
+          </div>
           <Button asChild size="sm" variant="secondary" className="ml-auto hidden lg:inline-flex">
             <Link href={FRIENDS_HREF}>친구 찾기{friendCount > 0 ? ` · ${friendCount}` : ''}</Link>
           </Button>
