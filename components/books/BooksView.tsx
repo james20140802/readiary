@@ -249,7 +249,14 @@ function DesktopReading({
         </div>
       ) : (
         <>
-          <div className={clsx(styles.ledge, 'mt-[22px]')} role="group" aria-label="읽는 중인 책">
+          <div
+            className={clsx(styles.ledge, 'mt-[22px]')}
+            style={{
+              gridTemplateColumns: `repeat(${Math.min(reading.length, 6)}, minmax(0, 1fr))`,
+            }}
+            role="group"
+            aria-label="읽는 중인 책"
+          >
             {reading.slice(0, 6).map((b) => (
               <button
                 key={b.id}
@@ -265,7 +272,6 @@ function DesktopReading({
                   shadow="lg"
                   sizes="200px"
                   titleSize={16}
-                  className="!w-auto"
                 />
               </button>
             ))}
