@@ -32,6 +32,22 @@ const MONTHS = [
 export default function Landing() {
   return (
     <div className={s.root}>
+      <nav className={s.nav} aria-label="첫 화면 메뉴">
+        <Link href="/" prefetch={false} className={s.wordmark}>
+          Readiary
+        </Link>
+        <Link href="#look" className={s.navLink}>
+          둘러보기
+        </Link>
+        <Link href="/login" prefetch={false} className={s.navLink}>
+          로그인
+        </Link>
+        <Button asChild className={s.navCta}>
+          <Link href="/signup" prefetch={false}>
+            기록 시작하기
+          </Link>
+        </Button>
+      </nav>
       <section className={clsx(s.sec, s.heroSec)} aria-labelledby="landing-title">
         <div className={clsx(s.in, s.hero)}>
           <div>

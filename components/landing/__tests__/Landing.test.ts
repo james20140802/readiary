@@ -13,7 +13,7 @@ describe('랜딩', () => {
   });
 
   it('마지막 장면에서도 가입으로 갈 수 있다', () => {
-    expect(html.match(/href="\/signup"/g)).toHaveLength(2);
+    expect(html.match(/href="\/signup"/g)).toHaveLength(3);
   });
 
   it('제목은 h1 하나이고 장면마다 소제목이 있다', () => {
@@ -32,4 +32,12 @@ describe('랜딩', () => {
     expect(html).toContain('href="/terms"');
     expect(html).toContain('href="/privacy"');
   });
+});
+
+it('첫 화면 메뉴에서 둘러보기·로그인·기록 시작하기로 갈 수 있다', () => {
+  const nav = html.match(/<nav[\s\S]*?<\/nav>/)?.[0] ?? '';
+  expect(nav).toContain('aria-label="첫 화면 메뉴"');
+  expect(nav).toContain('href="#look"');
+  expect(nav).toContain('href="/login"');
+  expect(nav).toContain('href="/signup"');
 });

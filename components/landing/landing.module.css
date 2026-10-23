@@ -1,7 +1,7 @@
 /* 랜딩 — 겹쳐 비치는 트레이싱지 묶음이 장면마다 다르게 쌓인다.
    값은 docs/design/concept-2026-10/landing.html 그대로 옮기고, 색만 프로젝트 토큰으로 바꿨다.
    움직임은 스크롤에 묶이고(CSS scroll-driven animations), 동작 줄이기나 지원하지 않는 브라우저에서는
-   마지막 자리에 멈춘 그림으로 남는다. 상단 바는 셸의 GuestBar(고정)라 그 높이만큼 비워 둔다. */
+   마지막 자리에 멈춘 그림으로 남는다. 랜딩 전용 상단 바의 높이에 장면 기준점을 맞춘다. */
 
 .root {
   --l-ink: rgb(var(--ink));
@@ -9,9 +9,59 @@
   --l-faint: rgb(var(--ink-faint));
   --l-rule: rgb(var(--hairline));
   --l-accent: rgb(var(--accent));
-  --l-bar: var(--app-mobile-header-height);
+  --l-bar: calc(64px + var(--app-safe-top));
   --l-mono: ui-monospace, 'SF Mono', Menlo, monospace;
-  padding-top: var(--l-bar);
+}
+
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: var(--l-bar);
+  padding: var(--app-safe-top) max(20px, 4vw) 0;
+  background: rgb(var(--paper) / 0.72);
+  backdrop-filter: blur(18px) saturate(1.4);
+}
+.wordmark {
+  margin-right: auto;
+  font-family: var(--font-serif), serif;
+  font-size: 22px;
+  font-weight: 700;
+}
+.navLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 10px;
+  font-size: 15px;
+  font-weight: 500;
+  color: rgb(var(--ink-sub));
+}
+.navCta {
+  min-height: 44px;
+  padding: 0 18px !important;
+  font-size: 15px;
+}
+.nav a:focus-visible {
+  outline: 2px solid rgb(var(--accent));
+  outline-offset: 3px;
+}
+@media (max-width: 479px) {
+  .navLink[href='#look'] {
+    display: none;
+  }
+  .nav {
+    gap: 4px;
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .nav {
+    background: rgb(var(--paper));
+    backdrop-filter: none;
+  }
 }
 
 .sec {
