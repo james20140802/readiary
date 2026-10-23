@@ -1,152 +1,202 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
-import { useCallback, useId, useMemo, useState } from 'react';
-import { motion } from 'framer-motion';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { ArrowRight } from 'lucide-react';
+import clsx from 'clsx';
 import { MyBook } from '@/types/book';
 import type { BookReadingStat } from '@/lib/queries/fetchBookReadingStats';
-import BookSpineShelf, { type ShelfBook } from './BookSpineShelf';
-import OpenBook from './OpenBook';
-import { useOpenBook } from './useOpenBook';
-import { toShelfBook } from '@/lib/books/shelfBook';
-import { UNDERLINE_TRANSITION } from '@/lib/motion';
+import Bookshelf, { type ShelfSpine } from './Bookshelf';
+import BookCover from './BookCover';
+import styles from './books.module.css';
+import { arrangeShelf, type ShelfFilter, type ShelfOrder } from './shelfSort';
 
 interface Props {
   books: MyBook[];
-  /** user_book id → 읽기 통계. 없거나 null이면(친구 책장·조회 실패) 펼친 책에 기간·문장 수를 비워 둔다 */
+  /** user_book id → 읽기 통계. 없거나 null이면(친구 책장·조회 실패) 문장 수·최근 읽은 날을 모른다 */
   stats?: Record<string, BookReadingStat> | null;
   isFriend?: boolean;
   nicknameAndTag?: string;
+  /** 머리줄 크기 — 데스크톱 책장 장은 큰 제목과 칩을 한 줄에 둔다 */
+  size?: 'mobile' | 'desktop';
+  /** 모두 보기로 펼치거나 접을 때 — 장 높이를 내용에 맞출지 정하는 쪽에 알린다 */
+  onExpandedChange?: (expanded: boolean) => void;
 }
 
-type ViewMode = 'shelf' | 'list';
-type FilterMode = 'all' | 'reading' | 'finished';
-type SortMode = 'recent' | 'title';
+type View = 'spine' | 'list';
 
-const VIEW_OPTIONS: { value: ViewMode; label: string }[] = [
-  { value: 'shelf', label: '책장' },
-  { value: 'list', label: '목록' },
-];
+/** 목록으로 볼 때 접어 두는 권수 */
+const LIST_PREVIEW = 5;
 
-const FILTER_OPTIONS: { value: FilterMode; label: string }[] = [
-  { value: 'all', label: '전체' },
-  { value: 'reading', label: '읽는 중' },
-  { value: 'finished', label: '완독' },
-];
-
-/** 책 상세 헤더와 같은 문법 — 막대 대신 잉크로 쓴 분수 하나 */
-function progressLine(b: MyBook): string {
-  if (b.is_finished) return '완독';
+/** 목록 줄의 짧은 진행 — 시안 '에리히 프롬 · 184 / 352', '다 읽음 · 문장 14' */
+function listMeta(b: MyBook, stat: BookReadingStat | undefined): string {
+  if (b.is_finished) return stat ? `다 읽음 · 문장 ${stat.entryCount}` : '다 읽음';
   const total = b.books.total_pages;
-  if (total != null) return `${b.last_read_page ?? 0} / ${total}`;
-  if (b.last_read_page != null) return `${b.last_read_page}쪽`;
-  return '읽는 중';
+  const progress =
+    total != null && total > 0
+      ? `${b.last_read_page ?? 0} / ${total}`
+      : b.last_read_page != null
+        ? `${b.last_read_page}쪽`
+        : '읽는 중';
+  return [b.books.author, progress].filter(Boolean).join(' · ');
 }
 
-/** 밑줄 텍스트 토글 — 책 상세의 필터와 같은 문법 */
-function TextToggle<T extends string>({
-  options,
-  value,
-  onChange,
-  label,
-}: {
-  options: { value: T; label: string }[];
-  value: T;
-  onChange: (v: T) => void;
-  label: string;
-}) {
-  // 밑줄은 한 줄만 두고 고른 쪽으로 옮겨 간다 — 같은 화면의 두 토글(상태·보기 방식)이 섞이지 않게 이름을 따로
-  const underlineId = useId();
-  return (
-    <div role="group" aria-label={label} className="flex items-center gap-3">
-      {options.map((opt) => (
+/**
+ * 서가 — 시안 books.html의 "서가" 장. 순서·거르기 칩, 책등/목록 전환, 선반 세 칸까지 보이고 "모두 보기".
+ * 내 책장과 친구 책장이 함께 쓴다(친구 책장은 통계가 없어 '문장 많은 순'을 감춘다).
+ */
+export default function BookList({
+  books,
+  stats,
+  isFriend = false,
+  nicknameAndTag = '',
+  size = 'mobile',
+  onExpandedChange,
+}: Props) {
+  const [view, setView] = useState<View>('spine');
+  const [order, setOrder] = useState<ShelfOrder>('recent');
+  const [filter, setFilter] = useState<ShelfFilter>('all');
+  const [expanded, setExpandedState] = useState(false);
+  const setExpanded = (v: boolean) => {
+    setExpandedState(v);
+    onExpandedChange?.(v);
+  };
+  const [overflows, setOverflows] = useState(false);
+  const shelfRef = useRef<HTMLUListElement>(null);
+  const listId = useId();
+
+  const hrefFor = (b: MyBook) =>
+    isFriend && nicknameAndTag !== ''
+      ? `/social/u/${nicknameAndTag}/books/${b.book_id}`
+      : `/books/${b.book_id}`;
+
+  const arranged = useMemo(
+    () => arrangeShelf(books, order, filter, stats),
+    [books, order, filter, stats]
+  );
+
+  const spines: ShelfSpine[] = arranged.map((b) => ({
+    id: b.id,
+    title: b.books.title ?? '(제목 없음)',
+    coverUrl: b.books.cover_url ?? null,
+    totalPages: b.books.total_pages,
+    isFinished: !!b.is_finished,
+    href: hrefFor(b),
+  }));
+
+  // 선반이 세 칸을 넘는지 — 넘을 때만 "모두 보기"를 둔다
+  useEffect(() => {
+    const el = shelfRef.current;
+    if (!el || view !== 'spine' || expanded) return;
+    const check = () => {
+      setOverflows(el.scrollHeight > el.clientHeight + 1);
+      // 접힌 선반 아래로 가려진 책등은 키보드 초점도 받지 않는다
+      const top = el.getBoundingClientRect().top;
+      for (const li of Array.from(el.children) as HTMLElement[]) {
+        li.inert = li.getBoundingClientRect().top - top >= el.clientHeight;
+      }
+    };
+    check();
+    if (typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(check);
+    ro.observe(el);
+    return () => {
+      ro.disconnect();
+      for (const li of Array.from(el.children) as HTMLElement[]) li.inert = false;
+    };
+  }, [view, expanded, spines.length, order, filter]);
+
+  const orders: { value: ShelfOrder; label: string }[] = [
+    { value: 'recent', label: '최근 읽은 순' },
+    { value: 'title', label: '제목순' },
+    ...(stats ? [{ value: 'entries' as const, label: '문장 많은 순' }] : []),
+  ];
+  const filters: { value: ShelfFilter; label: string }[] = [
+    { value: 'reading', label: '읽는 중만' },
+    { value: 'finished', label: '다 읽은 책만' },
+  ];
+
+  const desktop = size === 'desktop';
+  const canExpand = view === 'spine' ? overflows || expanded : arranged.length > LIST_PREVIEW;
+  const listItems = view === 'list' && !expanded ? arranged.slice(0, LIST_PREVIEW) : arranged;
+
+  const viewSwitch = (
+    <div
+      role="group"
+      aria-label="보기"
+      className={clsx(styles.seg, 'shrink-0')}
+      style={{ width: desktop ? 150 : 140 }}
+    >
+      {(
+        [
+          ['spine', '책등'],
+          ['list', '목록'],
+        ] as const
+      ).map(([v, label]) => (
         <button
-          key={opt.value}
+          key={v}
           type="button"
-          onClick={() => onChange(opt.value)}
-          aria-pressed={value === opt.value}
-          className={`relative transition-colors ${
-            value === opt.value ? 'text-ink' : 'text-ink-sub hover:text-ink'
-          }`}
+          aria-pressed={view === v}
+          onClick={() => {
+            setView(v);
+            setExpanded(false);
+          }}
+          className={styles.segItem}
         >
-          {opt.label}
-          {value === opt.value && (
-            <motion.span
-              aria-hidden
-              layoutId={underlineId}
-              transition={UNDERLINE_TRANSITION}
-              className="absolute inset-x-0 bottom-0 h-px bg-accent"
-            />
-          )}
+          {label}
         </button>
       ))}
     </div>
   );
-}
 
-export default function BookList({ books, stats, isFriend = false, nicknameAndTag = '' }: Props) {
-  const [viewMode, setViewMode] = useState<ViewMode>('shelf');
-  const [filter, setFilter] = useState<FilterMode>('all');
-  const [sort, setSort] = useState<SortMode>('recent');
-  const {
-    openBook,
-    slotOpen,
-    hiddenId,
-    handleOpen,
-    closeBook,
-    handleReturn,
-    handleClosed,
-    resetOpen,
-  } = useOpenBook();
-
-  const getDetailHref = useCallback(
-    (userBook: MyBook) =>
-      isFriend && nicknameAndTag !== ''
-        ? `/social/u/${nicknameAndTag}/books/${userBook.book_id}`
-        : `/books/${userBook.book_id}`,
-    [isFriend, nicknameAndTag]
+  const chips = (
+    <div
+      role="group"
+      aria-label="정리"
+      className={clsx(
+        styles.chips,
+        desktop
+          ? 'order-last basis-full xl:order-none xl:ml-auto xl:basis-auto'
+          : '-mx-6 mb-[18px] mt-3.5 px-6'
+      )}
+    >
+      {orders.map((o) => (
+        <button
+          key={o.value}
+          type="button"
+          aria-pressed={order === o.value}
+          onClick={() => setOrder(o.value)}
+          className={styles.chip}
+        >
+          {o.label}
+        </button>
+      ))}
+      {filters.map((f) => (
+        <button
+          key={f.value}
+          type="button"
+          aria-pressed={filter === f.value}
+          onClick={() => setFilter((cur) => (cur === f.value ? 'all' : f.value))}
+          className={styles.chip}
+        >
+          {f.label}
+        </button>
+      ))}
+    </div>
   );
 
-  const processed = useMemo(() => {
-    let list = [...books];
-    if (filter === 'reading') list = list.filter((b) => !b.is_finished);
-    else if (filter === 'finished') list = list.filter((b) => b.is_finished);
-    if (sort === 'title') {
-      list.sort((a, b) => (a.books.title ?? '').localeCompare(b.books.title ?? '', 'ko'));
-    } else {
-      list.sort(
-        (a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime()
-      );
-    }
-    return list;
-  }, [books, filter, sort]);
-
-  // 책장에 넘길 목록은 고정해 둔다 — 꺼내고 덮는 동안 책장이 리렌더되지 않도록(BookSpineShelf memo)
-  const shelfBooks = useMemo<ShelfBook[]>(
-    () =>
-      processed.map((ub) =>
-        toShelfBook(
-          ub,
-          stats,
-          getDetailHref(ub),
-          isFriend ? undefined : `/books/${ub.book_id}/entry/new`
-        )
-      ),
-    [processed, stats, getDetailHref, isFriend]
-  );
-
-  // 빈 책장 — 선반 한 칸만 비워 두고 한 줄
   if (books.length === 0) {
     return (
-      <div className="border-b-4 border-hairline-strong px-3 pb-6 pt-16 text-center">
-        <p className="font-serif text-[15px] text-ink-sub">아직 빈 책장입니다.</p>
+      <div className="py-10 text-center">
+        <p className="font-serif text-note text-ink-sub">
+          {isFriend ? '아직 꽂힌 책이 없어요.' : '아직 빈 서가예요.'}
+        </p>
         {!isFriend && (
           <Link
             href="/books/new"
-            className="mt-2 inline-block font-serif text-[13.5px] text-accent hover:underline"
+            className="mt-2 inline-flex min-h-11 items-center gap-1.5 font-sans text-[17px] font-semibold text-ink"
           >
-            첫 책 꽂기 →
+            첫 책 꽂기 <ArrowRight size={18} strokeWidth={1.75} aria-hidden />
           </Link>
         )}
       </div>
@@ -155,102 +205,70 @@ export default function BookList({ books, stats, isFriend = false, nicknameAndTa
 
   return (
     <div>
-      {/* 컨트롤 행 — pill·드롭다운 대신 밑줄 텍스트 */}
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-button">
-        <TextToggle
-          label="책 상태"
-          options={FILTER_OPTIONS}
-          value={filter}
-          onChange={(v) => {
-            resetOpen();
-            setFilter(v);
-          }}
-        />
-        <div className="flex items-center gap-4">
-          <button
-            type="button"
-            onClick={() => {
-              resetOpen();
-              setSort((v) => (v === 'recent' ? 'title' : 'recent'));
-            }}
-            className="text-ink-sub transition-colors hover:text-ink"
-          >
-            {sort === 'recent' ? '최근 등록순' : '제목순'} ↕
-          </button>
-          <span aria-hidden className="h-3.5 w-px bg-hairline" />
-          <TextToggle
-            label="보기 방식"
-            options={VIEW_OPTIONS}
-            value={viewMode}
-            onChange={(v) => {
-              resetOpen();
-              setViewMode(v);
-            }}
-          />
+      {desktop ? (
+        <div className="mb-[22px] flex flex-wrap items-baseline gap-x-3.5 gap-y-3 pr-[330px]">
+          <h2 className="shrink-0 font-serif text-[32px] font-bold leading-[1.3] tracking-[-0.01em] text-ink">
+            서가
+          </h2>
+          <span className="shrink-0 font-sans text-caption text-ink-sub">{books.length}권</span>
+          {chips}
+          <div className="ml-auto xl:ml-0">{viewSwitch}</div>
         </div>
-      </div>
-
-      {processed.length === 0 ? (
-        <p className="py-12 text-center font-serif text-[14px] text-ink-sub">
-          {filter === 'finished' ? '아직 완독한 책이 없습니다.' : '읽는 중인 책이 없습니다.'}
-        </p>
-      ) : viewMode === 'shelf' ? (
-        <>
-          {/* 꺼낸 책의 자리 — 열리면 책장이 그만큼 내려앉는다 */}
-          <OpenBook
-            book={openBook}
-            slotOpen={slotOpen}
-            onClose={closeBook}
-            onReturn={handleReturn}
-            onClosed={handleClosed}
-          />
-          <BookSpineShelf books={shelfBooks} onOpen={handleOpen} hiddenId={hiddenId} />
-        </>
       ) : (
-        /* 목록 — 조용한 리스트. 표지 작게, 서지는 부리 서체, 진행은 잉크 분수 */
-        <ul className="divide-y divide-hairline">
-          {processed.map((ub) => {
-            const book = ub.books;
-            const isFinished = ub.is_finished ?? false;
-            return (
-              <li key={ub.id} className="flex items-center gap-4 py-3.5">
-                <Link
-                  href={getDetailHref(ub)}
-                  className="group flex min-w-0 flex-1 items-center gap-4"
-                >
-                  <Image
-                    src={book.cover_url ?? '/images/default-book-cover.png'}
-                    alt=""
-                    width={40}
-                    height={56}
-                    className="h-14 w-10 shrink-0 rounded-sm border border-hairline object-cover"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-serif text-[15px] leading-snug text-ink group-hover:underline group-hover:decoration-hairline-strong group-hover:underline-offset-4">
-                      {book.title}
-                    </p>
-                    <p className="mt-0.5 truncate text-caption text-ink-sub">{book.author}</p>
-                  </div>
-                  <span
-                    className={`shrink-0 text-[12.5px] tabular-nums ${
-                      isFinished ? 'font-serif text-accent' : 'text-ink-sub'
-                    }`}
-                  >
-                    {progressLine(ub)}
-                  </span>
-                </Link>
-                {!isFriend && !isFinished && (
-                  <Link
-                    href={`/books/${ub.book_id}/entry/new`}
-                    className="shrink-0 text-[12.5px] text-ink-sub transition-colors hover:text-accent"
-                  >
-                    기록 →
-                  </Link>
-                )}
-              </li>
-            );
-          })}
+        <>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="font-serif text-section-title text-ink">서가</h2>
+            {viewSwitch}
+          </div>
+          {chips}
+        </>
+      )}
+
+      {arranged.length === 0 ? (
+        <p className="py-10 text-center font-serif text-note text-ink-sub">
+          {filter === 'finished' ? '아직 다 읽은 책이 없어요.' : '지금 읽는 책이 없어요.'}
+        </p>
+      ) : view === 'spine' ? (
+        <Bookshelf ref={shelfRef} id={listId} books={spines} collapsed={!expanded} />
+      ) : (
+        <ul id={listId} aria-label="서가 목록">
+          {listItems.map((b) => (
+            <li key={b.id}>
+              <Link
+                href={hrefFor(b)}
+                className="grid grid-cols-[44px_1fr] items-center gap-x-3.5 gap-y-0.5 border-t border-hairline py-2.5"
+              >
+                <BookCover
+                  title={b.books.title ?? ''}
+                  coverUrl={b.books.cover_url}
+                  shadow="sm"
+                  sizes="44px"
+                  titleSize={8}
+                  className="row-span-2 w-11"
+                />
+                <b className="self-end font-serif text-[17px] font-semibold text-ink">
+                  {b.books.title}
+                </b>
+                <span className="self-start font-sans text-[14px] font-medium text-ink-sub">
+                  {listMeta(b, stats?.[b.id])}
+                </span>
+              </Link>
+            </li>
+          ))}
         </ul>
+      )}
+
+      {canExpand && arranged.length > 0 && (
+        <button
+          type="button"
+          aria-expanded={expanded}
+          aria-controls={listId}
+          onClick={() => setExpanded(!expanded)}
+          className="mt-2.5 inline-flex min-h-11 items-center gap-1.5 font-sans text-[17px] font-semibold text-ink"
+        >
+          {expanded ? '접기' : `${arranged.length}권 모두 보기`}
+          {!expanded && <ArrowRight size={18} strokeWidth={1.75} aria-hidden />}
+        </button>
       )}
     </div>
   );
