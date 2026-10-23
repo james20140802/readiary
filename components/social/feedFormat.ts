@@ -81,3 +81,10 @@ export function groupByDay<T extends { createdAt: string }>(rows: T[], now: Date
   }
   return groups;
 }
+
+/** 주격 조사 — 받침이 있으면 '이', 없으면 '가'. 한글이 아니면 '가' */
+export function subjectParticle(word: string): '이' | '가' {
+  const code = word.trim().charCodeAt(word.trim().length - 1);
+  if (code >= 0xac00 && code <= 0xd7a3 && (code - 0xac00) % 28 !== 0) return '이';
+  return '가';
+}

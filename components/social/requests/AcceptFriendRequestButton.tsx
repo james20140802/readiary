@@ -4,15 +4,19 @@ import { apiFetch } from '@/lib/api/fetch';
 import { useRouter } from 'next/navigation';
 import { useActionLock } from '@/hooks/useActionLock';
 import { toast } from 'sonner';
+import Button from '@/components/ui/Button';
 
 interface Props {
   friendUserId: string;
   onSuccess?: () => void;
   action?: ReturnType<typeof useActionLock>;
+  /** 보조기기에 누구의 신청인지 함께 읽힌다 */
+  name?: string;
 }
 
 export default function AcceptFriendRequestButton({
   friendUserId,
+  name,
   onSuccess,
   action: sharedAction,
 }: Props) {
@@ -49,12 +53,14 @@ export default function AcceptFriendRequestButton({
   };
 
   return (
-    <button
+    <Button
+      size="sm"
+      variant="primary"
       onClick={handleAccept}
       disabled={isPending}
-      className="px-3 py-2 text-button-sm font-semibold text-accent hover:text-accent-hover disabled:opacity-40 transition-colors"
+      aria-label={name ? `${name}의 친구 신청 수락` : undefined}
     >
       수락
-    </button>
+    </Button>
   );
 }

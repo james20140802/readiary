@@ -4,15 +4,19 @@ import { apiFetch } from '@/lib/api/fetch';
 import { useRouter } from 'next/navigation';
 import { useActionLock } from '@/hooks/useActionLock';
 import { toast } from 'sonner';
+import Button from '@/components/ui/Button';
 
 interface Props {
   friendUserId: string;
   onSuccess?: () => void;
   action?: ReturnType<typeof useActionLock>;
+  /** 보조기기에 누구의 신청인지 함께 읽힌다 */
+  name?: string;
 }
 
-export default function DeclineFriendRequestButton({
+export default function CancelFriendRequestButton({
   friendUserId,
+  name,
   onSuccess,
   action: sharedAction,
 }: Props) {
@@ -21,11 +25,11 @@ export default function DeclineFriendRequestButton({
   const isPending = action.busy;
   const router = useRouter();
 
-  const handleDecline = async () => {
+  const handleCancel = async () => {
     if (!action.acquire()) return;
     let completed = false;
     try {
-      const res = await apiFetch('/api/friends/decline', {
+      const res = await apiFetch('/api/friends/cancel', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ friendUserId }),
@@ -33,12 +37,12 @@ export default function DeclineFriendRequestButton({
 
       if (res.ok) {
         completed = true;
-        toast.success('친구 요청을 거절했어요.');
+        toast.success('친구 요청을 취소했어요.');
         router.refresh();
         onSuccess?.();
       } else {
         router.refresh();
-        toast.error('거절에 실패했어요.');
+        toast.error('요청 취소에 실패했어요.');
       }
     } catch {
       toast.error('처리 결과를 확인하지 못했어요. 목록을 새로고침해 주세요.');
@@ -49,12 +53,14 @@ export default function DeclineFriendRequestButton({
   };
 
   return (
-    <button
-      onClick={handleDecline}
+    <Button
+      size="sm"
+      variant="secondary"
+      onClick={handleCancel}
       disabled={isPending}
-      className="px-3 py-2 text-button-sm font-medium text-ink-faint hover:text-ink-sub disabled:opacity-40 transition-colors"
+      aria-label={name ? `${name}에게 보낸 친구 신청 취소` : undefined}
     >
-      거절
-    </button>
+      요청 취소
+    </Button>
   );
 }

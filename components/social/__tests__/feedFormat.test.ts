@@ -4,6 +4,7 @@ import {
   friendsReadingFrom,
   groupByDay,
   pageLabel,
+  subjectParticle,
 } from '@/components/social/feedFormat';
 import type { DetailSocialFeedEntry } from '@/types/entry';
 
@@ -115,5 +116,14 @@ describe('groupByDay — 알림을 오늘·이번 주·이전으로 묶는다', 
       ['이전', ['4']],
     ]);
     expect(groupByDay([rows[3]], NOW).map((g) => g.label)).toEqual(['이전']);
+  });
+});
+
+describe('subjectParticle', () => {
+  it('받침에 따라 이/가', () => {
+    expect(subjectParticle('윤서')).toBe('가');
+    expect(subjectParticle('하린')).toBe('이');
+    expect(subjectParticle('윤서 외 2명')).toBe('이');
+    expect(subjectParticle('Kim')).toBe('가');
   });
 });

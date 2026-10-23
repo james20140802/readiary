@@ -1,4 +1,5 @@
 import { getServerUser } from '@/lib/supabase/getServerUser';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 // app/(app)/social/friends/page.tsx
 import {
   fetchFriendList,
@@ -6,8 +7,7 @@ import {
   fetchSentFriendRequests,
 } from '@/lib/friends/fetchFriendList';
 import { slugToSearchQuery } from '@/lib/social/invite';
-import BackButton from '@/components/ui/BackButton';
-import FriendsManager, { type FriendsTabValue } from '../_components/FriendsManager';
+import FriendsView, { type FriendsTabValue } from '@/components/social/friends/FriendsView';
 
 interface FriendsPageProps {
   searchParams: Promise<{ invite?: string; tab?: string }>;
@@ -23,26 +23,23 @@ export default async function FriendsPage({ searchParams }: FriendsPageProps) {
   const initialInviteQuery = invite ? (slugToSearchQuery(invite) ?? undefined) : undefined;
   const initialTab: FriendsTabValue = tab === 'pending' || tab === 'sent' ? tab : 'friends';
 
-  const [acceptedFriends, pendingFriends, sentFriends] = await Promise.all([
+  const supabase = await createSupabaseServerClient();
+  const [acceptedFriends, pendingFriends, sentFriends, { data: me }] = await Promise.all([
     fetchFriendList(),
     fetchReceivedFriendRequests(),
     fetchSentFriendRequests(),
+    // 초대 간지에 적을 내 닉네임#태그 — 내 프로필 한 줄만 읽는다(RLS 그대로)
+    supabase.from('profiles').select('nickname, tag').eq('id', user.id).maybeSingle(),
   ]);
 
   return (
-    <div className="space-y-4">
-      <header className="px-1 flex items-center gap-1">
-        <BackButton />
-        <h1 className="text-page-title text-ink">친구</h1>
-      </header>
-
-      <FriendsManager
-        acceptedFriends={acceptedFriends ?? []}
-        pendingFriends={pendingFriends ?? []}
-        sentFriends={sentFriends ?? []}
-        initialTab={initialTab}
-        initialInviteQuery={initialInviteQuery}
-      />
-    </div>
+    <FriendsView
+      acceptedFriends={acceptedFriends ?? []}
+      pendingFriends={pendingFriends ?? []}
+      sentFriends={sentFriends ?? []}
+      initialTab={initialTab}
+      initialInviteQuery={initialInviteQuery}
+      me={me?.nickname && me.tag ? { nickname: me.nickname, tag: me.tag } : null}
+    />
   );
 }
