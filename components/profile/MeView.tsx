@@ -473,7 +473,7 @@ export default function MeView(props: MeViewProps) {
           )}
         </Leaf>
 
-        <Leaf title="서가" vellum>
+        <Leaf title="서가" vellum free>
           <h2 className={H2}>
             서가{' '}
             <span className="font-sans text-[17px] font-medium text-ink-sub">
