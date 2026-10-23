@@ -17,7 +17,11 @@ const BARE_PREFIXES = [
 ] as const;
 
 /** 간지(여백선) 틀을 쓰는 화면 — 화면별 PR이 하나씩 추가한다 */
-export const LEAVES_ROUTES: readonly string[] = ['/design-lab/leaves'];
+export const LEAVES_ROUTES: readonly string[] = [
+  '/design-lab/leaves',
+  '/today',
+  '/design-lab/today',
+];
 
 /** 같은 경로이거나 `접두사/…`일 때만 맞는다 (`/sharing`은 `/share`가 아니다) */
 function matches(pathname: string, prefix: string): boolean {
