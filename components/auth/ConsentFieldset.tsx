@@ -95,7 +95,11 @@ export default function ConsentFieldset({
         </label>
       </fieldset>
 
-      <Modal isOpen={openDoc === 'terms'} onClose={() => setOpenDoc(null)}>
+      <Modal
+        ariaLabel="서비스 이용 약관"
+        isOpen={openDoc === 'terms'}
+        onClose={() => setOpenDoc(null)}
+      >
         <ConsentDocument
           title="서비스 이용 약관"
           body={TERMS_OF_SERVICE}
@@ -103,7 +107,11 @@ export default function ConsentFieldset({
           onClose={() => setOpenDoc(null)}
         />
       </Modal>
-      <Modal isOpen={openDoc === 'privacy'} onClose={() => setOpenDoc(null)}>
+      <Modal
+        ariaLabel="개인정보 수집 및 이용 동의서"
+        isOpen={openDoc === 'privacy'}
+        onClose={() => setOpenDoc(null)}
+      >
         <ConsentDocument
           title="개인정보 수집 및 이용 동의서"
           body={PRIVACY_CONSENT}
@@ -135,7 +143,7 @@ function ConsentDocument({
 }) {
   const blocks = splitLegalBlocks(body);
   return (
-    <div className="max-h-[60vh] space-y-4 overflow-y-auto px-2 py-4">
+    <div className="space-y-4 px-2 py-4">
       <h2 className="text-section-title font-semibold">{title}</h2>
       <div className="space-y-4">
         {blocks.map((block, i) => (

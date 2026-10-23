@@ -65,6 +65,7 @@ export default function UnfinishBookButton({
         완독 취소
       </Button>
       <Modal
+        ariaLabel="완독을 취소할까요?"
         isOpen={isDialogOpen}
         onClose={() => {
           if (!action.isLocked()) setIsDialogOpen(false);

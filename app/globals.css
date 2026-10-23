@@ -10,9 +10,10 @@
   /* 고정 헤더·탭바와 본문이 같은 높이를 사용한다. 안전 영역은 OS가 제공한 값만 반영한다. */
   --app-safe-top: env(safe-area-inset-top, 0px);
   --app-safe-bottom: env(safe-area-inset-bottom, 0px);
-  --app-mobile-header-height: calc(3.5rem + var(--app-safe-top));
-  --app-mobile-nav-padding: max(0.5rem, var(--app-safe-bottom));
-  --app-mobile-nav-height: calc(3rem + 0.5rem + var(--app-mobile-nav-padding) + 1px);
+  --app-mobile-header-height: calc(52px + var(--app-safe-top));
+  --app-tabbar-h: 64px;
+  --app-mobile-nav-height: calc(var(--app-tabbar-h) + 10px + var(--app-safe-bottom));
+  --app-side: 248px;
   --paper: 244 240 232; /* #F4F0E8 종이 */
   --card: 253 251 247; /* #FDFBF7 카드 */
   --card-raised: 242 236 225; /* #F2ECE1 돌출 표면 */
@@ -31,6 +32,7 @@
      플래그 부품(이번 범위 밖)이 입힌다. */
   --margin: 142 169 221; /* #8EA9DD 여백선 */
   --sheet: 251 250 246; /* #FBFAF6 시트 */
+  --scrim: 20 14 8; /* 시트 뒤 배경막 — 라이트·다크 같은 값 */
   --sheet-alpha: 0.62; /* 시트 불투명도 */
   --flag-yellow: 242 201 76; /* #F2C94C */
   --flag-pink: 238 122 154; /* #EE7A9A */
@@ -140,6 +142,104 @@
     backdrop-filter: none;
   }
   .vellum-slip {
+    background: rgb(var(--sheet));
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* 모바일 상단 바: 평소엔 종이 위에 떠 있고, 큰 제목이 가려지면 간지(시트) 재질이 된다 */
+.topbar {
+  height: var(--app-mobile-header-height);
+  padding: var(--app-safe-top) 10px 0 16px;
+  transition:
+    background-color 200ms ease,
+    box-shadow 200ms ease;
+}
+.topbar-brand,
+.topbar-title {
+  transition: opacity 160ms ease;
+}
+.topbar-title {
+  opacity: 0;
+}
+.topbar-dot {
+  position: absolute;
+  top: 11px;
+  right: 11px;
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: rgb(var(--accent));
+  box-shadow: 0 0 0 2px rgb(var(--paper));
+}
+.topbar--scrolled {
+  background: rgb(var(--sheet) / 0.72);
+  -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  backdrop-filter: blur(20px) saturate(1.6);
+  box-shadow: 0 0.5px 0 rgb(0 0 0 / 0.12);
+}
+.topbar--scrolled .topbar-brand {
+  opacity: 0;
+}
+.topbar--scrolled .topbar-title {
+  opacity: 1;
+}
+@media (prefers-reduced-transparency: reduce) {
+  .topbar--scrolled {
+    background: rgb(var(--sheet));
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* 바 재질: 탭 바·사이드바·장 전환 버튼이 나눠 쓰는 떠 있는 유리. 배경·blur는 부품마다 다르다 */
+.bar-material {
+  box-shadow:
+    inset 0 0 0 0.5px rgb(255 255 255 / 0.7),
+    inset 0 1px 0 rgb(255 255 255 / 0.6),
+    0 8px 28px -10px rgb(40 30 20 / 0.35);
+}
+.sidebar-material {
+  box-shadow:
+    inset 0 0 0 0.5px rgb(255 255 255 / 0.7),
+    0 10px 30px -14px rgb(40 30 20 / 0.3);
+}
+.tabbar-glass {
+  background: rgb(var(--sheet) / 0.62);
+  -webkit-backdrop-filter: blur(22px) saturate(1.8);
+  backdrop-filter: blur(22px) saturate(1.8);
+}
+.sidebar-glass {
+  background: rgb(var(--sheet) / 0.6);
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  backdrop-filter: blur(24px) saturate(1.6);
+}
+.tab-on {
+  background: rgb(127 127 127 / 0.12);
+}
+.side-item-on {
+  background: rgb(127 127 127 / 0.14);
+}
+/* 밤의 유리: 흰 테두리 대신 위쪽 가장자리에만 빛이 닿고, 나머지는 어둠에 묻힌다 */
+@media (prefers-color-scheme: dark) {
+  .bar-material,
+  .sidebar-material {
+    box-shadow:
+      inset 0 0.5px 0 rgb(255 255 255 / 0.09),
+      inset 0 0 0 0.5px rgb(0 0 0 / 0.35),
+      0 14px 36px -12px rgb(0 0 0 / 0.75);
+  }
+  /* 아래 #978e81·#f6f0e6은 시안(concept)의 밤 선택 표시 값이다 — 설계 2.1이 허용하는 시안 전용 CSS 값이라 토큰을 새로 만들지 않는다.
+   밤의 선택 표시: 어두운 종이 위에선 고른 칸이 빛을 한 겹 더 받는다 */
+  .tab-on,
+  .side-item-on {
+    background: rgb(255 255 255 / 0.1);
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .tabbar-glass,
+  .sidebar-glass {
     background: rgb(var(--sheet));
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
@@ -555,7 +655,6 @@ li {
   background-position: 0 18px;
 }
 @media (min-width: 1024px) {
-  /* --app-side는 사이드바 도입 PR에서 정의한다 */
   .diary-ruled--beside-sidebar {
     left: var(--app-side);
   }
@@ -589,5 +688,124 @@ li {
   .pile-slip,
   .pile-slip[data-drag] {
     transition: opacity 160ms ease;
+  }
+}
+
+/* ── 장 넘김 ──
+   모바일 .leaves: 한 화면씩 끊긴다.
+   넘기기(기본): 서로 독립된 다음 장 — 앞 장이 그대로 위로 밀려 나간다.
+   덮기(.leaf-stack): 앞 장 위에 얹히는 관계 — 첫 장이 고정되고 뒤 장들이 간지로 덮는다. */
+@media (max-width: 1023px) {
+  html:has(.leaves) {
+    scroll-snap-type: y mandatory;
+  }
+  .leaves .leaf {
+    position: relative;
+    height: var(--vh, 100svh);
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    overflow: hidden;
+    padding: calc(60px + var(--app-safe-top)) 24px
+      calc(var(--app-tabbar-h) + 30px + var(--app-safe-bottom));
+  }
+  .leaves .leaf-stack > .leaf:first-child {
+    position: sticky;
+    top: 0;
+  }
+  .leaves .leaf-stack > .leaf.vellum + .leaf,
+  .leaves .leaf-stack > .leaf + .leaf.vellum {
+    border-radius: 14px 14px 0 0;
+  }
+  /* 마지막 장은 어떤 브라우저 바 상태에서도 화면보다 짧지 않아야 장 머리까지 닿는다(짧으면 끝에서 멈춰 위가 비어 보임) */
+  .leaves .leaf--free {
+    height: auto;
+    min-height: max(var(--vh, 100svh), 100lvh);
+    overflow: visible;
+  }
+  /* 덮이는 장은 도착하며 살짝 기울어져 내려앉고, 덮인 장은 안으로 가라앉는다 */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .leaves .leaf-stack {
+        timeline-scope: --cover;
+      }
+      .leaves .leaf-stack > .leaf:nth-child(2) {
+        view-timeline-name: --cover;
+      }
+      .leaves .leaf-stack > .leaf + .leaf > .leaf-in {
+        animation: leaf-settle linear both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 100%;
+      }
+      .leaves .leaf-stack > .leaf:first-child > .leaf-in {
+        animation: leaf-sink linear both;
+        animation-timeline: --cover;
+        animation-range: entry 0% entry 100%;
+      }
+    }
+  }
+}
+@keyframes leaf-settle {
+  from {
+    transform: translateY(24px) rotate(1.6deg);
+    transform-origin: 100% 0;
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes leaf-sink {
+  to {
+    transform: scale(0.965);
+    opacity: 0.4;
+    filter: blur(1.5px);
+  }
+}
+
+/* 데스크톱 .dleaves: 한 화면씩 끊기고, 오른쪽 위 전환 버튼(.dseg)으로도 이동한다 */
+@media (min-width: 1024px) {
+  html:has(.dleaves) {
+    scroll-snap-type: y mandatory;
+  }
+  .dleaf {
+    position: relative;
+    min-height: 100dvh;
+    max-width: 1400px;
+    padding: 40px 56px 40px 80px;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+  .dleaf + .dleaf {
+    border-top: 1px solid rgb(var(--hairline));
+  }
+  .dseg {
+    background: rgb(var(--sheet) / 0.7);
+    -webkit-backdrop-filter: blur(20px) saturate(1.6);
+    backdrop-filter: blur(20px) saturate(1.6);
+  }
+  .dseg-item[aria-current='true'] {
+    background: rgb(var(--sheet));
+    color: rgb(var(--ink));
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.12);
+  }
+}
+/* 아래 #978e81·#f6f0e6은 시안(concept)의 밤 선택 표시 값이다 — 설계 2.1이 허용하는 시안 전용 CSS 값이라 토큰을 새로 만들지 않는다.
+   밤의 선택 표시: 어두운 종이 위에선 종이색 알약이 바탕에 묻힌다. 고른 칸은 빛을 한 겹 더 받고, 나머지 글자는 한 단계 물러난다 */
+@media (prefers-color-scheme: dark) {
+  .dseg-item {
+    color: #978e81;
+  }
+  .dseg-item[aria-current='true'] {
+    background: rgb(255 255 255 / 0.14);
+    color: #f6f0e6;
+    box-shadow:
+      inset 0 0.5px 0 rgb(255 255 255 / 0.14),
+      0 1px 4px rgb(0 0 0 / 0.45);
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .dseg {
+    background: rgb(var(--sheet));
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
 }

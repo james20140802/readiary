@@ -204,6 +204,7 @@ export default function Pile<T>({
   }, []);
 
   const onPointerDown = (e: React.PointerEvent<HTMLElement>, key: string) => {
+    if (cleanupDrag.current) return; // 끌기가 이미 진행 중이면(두 번째 손가락 등) 새로 시작하지 않는다
     if (e.button > 0 || busy.current || latest.current.effOrder.length < 2) return;
     if (latest.current.effOrder[latest.current.effOrder.length - 1] !== key) return;
     const el = e.currentTarget;

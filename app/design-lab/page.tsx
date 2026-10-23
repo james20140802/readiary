@@ -7,6 +7,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Button from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import LabHeader from './LabHeader';
 import PileDemo from './PileDemo';
 
 export const metadata: Metadata = { title: '디자인 견본', robots: { index: false } };
@@ -62,10 +63,7 @@ export default function DesignLabPage() {
 
   return (
     <main className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
-      <h1 className="font-sans text-page-title text-ink">디자인 견본</h1>
-      <p className="mt-2 font-sans text-body-sm text-ink-sub">
-        일기장과 간지의 색·글자·간지 재질을 한곳에서 확인하는 미리보기용 화면입니다.
-      </p>
+      <LabHeader />
 
       <Section title="색">
         <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">

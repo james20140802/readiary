@@ -123,6 +123,7 @@ export default function FriendRequestForm({ initialQuery }: Props) {
       </div>
 
       <Modal
+        ariaLabel="친구 요청 보내기"
         isOpen={showConfirmModal}
         onClose={() => {
           if (!sending.isLocked()) setShowConfirmModal(false);
