@@ -27,6 +27,8 @@ export const FLAG_HIDDEN = 18;
 export const FLAG_THICKNESS = 10;
 /** 누름 영역이 플래그 위아래로 더 나오는 만큼 — 시안 `.flag::after{top:-2px;bottom:-2px}` */
 export const FLAG_HIT_HALF = FLAG_THICKNESS / 2 + 2;
+/** 누름 영역의 최소 높이(px) — 몰려도 플래그마다 눌릴 자리가 남는다 */
+export const FLAG_HIT_MIN = 0.25;
 
 export interface FlagSource {
   id: string;
@@ -174,27 +176,43 @@ export function layoutFlags(flags: { id: string; ratio: number }[], height: numb
   const reach = FLAG_HIT_HALF * 2;
   return placed.map((p, i) => {
     let x0 = 0;
-    let up = FLAG_HIT_HALF;
-    let down = FLAG_HIT_HALF;
+    // 같은 자리·같은 길이로 겹친 플래그(같은 쪽 기록)는 누름 영역을 위아래로 균등하게 나눈다 — 높이가 0이 되지 않게
+    let group = 0;
+    let rank = 0;
+    let above = -Infinity;
+    let below = Infinity;
     placed.forEach((q, j) => {
       if (i === j) return;
       const d = Math.abs(p.y - q.y);
       if (d >= reach) return;
       if (q.len < p.len) x0 = Math.max(x0, q.len);
       else if (q.len === p.len) {
-        // 같은 쪽에 몰린 같은 길이 — 앞 순서가 위 절반을 갖는다
-        const half = d / 2;
-        if (q.y < p.y || (q.y === p.y && j < i)) up = Math.min(up, half);
-        else down = Math.min(down, half);
+        if (d < 1e-6) {
+          group += 1;
+          if (j < i) rank += 1;
+        } else if (q.y < p.y) above = Math.max(above, p.y - d / 2);
+        else below = Math.min(below, p.y + d / 2);
       }
     });
+    const n = group + 1;
+    const slice = (FLAG_HIT_HALF * 2) / n;
+    let y0 = p.y - FLAG_HIT_HALF + slice * rank;
+    let y1 = y0 + slice;
+    // 맞붙은 이웃과는 가운데에서 나누되, 영역이 사라질 만큼 줄이지는 않는다
+    if (rank === 0) y0 = Math.max(y0, above);
+    if (rank === n - 1) y1 = Math.min(y1, below);
+    if (y1 - y0 < FLAG_HIT_MIN) {
+      // 영역이 사라지지 않게, 바깥으로 막히지 않은 쪽으로 최소 높이만큼 되살린다
+      if (rank === n - 1 && y1 === below) y0 = y1 - FLAG_HIT_MIN;
+      else y1 = y0 + FLAG_HIT_MIN;
+    }
     return {
       id: p.id,
       y: p.y,
       tier: p.tier,
       len: p.len,
       z: FLAG_TIERS - p.tier,
-      hit: { x0, x1: p.len, y0: p.y - up, y1: p.y + down },
+      hit: { x0, x1: p.len, y0, y1 },
     };
   });
 }

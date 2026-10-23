@@ -243,6 +243,17 @@ describe('layoutFlags', () => {
     }
   });
 
+  it('같은 쪽에 일곱 기록이 몰려도 모든 플래그가 눌릴 자리를 가진다', () => {
+    const out = layoutFlags(
+      Array.from({ length: 7 }, (_, i) => ({ id: String(i), ratio: 0.5 })),
+      H
+    );
+    for (const f of out) expect(f.hit.y1 - f.hit.y0).toBeGreaterThan(0);
+    for (let i = 0; i < out.length; i++)
+      for (let j = i + 1; j < out.length; j++)
+        expect(rectsOverlap(out[i].hit, out[j].hit)).toBe(false);
+  });
+
   it('높이를 모르면 아무것도 세우지 않는다', () => {
     expect(layoutFlags([{ id: 'a', ratio: 0.5 }], 0)).toEqual([]);
   });

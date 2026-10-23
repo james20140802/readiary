@@ -372,7 +372,6 @@ function DesktopFinished({
 export default function BooksView({ books, stats, today }: Props) {
   useTopBar({ title: '책장', brand: false });
   const { reading, finished } = splitShelf(books, stats);
-  const [shelfOpen, setShelfOpen] = useState(false);
 
   return (
     <>
@@ -391,8 +390,8 @@ export default function BooksView({ books, stats, today }: Props) {
         </Leaf>
         {books.length > 0 && (
           <>
-            <Leaf title="서가" vellum free={shelfOpen}>
-              <BookList books={books} stats={stats} onExpandedChange={setShelfOpen} />
+            <Leaf title="서가" vellum free>
+              <BookList books={books} stats={stats} />
             </Leaf>
             <Leaf title="다 읽은 책" vellum free>
               <FinishedRows finished={finished} stats={stats} />

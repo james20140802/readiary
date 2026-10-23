@@ -359,7 +359,7 @@ function OwnLayout({
     <>
       <TopBarActions>{menu}</TopBarActions>
       <Leaves>
-        <Leaf title={title}>
+        <Leaf title={title} free>
           {stack}
           {hint}
           {actions}
