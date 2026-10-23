@@ -57,3 +57,12 @@ describe('showsNav', () => {
 describe('견본 장 넘김', () => {
   it('견본 장 넘김 화면은 leaves', () => expect(frameFor('/design-lab/leaves')).toBe('leaves'));
 });
+
+describe('나 화면', () => {
+  it('나는 장 넘김(leaves), 설정은 도구 화면(plain)', () => {
+    expect(frameFor('/profile')).toBe('leaves');
+    expect(frameFor('/settings')).toBe('plain');
+    expect(frameFor('/design-lab/me/profile')).toBe('leaves');
+    expect(frameFor('/design-lab/me/settings')).toBe('plain');
+  });
+});
