@@ -5,17 +5,15 @@ import { flushSync } from 'react-dom';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { authHrefWithRedirect } from '@/lib/auth/safeRedirect';
-import { Mail } from 'lucide-react';
 import { createSupabaseClient } from '@/lib/supabase/client';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import FormGroup from '@/components/ui/FormGroup';
 import FormLabel from '@/components/ui/FormLabel';
 import FormAlert from '@/components/ui/FormAlert';
-import AuthFrame from '@/components/auth/AuthFrame';
+import AuthFrame, { AuthLinks } from '@/components/auth/AuthFrame';
 import PasswordInput from '@/components/auth/PasswordInput';
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
-import OrDivider from '@/components/auth/OrDivider';
 import ConsentFieldset, {
   NO_CONSENT,
   isConsentComplete,
@@ -52,7 +50,7 @@ export default function SignupPage() {
   const loginHref = authHrefWithRedirect('/login', redirectParam);
   // 초대로 온 사람에게는 가입 뒤에도 초대가 이어진다는 걸 미리 알려 둔다
   const pendingRedirectHint = redirectParam?.startsWith('/invite/')
-    ? ' 프로필 설정을 마치면 받은 초대로 돌아갑니다.'
+    ? ' 일기장 이름을 정하면 받은 초대로 돌아가요.'
     : null;
   const consented = isConsentComplete(consent);
   const googleEnabled = isGoogleLoginEnabled();
@@ -118,34 +116,24 @@ export default function SignupPage() {
 
   if (signupComplete) {
     return (
-      <AuthFrame
-        title="메일을 확인해주세요"
-        footer={
-          <p>
-            <Link href={loginHref}>로그인으로 이동</Link>
-          </p>
-        }
-      >
-        <div className="space-y-3 text-center">
-          <div className="flex justify-center text-ink">
-            <Mail size={28} strokeWidth={1.75} />
-          </div>
-          <p className="break-keep text-body-sm text-ink-sub">
-            <strong className="text-ink">{email.trim()}</strong>
-            (으)로 인증 메일을 보냈습니다. 메일의 링크를 열면 프로필 설정으로 이어집니다.
+      <AuthFrame title="메일을 확인해 주세요" footer={<Link href={loginHref}>로그인으로</Link>}>
+        <div role="status" className="vellum mt-[26px] rounded-[3px] p-6">
+          <p className="break-keep font-serif text-note text-ink">
+            <strong className="font-semibold">{email.trim()}</strong>
+            (으)로 보낸 메일의 링크를 열면 가입이 끝나고, 일기장 이름을 정하는 화면으로 이어져요.
             {pendingRedirectHint}
           </p>
-          <p className="text-caption text-ink-faint">
-            메일이 보이지 않으면 스팸함을 확인해주세요. 링크가 만료되면 로그인 화면에서 인증 메일을
-            다시 받을 수 있습니다.
-          </p>
         </div>
+        <p className="mt-4 break-keep font-sans text-caption text-ink-sub">
+          메일이 보이지 않으면 스팸함을 확인해 주세요. 링크가 만료되면 로그인 화면에서 인증 메일을
+          다시 받을 수 있어요.
+        </p>
       </AuthFrame>
     );
   }
 
   return (
-    <AuthFrame title="가입" lead="하루 한 문장으로 시작하세요.">
+    <AuthFrame title="문장을 모으기 시작해요" lead="메일 주소 하나면 충분해요.">
       <form onSubmit={handleSignup} noValidate className="space-y-5">
         {formError && <FormAlert>{formError}</FormAlert>}
 
@@ -193,8 +181,8 @@ export default function SignupPage() {
             }}
             required
           />
-          <p id="signup-password-help" className="text-caption text-ink-faint">
-            비밀번호는 {MIN_PASSWORD_LENGTH}자 이상 입력해주세요.
+          <p id="signup-password-help" className="font-sans text-fine text-ink-sub">
+            {MIN_PASSWORD_LENGTH}자 이상이면 돼요.
           </p>
         </FormGroup>
 
@@ -228,30 +216,34 @@ export default function SignupPage() {
           }}
         />
 
-        <Button type="submit" fullWidth loading={isSubmitting} className="mt-2">
+        <Button type="submit" fullWidth loading={isSubmitting} className="!mt-[22px]">
           {isSubmitting ? '가입 중...' : '가입하기'}
         </Button>
       </form>
-      <p className="mt-3 text-center text-body-sm text-ink-sub">
-        이미 회원이신가요?{' '}
-        <Link href={loginHref} className="underline underline-offset-4 hover:text-ink">
-          로그인
-        </Link>
-      </p>
 
       {googleEnabled && (
-        <>
-          <OrDivider />
-          <GoogleSignInButton redirectParam={redirectParam} consented disabled={!consented}>
+        <div className="mt-3">
+          <GoogleSignInButton
+            redirectParam={redirectParam}
+            consented
+            disabled={!consented}
+            describedBy={consented ? undefined : 'signup-google-hint'}
+          >
             Google로 가입하기
           </GoogleSignInButton>
           {!consented && (
-            <p className="mt-2 text-center text-caption text-ink-faint">
-              위 필수 항목을 모두 확인하면 Google 계정으로 가입할 수 있습니다.
+            <p
+              id="signup-google-hint"
+              className="mt-2 text-center font-sans text-fine text-ink-sub"
+            >
+              위 세 가지를 확인하면 Google 계정으로도 가입할 수 있어요.
             </p>
           )}
-        </>
+        </div>
       )}
+      <AuthLinks>
+        <Link href={loginHref}>이미 계정이 있어요</Link>
+      </AuthLinks>
     </AuthFrame>
   );
 }
