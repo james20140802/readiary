@@ -140,7 +140,7 @@ export default function SearchView({
             className={clsx(
               'flex items-center justify-center rounded-lg font-sans text-overline transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
               tab === t.value
-                ? 'bg-sheet text-ink shadow-[0_1px_3px_rgb(0_0_0/0.12)]'
+                ? 'border border-hairline-strong bg-sheet text-ink'
                 : 'text-ink-sub hover:text-ink'
             )}
           >
