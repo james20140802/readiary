@@ -53,7 +53,7 @@ export default async function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
-      <body className="overflow-x-hidden bg-paper text-ink">
+      <body className="bg-paper text-ink">
         <PushAccountGuard />
         <ReflectionDraftGuard />
         <MotionProvider>

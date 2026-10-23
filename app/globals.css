@@ -70,6 +70,89 @@
   }
 }
 
+/* 간지 재질 — 반투명 트레이싱지(벨럼). 뒤는 하얗게 바래며 어렴풋이 남고, 표면엔 고운 결과 비스듬한 빛이 있다.
+   그림자는 종이가 바닥에 붙어 있듯 얕게. 값은 docs/design/concept-2026-10/app.css "간지 재질" 블록 그대로. */
+:root {
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .38 0 0 0 0 .32 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --vellum-light: linear-gradient(
+    160deg,
+    rgb(255 255 255 / 0.22),
+    rgb(255 255 255 / 0) 42%,
+    rgb(255 255 255 / 0.08) 78%
+  );
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .9 0 0 0 0 .87 0 0 0 0 .82 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    --vellum-light: linear-gradient(160deg, rgb(255 255 255 / 0.06), rgb(255 255 255 / 0) 45%);
+  }
+}
+
+/* 한 장의 간지 */
+.vellum {
+  background-color: rgb(var(--sheet) / var(--sheet-alpha));
+  background-image: var(--grain), var(--vellum-light);
+  -webkit-backdrop-filter: blur(3px) saturate(0.8) brightness(1.02);
+  backdrop-filter: blur(3px) saturate(0.8) brightness(1.02);
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.55),
+    0 1px 1px rgb(60 45 25 / 0.05),
+    0 12px 26px -20px rgb(60 45 25 / 0.3);
+}
+
+/* 간지 묶음 안의 한 장 — 재질만. 자리·transform·transition은 Pile 컴포넌트가 맡는다 */
+.vellum-slip {
+  padding: 16px 18px 18px;
+  border-radius: 2px;
+  background-color: rgb(var(--sheet) / 0.66);
+  background-image: var(--grain), var(--vellum-light);
+  -webkit-backdrop-filter: blur(1.6px) saturate(0.8);
+  backdrop-filter: blur(1.6px) saturate(0.8);
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.6),
+    0 1px 1px rgb(60 45 25 / 0.05),
+    0 10px 22px -18px rgb(60 45 25 / 0.32);
+}
+
+@media (prefers-color-scheme: dark) {
+  .vellum {
+    -webkit-backdrop-filter: blur(3px) saturate(0.7);
+    backdrop-filter: blur(3px) saturate(0.7);
+    box-shadow:
+      inset 0 0.5px 0 rgb(255 255 255 / 0.1),
+      inset 0 0 0 0.5px rgb(255 255 255 / 0.05),
+      0 16px 32px -20px rgb(0 0 0 / 0.65);
+  }
+  .vellum-slip {
+    background-color: rgb(var(--sheet) / 0.72);
+    box-shadow:
+      inset 0 0.5px 0 rgb(255 255 255 / 0.12),
+      inset 0 0 0 0.5px rgb(255 255 255 / 0.05),
+      0 14px 28px -18px rgb(0 0 0 / 0.7);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .vellum {
+    background: rgb(var(--sheet)) !important;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .vellum-slip {
+    background: rgb(var(--sheet));
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* 가로 넘침은 clip으로 막는다 — hidden은 스크롤 상자를 만들어 sticky·scroll-snap을 깬다 */
+html,
+body {
+  overflow-x: clip;
+  overscroll-behavior: none;
+}
+
 /* 짧은 책장도 문서가 화면 전체를 채워 iOS의 하단 고정 메뉴 기준이 흔들리지 않게 한다. */
 html,
 body {
@@ -93,13 +176,19 @@ body {
   /* 한국어 조판: 어절 단위로만 줄바꿈 — 한 어절이 한 줄보다 길 때만 예외적으로 끊는다 */
   word-break: keep-all;
   overflow-wrap: break-word;
-  overflow-y: scroll;
-  -ms-overflow-style: none;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-body::-webkit-scrollbar {
+/* 스크롤은 창(뷰포트)만 맡는다. body·html에 overflow-y를 주면 body가 스크롤 상자가 되어
+   window.scrollY가 0에 머물고 scroll-snap·sticky·useScroll(랜딩 장 넘김)이 멈춘다.
+   스크롤바 숨김은 뷰포트 스크롤러인 html에 둔다. */
+html {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar {
   display: none;
 }
 
@@ -474,5 +563,31 @@ li {
     background-position:
       -20px 0,
       0 18px;
+  }
+}
+
+/* 간지 묶음(Pile) 한 장의 자리 — 재질은 .vellum-slip, 자리·transform은 컴포넌트가 정한다 */
+.pile-slip {
+  grid-area: 1 / 1;
+  width: calc(100% - var(--pile-inset, 52px));
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+  transition:
+    transform 320ms var(--ease-out),
+    opacity 200ms ease;
+}
+/* 맨 위 장만 잡힌다(아래 장은 inert) */
+.pile-slip:not([inert]) {
+  cursor: grab;
+}
+.pile-slip[data-drag] {
+  transition: none;
+  cursor: grabbing;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pile-slip,
+  .pile-slip[data-drag] {
+    transition: opacity 160ms ease;
   }
 }

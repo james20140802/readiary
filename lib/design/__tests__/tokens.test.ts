@@ -110,3 +110,19 @@ describe('글자 토큰', () => {
     expect(fontSize[name][1].letterSpacing).toBe(spacing);
   });
 });
+
+describe('스크롤 상자', () => {
+  it('body·html은 overflow-y로 스크롤 상자를 만들지 않는다', () => {
+    const rules = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)];
+    const offenders = rules.flatMap(([, selectors, decls]) => {
+      const list = selectors.split(',').map((s) => s.trim());
+      const touchesRoot = list.some((s) => /^(html|body)$/.test(s));
+      if (!touchesRoot) return [];
+      const m = decls.match(/(?:^|[;\s])overflow-y\s*:\s*([^;]+)/);
+      return m && m[1].trim() !== 'visible'
+        ? [`${selectors.trim()} { overflow-y: ${m[1].trim()} }`]
+        : [];
+    });
+    expect(offenders).toEqual([]);
+  });
+});
