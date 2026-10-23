@@ -20,8 +20,8 @@ export const viewport: Viewport = {
   // 하단 탭바가 홈 인디케이터 뒤까지 깔리고 safe-area 여백으로 내용을 띄운다
   viewportFit: 'cover',
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#F7F3EC' },
-    { media: '(prefers-color-scheme: dark)', color: '#1B1612' },
+    { media: '(prefers-color-scheme: light)', color: '#F4F0E8' },
+    { media: '(prefers-color-scheme: dark)', color: '#1A1714' },
   ],
 };
 

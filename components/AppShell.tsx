@@ -10,6 +10,8 @@ import { setSearchOwner } from '@/lib/search/memory';
 import Header from '@/components/Header';
 import { readComposerDraft, clearComposerDraft } from '@/lib/entries/composerDraft';
 import Navbar from '@/components/Navbar';
+import RuledPaper from '@/components/ui/RuledPaper';
+import { frameFor, ruledFor } from '@/lib/shell/routes';
 
 interface AppShellProps {
   /** 서버(루트 레이아웃)가 쿠키로 판정한 초기 로그인 여부 — 첫 페인트부터 맞는 GNB를 그린다 */
@@ -73,6 +75,7 @@ export default function AppShell({ initialLoggedIn, initialUnread, children }: A
   // 각 장이 제 안에서 폭과 상단 크롬 여백을 잡는다 (로그인 상태면 서버가 홈으로 보내므로 늘 비로그인)
   const fullBleed = pathname === '/';
   // 뱃지 조회는 셸에서 한 번만 — 모바일 헤더·데스크톱 바가 같은 값을 나눠 쓴다
+  const ruled = ruledFor(frameFor(pathname));
   const hasUnread = useUnreadNotifications(showNav, initialUnread);
 
   // 보호 라우트 프리페치는 로그인한 뒤에만 — 비로그인 방문자가 매번 /login 리다이렉트만 받아오던 낭비
@@ -88,9 +91,10 @@ export default function AppShell({ initialLoggedIn, initialUnread, children }: A
       <Header loggedIn={loggedIn} showNav={showNav} hasUnread={hasUnread} />
       <Navbar loggedIn={loggedIn} showNav={showNav} hasUnread={hasUnread} />
       {/* 고정 크롬의 실제 높이 + 본문 간격. 하단 탭바 여백은 탭바가 보일 때만 확보한다. */}
+      {ruled && <RuledPaper variant={ruled} />}
       <main
         className={clsx(
-          'w-full',
+          'relative w-full',
           !fullBleed &&
             'mx-auto max-w-screen-md px-4 pt-[calc(var(--app-mobile-header-height)+1.5rem)] md:pt-[6rem] md:pb-16',
           !fullBleed && (showNav ? 'pb-[calc(var(--app-mobile-nav-height)+1.5rem)]' : 'pb-8')

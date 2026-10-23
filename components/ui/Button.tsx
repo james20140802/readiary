@@ -34,7 +34,7 @@ export default function Button({
 }: ButtonProps) {
   const base = clsx(
     'inline-flex items-center justify-center gap-2',
-    'font-sans font-bold rounded-full duration-150 ease-ink-out',
+    'font-sans rounded-full duration-150 ease-ink-out',
     'transition-[background-color,color,opacity,transform]',
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-paper',
     'active:scale-[0.97] motion-reduce:active:scale-100',
@@ -50,9 +50,9 @@ export default function Button({
   };
 
   const sizes = {
-    sm: 'min-h-8 px-4 py-1 text-button-sm gap-1.5',
-    md: 'min-h-10 px-5 py-2 text-button',
-    lg: 'min-h-12 px-7 py-3 text-button-lg',
+    sm: 'min-h-10 px-4 py-1 text-button-sm gap-1.5',
+    md: 'min-h-12 px-[22px] py-2 text-button',
+    lg: 'min-h-12 px-[22px] py-3 text-button-lg',
   };
 
   const Comp = asChild ? Slot : 'button';
