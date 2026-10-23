@@ -1,0 +1,266 @@
+/* 오늘 화면 — 시안 home2.html의 값을 그대로 옮긴다. 색은 모두 토큰(rgb(var(--…))). */
+
+/* ── 큰 날짜 ── */
+.date {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+.num {
+  font-family: var(--font-serif), serif;
+  font-weight: 400;
+  font-size: 112px;
+  line-height: 0.86;
+  letter-spacing: -0.04em;
+}
+.month {
+  font-weight: 700;
+  font-size: 24px;
+  padding-top: 8px;
+}
+.weekday {
+  font-weight: 500;
+  font-size: 17px;
+  color: rgb(var(--ink-sub));
+  margin-top: 6px;
+}
+.deskDate .num {
+  font-size: 168px;
+}
+.deskDate .month {
+  font-size: 30px;
+  padding-top: 18px;
+}
+.deskDate .weekday {
+  font-size: 19px;
+}
+
+/* ── 쓰기 ── */
+.write {
+  margin: 34px 0 0 34px;
+}
+.deskWrite {
+  margin: 56px 0 0;
+}
+.primary {
+  display: block;
+  width: 100%;
+  height: 80px;
+  border: 0;
+  outline: 0;
+  resize: none;
+  background: transparent;
+  font-family: var(--font-serif), serif;
+  font-weight: 400;
+  font-size: 23px;
+  line-height: 40px;
+  color: rgb(var(--ink));
+  caret-color: rgb(var(--accent));
+}
+.primary.quoteMode {
+  font-weight: 600;
+}
+.deskWrite .primary {
+  height: 200px;
+  font-size: 26px;
+}
+.primary::placeholder,
+.secondary::placeholder {
+  color: rgb(var(--ink-faint));
+  font-weight: 400;
+}
+/* 긴 글: 밑줄 없이 왼쪽 짧은 accent 표시 */
+.secondary {
+  display: block;
+  width: 100%;
+  height: 80px;
+  border: 0;
+  outline: 0;
+  resize: none;
+  background: transparent;
+  padding-left: 14px;
+  box-shadow: inset 2px 0 0 rgb(var(--accent));
+  font-family: var(--font-serif), serif;
+  font-size: 19px;
+  line-height: 1.65;
+  color: rgb(var(--ink-sub));
+  caret-color: rgb(var(--accent));
+}
+.primary:disabled,
+.secondary:disabled {
+  opacity: 0.6;
+}
+
+/* 키보드 초점: 밑줄·박스 대신 글줄 왼쪽에 짧은 accent 표시(글자는 움직이지 않는다) */
+.primary:focus-visible {
+  box-shadow: -14px 0 0 -12px rgb(var(--accent));
+}
+
+/* ── 간지 위치: 모바일 오늘 장에서 쓰기 아래로 겹친다 ── */
+.recallMobile {
+  position: absolute;
+  left: -6px;
+  right: -14px;
+  bottom: calc(var(--app-tabbar-h) + 28px + var(--app-safe-bottom));
+  transform: rotate(-1.4deg);
+  transform-origin: 0 100%;
+}
+/* 쓰기가 펼쳐지면(생각 덧붙이기·남긴 뒤·오류) 간지는 비켜 준다 */
+.leafBody:has([data-expanded='true']) .recallMobile {
+  display: none;
+}
+/* 낮은 화면: 간지를 줄여 쓰기 줄과 겹치지 않게 */
+.recallQuote {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+@media (max-height: 780px) {
+  .num {
+    font-size: 88px;
+  }
+  .write {
+    margin-top: 22px;
+  }
+  .recallMobile {
+    bottom: calc(var(--app-tabbar-h) + 16px + var(--app-safe-bottom));
+  }
+  .recallQuote {
+    -webkit-line-clamp: 2;
+  }
+}
+@media (max-height: 700px) {
+  .num {
+    font-size: 72px;
+  }
+  .recallQuote {
+    -webkit-line-clamp: 1;
+  }
+  /* 간지 전체가 기록으로 가는 링크라, 낮은 화면에서는 덧붙이기 문을 접어 쓰기 줄을 덮지 않게 한다 */
+  .recallMobile .recallReflect {
+    display: none;
+  }
+}
+@media (max-height: 620px) {
+  .recallMobile {
+    display: none;
+  }
+}
+
+/* ── 지난 7일: 장 높이 안에서만 흐르고, 아래로 흐려지는 끝이 더 있다는 신호 ── */
+.days {
+  overflow: auto;
+  overscroll-behavior: contain;
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent);
+  scrollbar-width: none;
+}
+.days::-webkit-scrollbar {
+  display: none;
+}
+.daysMobile {
+  max-height: calc(
+    var(--vh, 100svh) - var(--app-safe-top) - var(--app-safe-bottom) - var(--app-tabbar-h) - 250px
+  );
+}
+
+/* ── 데스크톱: 펼친 일기장 두 쪽 ── */
+.spread {
+  /* display는 화면 쪽(hidden lg:grid)이 정한다 */
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: 56px;
+  align-items: start;
+  max-width: 1400px;
+  padding: 44px 56px 64px 80px;
+}
+.reading {
+  margin-top: 44px;
+}
+.stack {
+  position: relative;
+  padding-top: 8px;
+}
+.stackBack {
+  position: absolute;
+  inset: -6px -10px auto 18px;
+  height: 200px;
+  transform: rotate(2.6deg);
+  border-radius: 3px;
+}
+.stackFront {
+  position: relative;
+  display: block;
+  padding: 30px 32px 20px;
+  transform: rotate(-1deg);
+  border-radius: 3px;
+}
+.week {
+  margin-top: 44px;
+  padding: 26px 30px 18px;
+  border-radius: 3px;
+  transform: rotate(0.5deg);
+}
+.right {
+  min-width: 0;
+}
+.covers img {
+  display: block;
+}
+
+/* 한 화면 고정: 높이가 넉넉한 데스크톱에서 홈은 스크롤 없는 두 쪽 */
+@media (min-width: 1024px) and (min-height: 640px) {
+  .spread {
+    height: 100dvh;
+    overflow: hidden;
+    grid-template-rows: minmax(0, 1fr);
+    padding-top: clamp(24px, 4vh, 44px);
+    padding-bottom: 24px;
+  }
+  .deskDate .num {
+    font-size: clamp(104px, 17vh, 168px);
+  }
+  .deskWrite {
+    margin-top: clamp(24px, 5vh, 56px);
+  }
+  .deskWrite .primary {
+    height: clamp(84px, 19vh, 200px);
+  }
+  .reading {
+    margin-top: clamp(24px, 5vh, 72px);
+    container-type: inline-size;
+  }
+  /* 표지 줄이 왼쪽 쪽을 넘어 간지 밑으로 들어가지 않게: 쪽 폭에서 쪽수 자리를 뺀 만큼만 표지를 키운다 */
+  .reading .covers img {
+    height: min(clamp(110px, 19vh, 200px), max(100px, calc((100cqi - 156px) / 2.2)));
+    width: auto;
+  }
+  .readingRow {
+    flex-wrap: wrap;
+    row-gap: 14px;
+  }
+  .right {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .week {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .week .days {
+    flex: 1;
+    min-height: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .recallMobile,
+  .stackBack,
+  .stackFront,
+  .week {
+    transition: none;
+  }
+}
