@@ -7,7 +7,7 @@ export default function NotFound() {
   const router = useRouter();
 
   return (
-    <div className="flex flex-col items-center justify-center text-center px-4 py-20">
+    <div className="flex flex-col items-center justify-center px-6 pb-20 pt-[calc(80px+var(--app-safe-top))] text-center">
       <div className="w-full">
         <h1 className="text-page-title font-semibold">프로필을 찾을 수 없어요</h1>
         <p className="text-body text-ink">존재하지 않는 사용자이거나, 링크가 잘못되었어요.</p>
