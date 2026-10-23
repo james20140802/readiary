@@ -3,31 +3,40 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
+import Sheet from '@/components/ui/Sheet';
 import { Dialog } from '@headlessui/react';
 import { apiFetch, SessionExpiredError } from '@/lib/api/fetch';
 import { createSupabaseClient } from '@/lib/supabase/client';
 import { useActionLock } from '@/hooks/useActionLock';
+import { todayKST } from '@/lib/dates';
 import { announceReflectionChange, clearOtherReflectionDrafts } from '@/lib/reflections/draft';
 import type { EntryReflection, ReflectionPage, ReflectionSummary } from '@/lib/reflections/types';
+import { daysBetween, laterLabel } from '@/components/entry/dates';
 import ReflectionComposer from './ReflectionComposer';
+import ReflectionPile, { ReflectionLoadState } from './ReflectionPile';
 
-export const thoughtDate = (value: string) =>
-  new Intl.DateTimeFormat('ko-KR', {
-    timeZone: 'Asia/Seoul',
-    year: 'numeric',
-    month: 'numeric',
-    day: 'numeric',
-  }).format(new Date(value));
+export { thoughtDate } from './thoughtDate';
+
+/**
+ * 덧붙인 생각 — 그때의 생각 아래 간지 묶음. 불러오기·쓰기·고치기·지우기·초안 보관 규칙은 그대로이고,
+ * 쓰기와 고치기는 바텀 시트에서 한다(시안 entry-layer.html).
+ */
 export default function ReflectionThread({
   entryId,
   openComposer = false,
   onSummary,
   onDraftSafetyChange,
+  entryDate,
+  quote,
 }: {
   entryId: string;
   openComposer?: boolean;
   onSummary?: (summary: ReflectionSummary | null) => void;
   onDraftSafetyChange?: (unsafe: boolean) => void;
+  /** 기록한 날 — 간지 머리('이틀 뒤 · 9월 18일')와 시트 제목에 쓴다 */
+  entryDate?: string;
+  /** 쓰는 시트 위에 다시 보여 줄 원래 문장 */
+  quote?: string | null;
 }) {
   const router = useRouter();
   const [page, setPage] = useState<ReflectionPage | null>(null);
@@ -45,6 +54,7 @@ export default function ReflectionThread({
   const [unsafe, setUnsafe] = useState(false);
   const [discardPrompt, setDiscardPrompt] = useState(false);
   const [status, setStatus] = useState('');
+  const [writing, setWriting] = useState(false);
   const deletion = useActionLock();
   const request = useRef<AbortController | null>(null);
   const epoch = useRef(0);
@@ -172,6 +182,8 @@ export default function ReflectionThread({
     requestAnimationFrame(() => addButton.current?.focus());
   };
   const cancel = () => {
+    // 남기는 중에는 시트를 닫지 않는다 — 결과를 받기 전에 쓰던 칸이 사라지지 않게
+    if (writing) return;
     if (unsafe) {
       setDiscardPrompt(true);
       return;
@@ -210,208 +222,159 @@ export default function ReflectionThread({
       deletion.release();
     }
   };
+  const today = todayKST();
+  const later = entryDate ? laterLabel(Math.max(0, daysBetween(entryDate, today))) : '';
+  const items: EntryReflection[] = page ? [...page.items].reverse() : [];
+  const sheetOpen = !!page?.canWrite && (composer || !!editing);
   return (
-    <section ref={container} className="mt-8 pt-6" aria-label="이어 남긴 생각">
-      <h3 className="font-serif text-section-title text-ink">
-        이어 남긴 생각
-        {page && page.summary.total > 0 && (
-          <span className="ml-2 font-sans text-caption text-ink-sub">{page.summary.total}</span>
-        )}
-      </h3>
-      {loading && (
-        <p role="status" className="mt-4 text-caption text-ink-sub">
-          생각을 불러오는 중입니다.
-        </p>
-      )}
-      {error && (
-        <div className="mt-4" role="alert">
-          <p className="text-caption text-danger">{error}</p>
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            className="mt-3"
-            onClick={() => void load()}
-          >
-            다시 불러오기
-          </Button>
-        </div>
-      )}
+    <section ref={container} aria-label="덧붙인 생각">
+      <ReflectionLoadState
+        loading={loading}
+        hasPage={!!page}
+        error={error}
+        onRetry={() => void load()}
+      />
       {page && (
         <>
-          <ol className="space-y-7 pt-5">
-            {(page.canWrite && editing && !page.items.some((item) => item.id === editing.id)
-              ? [...page.items, editing].sort(
-                  (a, b) => a.created_at.localeCompare(b.created_at) || a.id.localeCompare(b.id)
-                )
-              : page.items
-            ).map((item) => (
-              <li key={item.id}>
-                <div className="flex flex-wrap items-center justify-between gap-2 text-caption text-ink-sub">
-                  <p>
-                    <time className="inline-flex py-1.5" dateTime={item.created_at}>
-                      {thoughtDate(item.created_at)}
-                    </time>
-                    {page.canWrite && (
-                      <span>
-                        {' '}
-                        · {page.entryIsPrivate || item.is_private ? '나만 보기' : '친구 공개'}
-                      </span>
-                    )}
-                    {item.updated_at !== item.created_at && <span> · 수정됨</span>}
-                  </p>
-                  {page.canWrite && (
-                    <div className="flex gap-3">
-                      <button
-                        className="min-h-10 text-button-sm hover:text-accent disabled:opacity-50"
-                        disabled={composer || !!editing || !!deleting}
-                        onClick={() => setEditing(item)}
-                      >
-                        수정
-                      </button>
-                      <button
-                        className="min-h-10 text-button-sm hover:text-danger disabled:opacity-50"
-                        disabled={composer || !!editing || !!deleting}
-                        onClick={(event) => {
-                          deleteTrigger.current = event.currentTarget;
-                          setDeleteError('');
-                          setDeleting(item.id);
-                        }}
-                      >
-                        삭제
-                      </button>
-                    </div>
-                  )}
-                </div>
-                {editing?.id === item.id ? (
-                  <ReflectionComposer
-                    entryId={entryId}
-                    viewerId={page.viewerId}
-                    entryIsPrivate={page.entryIsPrivate}
-                    editing={editing}
-                    onSaved={saved}
-                    onCancel={cancel}
-                    onDraftSafetyChange={safety}
-                  />
-                ) : (
-                  <p className="mt-2 whitespace-pre-wrap break-words font-serif text-note text-ink">
-                    {item.body}
-                  </p>
-                )}
-              </li>
-            ))}
-          </ol>
+          <ReflectionPile
+            items={items}
+            entryDate={entryDate}
+            today={today}
+            canWrite={page.canWrite}
+            entryIsPrivate={page.entryIsPrivate}
+            actionsDisabled={composer || !!editing || !!deleting}
+            onEdit={(item) => setEditing(item)}
+            onDelete={(item, trigger) => {
+              deleteTrigger.current = trigger;
+              setDeleteError('');
+              setDeleting(item.id);
+            }}
+            emptyText={
+              page.canWrite ? '다시 읽으니 어떤 생각이 드나요?' : '덧붙인 생각이 아직 없어요.'
+            }
+            addAction={
+              page.canWrite ? (
+                <Button
+                  ref={addButton}
+                  size="sm"
+                  disabled={!!deleting || composer || !!editing}
+                  onClick={() => setComposer(true)}
+                >
+                  지금의 생각 덧붙이기
+                </Button>
+              ) : undefined
+            }
+          />
           {page.nextCursor && (
             <Button
-              variant="secondary"
+              variant="ghost"
               size="sm"
-              className="mt-5"
+              className="mt-3"
               disabled={loading}
               onClick={() => void load(page.nextCursor)}
             >
               다음 생각 더 읽기
             </Button>
           )}
-          {!page.summary.total && !composer && (
-            <p className="mt-1 font-serif text-body text-ink-sub">
-              {page.canWrite
-                ? '다시 읽으니 어떤 생각이 드나요?'
-                : '이어 남긴 생각이 아직 없습니다.'}
-            </p>
-          )}
-          {page.canWrite &&
-            !editing &&
-            (composer ? (
-              <ReflectionComposer
-                entryId={entryId}
-                viewerId={page.viewerId}
-                entryIsPrivate={page.entryIsPrivate}
-                onSaved={saved}
-                onCancel={cancel}
-                onDraftSafetyChange={safety}
-              />
-            ) : (
-              <div className="mt-5 flex justify-end">
-                <Button
-                  ref={addButton}
-                  variant="secondary"
-                  disabled={!!deleting}
-                  onClick={() => setComposer(true)}
-                >
-                  지금의 생각 남기기
-                </Button>
-              </div>
-            ))}
         </>
       )}
+      <Sheet
+        open={sheetOpen}
+        onClose={cancel}
+        title={editing ? '덧붙인 생각 고치기' : later ? `${later}, 오늘의 생각` : '지금의 생각'}
+      >
+        {quote && !editing && (
+          <p className="whitespace-pre-wrap break-words font-serif text-[16px] leading-[1.6] text-ink-sub">
+            {quote}
+          </p>
+        )}
+        {page && sheetOpen && (
+          <ReflectionComposer
+            key={editing?.id ?? 'new'}
+            entryId={entryId}
+            viewerId={page.viewerId}
+            entryIsPrivate={page.entryIsPrivate}
+            editing={editing ?? undefined}
+            onSaved={saved}
+            onCancel={cancel}
+            cancelLabel={null}
+            onBusyChange={setWriting}
+            onDraftSafetyChange={safety}
+          />
+        )}
+        {discardPrompt && (
+          <div
+            role="group"
+            aria-label="보관하지 못한 초안 취소"
+            className="mt-4 border-t border-hairline pt-4"
+          >
+            <p className="font-sans text-body text-ink">
+              초안을 보관하지 못했어요. 닫으면 쓴 내용이 사라집니다.
+            </p>
+            <div className="mt-3 flex gap-2">
+              <Button
+                autoFocus
+                variant="secondary"
+                className="flex-1"
+                onClick={() => {
+                  setDiscardPrompt(false);
+                  requestAnimationFrame(() =>
+                    document.querySelector<HTMLTextAreaElement>('[data-reflection-body]')?.focus()
+                  );
+                }}
+              >
+                계속 쓰기
+              </Button>
+              <Button
+                variant="danger"
+                className="flex-1"
+                onClick={() => {
+                  setDiscardPrompt(false);
+                  setComposer(false);
+                  setEditing(null);
+                  safety(false);
+                }}
+              >
+                버리고 닫기
+              </Button>
+            </div>
+          </div>
+        )}
+      </Sheet>
       <Modal isOpen={!!deleting && !!page?.canWrite} onClose={closeDelete}>
-        <div className="space-y-4">
-          <Dialog.Title className="font-serif text-section-title text-ink">
-            이 생각을 삭제할까요?
+        <div>
+          <Dialog.Title className="font-sans text-[18px] font-bold text-ink">
+            이 생각을 지울까요?
           </Dialog.Title>
-          <Dialog.Description className="text-caption text-ink-sub">
-            원래 기록과 다른 생각은 남습니다. 삭제는 되돌릴 수 없습니다.
+          <Dialog.Description className="mt-2 font-serif text-[17px] leading-[1.6] text-ink-sub">
+            그때의 생각과 다른 덧붙인 생각은 남아요. 지우면 되돌릴 수 없어요.
           </Dialog.Description>
           {deleteError && (
-            <p role="alert" className="text-caption text-danger">
+            <p role="alert" className="mt-3 font-sans text-caption text-danger">
               {deleteError}
             </p>
           )}
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="mt-5 flex gap-2">
             <Button
               autoFocus
-              size="sm"
-              variant="ghost"
+              variant="secondary"
+              className="flex-1"
               disabled={deletion.busy}
               onClick={closeDelete}
             >
-              취소
+              그대로 두기
             </Button>
             <Button
-              size="sm"
               variant="danger"
+              className="flex-1"
               disabled={deletion.busy}
               onClick={() => void remove()}
             >
-              {deletion.busy ? '지우는 중…' : '생각 삭제'}
+              {deletion.busy ? '지우는 중…' : '생각 지우기'}
             </Button>
           </div>
         </div>
       </Modal>
-      {discardPrompt && (
-        <div
-          role="group"
-          aria-label="보관하지 못한 초안 취소"
-          className="mt-4 border-y border-hairline py-4"
-        >
-          <p className="text-body text-ink">
-            초안을 보관하지 못했어요. 취소하면 작성한 내용이 사라집니다.
-          </p>
-          <div className="mt-3 flex gap-2">
-            <Button
-              autoFocus
-              variant="secondary"
-              onClick={() => {
-                setDiscardPrompt(false);
-                requestAnimationFrame(() => container.current?.querySelector('textarea')?.focus());
-              }}
-            >
-              계속 쓰기
-            </Button>
-            <Button
-              variant="danger"
-              onClick={() => {
-                setDiscardPrompt(false);
-                setComposer(false);
-                setEditing(null);
-                safety(false);
-              }}
-            >
-              버리고 취소
-            </Button>
-          </div>
-        </div>
-      )}
       <p className="sr-only" role="status">
         {status}
       </p>

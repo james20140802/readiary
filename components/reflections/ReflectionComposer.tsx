@@ -3,10 +3,8 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { useCreationSubmission } from '@/hooks/useCreationSubmission';
 import { useActionLock } from '@/hooks/useActionLock';
 import { apiFetch, SessionExpiredError } from '@/lib/api/fetch';
-import { Textarea } from '@/components/ui/Textarea';
 import Button from '@/components/ui/Button';
-import Chip from '@/components/ui/Chip';
-import { Lock } from 'lucide-react';
+import Switch from '@/components/entries/Switch';
 import {
   readReflectionDraft,
   reflectionDraftKey,
@@ -23,6 +21,8 @@ export default function ReflectionComposer({
   onSaved,
   onCancel,
   onDraftSafetyChange,
+  cancelLabel = '취소',
+  onBusyChange,
 }: {
   entryId: string;
   viewerId: string;
@@ -31,6 +31,10 @@ export default function ReflectionComposer({
   onSaved: () => void;
   onCancel: () => void;
   onDraftSafetyChange?: (unsafe: boolean) => void;
+  /** null이면 취소 버튼을 그리지 않는다(시트의 닫기가 맡을 때) */
+  cancelLabel?: string | null;
+  /** 남기는 중인지 — 감싼 시트가 그동안 닫히지 않게 */
+  onBusyChange?: (busy: boolean) => void;
 }) {
   const create = useCreationSubmission<{ body: string; is_private: boolean }>(
     `reflection:${entryId}`,
@@ -111,6 +115,10 @@ export default function ReflectionComposer({
     area?.focus();
   }, [restored]);
   const busy = create.busy || lock.busy || create.redirecting;
+  useEffect(() => {
+    onBusyChange?.(busy);
+  }, [busy, onBusyChange]);
+  useEffect(() => () => onBusyChange?.(false), [onBusyChange]);
   const frozen = busy || !!(!editing && create.snapshot) || uncertain;
   const resize = (el: HTMLTextAreaElement) => {
     el.style.height = 'auto';
@@ -195,58 +203,60 @@ export default function ReflectionComposer({
       lock.release();
     }
   };
+  const locked = frozen || !restored || create.accountId !== viewerId;
   return (
-    <form ref={form} noValidate onSubmit={submit} className="mt-5 space-y-4" aria-busy={busy}>
-      <Textarea
+    <form ref={form} noValidate onSubmit={submit} className="mt-4" aria-busy={busy}>
+      {/* 긴 글 칸 — 밑줄 없이 왼쪽의 짧은 선이 포커스에 강조색이 된다(시안 .longf) */}
+      <label htmlFor={id} className="block font-sans text-[14px] font-semibold text-ink-sub">
+        {editing ? '생각 고치기' : '지금 다시 읽으니'}
+      </label>
+      <textarea
         id={id}
-        label={editing ? '생각 고치기' : '지금의 생각'}
-        variant="line"
-        fullWidth
-        rows={4}
-        className="resize-none font-serif placeholder:text-ink-sub"
-        placeholder="다시 읽으니 어떤 생각이 드나요?"
+        data-reflection-body
+        rows={3}
+        className="mt-1.5 block min-h-24 w-full resize-none bg-transparent py-0.5 pl-3.5 font-serif text-note text-ink shadow-[inset_2px_0_0_rgb(var(--hairline))] outline-none transition-shadow duration-150 placeholder:text-ink-faint focus:shadow-[inset_2px_0_0_rgb(var(--accent))] disabled:opacity-60"
+        placeholder="그때와 무엇이 달라졌나요"
         value={shownBody}
-        disabled={frozen || !restored || create.accountId !== viewerId}
+        disabled={locked}
         aria-invalid={!!error}
         aria-describedby={`${id}-help${error ? ` ${id}-error` : ''}`}
         onChange={(e) => setBody(e.target.value)}
       />
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <Chip
-          selected={entryIsPrivate || shownPrivate}
-          aria-pressed={entryIsPrivate || shownPrivate}
-          aria-describedby={`${id}-help`}
-          disabled={frozen || entryIsPrivate || !restored || create.accountId !== viewerId}
-          onClick={() => setPrivate((value) => !value)}
-        >
-          <Lock size={12} strokeWidth={1.75} aria-hidden />
-          비공개
-        </Chip>
-        <span className="text-caption tabular-nums text-ink-sub">
-          {Array.from(shownBody).length.toLocaleString('ko-KR')} /{' '}
-          {REFLECTION_LIMIT.toLocaleString('ko-KR')}
-        </span>
+      <p className="mt-1 text-right font-mono text-[13px] tabular-nums text-ink-faint">
+        {Array.from(shownBody).length.toLocaleString('ko-KR')} /{' '}
+        {REFLECTION_LIMIT.toLocaleString('ko-KR')}
+      </p>
+      <div className="mt-2 flex min-h-[54px] items-center gap-3 border-y border-hairline font-sans text-[17px] font-medium text-ink">
+        <span id={`${id}-private`}>이 생각만 나만 보기</span>
+        <Switch
+          checked={entryIsPrivate || shownPrivate}
+          labelledBy={`${id}-private`}
+          describedBy={`${id}-help`}
+          disabled={locked || entryIsPrivate}
+          onChange={() => setPrivate((value) => !value)}
+        />
       </div>
-      <p id={`${id}-help`} className="text-caption text-ink-sub">
+      <p id={`${id}-help`} className="mt-2 font-sans text-caption text-ink-sub">
         {entryIsPrivate
-          ? '원문이 비공개여서 나만 볼 수 있어요.'
+          ? '원래 기록이 나만 보기여서 이 생각도 나만 볼 수 있어요.'
           : shownPrivate
             ? '나만 볼 수 있어요.'
             : '친구가 볼 수 있어요.'}
+        {!(storageFailed && dirty) && ' 쓰다 닫아도 이 기기에 남아 있어요.'}
       </p>
       {storageFailed && dirty && (
-        <p role="status" className="text-caption text-danger">
+        <p role="status" className="mt-2 font-sans text-caption text-danger">
           초안을 이 기기에 보관하지 못했어요. 닫기 전에 내용을 복사해 주세요.
         </p>
       )}
       {(error || create.error) && (
-        <p id={`${id}-error`} role="alert" className="text-caption text-danger">
+        <p id={`${id}-error`} role="alert" className="mt-2 font-sans text-caption text-danger">
           {error || create.error}
         </p>
       )}
       {conflict && (
-        <div className="border-y border-hairline py-4">
-          <p className="text-caption text-ink-sub">현재 저장된 생각</p>
+        <div className="mt-4 border-y border-hairline py-4">
+          <p className="font-sans text-caption text-ink-sub">지금 저장된 생각</p>
           <p className="mt-2 whitespace-pre-wrap font-serif text-note text-ink">{conflict.body}</p>
           <Button
             type="button"
@@ -257,19 +267,22 @@ export default function ReflectionComposer({
               setVersion(conflict.updated_at);
               setConflict(null);
               setUncertain(false);
-              setError('작성 중인 내용을 확인한 뒤 고쳐 남겨 주세요.');
+              setError('쓰던 내용을 확인한 뒤 고쳐 남겨 주세요.');
             }}
           >
-            현재 버전을 기준으로 이어 고치기
+            지금 버전을 기준으로 이어 고치기
           </Button>
         </div>
       )}
-      <div className="flex justify-end gap-2">
-        <Button type="button" variant="ghost" disabled={busy} onClick={onCancel}>
-          취소
-        </Button>
+      <div className="mt-[18px] flex gap-2">
+        {cancelLabel !== null && (
+          <Button type="button" variant="secondary" disabled={busy} onClick={onCancel}>
+            {cancelLabel}
+          </Button>
+        )}
         <Button
           type="submit"
+          className="flex-1"
           disabled={busy || !create.ready || create.accountId !== viewerId || !!conflict}
         >
           {busy
@@ -278,7 +291,7 @@ export default function ReflectionComposer({
               ? '저장 확인·재시도'
               : editing
                 ? '고쳐 남기기'
-                : '남기기'}
+                : '덧붙이기'}
         </Button>
       </div>
     </form>
