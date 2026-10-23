@@ -207,12 +207,26 @@
   display: block;
 }
 
-/* 한 화면 고정: 높이가 넉넉한 데스크톱에서 홈은 스크롤 없는 두 쪽 */
+/* 모바일 장의 DOM을 유지한 채 두 쪽으로 배치한다. */
+@media (min-width: 1024px) {
+  .responsiveSpread {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    gap: 56px;
+    align-items: start;
+    max-width: 1400px;
+    padding: 44px 56px 64px 80px;
+  }
+  .responsiveSpread > :global(.leaf) {
+    min-width: 0;
+  }
+}
+
+/* 한 화면보다 내용이 길면 문서가 늘어나 아래 동작도 읽고 누를 수 있다. */
 @media (min-width: 1024px) and (min-height: 640px) {
-  .spread {
-    height: 100dvh;
-    overflow: hidden;
-    grid-template-rows: minmax(0, 1fr);
+  .spread,
+  .responsiveSpread {
+    min-height: 100dvh;
     padding-top: clamp(24px, 4vh, 44px);
     padding-bottom: 24px;
   }
@@ -239,7 +253,7 @@
     row-gap: 14px;
   }
   .right {
-    height: 100%;
+    height: calc(100dvh - clamp(24px, 4vh, 44px) - 24px);
     display: flex;
     flex-direction: column;
     min-height: 0;

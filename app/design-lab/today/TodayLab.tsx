@@ -15,19 +15,14 @@ export default function TodayLab({
   composer,
 }: {
   state: LabState;
-  view: Omit<TodayViewProps, 'composerMobile' | 'composerDesk' | 'markSeen'>;
+  view: Omit<TodayViewProps, 'composer' | 'markSeen'>;
   composer: ComposerDemoProps;
 }) {
   if (state === 'loading') return <TodaySkeleton />;
   if (state === 'error') return <TodayError onRetry={() => window.location.reload()} />;
   return (
     <ReflectionFeatureContext.Provider value>
-      <TodayView
-        {...view}
-        markSeen={false}
-        composerMobile={<ComposerDemo {...composer} />}
-        composerDesk={<ComposerDemo {...composer} desk />}
-      />
+      <TodayView {...view} markSeen={false} composer={<ComposerDemo {...composer} />} />
     </ReflectionFeatureContext.Provider>
   );
 }

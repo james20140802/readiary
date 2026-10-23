@@ -12,6 +12,7 @@ import RecallSlip from './RecallSlip';
 import WeekDiary from './WeekDiary';
 import ReadingBooks from './ReadingBooks';
 import s from './today.module.css';
+import { TodayDesktopContext } from './TodayDesktopContext';
 
 export interface TodayViewProps {
   todayKst: string;
@@ -23,9 +24,8 @@ export interface TodayViewProps {
   recentEntries: RecentEntry[];
   /** 회상은 따로 늦게 올 수 있다 — 도착하면 간지가 나타난다 */
   recall: Promise<RecallEntry | null>;
-  /** 쓰기는 한 번에 하나만 마운트한다(초안 상태가 둘로 갈라지지 않게). 폭에 맞는 쪽을 고른다 */
-  composerMobile: React.ReactNode;
-  composerDesk: React.ReactNode;
+  /** 화면 폭이 바뀌어도 같은 작성기 인스턴스를 유지한다 */
+  composer: React.ReactNode;
   /** 견본에서는 회상 알림 읽음 처리를 끈다 */
   markSeen?: boolean;
 }
@@ -36,7 +36,7 @@ function subscribe(onChange: () => void) {
   mq.addEventListener('change', onChange);
   return () => mq.removeEventListener('change', onChange);
 }
-/** 서버와 첫 하이드레이션에서는 null — 두 배치를 CSS로만 가리고, 그 뒤 한쪽만 남긴다 */
+/** 서버와 첫 하이드레이션에서는 null. 이후 배치용 props만 바꾸고 작성기는 유지한다. */
 function useIsDesktop(): boolean | null {
   return useSyncExternalStore(
     subscribe,
@@ -81,29 +81,51 @@ export default function TodayView(p: TodayViewProps) {
   const markSeen = p.markSeen ?? true;
 
   return (
-    <>
+    <TodayDesktopContext.Provider value={desk === true}>
       <h1 className="sr-only">오늘</h1>
-
-      {desk !== true && (
-        <Leaves>
-          <Leaf title="오늘" label="오늘 쓰기">
-            <div className={s.leafBody}>
-              <TodayDate todayKst={p.todayKst} weeklyCount={p.weeklyCount} />
-              {p.composerMobile}
+      <Leaves desktop className={s.responsiveSpread}>
+        <Leaf title="오늘" label="오늘 쓰기">
+          <div className={s.leafBody}>
+            <TodayDate todayKst={p.todayKst} weeklyCount={p.weeklyCount} desk={desk === true} />
+            {p.composer}
+            <div className="lg:hidden">
               <Suspense fallback={null}>
                 <Recall recall={p.recall} todayKst={p.todayKst} markSeen={markSeen} />
               </Suspense>
             </div>
-          </Leaf>
-          <Leaf title="지난 7일" label="지난 7일의 일기" vellum>
-            <WeekDiary
-              recentEntries={p.recentEntries}
-              todayKst={p.todayKst}
-              weeklyCount={p.weeklyCount}
-              weekActivity={p.weekActivity}
-              composerId={COMPOSER_TEXT_ID.mobile}
-            />
-          </Leaf>
+            <div className="hidden lg:block">
+              <ReadingBooks
+                books={p.books}
+                currentId={p.recentUserBookId}
+                latestTexts={p.latestTexts}
+                desk
+              />
+            </div>
+          </div>
+        </Leaf>
+        <Leaf title="지난 7일" label="지난 7일의 일기" vellum={desk !== true}>
+          <div className={s.right}>
+            <div className="hidden lg:block">
+              <Suspense fallback={null}>
+                <Recall recall={p.recall} todayKst={p.todayKst} desk markSeen={markSeen} />
+              </Suspense>
+            </div>
+            <section
+              aria-label="지난 7일의 일기"
+              className={clsx(desk && 'vellum', desk && s.week)}
+            >
+              <WeekDiary
+                recentEntries={p.recentEntries}
+                todayKst={p.todayKst}
+                weeklyCount={p.weeklyCount}
+                weekActivity={p.weekActivity}
+                composerId={desk ? COMPOSER_TEXT_ID.desk : COMPOSER_TEXT_ID.mobile}
+                desk={desk === true}
+              />
+            </section>
+          </div>
+        </Leaf>
+        <div className="lg:hidden">
           <Leaf title="읽던 책" vellum>
             <h2 className="font-serif text-section-title text-ink">읽던 책</h2>
             <ReadingBooks
@@ -112,38 +134,8 @@ export default function TodayView(p: TodayViewProps) {
               latestTexts={p.latestTexts}
             />
           </Leaf>
-        </Leaves>
-      )}
-
-      {desk !== false && (
-        <div className={clsx('hidden lg:grid', s.spread)}>
-          <div className="min-w-0">
-            <TodayDate todayKst={p.todayKst} weeklyCount={p.weeklyCount} desk />
-            {p.composerDesk}
-            <ReadingBooks
-              books={p.books}
-              currentId={p.recentUserBookId}
-              latestTexts={p.latestTexts}
-              desk
-            />
-          </div>
-          <div className={s.right}>
-            <Suspense fallback={null}>
-              <Recall recall={p.recall} todayKst={p.todayKst} desk markSeen={markSeen} />
-            </Suspense>
-            <section aria-label="지난 7일의 일기" className={clsx('vellum first:mt-0', s.week)}>
-              <WeekDiary
-                recentEntries={p.recentEntries}
-                todayKst={p.todayKst}
-                weeklyCount={p.weeklyCount}
-                weekActivity={p.weekActivity}
-                composerId={COMPOSER_TEXT_ID.desk}
-                desk
-              />
-            </section>
-          </div>
         </div>
-      )}
-    </>
+      </Leaves>
+    </TodayDesktopContext.Provider>
   );
 }

@@ -24,14 +24,8 @@ export default async function TodayPage() {
     recentEntries,
   } = data;
 
-  const composer = (desk: boolean) => (
-    <Composer
-      key={user.id}
-      userId={user.id}
-      books={books}
-      recentUserBookId={recentUserBookId}
-      desk={desk}
-    />
+  const composer = (
+    <Composer key={user.id} userId={user.id} books={books} recentUserBookId={recentUserBookId} />
   );
 
   return (
@@ -44,8 +38,7 @@ export default async function TodayPage() {
       recentUserBookId={recentUserBookId}
       recentEntries={recentEntries}
       recall={recall}
-      composerMobile={composer(false)}
-      composerDesk={composer(true)}
+      composer={composer}
     />
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import clsx from 'clsx';
 import { ChevronDown, Lock, LockOpen } from 'lucide-react';
 import Button from '@/components/ui/Button';
@@ -9,6 +9,7 @@ import type { MyBook } from '@/types/book';
 import BookPickSheet from './BookPickSheet';
 import PagesSheet from './PagesSheet';
 import s from './today.module.css';
+import { TodayDesktopContext } from './TodayDesktopContext';
 
 export type ComposerMode = 'quote' | 'note';
 
@@ -77,7 +78,7 @@ const PLACEHOLDER: Record<
 /** 오늘 장의 쓰기 — 시안 home2 .write. 상태는 Composer(초안·저장)가 쥐고, 여기는 모양만 맡는다 */
 export default function ComposerView(props: ComposerViewProps) {
   const {
-    desk,
+    desk: deskProp,
     books,
     selectedId,
     mode,
@@ -94,6 +95,8 @@ export default function ComposerView(props: ComposerViewProps) {
     saveError,
     saved,
   } = props;
+  const desktop = useContext(TodayDesktopContext);
+  const desk = deskProp ?? desktop;
   const other: ComposerMode = mode === 'quote' ? 'note' : 'quote';
   const primary = mode === 'quote' ? quote : note;
   const secondary = mode === 'quote' ? note : quote;
