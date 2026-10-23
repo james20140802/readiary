@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import InertBackground from '@/components/ui/InertBackground';
 import ReflectionPreview from '@/components/reflections/ReflectionPreview';
-import { ArrowRight, X } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { createSupabaseClient } from '@/lib/supabase/client';
 import { apiFetch, SessionExpiredError } from '@/lib/api/fetch';
 import type { EntryReadData } from '@/types/entry';
@@ -79,22 +79,28 @@ export default function EntryReader({
   return (
     <Dialog static open onClose={onClose} className="relative z-[100]">
       <InertBackground />
-      <div className="fixed inset-0 bg-ink/30" aria-hidden="true" />
-      <div className="fixed inset-0 flex items-end justify-center sm:items-center sm:p-6">
-        <DialogPanel className="flex max-h-[90dvh] w-full flex-col rounded-t-md border border-hairline bg-card sm:max-w-2xl sm:rounded-md">
-          <header className="flex shrink-0 items-center justify-between gap-4 border-b border-hairline px-6 py-4">
-            <DialogTitle className="font-serif text-section-title text-ink">기록 읽기</DialogTitle>
+      <div className="fixed inset-0 bg-scrim/[.32]" aria-hidden="true" />
+      <div className="fixed inset-0 flex items-end justify-center lg:items-center">
+        <DialogPanel className="flex max-h-[88dvh] w-full max-w-[560px] flex-col rounded-t-[18px] bg-sheet text-ink shadow-[0_-10px_40px_-10px_rgb(30_20_10/.35)] lg:rounded-[16px] lg:shadow-[0_30px_80px_-20px_rgb(30_20_10/.45)]">
+          <div
+            aria-hidden
+            className="mx-auto mt-2 h-[5px] w-9 shrink-0 rounded-[3px] bg-[rgb(127_127_127/.35)] lg:hidden"
+          />
+          <header className="flex min-h-12 shrink-0 items-center gap-2 px-[22px] pt-2.5">
+            <DialogTitle className="font-sans text-[18px] font-bold text-ink">
+              기록 읽기
+            </DialogTitle>
             <button
               type="button"
               autoFocus
               onClick={onClose}
               aria-label="기록 닫기"
-              className="flex h-11 w-11 items-center justify-center rounded-full text-ink-sub hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              className="ml-auto min-h-11 px-1 font-sans text-[16px] font-semibold text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             >
-              <X size={20} strokeWidth={1.75} aria-hidden="true" />
+              닫기
             </button>
           </header>
-          <div className="min-h-0 overflow-y-auto overscroll-contain px-6 py-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:px-8">
+          <div className="min-h-0 overflow-y-auto overscroll-contain px-[22px] pb-[calc(26px+var(--app-safe-bottom))] pt-2">
             {!entry && !error && (
               <p role="status" className="text-body text-ink-sub">
                 기록을 불러오는 중입니다.
@@ -114,7 +120,7 @@ export default function EntryReader({
                       setError(null);
                       setAttempt((value) => value + 1);
                     }}
-                    className="mt-4 rounded-full border border-hairline-strong px-4 py-2 text-ink"
+                    className="mt-4 min-h-10 rounded-full border border-hairline-strong px-4 font-sans text-button-sm text-ink"
                   >
                     다시 불러오기
                   </button>
@@ -123,23 +129,25 @@ export default function EntryReader({
             )}
             {entry && (
               <article>
-                <h3 className="break-words font-serif text-section-title text-ink">
+                <h3 className="break-words font-sans text-caption font-medium text-ink-sub">
                   {entry.bookTitle}
                 </h3>
-                <p className="mt-2 font-sans text-caption text-ink-sub">
+                <p className="mt-1 font-sans text-caption text-ink-faint">
                   {entry.date.replaceAll('-', '.')}
                   {entry.fromPage !== null &&
                     ` · ${entry.fromPage}${entry.toPage !== null && entry.toPage !== entry.fromPage ? `–${entry.toPage}` : ''}쪽`}
                 </p>
                 {entry.quote?.trim() && (
-                  <blockquote className="mt-6 whitespace-pre-wrap break-words font-serif text-quote text-ink">
+                  <blockquote className="mt-4 whitespace-pre-wrap break-words font-serif text-quote text-ink">
                     {entry.quote}
                   </blockquote>
                 )}
                 {entry.note?.trim() && (
-                  <section className="mt-6 border-t border-hairline pt-5">
-                    <h4 className="font-sans text-caption text-ink-sub">남긴 생각</h4>
-                    <p className="mt-3 whitespace-pre-wrap break-words font-serif text-note text-ink">
+                  <section className="mt-5">
+                    <h4 className="font-sans text-[14px] font-semibold text-ink-faint">
+                      그때의 생각
+                    </h4>
+                    <p className="mt-1 whitespace-pre-wrap break-words font-serif text-note text-ink-sub">
                       {entry.note}
                     </p>
                   </section>

@@ -37,12 +37,13 @@ export default function EntryRepublishWarning({
   }, [entryId, attempt, onReady]);
   if (error)
     return (
-      <div className="mt-4 text-caption text-ink-sub">
+      <div className="mt-4 font-sans text-caption text-ink-sub">
         <p role="alert">공개 범위를 확인하지 못했어요.</p>
         <Button
           type="button"
           variant="secondary"
           size="sm"
+          className="mt-2"
           onClick={() => {
             setError(false);
             setCount(null);
@@ -55,19 +56,19 @@ export default function EntryRepublishWarning({
     );
   if (count === null)
     return (
-      <p role="status" className="mt-4 text-caption text-ink-sub">
+      <p role="status" className="mt-4 font-sans text-caption text-ink-sub">
         공개 범위를 확인하고 있어요.
       </p>
     );
   if (count === 0) return null;
   return (
-    <label className="mt-4 flex items-start gap-3 text-caption text-ink-sub">
+    <label className="mt-4 flex items-start gap-3 font-sans text-caption text-ink">
       <input
         type="checkbox"
-        className="mt-1"
+        className="mt-1 h-[18px] w-[18px] shrink-0 accent-[rgb(var(--ink))]"
         onChange={(e) => onReady(e.target.checked ? count : null)}
       />
-      기존에 친구 공개로 남긴 생각 {count}개도 친구에게 다시 보이는 것을 확인했어요.
+      친구에게 보이게 덧붙였던 생각 {count}개도 다시 친구에게 보여요. 확인했어요.
     </label>
   );
 }
