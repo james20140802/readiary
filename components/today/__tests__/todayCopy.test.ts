@@ -114,7 +114,7 @@ describe('buildWeekDiary', () => {
     expect(buildWeekDiary([entry('a', '2026-09-20')], '2026-10-06')).toEqual([]);
   });
 
-  it('최근 기록이 상한만큼 차 있으면 가장 오래된 날 이전은 알 수 없으므로 그리지 않고, 그날의 개수도 말하지 않는다', () => {
+  it('최근 기록이 상한만큼 차 있으면 쉰 날도 날짜별 개수도 단정하지 않는다', () => {
     const six = [
       entry('a', '2026-10-06'),
       entry('b', '2026-10-06'),
@@ -131,8 +131,16 @@ describe('buildWeekDiary', () => {
     ]);
     const last = rows[2];
     expect(last.kind === 'day' && last.more).toBeNull();
+    // 소급해 쓴 기록이 어제를 밀어내도 어제를 쉰 날로 그리지 않는다
+    const gap = buildWeekDiary(
+      [...six.slice(0, 5).map((e) => ({ ...e, date: '2026-10-06' })), entry('z', '2026-09-20')]
+        .slice(0, 5)
+        .concat(entry('y', '2026-10-03')),
+      '2026-10-06'
+    );
+    expect(gap.some((r) => r.kind === 'rest')).toBe(false);
     const first = rows[0];
-    expect(first.kind === 'day' && first.more).toBe(1);
+    expect(first.kind === 'day' && first.more).toBeNull();
   });
 
   it('문장도 생각도 없는 기록은 건너뛴다', () => {

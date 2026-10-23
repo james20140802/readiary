@@ -94,23 +94,19 @@ const shortDate = (date: string) => {
 
 /**
  * 지난 7일의 일기 — 최근 기록(상한 6개)을 날짜별 한 줄로 묶는다. 최신 날부터.
- * 상한이 차 있으면 가장 오래된 날보다 앞은 기록이 있었는지 알 수 없으므로 그리지 않고,
- * 그날의 "외 N장"도 세지 않는다. 쉰 날은 이어진 만큼 한 줄로 접는다. 오늘이 비어 있으면 줄을 만들지 않는다.
+ * 최근 기록은 날짜순이 아니라 남긴 순서로 상한만큼 가져오므로(소급해 쓴 기록이 밀어낼 수 있다),
+ * 상한이 차 있으면 어느 날이 비었는지도, 그날 몇 장인지도 알 수 없다. 그때는 쉰 날 줄과 "외 N장"을 그리지 않는다.
+ * 상한 아래일 때만 쉰 날을 이어진 만큼 한 줄로 접는다. 오늘이 비어 있으면 줄을 만들지 않는다.
  */
 export function buildWeekDiary(entries: RecentEntry[], todayKst: string): WeekDiaryRow[] {
   const today = parseISO(todayKst);
   const windowStart = format(addDays(today, -6), 'yyyy-MM-dd');
   const usable = entries.filter((e) => (e.quote ?? e.note) != null);
   const full = entries.length >= RECENT_ENTRIES_LIMIT;
-  const oldest = entries.reduce<string | null>(
-    (min, e) => (min === null || e.date < min ? e.date : min),
-    null
-  );
-  const knownFrom = full && oldest && oldest > windowStart ? oldest : windowStart;
 
   const byDate = new Map<string, RecentEntry[]>();
   for (const e of usable) {
-    if (e.date < knownFrom || e.date > todayKst) continue;
+    if (e.date < windowStart || e.date > todayKst) continue;
     const list = byDate.get(e.date) ?? [];
     list.push(e);
     byDate.set(e.date, list);
@@ -131,17 +127,15 @@ export function buildWeekDiary(entries: RecentEntry[], todayKst: string): WeekDi
 
   for (let i = 0; i < 7; i++) {
     const date = format(addDays(today, -i), 'yyyy-MM-dd');
-    if (date < knownFrom) break;
     const list = byDate.get(date);
     if (!list) {
-      if (i === 0) continue;
+      if (i === 0 || full) continue;
       rest = rest ? { from: date, to: rest.to } : { from: date, to: date };
       continue;
     }
     flushRest();
     const sorted = [...list].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     const latest = sorted[0];
-    const partial = full && date === oldest;
     rows.push({
       kind: 'day',
       date,
@@ -149,7 +143,7 @@ export function buildWeekDiary(entries: RecentEntry[], todayKst: string): WeekDi
       short: shortDate(date),
       entry: latest,
       text: (latest.quote ?? latest.note) as string,
-      more: partial ? null : sorted.length - 1,
+      more: full ? null : sorted.length - 1,
     });
   }
   flushRest();

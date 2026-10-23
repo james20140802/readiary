@@ -84,7 +84,7 @@ export default function TodayView(p: TodayViewProps) {
     <TodayDesktopContext.Provider value={desk === true}>
       <h1 className="sr-only">오늘</h1>
       <Leaves desktop className={s.responsiveSpread}>
-        <Leaf title="오늘" label="오늘 쓰기">
+        <Leaf title="오늘" label="오늘 쓰기" free>
           <div className={s.leafBody}>
             <TodayDate todayKst={p.todayKst} weeklyCount={p.weeklyCount} desk={desk === true} />
             {p.composer}
