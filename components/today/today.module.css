@@ -91,9 +91,20 @@
   opacity: 0.6;
 }
 
-/* 키보드 초점: 밑줄·박스 대신 글줄 왼쪽에 짧은 accent 표시(글자는 움직이지 않는다) */
-.primary:focus-visible {
-  box-shadow: -14px 0 0 -12px rgb(var(--accent));
+/* 초점: 밑줄·박스 대신 글줄 왼쪽에 accent 표시(글자는 움직이지 않는다).
+   커서와 겹치지 않게 글 시작에서 10px 띄운다 — textarea는 ::before를 못 가지므로 감싼 칸이 그린다 */
+.primaryField {
+  position: relative;
+}
+.primaryField:has(> .primary:focus-visible)::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: 12px;
+  bottom: 12px;
+  width: 2px;
+  background: rgb(var(--accent));
+  pointer-events: none;
 }
 
 /* ── 간지 위치: 모바일 오늘 장에서 쓰기 아래로 겹친다 ── */
