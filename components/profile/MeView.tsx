@@ -14,6 +14,10 @@ import type { FinishedBookExcerpt } from '@/lib/profile/fetchRetrospectData';
 import InviteSheet from './InviteSheet';
 import { ordinalCount, ordinalVolume, type DiaryShelf, type MonthRow } from './meModel';
 import s from './me.module.css';
+import { coverTier } from './coverTier';
+
+/** 긴 대표 문장은 작게 — 표지 안에 끝까지 들어가게 */
+const COVER_TIER = { lg: undefined, md: s.coverTitleMd, sm: s.coverTitleSm } as const;
 
 export interface MeViewProps {
   name: string;
@@ -72,7 +76,14 @@ function CoverBook({
       <div className={s.coverBy} aria-hidden>
         {name} 지음
       </div>
-      <div className={clsx(s.coverTitle, !quote && s.coverTitleEmpty)} aria-hidden>
+      <div
+        className={clsx(
+          s.coverTitle,
+          quote && COVER_TIER[coverTier(quote.quote)],
+          !quote && s.coverTitleEmpty
+        )}
+        aria-hidden
+      >
         {quote?.quote ?? `${name}의 독서 일기`}
       </div>
       <div className={s.coverFoot} aria-hidden>

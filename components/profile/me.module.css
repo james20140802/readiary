@@ -38,6 +38,17 @@
   word-break: keep-all;
   overflow-wrap: anywhere;
 }
+.coverTitleMd {
+  font-size: 18px;
+  line-height: 1.5;
+  -webkit-line-clamp: 7;
+}
+.coverTitleSm {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.6;
+  -webkit-line-clamp: 9;
+}
 .coverTitleEmpty {
   opacity: 0.72;
 }
@@ -59,6 +70,12 @@
   }
   .coverTitle {
     font-size: 30px;
+  }
+  .coverTitleMd {
+    font-size: 24px;
+  }
+  .coverTitleSm {
+    font-size: 20px;
   }
 }
 

@@ -7,6 +7,7 @@ import BookSpineShelf, { type ShelfBook } from '@/components/books/BookSpineShel
 import { useTopBar } from '@/components/shell/TopBarContext';
 import BookThumb from '@/components/social/BookThumb';
 import RemoveFriendButton from '@/components/social/RemoveFriendButton';
+import { coverTier } from '@/components/profile/coverTier';
 
 export interface LibraryCurrentBook {
   title: string;
@@ -45,6 +46,13 @@ export interface FriendLibraryViewProps {
   /** 회고 집계를 못 불러왔을 때 — 발췌집 자리에 안내를 둔다 */
   retrospectError?: boolean;
 }
+
+/** 긴 대표 문장은 작게 — 표지 안에 끝까지 들어가게('나' 화면 표지와 같은 기준) */
+const COVER_TEXT = {
+  lg: 'line-clamp-6 text-[21px] font-semibold leading-[1.5]',
+  md: 'line-clamp-7 text-[17px] font-semibold leading-[1.5] lg:text-[19px]',
+  sm: 'line-clamp-9 text-[14px] font-medium leading-[1.6] lg:text-[16px]',
+} as const;
 
 const FOCUS =
   'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent';
@@ -102,7 +110,12 @@ export default function FriendLibraryView({
           <span className="font-sans text-[12px] font-semibold tracking-[0.06em] opacity-80">
             {profile.name} 지음
           </span>
-          <span className="mt-auto line-clamp-6 font-serif text-[21px] font-semibold leading-[1.5]">
+          <span
+            className={clsx(
+              'mt-auto font-serif',
+              COVER_TEXT[featuredQuote ? coverTier(featuredQuote.quote) : 'lg']
+            )}
+          >
             {featuredQuote?.quote ?? `${profile.name}의 서재`}
           </span>
           <span className="mt-5 flex justify-between font-mono text-[12px] font-medium opacity-70">
