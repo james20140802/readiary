@@ -231,11 +231,23 @@ describe('clusterFlags', () => {
     expect(group.hit.y1).toBe(layout[2].y + FLAG_HIT_HALF);
   });
 
-  it('같은 쪽에 일곱 기록이 몰리면 손가락 크기의 버튼 하나에 일곱 기록이 모인다', () => {
+  it('같은 쪽에 일곱 기록이 몰리면 손가락 크기의 버튼 하나에 일곱 기록이 모이고, 세 개만 그린다', () => {
     const [only, ...rest] = clusterFlags(lay(Array(7).fill(0.5)));
     expect(rest).toEqual([]);
     expect(only.ids).toHaveLength(7);
+    expect(only.visible).toEqual(['0', '1', '2']);
     expect(only.hit.y1 - only.hit.y0).toBeGreaterThanOrEqual(FLAG_HIT_HALF * 2);
+  });
+
+  it('플래그가 아주 많아도 하나로 뭉치지 않고, 묶음마다 한 칸 남짓으로 나뉜다', () => {
+    // 412쪽 책에 기록 94개가 고르게 흩어진 경우
+    const out = clusterFlags(lay(Array.from({ length: 94 }, (_, i) => (i * 4.4) / 412)));
+    expect(out.length).toBeGreaterThan(8);
+    for (const c of out) {
+      expect(c.hit.y1 - c.hit.y0).toBeLessThanOrEqual(FLAG_HIT_HALF * 4);
+      expect(c.hit.y1 - c.hit.y0).toBeGreaterThanOrEqual(FLAG_HIT_HALF);
+      expect(c.visible.length).toBeLessThanOrEqual(3);
+    }
   });
 
   it('어떤 배치에서도 묶음끼리 겹치지 않고, 모든 플래그가 한 묶음에 든다', () => {

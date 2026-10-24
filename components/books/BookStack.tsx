@@ -324,7 +324,7 @@ function FlagRack({
                   zIndex: FLAG_HIT_Z,
                 }}
               />
-              {c.ids.map((id) => {
+              {c.visible.map((id) => {
                 const l = layoutById.get(id)!;
                 return (
                   <span key={id} className={styles[`c-${byId.get(id)!.color}`]}>

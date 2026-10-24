@@ -150,10 +150,15 @@ export interface FlagLayout {
   z: number;
 }
 
-/** 누름 영역이 겹칠 만큼 가까운 플래그 묶음 — 하나의 버튼이 되고, 누르면 묶인 기록이 함께 펼쳐진다 */
+/**
+ * 손가락 한 칸(FLAG_HIT_HALF*2) 안에 든 플래그 묶음 — 하나의 버튼이 되고, 누르면 묶인 기록이 함께 펼쳐진다.
+ * 몰린 자리에는 플래그를 FLAG_TIERS개까지만 그린다(나머지는 펼친 목록에서 본다).
+ */
 export interface FlagCluster {
   /** 앞쪽부터 */
   ids: string[];
+  /** 그릴 플래그 — 앞쪽부터 FLAG_TIERS개까지 */
+  visible: string[];
   hit: FlagRect;
 }
 
@@ -176,26 +181,38 @@ export function layoutFlags(flags: { id: string; ratio: number }[], height: numb
 }
 
 /**
- * 누름 영역 — 플래그마다 위아래 FLAG_HIT_HALF씩. 이웃과 영역이 겹칠 만큼 가까우면 한 묶음으로 합쳐
- * 손가락 하나 크기의 영역을 나누지 않는다. 묶음끼리는 겹치지 않는다. 입력은 layoutFlags 결과(위에서 아래 순서).
+ * 누름 영역 — 위에서부터, 첫 플래그에서 한 칸(FLAG_HIT_HALF*2) 안에 드는 플래그를 한 묶음으로 끊는다.
+ * 묶음은 한 칸을 넘게 이어 붙지 않으므로 플래그가 아무리 많아도 하나로 뭉치지 않는다.
+ * 묶음 영역은 플래그 위아래로 FLAG_HIT_HALF씩, 이웃 묶음과는 두 플래그 사이 가운데에서 나눈다(겹치지 않는다).
+ * 입력은 layoutFlags 결과.
  */
 export function clusterFlags(layout: FlagLayout[]): FlagCluster[] {
+  const cell = FLAG_HIT_HALF * 2;
   const sorted = [...layout].sort((a, b) => a.y - b.y);
   const groups: FlagLayout[][] = [];
   for (const l of sorted) {
     const last = groups[groups.length - 1];
-    if (last && l.y - last[last.length - 1].y < FLAG_HIT_HALF * 2) last.push(l);
+    if (last && l.y - last[0].y < cell) last.push(l);
     else groups.push([l]);
   }
-  return groups.map((g) => ({
-    ids: g.map((l) => l.id),
-    hit: {
-      x0: 0,
-      x1: Math.max(...g.map((l) => l.len)),
-      y0: g[0].y - FLAG_HIT_HALF,
-      y1: g[g.length - 1].y + FLAG_HIT_HALF,
-    },
-  }));
+  return groups.map((g, i) => {
+    const top = g[0].y;
+    const bottom = g[g.length - 1].y;
+    const prev = groups[i - 1];
+    const next = groups[i + 1];
+    const y0 = prev
+      ? Math.max(top - FLAG_HIT_HALF, (prev[prev.length - 1].y + top) / 2)
+      : top - FLAG_HIT_HALF;
+    const y1 = next
+      ? Math.min(bottom + FLAG_HIT_HALF, (bottom + next[0].y) / 2)
+      : bottom + FLAG_HIT_HALF;
+    const visible = g.slice(0, FLAG_TIERS);
+    return {
+      ids: g.map((l) => l.id),
+      visible: visible.map((l) => l.id),
+      hit: { x0: 0, x1: Math.max(...visible.map((l) => l.len)), y0, y1 },
+    };
+  });
 }
 
 /** 두 누름 영역이 겹치는지(경계가 맞닿는 것은 겹침이 아니다) */
