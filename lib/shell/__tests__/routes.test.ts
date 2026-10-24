@@ -10,6 +10,12 @@ describe('frameFor', () => {
     ['/privacy', 'bare'],
     ['/today', 'leaves'],
     ['/books/1', 'plain'],
+    ['/entry/abc', 'leaves'],
+    ['/entry/abc/edit', 'plain'],
+    ['/entryish/abc', 'plain'],
+    ['/design-lab/entry', 'leaves'],
+    ['/design-lab/entry/excerpts', 'plain'],
+    ['/social/u/a/entry/abc', 'leaves'],
     ['/sharing', 'plain'],
   ])('%s의 틀은 %s', (p, f) => expect(frameFor(p)).toBe(f));
 });

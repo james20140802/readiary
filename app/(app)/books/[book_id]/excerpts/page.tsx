@@ -38,6 +38,7 @@ export default async function BookExcerptsPage({ params }: Props) {
       author={data.author}
       quotes={quotes}
       entryDates={entryDates}
+      bookId={book_id}
     />
   );
 }

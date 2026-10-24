@@ -6,6 +6,7 @@ import { toBlob } from 'html-to-image';
 import { toast } from 'sonner';
 import Seal from '@/components/ui/Seal';
 import Button from '@/components/ui/Button';
+import Sheet from '@/components/ui/Sheet';
 import ExcerptBooklet, { ExcerptBookletProps, koreanCount } from './ExcerptBooklet';
 import { LIGHT_PALETTE } from '@/lib/share/palette';
 import { formatReadingPeriod } from '@/lib/dates';
@@ -58,12 +59,31 @@ function quoteSizeClass(quote: string): string {
  * 사용자 제스처가 아니라며 거부한다. 그래서 생성 결과를 미리보기 시트로
  * 보여주고, 공유·저장은 시트 안의 버튼(새 탭 제스처)에서 일어난다.
  */
-export default function ExportExcerptsButton(props: ExcerptBookletProps) {
+interface ExportExcerptsButtonProps extends ExcerptBookletProps {
+  /** 바깥에서 여닫을 때(상단 바 버튼 등). 있으면 시트를 이 값으로 연다 */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  /** 기본 여는 버튼을 그리지 않는다 */
+  hideTrigger?: boolean;
+}
+
+export default function ExportExcerptsButton({
+  open,
+  onOpenChange,
+  hideTrigger = false,
+  ...props
+}: ExportExcerptsButtonProps) {
   const { bookTitle, author, quotes, entryDates } = props;
   const exportAction = useActionLock();
   const longRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [stage, setStage] = useState<Stage | null>(null);
+  // 바깥에서 열면 고르기부터 — 이전 값과 비교해 렌더 중에 맞춘다
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (open && stage === null) setStage('choose');
+  }
   const [mode, setMode] = useState<ExportMode | null>(null);
   // 카드가 수십 장이어도 탭 메모리가 버티도록 base64 data URL 대신
   // Blob(File) + object URL만 쥔다 — 미리보기 디코드는 lazy 로딩에 맡긴다.
@@ -90,6 +110,7 @@ export default function ExportExcerptsButton(props: ExcerptBookletProps) {
     setMode(null);
     setFiles([]);
     setPreviewUrls([]);
+    onOpenChange?.(false);
   };
 
   useEffect(() => {
@@ -214,137 +235,123 @@ export default function ExportExcerptsButton(props: ExcerptBookletProps) {
     }
   };
 
+  const TILE =
+    'rounded-[10px] p-4 text-left shadow-[inset_0_0_0_1px_rgb(var(--hairline))] transition-shadow hover:shadow-[inset_0_0_0_2px_rgb(var(--ink))] disabled:opacity-50';
+
   return (
     <>
-      <button
-        onClick={() => setStage('choose')}
-        className="font-serif text-button-sm text-accent transition-colors hover:underline"
-      >
-        이미지로 내보내기 →
-      </button>
-
-      {stage && (
-        <div
-          className="fixed inset-0 z-50 flex items-end justify-center sm:items-center"
-          role="dialog"
-          aria-modal="true"
-          aria-label="발췌집 이미지 내보내기"
+      {!hideTrigger && (
+        <button
+          type="button"
+          onClick={() => {
+            setStage('choose');
+            onOpenChange?.(true);
+          }}
+          className="min-h-11 font-sans text-button-sm text-accent transition-colors hover:underline"
         >
-          <div className="absolute inset-0 bg-ink/40" onClick={close} />
-          <div className="relative flex max-h-[85vh] w-full max-w-lg flex-col rounded-t-md border border-hairline bg-paper p-5 sm:rounded-md">
-            {stage === 'choose' && (
-              <>
-                <p className="font-serif text-body font-bold text-ink">이미지로 내보내기</p>
-                <div className="mt-4 space-y-3">
-                  <button
-                    onClick={() => {
-                      setMode('long');
-                      setStage('generating');
-                    }}
-                    className="w-full rounded-md border border-hairline px-4 py-3 text-left transition-colors hover:border-hairline-strong"
-                  >
-                    <p className="font-serif text-body text-ink">한 장으로</p>
-                    <p className="mt-0.5 text-caption text-ink-faint">
-                      표지부터 판권장까지 세로로 긴 이미지 하나
-                    </p>
-                  </button>
-                  <button
-                    onClick={() => {
-                      setMode('cards');
-                      setStage('generating');
-                    }}
-                    className="w-full rounded-md border border-hairline px-4 py-3 text-left transition-colors hover:border-hairline-strong"
-                  >
-                    <p className="font-serif text-body text-ink">카드로 나누어</p>
-                    <p className="mt-0.5 text-caption text-ink-faint">
-                      표지·문장·판권장을 4:5 카드 {quotes.length + 2}장으로 — 스토리·피드용
-                    </p>
-                  </button>
-                </div>
-                <div className="mt-4 text-right">
-                  <button
-                    onClick={close}
-                    className="text-button-sm text-ink-faint transition-colors hover:text-ink-sub"
-                  >
-                    닫기
-                  </button>
-                </div>
-              </>
-            )}
-
-            {stage === 'generating' && (
-              <p className="py-10 text-center font-serif text-caption text-ink-faint">
-                발췌집을 조판하는 중…
-              </p>
-            )}
-
-            {stage === 'preview' && (
-              <>
-                <p className="font-serif text-body text-ink">
-                  {previewUrls.length === 1
-                    ? '이미지가 준비됐습니다'
-                    : `카드 ${previewUrls.length}장이 준비됐습니다`}
-                </p>
-                {!canUseShareSheet && (
-                  <p className="mt-1 text-caption leading-relaxed text-ink-faint">
-                    이 환경에서는 공유 시트를 열 수 없어요. 아이패드·아이폰에서는 이미지를 길게 눌러
-                    &lsquo;사진에 저장&rsquo;을 선택하세요.
-                  </p>
-                )}
-                <div className="mt-3 min-h-0 flex-1 space-y-3 overflow-y-auto">
-                  {previewUrls.map((src, i) => (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      key={i}
-                      src={src}
-                      alt={`발췌집 이미지 ${i + 1}`}
-                      loading="lazy"
-                      decoding="async"
-                      className="w-full border border-hairline"
-                    />
-                  ))}
-                </div>
-                <div className="mt-4 flex items-center justify-end gap-4">
-                  <button
-                    onClick={close}
-                    className="text-button-sm text-ink-faint transition-colors hover:text-ink-sub"
-                  >
-                    닫기
-                  </button>
-                  {canUseShareSheet ? (
-                    <>
-                      <button
-                        onClick={handleSave}
-                        disabled={exportAction.busy}
-                        className="text-button-sm text-ink-sub transition-colors hover:text-ink"
-                      >
-                        저장
-                      </button>
-                      <Button
-                        size="sm"
-                        variant="primary"
-                        onClick={handleShare}
-                        disabled={exportAction.busy}
-                      >
-                        공유하기
-                      </Button>
-                    </>
-                  ) : (
-                    <Button
-                      size="sm"
-                      variant="primary"
-                      onClick={handleSave}
-                      disabled={exportAction.busy}
-                    >
-                      저장
-                    </Button>
-                  )}
-                </div>
-              </>
-            )}
-          </div>
-        </div>
+          이미지로 내보내기
+        </button>
       )}
+
+      <Sheet open={stage !== null} onClose={close} title="이미지로 내보내기">
+        {stage === 'choose' && (
+          <div className="mt-3 grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                setMode('long');
+                setStage('generating');
+              }}
+              className={TILE}
+            >
+              <span className="block font-sans text-[16px] font-semibold text-ink">한 장으로</span>
+              <small className="mt-1 block font-sans text-[13px] font-medium leading-[1.5] text-ink-sub">
+                표지부터 판권장까지 긴 이미지 하나
+              </small>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMode('cards');
+                setStage('generating');
+              }}
+              className={TILE}
+            >
+              <span className="block font-sans text-[16px] font-semibold text-ink">
+                카드로 나누어
+              </span>
+              <small className="mt-1 block font-sans text-[13px] font-medium leading-[1.5] text-ink-sub">
+                4:5 카드 {quotes.length + 2}장 · 인스타그램에 맞게
+              </small>
+            </button>
+          </div>
+        )}
+
+        {stage === 'generating' && (
+          <p role="status" className="py-10 text-center font-sans text-caption text-ink-sub">
+            발췌집을 조판하는 중…
+          </p>
+        )}
+
+        {stage === 'preview' && (
+          <>
+            <p className="font-sans text-caption text-ink-sub">
+              {previewUrls.length === 1
+                ? '이미지가 준비됐어요.'
+                : `카드 ${previewUrls.length}장이 준비됐어요.`}
+            </p>
+            <div
+              className={
+                previewUrls.length === 1
+                  ? 'mt-3 max-h-[46dvh] overflow-y-auto rounded-[4px]'
+                  : 'mt-3 flex gap-2.5 overflow-x-auto pb-1.5 [scrollbar-width:none]'
+              }
+            >
+              {previewUrls.map((src, i) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={i}
+                  src={src}
+                  alt={`발췌집 이미지 ${i + 1}`}
+                  loading="lazy"
+                  decoding="async"
+                  className={
+                    previewUrls.length === 1
+                      ? 'w-full'
+                      : 'w-[150px] flex-none rounded-[4px] shadow-[0_10px_24px_-12px_rgb(30_20_10/.45)]'
+                  }
+                />
+              ))}
+            </div>
+            <div className="mt-[18px] flex gap-2">
+              {canUseShareSheet ? (
+                <>
+                  <Button
+                    variant="secondary"
+                    className="flex-1"
+                    onClick={handleSave}
+                    disabled={exportAction.busy}
+                  >
+                    저장
+                  </Button>
+                  <Button className="flex-1" onClick={handleShare} disabled={exportAction.busy}>
+                    공유하기
+                  </Button>
+                </>
+              ) : (
+                <Button className="flex-1" onClick={handleSave} disabled={exportAction.busy}>
+                  저장
+                </Button>
+              )}
+            </div>
+            <p className="mt-3 font-sans text-caption text-ink-sub">
+              {canUseShareSheet
+                ? '아이폰에서 저장이 안 되면 이미지를 길게 눌러 ‘사진에 저장’을 고르세요.'
+                : '이 환경에서는 공유 창을 열 수 없어요. 아이폰·아이패드에서는 이미지를 길게 눌러 ‘사진에 저장’을 고르세요.'}
+            </p>
+          </>
+        )}
+      </Sheet>
 
       {/* 오프스크린 캡처 대상 — 생성 중에만 조판한다 */}
       {stage === 'generating' && mode === 'long' && (
