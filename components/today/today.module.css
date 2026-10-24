@@ -259,14 +259,15 @@
     flex-direction: column;
     min-height: 0;
   }
+  /* 내용만큼만 — 화면보다 길 때만 줄어들어 안쪽이 스크롤된다(늘 화면 끝까지 늘어나지 않게) */
   .week {
-    flex: 1;
+    flex: 0 1 auto;
     min-height: 0;
     display: flex;
     flex-direction: column;
   }
   .week .days {
-    flex: 1;
+    flex: 0 1 auto;
     min-height: 0;
   }
 }
