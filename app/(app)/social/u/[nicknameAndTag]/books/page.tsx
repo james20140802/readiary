@@ -4,8 +4,8 @@ import { notFound } from 'next/navigation';
 import BookList from '@/components/books/BookList';
 import { isFriendWith } from '@/lib/friends/isFriendWith';
 import { parseNicknameAndTagSlug } from '@/lib/social/invite';
-import BackButton from '@/components/ui/BackButton';
-import Link from 'next/link';
+import SocialTopBar from '@/components/social/SocialTopBar';
+import { LargeTitle } from '@/components/shell/LargeTitle';
 
 interface Props {
   params: Promise<{ nicknameAndTag: string }>;
@@ -28,20 +28,18 @@ export default async function FriendBooksPage({ params }: Props) {
     return notFound();
   }
 
+  const libraryHref = `/social/u/${profile.nickname}-${profile.tag}`;
+
   return (
     <>
-      <header className="flex items-center mb-6">
-        <BackButton />
-        <h1 className="text-page-title ml-4">
-          <Link
-            href={`/profile/u/${profile.nickname}-${profile.tag}`}
-            className="font-bold text-ink hover:underline"
-          >
-            {profile.name}
-          </Link>
-          님의 책장
-        </h1>
-      </header>
+      <SocialTopBar
+        title={`${profile.name}의 서가`}
+        back={{ href: libraryHref, label: `${profile.name}의 서재` }}
+      />
+      <LargeTitle>{profile.name}의 서가</LargeTitle>
+      <p className="mt-1 font-sans text-[15px] font-medium text-ink-sub">
+        {books.length}권 · 친구에게 보이는 기록만 열려요
+      </p>
       <div className="mt-6">
         <BookList books={books} isFriend nicknameAndTag={nickname + '-' + tag} />
       </div>

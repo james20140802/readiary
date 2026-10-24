@@ -5,13 +5,9 @@ import { getUserStats } from '@/lib/stats/getUserStats';
 import { fetchProfileData } from '@/lib/profile/fetchProfileData';
 import { fetchRetrospectData } from '@/lib/profile/fetchRetrospectData';
 import { fetchFeaturedQuote } from '@/lib/profile/fetchFeaturedQuote';
-import { fetchFeaturedBookmark } from '@/lib/profile/fetchFeaturedBookmark';
 import { parseNicknameAndTagSlug } from '@/lib/social/invite';
 import { PROFILE_SHELF_LIMIT, toShelfBook } from '@/lib/books/shelfBook';
-import ProfileBook from '@/components/profile/ProfileBook';
-import ProfileShelf from '@/components/profile/ProfileShelf';
-import ProfileExcerpts from '@/components/profile/ProfileExcerpts';
-import BackButton from '@/components/ui/BackButton';
+import FriendLibraryView from '@/components/social/library/FriendLibraryView';
 
 interface FriendProfilePageProps {
   params: Promise<{ nicknameAndTag: string }>;
@@ -44,53 +40,71 @@ export default async function FriendProfilePage({ params }: FriendProfilePagePro
   const isFriend = !!friendRecord;
   if (!isFriend && user.id !== profile.id) return notFound();
 
-  // 친구 책의 책갈피·인덱스·뒷표지는 공개 기록만으로 만들어진다 — 쿼리에서 비공개를 거른다.
-  // 본인이 자기 소셜 URL을 열면 /profile과 같이 비공개 포함
-  const publicOnly = { publicOnly: user.id !== profile.id };
-  const [stats, retrospect, featuredQuote, bookmark] = await Promise.all([
+  // 친구에게는 공개 기록으로 만든 값만 보인다 — 쿼리에서 비공개를 거른다.
+  // 본인이 자기 소셜 주소를 열면 /profile과 같이 비공개 포함
+  const isOwn = user.id === profile.id;
+  const publicOnly = { publicOnly: !isOwn };
+  const [stats, retrospect, featuredQuote] = await Promise.all([
     getUserStats(profile.id),
     fetchRetrospectData(profile.id, publicOnly),
     fetchFeaturedQuote(profile.featured_entry_id, profile.id, publicOnly),
-    fetchFeaturedBookmark(profile.bookmark_user_book_id, profile.id, publicOnly),
   ]);
 
-  // 친구의 읽기 통계(기간·문장 수)는 본인 것만 조회 가능해 비워 둔다 — 펼친 책이 그 행을 생략한다
-  const shelfHref = `/social/u/${slug}/books`;
+  // 친구의 읽기 통계(기간·문장 수)는 본인 것만 조회 가능해 비워 둔다
+  const base = `/social/u/${slug}`;
+  const shelfHref = `${base}/books`;
   const bookHref = (bookId: string) => `${shelfHref}/${bookId}`;
   const shelfBooks = userBooks
     .slice(0, PROFILE_SHELF_LIMIT)
     .map((ub) => toShelfBook(ub, null, bookHref(ub.book_id)));
-  const finishedBooks = retrospect?.finishedBooks ?? [];
+
+  const reading = userBooks.find((ub) => !ub.is_finished);
+  const current = reading
+    ? {
+        title: reading.books.title ?? '(제목 없음)',
+        coverUrl: reading.books.cover_url ?? null,
+        lastReadPage: reading.last_read_page,
+        totalPages: reading.books.total_pages,
+        href: bookHref(reading.book_id),
+      }
+    : null;
+
+  // 최근 문장 — 회고 집계(최근 달부터)에 이미 실린 미리보기에서 세 줄만
+  const sentences = (retrospect?.monthly ?? [])
+    .flatMap((month) =>
+      (month.quotePreviews ?? month.quotes.map((quote) => ({ entryId: null, quote }))).map(
+        (q, i) => ({
+          key: q.entryId ?? `${month.label}-${i}`,
+          quote: q.quote,
+          meta: month.label,
+          // 본인 것은 비공개도 섞여 있어 내 기록 화면으로 연다
+          href: q.entryId ? (isOwn ? `/entry/${q.entryId}` : `${base}/entry/${q.entryId}`) : null,
+        })
+      )
+    )
+    .slice(0, 3);
+
+  const excerpts = (retrospect?.finishedBooks ?? []).map((b) => ({
+    bookId: b.bookId,
+    title: b.title,
+    coverUrl: b.coverUrl,
+    quoteCount: b.quoteCount,
+    href: bookHref(b.bookId),
+  }));
 
   return (
-    <div className="pb-16">
-      <header className="mb-6 flex items-center">
-        <BackButton />
-        <h1 className="ml-4 text-page-title text-ink">친구 프로필</h1>
-      </header>
-      <section className="space-y-8">
-        <ProfileBook
-          user={user}
-          profile={profile}
-          stats={stats}
-          monthly={retrospect?.monthly ?? []}
-          featuredQuote={featuredQuote}
-          bookmark={bookmark}
-          bookmarkHref={bookmark ? bookHref(bookmark.bookId) : null}
-          isFriend
-        />
-        <ProfileShelf
-          books={shelfBooks}
-          total={userBooks.length}
-          shelfHref={shelfHref}
-          isOwnProfile={false}
-        />
-        {retrospect ? (
-          <ProfileExcerpts books={finishedBooks} hrefFor={bookHref} />
-        ) : (
-          <p className="mt-10 text-body-sm text-ink-faint">회고 정보를 불러올 수 없습니다.</p>
-        )}
-      </section>
-    </div>
+    <FriendLibraryView
+      profile={profile}
+      isOwn={isOwn}
+      stats={stats}
+      featuredQuote={featuredQuote}
+      current={current}
+      sentences={sentences}
+      shelfBooks={shelfBooks}
+      shelfTotal={userBooks.length}
+      shelfHref={shelfHref}
+      excerpts={excerpts}
+      retrospectError={!retrospect}
+    />
   );
 }

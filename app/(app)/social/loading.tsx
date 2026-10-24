@@ -1,5 +1,5 @@
-import PageSkeleton from '@/components/ui/PageSkeleton';
+import SocialFeedSkeleton from '@/components/social/feed/SocialFeedSkeleton';
 
 export default function Loading() {
-  return <PageSkeleton kind="social" />;
+  return <SocialFeedSkeleton />;
 }

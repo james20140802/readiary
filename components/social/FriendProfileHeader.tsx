@@ -1,35 +1,38 @@
-import { Profile } from '@/types/profile';
-import { Avatar } from '../ui/Avatar';
+'use client';
+
 import Link from 'next/link';
-import BackButton from '../ui/BackButton';
-import { getImageUrl } from '@/utils/profile';
+import type { Profile } from '@/types/profile';
+import { useTopBar } from '@/components/shell/TopBarContext';
+import FriendAvatar from '@/components/social/friends/FriendAvatar';
 
 interface Props {
   profile: Profile;
-  showBackButton?: boolean;
+  /** 모바일 상단 바에 보일 이 화면의 이름 */
+  title: string;
 }
 
-export default function FriendProfileHeader({ profile, showBackButton = true }: Props) {
+/**
+ * 친구의 책·기록 화면 머리 — 누구의 서재 안인지 알려 주고 서재로 돌아가는 길.
+ * 모바일 상단 바에는 "‹ 윤서의 서재"가 뒤로 가기로 선다.
+ */
+export default function FriendProfileHeader({ profile, title }: Props) {
+  const libraryHref = `/social/u/${profile.nickname}-${profile.tag}`;
+  useTopBar({ title, back: { href: libraryHref, label: `${profile.name}의 서재` } });
+
   return (
-    <div className="mb-6 flex items-center">
-      {showBackButton && <BackButton />}
-      <Link
-        href={`/social/u/${profile.nickname + '-' + profile.tag}`}
-        className={`flex items-center gap-4 ${!showBackButton && 'mb-4'} hover:opacity-80 transition ${showBackButton && 'mx-4'}`}
-      >
-        <Avatar
-          src={getImageUrl(profile.profile_image || null) || undefined}
-          alt="프로필 이미지"
-          fallbackText={profile.nickname[0].toUpperCase()}
-          size="md"
-        />
-        <div className={`${showBackButton && 'flex items-center gap-3'}`}>
-          <p className="text-section-title font-semibold text-ink">{profile.name}</p>
-          <p className="text-caption text-ink-sub">
-            {profile.nickname}#{profile.tag}
-          </p>
-        </div>
-      </Link>
-    </div>
+    <Link
+      href={libraryHref}
+      className="inline-flex items-center gap-3 rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+    >
+      <FriendAvatar profile={profile} className="!h-10 !w-10" />
+      <span>
+        <span className="block font-sans text-[17px] font-semibold text-ink">
+          {profile.name}의 서재
+        </span>
+        <span className="block font-sans text-[14px] font-medium text-ink-sub">
+          {profile.nickname}#{profile.tag}
+        </span>
+      </span>
+    </Link>
   );
 }

@@ -1,0 +1,50 @@
+/* 친구의 문장 — 시안 social.html의 화면 틀 중 공용 클래스로 없는 것만 여기에 둔다. */
+
+/* 일기장 여백선. 지금 셸은 /social을 괘선만 있는 틀(plain)로 깔기 때문에 피드가 여백선을 직접 긋는다.
+   위치는 globals.css .diary-ruled와 같다(모바일 51px, 데스크톱은 사이드바 오른쪽 +31px).
+   셸이 /social을 feed 틀로 깔게 되면(공용 변경 제안) 이 선은 지운다. */
+.marginLine {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 51px;
+  width: 1px;
+  z-index: 0;
+  pointer-events: none;
+  background: rgb(var(--margin));
+}
+@media (min-width: 1024px) {
+  .marginLine {
+    left: calc(var(--app-side) + 31px);
+  }
+}
+
+/* 모바일: 한 화면씩 끊지 않는 피드. 글마다 맨 위에 가볍게 멈춘다(proximity) */
+@media (max-width: 1023px) {
+  :global(html):has(.feed) {
+    scroll-snap-type: y proximity;
+  }
+  .item {
+    scroll-snap-align: start;
+    scroll-margin-top: calc(64px + var(--app-safe-top));
+  }
+}
+
+/* 데스크톱: 글 흐름 + 옆 칸. 셸의 plain 틀(860px) 안에서 시안 폭(최대 1264px)으로 넓힌다.
+   left 50% + 음수 margin으로 가운데를 맞춰 transform 없이(고정 오버레이의 기준 상자를 만들지 않게) 넓힌다. */
+@media (min-width: 1024px) {
+  .wide {
+    --feed-w: min(1264px, calc(100vw - var(--app-side) - 136px));
+    position: relative;
+    width: var(--feed-w);
+    left: 50%;
+    margin-left: calc(var(--feed-w) / -2);
+  }
+}
+
+.reading {
+  scrollbar-width: none;
+}
+.reading::-webkit-scrollbar {
+  display: none;
+}
