@@ -707,7 +707,7 @@ li {
     scroll-snap-align: start;
     scroll-snap-stop: always;
     overflow: hidden;
-    padding: calc(60px + var(--app-safe-top)) 24px
+    padding: calc(72px + var(--app-safe-top)) 24px
       calc(var(--app-tabbar-h) + 30px + var(--app-safe-bottom));
   }
   .leaves .leaf-stack > .leaf:first-child {
@@ -772,6 +772,8 @@ li {
     position: relative;
     min-height: 100dvh;
     max-width: 1400px;
+    /* 넓은 화면에서 사이드바 오른쪽 공간의 가운데에 앉는다(왼쪽 쏠림 방지) */
+    margin-inline: auto;
     padding: 40px 56px 40px 80px;
     scroll-snap-align: start;
     scroll-snap-stop: always;
