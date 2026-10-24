@@ -25,6 +25,16 @@ export const LEAVES_ROUTES: readonly string[] = [
   '/design-lab/today',
 ];
 
+/**
+ * 하위 주소는 다른 틀을 쓰므로 주소 하나만 정확히 맞추는 간지 화면 — 책장(/books)과 책 한 권(/books/[id]).
+ * 책 등록(/books/new)과 책 아래 주소(발췌집·기록 남기기)는 여기에 들지 않는다.
+ */
+export const LEAVES_EXACT: readonly RegExp[] = [
+  /^\/books$/,
+  /^\/books\/(?!new$)[^/]+$/,
+  /^\/design-lab\/books(?:\/detail)?$/,
+];
+
 /** 같은 경로이거나 `접두사/…`일 때만 맞는다 (`/sharing`은 `/share`가 아니다) */
 function matches(pathname: string, prefix: string): boolean {
   return pathname === prefix || pathname.startsWith(`${prefix}/`);
@@ -40,6 +50,7 @@ export function frameFor(pathname: string): Frame {
   )
     return 'leaves';
   if (LEAVES_ROUTES.some((p) => matches(pathname, p))) return 'leaves';
+  if (LEAVES_EXACT.some((re) => re.test(pathname))) return 'leaves';
   return 'plain';
 }
 

@@ -1,0 +1,487 @@
+/* 책 화면 전용 모양 — 시안 docs/design/concept-2026-10/(books|book-layer|book-new).html과 app.css "서가".
+   공용 토큰만 쓰고, 시안의 밤 선택 표시(#978e81·#f6f0e6)처럼 시안이 정한 값은 globals.css .dseg와 같은 근거로 둔다. */
+
+/* ── 서가 ── */
+.shelves {
+  --sh: 150px;
+  --board: 5px;
+  --row-gap: 18px;
+  --scale: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  column-gap: 3px;
+  row-gap: calc(var(--board) + var(--row-gap));
+  padding: 0 4px var(--board);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0 var(--sh),
+    rgb(var(--hairline-strong)) var(--sh) calc(var(--sh) + var(--board)),
+    transparent calc(var(--sh) + var(--board)) calc(var(--sh) + var(--board) + var(--row-gap))
+  );
+}
+@media (min-width: 1024px) {
+  .shelves {
+    --sh: 190px;
+    --scale: 1.25;
+    column-gap: 4px;
+  }
+}
+.collapsed {
+  /* 선반 세 칸까지만 — 시안 fillShelves(…,3) */
+  max-height: calc(3 * var(--sh) + 3 * var(--board) + 2 * var(--row-gap));
+  overflow: hidden;
+}
+.slot {
+  height: var(--sh);
+  display: flex;
+  align-items: flex-end;
+  flex: none;
+}
+.spine {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  width: calc(var(--w) * var(--scale));
+  height: var(--h);
+  padding-top: 10px;
+  overflow: hidden;
+  border-radius: 2px 2px 0 0;
+  background: var(--c);
+  color: var(--t);
+  writing-mode: vertical-rl;
+  font-family: var(--font-serif), serif;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  box-shadow:
+    inset -3px 0 0 rgb(0 0 0 / 0.08),
+    inset 2px 0 0 rgb(255 255 255 / 0.12);
+  transition: transform 160ms var(--ease-out);
+}
+@media (min-width: 1024px) {
+  .spine {
+    font-size: 14px;
+  }
+}
+.spine:hover {
+  transform: translateY(-4px);
+}
+.spine:focus-visible {
+  outline: 2px solid rgb(var(--accent));
+  outline-offset: 2px;
+  transform: translateY(-4px);
+}
+.spine.done {
+  opacity: 0.6;
+}
+/* 표지 사진이 있는 책: 표지 한가운데 띠를 책등으로 쓰고, 어두운 막 위에 제목 */
+.spineCover {
+  position: absolute;
+  inset: 0;
+  object-fit: cover;
+}
+.spineCover + .spineScrim {
+  position: absolute;
+  inset: 0;
+  background: rgb(0 0 0 / 0.38);
+}
+.spineText {
+  position: relative;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (prefers-reduced-motion: reduce) {
+  .spine,
+  .spine:hover,
+  .spine:focus-visible {
+    transition: none;
+    transform: none;
+  }
+}
+
+/* ── 알약 칩·두 칸 전환 ── */
+.chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.chips::-webkit-scrollbar {
+  display: none;
+}
+.chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 18px;
+  font:
+    600 14px var(--font-sans),
+    sans-serif;
+  color: rgb(var(--ink-sub));
+  box-shadow: inset 0 0 0 1px rgb(var(--hairline));
+}
+.chip[aria-pressed='true'] {
+  background: rgb(var(--ink));
+  color: rgb(var(--paper));
+  box-shadow: none;
+}
+.chip:focus-visible,
+.segItem:focus-visible {
+  outline: 2px solid rgb(var(--accent));
+  outline-offset: 2px;
+}
+.seg {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  height: 44px;
+  padding: 2px;
+  border-radius: 10px;
+  background: rgb(127 127 127 / 0.14);
+}
+@media (min-width: 1024px) {
+  .seg {
+    height: 36px;
+  }
+}
+.segItem {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font:
+    600 14px var(--font-sans),
+    sans-serif;
+  color: rgb(var(--ink-sub));
+}
+.segItem[aria-pressed='true'],
+.segItem[aria-selected='true'] {
+  background: rgb(var(--sheet));
+  color: rgb(var(--ink));
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.12);
+}
+@media (prefers-color-scheme: dark) {
+  .segItem {
+    color: #978e81;
+  }
+  .segItem[aria-pressed='true'],
+  .segItem[aria-selected='true'] {
+    background: rgb(255 255 255 / 0.14);
+    color: #f6f0e6;
+    box-shadow:
+      inset 0 0.5px 0 rgb(255 255 255 / 0.14),
+      0 1px 4px rgb(0 0 0 / 0.45);
+  }
+}
+
+/* ── 표지 ── 실제 책: 얕은 바닥 그림자(시안 값) */
+.cover {
+  display: block;
+  object-fit: cover;
+  aspect-ratio: 2 / 3;
+  border-radius: 2px 4px 4px 2px;
+  box-shadow: 0 14px 24px -14px rgb(0 0 0 / 0.5);
+}
+.coverSm {
+  box-shadow: 0 8px 14px -8px rgb(0 0 0 / 0.45);
+}
+.coverLg {
+  box-shadow: 0 22px 34px -18px rgb(30 20 10 / 0.55);
+}
+.coverPh {
+  display: grid;
+  place-items: center;
+  padding: 8px;
+  text-align: center;
+  font-family: var(--font-serif), serif;
+  font-weight: 600;
+  line-height: 1.35;
+  overflow: hidden;
+  word-break: keep-all;
+}
+
+/* 데스크톱 읽는 중 받침 — 시안 .ledge */
+.ledge {
+  display: grid;
+  gap: clamp(12px, 2vw, 30px);
+  align-items: flex-end;
+  padding: 0 10px;
+  border-bottom: 8px solid rgb(var(--hairline-strong));
+  height: clamp(220px, 32vh, 300px);
+}
+.ledgeItem {
+  min-width: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  transition: transform 240ms var(--ease-out);
+}
+.ledgeItem > * {
+  width: min(86%, calc((clamp(220px, 32vh, 300px) * 0.86 - 28px) * 2 / 3));
+  height: auto;
+  flex-shrink: 0;
+}
+.ledgeItem[aria-pressed='true'] {
+  transform: translateY(-14px);
+}
+.ledgeItem[aria-pressed='true'] > * {
+  width: min(100%, calc((clamp(220px, 32vh, 300px) - 28px) * 2 / 3));
+}
+.ledgeItem:focus-visible {
+  outline: 2px solid rgb(var(--accent));
+  outline-offset: 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ledgeItem,
+  .ledgeItem > * {
+    transition: none;
+  }
+}
+
+/* 잉크 분수 184 / 352 */
+.frac {
+  font-family: var(--font-serif), serif;
+  font-weight: 400;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.frac > span {
+  color: rgb(var(--ink-faint));
+}
+
+/* ── 표지 위 간지(책 한 권) — 시안 book-layer.html .bstack ── */
+.bstack {
+  --vl: 0px;
+  --vt: 62px;
+  --vw: calc(100% - 96px);
+  --cr: 38px;
+  --ct: 10px;
+  --cw: 186px;
+  position: relative;
+  height: 452px;
+  margin-top: 4px;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+  outline-offset: 6px;
+}
+.bstack:focus-visible {
+  outline: 2px solid rgb(var(--accent));
+}
+@media (min-width: 1024px) {
+  .bstack {
+    --vt: 76px;
+    --vw: 262px;
+    --cr: 44px;
+    --cw: 226px;
+    height: 540px;
+    width: 400px;
+  }
+}
+.bstackCover {
+  position: absolute;
+  z-index: 1;
+  right: var(--cr);
+  top: var(--ct);
+  width: var(--cw);
+  aspect-ratio: 2 / 3;
+  background: rgb(var(--sheet));
+  border-radius: 2px 5px 5px 2px;
+  box-shadow:
+    inset 0 0 0 1px rgb(0 0 0 / 0.06),
+    0 22px 34px -18px rgb(30 20 10 / 0.55);
+  transform: translateX(var(--cx, 0px)) rotate(2deg);
+  transition: transform 300ms var(--ease-out);
+  overflow: hidden;
+}
+.bstackCover > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.vel {
+  position: absolute;
+  z-index: 2;
+  left: var(--vl);
+  top: var(--vt);
+  width: var(--vw);
+  min-height: 330px;
+  padding: 20px 20px 18px 22px;
+  border-radius: 2px;
+  display: flex;
+  flex-direction: column;
+  background-color: rgb(var(--sheet) / 0.64);
+  background-image: var(--grain), var(--vellum-light);
+  -webkit-backdrop-filter: blur(2px) saturate(0.75);
+  backdrop-filter: blur(2px) saturate(0.75);
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.65),
+    0 1px 1px rgb(60 45 25 / 0.05),
+    0 16px 30px -22px rgb(60 45 25 / 0.4);
+  transform: translateX(var(--vx, 0px)) rotate(calc(-1.2deg + var(--vr, 0deg)));
+  transition: transform 300ms var(--ease-out);
+}
+@media (min-width: 1024px) {
+  .vel {
+    min-height: 390px;
+  }
+}
+@media (prefers-color-scheme: dark) {
+  .vel {
+    background-color: rgb(var(--sheet) / 0.7);
+    box-shadow:
+      inset 0 0.5px 0 rgb(255 255 255 / 0.12),
+      inset 0 0 0 0.5px rgb(255 255 255 / 0.05),
+      0 18px 34px -18px rgb(0 0 0 / 0.7);
+  }
+  .bstackCover {
+    box-shadow: 0 22px 34px -16px rgb(0 0 0 / 0.7);
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .vel {
+    background: rgb(var(--sheet));
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+.dragging .vel,
+.dragging .bstackCover,
+.dragging .flagRack {
+  transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .vel,
+  .bstackCover,
+  .flagRack {
+    transition: none;
+  }
+}
+
+/* ── 플래그 — 옆면(앞마구리)에서 반투명 플래그가 똑바로 나오고, 밑동은 표지 뒤로 들어간다 ── */
+.flagRack {
+  position: absolute;
+  z-index: 0;
+  right: var(--cr);
+  top: var(--ct);
+  width: var(--cw);
+  aspect-ratio: 2 / 3;
+  pointer-events: none;
+  transform: translateX(var(--cx, 0px)) rotate(2deg);
+  transition: transform 300ms var(--ease-out);
+}
+.flag {
+  position: absolute;
+  left: calc(100% - 18px);
+  height: 10px;
+  margin-top: -5px;
+  border-radius: 0 1px 1px 0;
+  background: rgb(var(--fc) / 0.55);
+  box-shadow: inset 0 0 0 1px rgb(var(--fc) / 0.75);
+  transition:
+    background-color 160ms ease,
+    transform 160ms var(--ease-out);
+  transform-origin: 0 50%;
+}
+@media (prefers-color-scheme: dark) {
+  .flag {
+    background: rgb(var(--fc) / 0.5);
+    box-shadow: inset 0 0 0 1px rgb(var(--fc) / 0.7);
+  }
+}
+.flagHit {
+  position: absolute;
+  left: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  pointer-events: auto;
+  cursor: pointer;
+}
+.flagHit:focus-visible {
+  outline: 2px solid rgb(var(--accent));
+  outline-offset: 1px;
+}
+.flagHit:hover + .flag,
+.flagHit[aria-expanded='true'] + .flag {
+  background-color: rgb(var(--fc) / 0.85);
+}
+.flagHit:active + .flag {
+  transform: scaleX(0.96);
+}
+@media (prefers-reduced-motion: reduce) {
+  .flag {
+    transition: background-color 160ms ease;
+  }
+  .flagHit:active + .flag {
+    transform: none;
+  }
+}
+.c-yellow {
+  --fc: var(--flag-yellow);
+}
+.c-pink {
+  --fc: var(--flag-pink);
+}
+.c-orange {
+  --fc: var(--flag-orange);
+}
+.c-green {
+  --fc: var(--flag-green);
+}
+.c-blue {
+  --fc: var(--flag-blue);
+}
+.c-purple {
+  --fc: var(--flag-purple);
+}
+.swatch {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 6px;
+  border-radius: 1px;
+  vertical-align: 1px;
+  background: rgb(var(--fc) / 0.8);
+}
+.fpop {
+  position: absolute;
+  z-index: 8;
+  width: min(280px, calc(100vw - 48px));
+  padding: 14px 16px 12px;
+  border-radius: 2px;
+  transform-origin: var(--ox, 50%) 0;
+  animation: fpop-in 160ms var(--ease-out);
+}
+@keyframes fpop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.97);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fpop {
+    animation: fpop-fade 160ms ease;
+  }
+}
+@keyframes fpop-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* ── 원고(기록 흐름) ── 덧붙인 생각 간지는 데스크톱에서 번갈아 살짝 기운다(시안 .slip / .slip.l2) */
+@media (min-width: 1024px) {
+  .slipTiltLg {
+    transform: rotate(1.4deg);
+  }
+  .slipTilt2Lg {
+    transform: rotate(-1deg);
+  }
+}

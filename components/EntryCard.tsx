@@ -1,13 +1,15 @@
 'use client';
 
-import ReflectionPreview, { ReflectionWriteLink } from '@/components/reflections/ReflectionPreview';
-import type { ReflectionSummary } from '@/lib/reflections/types';
-import { apiFetch } from '@/lib/api/fetch';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Heart, Lock, MessageCircle } from 'lucide-react';
-import { formatKoreanDate } from '@/lib/dates';
+import clsx from 'clsx';
+import { apiFetch } from '@/lib/api/fetch';
+import { useReflectionFeature } from '@/components/features/ReflectionFeatureProvider';
+import { subscribeReflectionSummary } from '@/lib/reflections/summaryRefresh';
+import type { ReflectionSummary } from '@/lib/reflections/types';
 import ClampedText from '@/components/ui/ClampedText';
+import { addedThoughtLabel, pageLabel, shortDate } from '@/components/books/bookFormat';
+import styles from '@/components/books/books.module.css';
 import CommentBottomSheet from './comments/CommentBottomSheet';
 
 interface EntryCardProps {
@@ -24,19 +26,17 @@ interface EntryCardProps {
   initialLikeCount?: number;
   initialCommentCount?: number;
   initialLiked?: boolean;
-  /** 내 기록을 그 자리에서 고치기 — 있으면 '원문 수정'이 페이지 이동 대신 이 콜백을 부른다 */
+  /** 내 기록을 그 자리에서 고치기 — 있으면 '고치기'가 페이지 이동 대신 이 콜백을 부른다 */
   onEdit?: () => void;
-}
-
-function formatPages(fromPage?: number | null, toPage?: number | null) {
-  if (fromPage != null && toPage != null && fromPage !== toPage) return `p.${fromPage}–${toPage}`;
-  const page = fromPage ?? toPage;
-  return page != null ? `p.${page}` : null;
+  /** 덧붙인 생각 간지의 기울기 — 데스크톱에서 번갈아 기운다(시안 .slip / .slip.l2) */
+  slipTilt?: 1 | 2;
+  /** 첫 기록은 위 선을 긋지 않는다 */
+  first?: boolean;
 }
 
 /**
- * 문장 기록 한 장 — 박스 없이 날짜 여백이 있는 원고 흐름.
- * 인용만 / 인용＋생각 / 생각만, 채워진 필드가 그대로 표정이 된다.
+ * 원고 한 줄 — 시안 book-layer.html `.e`. 왼쪽 여백에 날짜·쪽(마진 노트), 오른쪽에 문장과 생각.
+ * 인용만 / 인용＋생각 / 생각만, 채워진 필드가 그대로 표정이 된다. 덧붙인 생각이 있으면 문장 아래 간지 한 장.
  */
 export default function EntryCard({
   id,
@@ -53,23 +53,35 @@ export default function EntryCard({
   initialLiked = false,
   onEdit,
   reflectionSummary,
+  slipTilt = 1,
+  first = false,
 }: EntryCardProps) {
   const [isCommentOpen, setIsCommentOpen] = useState(false);
   const [commentCount, setCommentCount] = useState(initialCommentCount);
   const [isLiked, setIsLiked] = useState(initialLiked);
   const [likeCount, setLikeCount] = useState(initialLikeCount);
   const [isLikeLoading, setIsLikeLoading] = useState(false);
-  // 방금 좋아요를 켰는지 — 그때만 하트가 부푼다(globals.css .heart-pop)
-  const [likePopped, setLikePopped] = useState(false);
+
+  const reflections = useReflectionFeature();
+  const [summary, setSummary] = useState(reflectionSummary);
+  const [prevSummary, setPrevSummary] = useState(reflectionSummary);
+  if (reflectionSummary !== prevSummary) {
+    setPrevSummary(reflectionSummary);
+    setSummary(reflectionSummary);
+  }
+  useEffect(() => {
+    if (reflections) return subscribeReflectionSummary(id, setSummary);
+  }, [id, reflections]);
 
   const targetHref = href ?? `/entry/${id}`;
-  const pages = formatPages(fromPage, toPage);
+  const pages = pageLabel(fromPage ?? null, toPage ?? null);
+  const own = !href;
+  const latest = reflections && summary && summary.total > 0 ? summary.latest : null;
 
   const handleLikeToggle = async () => {
     if (isLikeLoading) return;
     const prevLiked = isLiked;
     const prevCount = likeCount;
-    setLikePopped(!prevLiked);
     setIsLiked(!prevLiked);
     setLikeCount(prevLiked ? prevCount - 1 : prevCount + 1);
     setIsLikeLoading(true);
@@ -91,105 +103,115 @@ export default function EntryCard({
     }
   };
 
+  const reactBtn =
+    'inline-flex min-h-8 items-center font-sans text-[14px] font-medium text-ink-sub transition-colors hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent';
+
   return (
-    <article className="grid gap-x-6 py-6 sm:grid-cols-[88px_minmax(0,1fr)]">
-      {/* 마진 노트 — 넓은 화면은 왼쪽 여백, 좁은 화면은 첫 줄 */}
-      <div className="mb-2 sm:mb-0">
-        <Link
-          href={targetHref}
-          className="flex items-center gap-2 text-button-sm tabular-nums text-ink-faint transition-colors hover:text-accent sm:flex-col sm:items-end sm:gap-0.5 sm:text-right"
-        >
-          <time>{formatKoreanDate(date) ?? date}</time>
-          {pages && <span>{pages}</span>}
-          {isPrivate && <Lock size={10} className="text-ink-faint/70" aria-label="비공개" />}
-        </Link>
-      </div>
+    <article
+      className={clsx(
+        'grid grid-cols-[58px_minmax(0,1fr)] gap-x-3 py-[22px] lg:grid-cols-[64px_minmax(0,1fr)] lg:gap-x-5 lg:py-7',
+        !first && 'border-t border-hairline'
+      )}
+    >
+      <Link
+        href={targetHref}
+        aria-label={`${shortDate(date)}${pages ? ` ${pages}` : ''} 기록 펼치기`}
+        className="self-start font-mono text-[14px] font-medium leading-[1.5] text-ink-sub hover:text-accent"
+      >
+        <time dateTime={date.slice(0, 10)}>{shortDate(date)}</time>
+        {pages && (
+          <>
+            <br />
+            {pages}
+          </>
+        )}
+      </Link>
 
       <div className="min-w-0">
-        <ClampedText>
+        <ClampedText fadeFromClassName="from-sheet">
           {quote && (
-            <div>
-              <span
-                aria-hidden
-                className="block font-serif text-display-sm leading-none text-accent"
-              >
-                &ldquo;
-              </span>
-              <blockquote className="mt-1 whitespace-pre-wrap font-serif text-quote text-ink">
-                {quote}
-              </blockquote>
-            </div>
+            <blockquote className="whitespace-pre-wrap font-serif text-[21px] font-semibold leading-[1.65] text-ink lg:text-[24px]">
+              {quote}
+            </blockquote>
           )}
-          {note && (
-            <p
-              className={`whitespace-pre-wrap font-serif text-body leading-[1.85] text-ink-sub ${
-                quote ? 'mt-4' : ''
-              }`}
-            >
-              {note}
-            </p>
-          )}
+          {note &&
+            (quote ? (
+              <p className="mt-2 whitespace-pre-wrap pl-3 font-serif text-[18px] leading-[1.65] text-ink-sub shadow-[inset_2px_0_0_rgb(var(--hairline))]">
+                {note}
+              </p>
+            ) : (
+              <p className="whitespace-pre-wrap font-serif text-[20px] leading-[1.65] text-ink">
+                {note}
+              </p>
+            ))}
         </ClampedText>
 
-        <ReflectionPreview entryId={id} summary={reflectionSummary} href={targetHref} />
-
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={handleLikeToggle}
-              aria-label={`좋아요 ${likeCount}개`}
-              aria-pressed={isLiked}
-              className={`flex items-center gap-1 transition-[color,transform] duration-150 ease-ink-out active:scale-[0.97] motion-reduce:active:scale-100 ${
-                isLiked ? 'text-accent' : 'text-ink-faint hover:text-accent'
-              } ${isLikeLoading ? 'cursor-progress' : ''}`}
-            >
-              <Heart
-                aria-hidden="true"
-                className={likePopped && isLiked ? 'heart-pop' : undefined}
-                size={12}
-                fill={isLiked ? 'currentColor' : 'none'}
-                strokeWidth={2}
-              />
-              <span className="text-caption tabular-nums">{likeCount}</span>
-            </button>
-            <button
-              onClick={() => setIsCommentOpen(true)}
-              aria-label={`댓글 ${commentCount}개 보기`}
-              className="flex items-center gap-1 text-ink-faint transition-colors hover:text-accent active:scale-95"
-            >
-              <MessageCircle aria-hidden="true" size={12} strokeWidth={2} />
-              <span className="text-caption tabular-nums">{commentCount}</span>
-            </button>
-          </div>
-          <div className="ml-auto flex items-center gap-4">
-            {!href && <ReflectionWriteLink href={targetHref} />}
-            {/* 내 기록은 그 자리에서(시트) 또는 수정 페이지로, 친구 기록은 상세로 — 상세(공유)는 날짜 링크로도 열린다 */}
-            {href ? (
+        <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1">
+          <button
+            type="button"
+            onClick={handleLikeToggle}
+            aria-pressed={isLiked}
+            className={clsx(reactBtn, isLiked && 'text-accent', isLikeLoading && 'cursor-progress')}
+          >
+            좋아요 {likeCount}
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsCommentOpen(true)}
+            aria-label={`댓글 ${commentCount}개 보기`}
+            className={reactBtn}
+          >
+            댓글 {commentCount}
+          </button>
+          {own && (
+            <span className="font-sans text-[14px] font-medium text-ink-sub">
+              {isPrivate ? '나만 보기' : '친구에게 보임'}
+            </span>
+          )}
+          <span className="ml-auto flex items-center gap-4">
+            {own && reflections && (
               <Link
-                href={targetHref}
-                className="text-button-sm text-ink-faint transition-colors hover:text-accent"
+                href={`${targetHref}?reflect=1#reflections`}
+                className={clsx(reactBtn, 'hidden font-semibold lg:inline-flex')}
               >
-                상세 →
-              </Link>
-            ) : onEdit ? (
-              <button
-                type="button"
-                onClick={onEdit}
-                className="text-button-sm text-ink-faint transition-colors hover:text-accent"
-              >
-                원문 수정
-              </button>
-            ) : (
-              <Link
-                href={`/entry/${id}/edit`}
-                className="text-button-sm text-ink-faint transition-colors hover:text-accent"
-              >
-                원문 수정
+                생각 덧붙이기
               </Link>
             )}
-          </div>
+            {href ? (
+              <Link href={targetHref} className={clsx(reactBtn, 'font-semibold')}>
+                펼치기
+              </Link>
+            ) : onEdit ? (
+              <button type="button" onClick={onEdit} className={clsx(reactBtn, 'font-semibold')}>
+                고치기
+              </button>
+            ) : (
+              <Link href={`/entry/${id}/edit`} className={clsx(reactBtn, 'font-semibold')}>
+                고치기
+              </Link>
+            )}
+          </span>
         </div>
       </div>
+
+      {latest && (
+        <Link
+          href={`${targetHref}#reflections`}
+          aria-label={`덧붙인 생각 ${summary?.total ?? 1}개 보기`}
+          className={clsx(
+            'vellum col-start-2 mt-3.5 block max-w-[420px] rounded-[3px] px-4 py-3.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent',
+            slipTilt === 2 ? styles.slipTilt2Lg : styles.slipTiltLg
+          )}
+        >
+          <span className="block font-sans text-[13px] font-semibold text-ink-sub">
+            <time dateTime={latest.created_at}>{addedThoughtLabel(date, latest.created_at)}</time>
+            {summary && summary.total > 1 && ` · 생각 ${summary.total}`}
+          </span>
+          <span className="mt-1 line-clamp-3 block whitespace-pre-wrap break-words font-serif text-[17px] leading-[1.6] text-ink">
+            {latest.body}
+          </span>
+        </Link>
+      )}
 
       <CommentBottomSheet
         entryId={id}

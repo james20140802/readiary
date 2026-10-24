@@ -1,19 +1,15 @@
 'use client';
 import ActionNavigation from '@/components/ui/ActionNavigation';
-import { SessionExpiredError } from '@/lib/api/fetch';
-
-import { apiFetch } from '@/lib/api/fetch';
-import { useState } from 'react';
+import { SessionExpiredError, apiFetch } from '@/lib/api/fetch';
+import { useRef, useState } from 'react';
 import { useCreationSubmission } from '@/hooks/useCreationSubmission';
 import { useActionLock } from '@/hooks/useActionLock';
 import { BookSearchResult } from '@/types/book';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { searchBook } from '@/lib/books/searchBook';
-import Modal from '@/components/ui/Modal';
-import Button from '@/components/ui/Button';
-import { Search } from 'lucide-react';
-import Image from 'next/image';
+import { ChosenBook, LineField, ResultRow, SearchBox } from '@/components/books/BookNewParts';
+import { BTN_INK } from '@/components/books/buttonStyles';
 
 /** 카카오 응답의 datetime('2021-08-02T00:00:00.000+09:00')에서 연도만 */
 function publishedYear(datetime: string | undefined): string | null {
@@ -21,6 +17,7 @@ function publishedYear(datetime: string | undefined): string | null {
   return y && /^\d{4}$/.test(y) ? y : null;
 }
 
+/** 찾아서 꽂기 — 시안 book-new.html. 결과 한 권을 고르면 고른 책 간지에 쪽수를 확인하고 꽂는다 */
 export default function KakaoBookSearchForm({
   onBusyChange,
 }: {
@@ -29,11 +26,12 @@ export default function KakaoBookSearchForm({
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<BookSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
-  const [showModal, setShowModal] = useState(false);
   const [selectedBook, setSelectedBook] = useState<BookSearchResult | null>(null);
-  const [totalPages, setTotalPages] = useState<number | null>(null);
-  const [manualTotalPages, setManualTotalPages] = useState('');
+  const [pages, setPages] = useState('');
+  const [pagesFound, setPagesFound] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [searchError, setSearchError] = useState(false);
+  const chosenRef = useRef<HTMLElement>(null);
 
   const selectLock = useActionLock();
   const registerLock = useActionLock();
@@ -48,11 +46,9 @@ export default function KakaoBookSearchForm({
   if (lastAccount !== creation.accountId) {
     setLastAccount(creation.accountId);
     setSelectedBook(null);
-    setTotalPages(null);
-    setManualTotalPages('');
+    setPages('');
     setQuery('');
     setResults([]);
-    setShowModal(false);
   }
   const [restoredId, setRestoredId] = useState<string | null>(null);
   if (creation.snapshot && creation.snapshot.id !== restoredId) {
@@ -64,76 +60,69 @@ export default function KakaoBookSearchForm({
       isbn: p.isbn,
       thumbnail: p.cover_url,
     } as BookSearchResult);
-    setTotalPages(p.total_pages);
-    setShowModal(true);
+    setPages(p.total_pages?.toString() ?? '');
   }
   const router = useRouter();
 
-  const handleSearch = async (e?: React.FormEvent) => {
-    e?.preventDefault();
+  const handleSearch = async () => {
     if (query.trim() === '' || loading) return;
     setLoading(true);
     setHasSearched(true);
+    setSearchError(false);
     try {
       const data = await searchBook(query);
       setResults(data);
     } catch (e) {
-      toast.error('검색 실패');
+      setSearchError(true);
       console.error(e);
     } finally {
       setLoading(false);
     }
   };
 
+  const reveal = () =>
+    requestAnimationFrame(() => {
+      chosenRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      chosenRef.current?.focus({ preventScroll: true });
+    });
+
   const handleSelect = async (book: BookSearchResult) => {
     if (creation.snapshot || !selectLock.acquire()) return;
     onBusyChange?.(true);
     setSelectedBook(book);
+    setPages('');
+    setPagesFound(false);
     try {
       const res = await apiFetch('/api/books/pages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: book.url }),
       });
-
       const { totalPages } = await res.json();
-
       if (totalPages) {
-        setTotalPages(totalPages);
-      } else {
-        setTotalPages(null);
+        setPages(String(totalPages));
+        setPagesFound(true);
       }
-      setShowModal(true);
     } catch (e) {
-      // 페이지 수 조회가 아예 실패해도 등록은 가능해야 한다 — 모달을 열고 수동 입력으로 넘긴다
+      // 페이지 수 조회가 아예 실패해도 등록은 가능해야 한다 — 쪽수는 비워 두고 고칠 수 있게
       console.error(e);
-      setTotalPages(null);
-      setShowModal(true);
     } finally {
       selectLock.release();
       onBusyChange?.(false);
+      reveal();
     }
-  };
-
-  const closeModal = () => {
-    if (registerLock.isLocked() || selectLock.isLocked()) return;
-    setShowModal(false);
-    if (creation.snapshot) return;
-    setSelectedBook(null);
-    setTotalPages(null);
-    setManualTotalPages('');
   };
 
   const handleConfirm = async () => {
     if (!selectedBook || !creation.ready || registerLock.isLocked()) return;
-    let pages: number | null = totalPages;
-    if (pages == null && manualTotalPages.trim() !== '') {
-      const parsed = parseInt(manualTotalPages, 10);
+    let total: number | null = null;
+    if (pages.trim() !== '') {
+      const parsed = parseInt(pages, 10);
       if (isNaN(parsed) || parsed <= 0) {
-        toast.error('페이지 수는 1 이상의 숫자여야 합니다');
+        toast.error('쪽수는 1 이상의 숫자로 적어 주세요.');
         return;
       }
-      pages = parsed;
+      total = parsed;
     }
 
     if (!registerLock.acquire()) return;
@@ -145,11 +134,11 @@ export default function KakaoBookSearchForm({
         author: selectedBook.authors?.join(', ') ?? '',
         isbn: selectedBook.isbn,
         cover_url: selectedBook.thumbnail,
-        total_pages: pages,
+        total_pages: total,
       });
       if (!result) return;
       navigating = true;
-      toast.success('책이 등록되었습니다');
+      toast.success('책장에 꽂았어요.');
       registerLock.navigate('/books');
       router.push('/books');
       router.refresh();
@@ -158,7 +147,7 @@ export default function KakaoBookSearchForm({
         navigating = true;
         return;
       }
-      toast.error(error instanceof Error ? error.message : '등록 결과를 확인하지 못했어요.');
+      toast.error(error instanceof Error ? error.message : '꽂았는지 확인하지 못했어요.');
     } finally {
       if (!navigating) {
         registerLock.release();
@@ -167,151 +156,93 @@ export default function KakaoBookSearchForm({
     }
   };
 
+  const frozen = !!creation.snapshot;
+
   return (
-    <div>
-      {creation.error && (
-        <p role="alert" className="text-caption text-danger">
-          {creation.error}
-        </p>
-      )}
-      {creation.snapshot && !showModal && (
-        <Button onClick={() => setShowModal(true)}>저장 확인·재시도</Button>
-      )}
-      {/* 검색 — 박스 대신 괘선 한 줄, 서체는 부리 */}
-      <form
-        onSubmit={handleSearch}
-        className="flex items-center gap-3 border-b border-hairline-strong"
-      >
-        <input
+    <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start lg:gap-14">
+      <section aria-label="책 찾기">
+        {creation.error && (
+          <p role="alert" className="mt-4 font-sans text-caption text-danger">
+            {creation.error}
+          </p>
+        )}
+        <SearchBox
           value={query}
-          onChange={(e) => {
-            setQuery(e.target.value);
+          onChange={(v) => {
+            setQuery(v);
             setHasSearched(false);
           }}
-          placeholder="책 제목이나 ISBN"
-          aria-label="책 검색"
-          className="min-w-0 flex-1 bg-transparent py-2.5 font-serif text-input text-ink placeholder:text-ink-faint focus:outline-none"
+          onSubmit={handleSearch}
+          loading={loading}
         />
-        <button
-          type="submit"
-          disabled={loading}
-          aria-label="검색"
-          className="shrink-0 p-1 text-ink-sub transition-colors hover:text-ink disabled:text-ink-faint"
-        >
-          <Search size={18} strokeWidth={1.75} />
-        </button>
-      </form>
+        <div className="mt-3.5" aria-live="polite" aria-busy={loading}>
+          {searchError ? (
+            <p className="py-8 font-serif text-note text-ink-sub">
+              찾지 못했어요. 잠시 뒤에 다시 찾아 주세요.
+            </p>
+          ) : (
+            results.length === 0 &&
+            !loading &&
+            hasSearched && (
+              <p className="py-8 font-serif text-note text-ink-sub">
+                맞는 책이 없어요. 다른 낱말로 찾거나 직접 적어 꽂을 수 있어요.
+              </p>
+            )
+          )}
+          {results.map((book) => (
+            <ResultRow
+              key={book.isbn || book.url}
+              book={{
+                key: book.isbn,
+                title: book.title,
+                authors: book.authors?.join(', ') ?? '',
+                meta: [book.publisher, publishedYear(book.datetime)].filter(Boolean).join(' · '),
+                coverUrl: book.thumbnail || null,
+              }}
+              pressed={selectedBook?.isbn === book.isbn}
+              disabled={selectLock.busy || registerLock.busy || !creation.ready || frozen}
+              onClick={() => handleSelect(book)}
+            />
+          ))}
+        </div>
+      </section>
 
-      {results.length === 0 && !loading && query !== '' && hasSearched && (
-        <p className="py-10 text-center font-serif text-caption text-ink-faint">
-          검색 결과가 없습니다.
-        </p>
-      )}
-
-      {/* 결과 — 조용한 리스트. 한 권을 고르면 나머지는 뒤로 물러난다 */}
-      <ul className="mt-2 divide-y divide-hairline">
-        {results.map((book) => {
-          const isDimmed = selectedBook != null && selectedBook.isbn !== book.isbn;
-          const meta = [book.authors?.join(', '), book.publisher, publishedYear(book.datetime)]
-            .filter(Boolean)
-            .join(' · ');
-
-          return (
-            <li key={book.isbn}>
+      {selectedBook && (
+        <ChosenBook
+          ref={chosenRef}
+          title={selectedBook.title}
+          author={selectedBook.authors?.join(', ') ?? ''}
+          coverUrl={selectedBook.thumbnail || null}
+          footer={
+            <>
               <button
                 type="button"
-                onClick={() => handleSelect(book)}
-                disabled={
-                  isDimmed ||
-                  selectLock.busy ||
-                  registerLock.busy ||
-                  !creation.ready ||
-                  !!creation.snapshot
-                }
-                className={`group flex w-full items-center gap-4 py-3.5 text-left transition-opacity ${
-                  isDimmed ? 'opacity-40' : ''
-                }`}
+                onClick={handleConfirm}
+                disabled={!creation.ready || registerLock.busy || selectLock.busy}
+                className={`${BTN_INK} w-full`}
               >
-                <Image
-                  src={book.thumbnail || '/images/default-book-cover.png'}
-                  alt=""
-                  width={40}
-                  height={56}
-                  className="h-14 w-10 shrink-0 rounded-sm border border-hairline object-cover"
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-serif text-body leading-snug text-ink group-hover:underline group-hover:decoration-hairline-strong group-hover:underline-offset-4">
-                    {book.title}
-                  </p>
-                  <p className="mt-0.5 truncate text-caption text-ink-faint">{meta}</p>
-                </div>
+                {registerLock.busy ? '꽂는 중…' : frozen ? '저장 확인·재시도' : '책장에 꽂기'}
               </button>
-            </li>
-          );
-        })}
-      </ul>
-
-      <Modal isOpen={showModal} onClose={closeModal}>
-        <div className="flex items-start gap-5">
-          <Image
-            src={selectedBook?.thumbnail || '/images/default-book-cover.png'}
-            alt=""
-            width={64}
-            height={96}
-            className="h-24 w-16 shrink-0 rounded-sm border border-hairline object-cover"
+              <ActionNavigation href={registerLock.destination} />
+            </>
+          }
+        >
+          <LineField
+            className="!mt-3"
+            label="전체 쪽수"
+            inputMode="numeric"
+            value={pages}
+            placeholder={selectLock.busy ? '찾는 중…' : '모르면 비워 두세요'}
+            onChange={(e) => setPages(e.target.value.replace(/[^0-9]/g, ''))}
+            disabled={registerLock.busy || frozen || selectLock.busy}
+            hint={
+              pagesFound
+                ? '책 정보에서 가져왔어요. 고쳐도 돼요.'
+                : '몰라도 꽂을 수 있어요. 전자책·오디오북도 기록할 수 있어요.'
+            }
           />
-          <div className="min-w-0 flex-1 pt-0.5">
-            <p className="font-serif text-body font-bold leading-snug text-ink">
-              {selectedBook?.title}
-            </p>
-            <p className="mt-1 font-serif text-body text-ink-sub">
-              {selectedBook?.authors?.join(', ')}
-            </p>
-            {totalPages ? (
-              <p className="mt-4 text-caption tabular-nums text-ink-faint">총 {totalPages}쪽</p>
-            ) : (
-              <div className="mt-4">
-                <label className="flex items-center gap-1 text-caption tabular-nums text-ink-sub">
-                  <span className="text-ink-faint">총</span>
-                  <input
-                    type="number"
-                    inputMode="numeric"
-                    min={1}
-                    value={manualTotalPages}
-                    onChange={(e) => setManualTotalPages(e.target.value)}
-                    placeholder="?"
-                    aria-label="총 쪽수"
-                    disabled={registerLock.busy || !!creation.snapshot}
-                    className="w-14 border-b border-hairline-strong bg-transparent text-center text-ink placeholder:text-ink-faint focus:border-ink focus:outline-none"
-                  />
-                  <span className="text-ink-faint">쪽</span>
-                </label>
-                <p className="mt-1.5 text-caption text-ink-faint">
-                  쪽수를 찾지 못했어요. 몰라도 꽂을 수 있습니다.
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-        <div className="mt-6 flex items-center justify-end gap-2">
-          <Button variant="ghost" size="sm" onClick={closeModal} disabled={registerLock.busy}>
-            돌아가기
-          </Button>
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={handleConfirm}
-            disabled={!creation.ready || registerLock.busy}
-          >
-            {registerLock.busy
-              ? '꽂는 중...'
-              : creation.snapshot
-                ? '저장 확인·재시도'
-                : '책장에 꽂기'}
-          </Button>
-        </div>
-        <ActionNavigation href={registerLock.destination} />
-      </Modal>
+        </ChosenBook>
+      )}
     </div>
   );
 }

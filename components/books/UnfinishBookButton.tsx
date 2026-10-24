@@ -4,23 +4,25 @@ import { useActionLock } from '@/hooks/useActionLock';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createSupabaseClient } from '@/lib/supabase/client';
-import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
+import Sheet from '@/components/ui/Sheet';
+import { BTN_INK, BTN_LINE } from './buttonStyles';
 
 interface UnfinishBookButtonProps {
   action?: ReturnType<typeof useActionLock>;
   userBookId: string;
   onUnfinish: () => void;
+  className?: string;
 }
 
+/** 완독 취소 — 다시 읽는 중으로. 기록과 문장은 그대로 남는다 */
 export default function UnfinishBookButton({
   userBookId,
   onUnfinish,
   action: sharedAction,
+  className,
 }: UnfinishBookButtonProps) {
   const router = useRouter();
-  const supabase = createSupabaseClient();
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const localAction = useActionLock();
   const action = sharedAction ?? localAction;
   const isSubmitting = action.busy;
@@ -30,6 +32,7 @@ export default function UnfinishBookButton({
     if (!action.acquire()) return;
     try {
       setError(null);
+      const supabase = createSupabaseClient();
       const { data, error: updateError } = await supabase
         .from('user_books')
         .update({ is_finished: false, finished_at: null })
@@ -37,8 +40,7 @@ export default function UnfinishBookButton({
         .select('id');
 
       if (!updateError && data && data.length > 0) {
-        setIsDialogOpen(false);
-
+        setIsOpen(false);
         onUnfinish();
         router.refresh();
       } else {
@@ -53,46 +55,52 @@ export default function UnfinishBookButton({
 
   return (
     <>
-      <Button
-        size="sm"
-        variant="ghost"
+      <button
+        type="button"
         disabled={isSubmitting}
         onClick={() => {
           setError(null);
-          setIsDialogOpen(true);
+          setIsOpen(true);
         }}
+        className={className ?? BTN_LINE}
       >
         완독 취소
-      </Button>
-      <Modal
-        ariaLabel="완독을 취소할까요?"
-        isOpen={isDialogOpen}
+      </button>
+      <Sheet
+        open={isOpen}
         onClose={() => {
-          if (!action.isLocked()) setIsDialogOpen(false);
+          if (!action.isLocked()) setIsOpen(false);
         }}
+        title="다시 읽는 중으로 돌릴까요?"
       >
-        <div className="space-y-4">
-          <h2 className="text-section-title font-bold text-ink">완독을 취소할까요?</h2>
-          <p className="text-caption text-ink-sub">
-            이 책은 다시 읽는 중으로 돌아가고, 발췌집은 다음 완독까지 잠겨요. 기록과 문장은 그대로
-            남습니다.
+        <p className="font-serif text-[18px] leading-[1.7] text-ink-sub">
+          이 책은 다시 읽는 중으로 돌아가고, 발췌집은 다음에 다 읽을 때까지 닫혀요. 남긴 기록과
+          문장은 그대로 남아요.
+        </p>
+        {error && (
+          <p role="alert" className="mt-3 font-sans text-caption text-danger">
+            {error}
           </p>
-          {error && <p className="text-caption text-danger">{error}</p>}
-          <div className="flex justify-end gap-2 pt-2">
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={() => setIsDialogOpen(false)}
-              disabled={isSubmitting}
-            >
-              돌아가기
-            </Button>
-            <Button size="sm" variant="primary" onClick={handleUnfinish} disabled={isSubmitting}>
-              {isSubmitting ? '취소하는 중...' : '완독 취소'}
-            </Button>
-          </div>
+        )}
+        <div className="mt-5 flex gap-2" aria-busy={isSubmitting}>
+          <button
+            type="button"
+            onClick={() => setIsOpen(false)}
+            disabled={isSubmitting}
+            className={`${BTN_LINE} flex-1`}
+          >
+            그대로 두기
+          </button>
+          <button
+            type="button"
+            onClick={handleUnfinish}
+            disabled={isSubmitting}
+            className={`${BTN_INK} flex-1`}
+          >
+            {isSubmitting ? '돌리는 중…' : '완독 취소'}
+          </button>
         </div>
-      </Modal>
+      </Sheet>
     </>
   );
 }
