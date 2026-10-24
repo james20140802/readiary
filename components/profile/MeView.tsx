@@ -463,7 +463,7 @@ export default function MeView(props: MeViewProps) {
           {pickCover && <div className="mt-1 text-center">{pickCover}</div>}
         </Leaf>
 
-        <Leaf title="나를 만든 책" vellum>
+        <Leaf title="나를 만든 책" vellum free>
           <h2 className={H2}>나를 만든 책</h2>
           <MadeBooks books={finishedBooks} />
           {stats && (
@@ -484,7 +484,7 @@ export default function MeView(props: MeViewProps) {
           <Shelf books={shelfBooks} total={shelfTotal} />
         </Leaf>
 
-        <Leaf title="일기장" vellum>
+        <Leaf title="일기장" vellum free>
           <h2 className={H2}>{diaryTitle}</h2>
           <p className={clsx(CAP, 'mt-1.5')}>{diaryCap}</p>
           <Volumes diary={diary} name={name} mobile />
