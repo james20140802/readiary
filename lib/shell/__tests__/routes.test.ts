@@ -58,6 +58,15 @@ describe('견본 장 넘김', () => {
   it('견본 장 넘김 화면은 leaves', () => expect(frameFor('/design-lab/leaves')).toBe('leaves'));
 });
 
+describe('나 화면', () => {
+  it('나는 장 넘김(leaves), 설정은 도구 화면(plain)', () => {
+    expect(frameFor('/profile')).toBe('leaves');
+    expect(frameFor('/settings')).toBe('plain');
+    expect(frameFor('/design-lab/me/profile')).toBe('leaves');
+    expect(frameFor('/design-lab/me/settings')).toBe('plain');
+  });
+});
+
 describe('오늘', () => {
   it('오늘 견본도 간지 틀(여백선·장 넘김), 비슷한 접두사는 아니다', () => {
     expect(frameFor('/design-lab/today')).toBe('leaves');

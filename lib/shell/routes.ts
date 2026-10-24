@@ -19,6 +19,8 @@ const BARE_PREFIXES = [
 /** 간지(여백선) 틀을 쓰는 화면 — 화면별 PR이 하나씩 추가한다 */
 export const LEAVES_ROUTES: readonly string[] = [
   '/design-lab/leaves',
+  '/profile',
+  '/design-lab/me/profile',
   '/today',
   '/design-lab/today',
 ];

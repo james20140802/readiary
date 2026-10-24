@@ -1,0 +1,222 @@
+/*
+ * '나' 화면의 책 물건 — 문장 표지, 나를 만든 책의 선반, 해마다 쌓이는 일기장.
+ * 색은 시안(me.html)의 책 표지 값이다. 종이·먹 토큰이 아니라 "책 물건의 표지색"이라 토큰을 새로 만들지 않고
+ * 이 파일에만 둔다(설계 2.1이 허용하는 시안 전용 CSS 값). 깊이도 시안 그대로 이 물건들에만 준다 — 일반 카드에 넓히지 않는다.
+ */
+
+/* ── 문장 표지 ── */
+.cover {
+  position: relative;
+  width: min(230px, 60vw);
+  aspect-ratio: 7 / 10;
+  background: #26395e;
+  color: #f3eee4;
+  border-radius: 2px 6px 6px 2px;
+  padding: 22px 22px 18px 28px;
+  display: flex;
+  flex-direction: column;
+  box-shadow:
+    inset 8px 0 10px -6px rgb(0 0 0 / 0.35),
+    0 28px 44px -20px rgb(20 20 40 / 0.55);
+}
+.coverBy {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  opacity: 0.8;
+}
+.coverTitle {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+  margin-top: auto;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 6;
+  overflow: hidden;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+.coverTitleEmpty {
+  opacity: 0.72;
+}
+.coverFoot {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 22px;
+  font:
+    500 12px ui-monospace,
+    'SF Mono',
+    Menlo,
+    monospace;
+  opacity: 0.7;
+}
+@media (min-width: 1024px) {
+  .cover {
+    width: 340px;
+    padding: 32px 30px 26px 40px;
+  }
+  .coverTitle {
+    font-size: 30px;
+  }
+}
+
+/* ── 나를 만든 책: 선반 위에 선 표지 ── */
+.made {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+  padding: 0 4px;
+  border-bottom: 6px solid #cdbfa6;
+  height: 200px;
+  margin-top: 20px;
+}
+.madeBook {
+  position: relative;
+  display: block;
+  flex: none;
+  width: 92px;
+  aspect-ratio: 2 / 3;
+  border-radius: 2px 4px 4px 2px;
+  overflow: hidden;
+  box-shadow: 0 18px 28px -14px rgb(30 20 10 / 0.55);
+}
+.madeBook:first-child {
+  width: 120px;
+}
+/* 표지가 없는 책은 표지색을 흉내 낸 면에 제목만 */
+.madeBlank {
+  background: #2f3e5c;
+  color: #e9e3d6;
+  padding: 12px 10px;
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.4;
+  word-break: keep-all;
+}
+.why {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  .made {
+    border-bottom-color: #3c352c;
+  }
+}
+@media (min-width: 1024px) {
+  .made {
+    height: 340px;
+    gap: 30px;
+  }
+  .madeBook {
+    width: 180px;
+  }
+  .madeBook:first-child {
+    width: 220px;
+  }
+  .madeBlank {
+    font-size: 18px;
+    padding: 18px 16px;
+  }
+}
+
+/* ── 해마다 한 권씩 쌓인 일기장 ── */
+.vols {
+  position: relative;
+  height: 330px;
+  margin-top: 10px;
+}
+.vol {
+  position: absolute;
+  width: 210px;
+  height: 290px;
+  border-radius: 3px 8px 8px 3px;
+  box-shadow:
+    inset 9px 0 0 -2px rgb(0 0 0 / 0.18),
+    0 24px 40px -22px rgb(20 15 10 / 0.6);
+}
+.lab {
+  position: absolute;
+  left: 30px;
+  right: 22px;
+  top: 54px;
+  background: #f7f3ea;
+  color: #2a2620;
+  border-radius: 2px;
+  padding: 12px 14px 10px;
+  background-image: repeating-linear-gradient(to bottom, transparent 0 23px, #e3dacb 23px 24px);
+  background-position: 0 30px;
+}
+.labTitle {
+  display: block;
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 19px;
+}
+.labBy {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 13px;
+  color: #6b645a;
+}
+.v1 {
+  left: calc(50% - 75px);
+  top: 34px;
+  background: #3e5446;
+  z-index: 3;
+}
+.v2 {
+  left: calc(50% - 125px);
+  top: 18px;
+  background: #8a4b33;
+  z-index: 2;
+  transform: rotate(-4deg);
+}
+.v3 {
+  left: calc(50% - 150px);
+  top: 6px;
+  background: #2f3e5c;
+  z-index: 1;
+  transform: rotate(-8deg);
+}
+/* 모바일 장 안에서는 시안처럼 80%로 줄여 차례가 한 화면에 들어오게 */
+.volsMobile {
+  transform: scale(0.8);
+  transform-origin: 50% 0;
+  margin-bottom: -60px;
+}
+@media (min-width: 1024px) {
+  .vols {
+    height: 470px;
+  }
+  .vol {
+    width: 300px;
+    height: 420px;
+  }
+  .lab {
+    top: 80px;
+    left: 40px;
+    padding: 18px 18px 14px;
+  }
+  .labTitle {
+    font-size: 24px;
+  }
+  .v1 {
+    left: 120px;
+    top: 60px;
+  }
+  .v2 {
+    left: 60px;
+    top: 40px;
+  }
+  .v3 {
+    left: 10px;
+    top: 24px;
+  }
+}

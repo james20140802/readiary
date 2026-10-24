@@ -112,9 +112,9 @@ export default function EmailSettings() {
   }
   return (
     <section aria-labelledby="email-settings-heading" className="space-y-3">
-      <h2 id="email-settings-heading" className="text-section-title">
+      <h3 id="email-settings-heading" className="font-sans text-[17px] font-semibold text-ink">
         이메일 소식
-      </h2>
+      </h3>
       {busy && (
         <p role="status" className="text-caption text-ink-sub">
           이메일 설정을 확인하고 있습니다.
@@ -146,6 +146,8 @@ export default function EmailSettings() {
             </p>
           )}
           <Button
+            size="sm"
+            variant="secondary"
             onClick={save}
             loading={busy}
             disabled={
