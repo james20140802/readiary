@@ -498,3 +498,14 @@
     transform: rotate(-1deg);
   }
 }
+
+/* 책장(데스크톱): 고른 책 아래로 옮겨 가는 간지 */
+.pulled {
+  width: min(560px, 100%);
+  transition: margin-left 360ms var(--ease-out);
+}
+@media (prefers-reduced-motion: reduce) {
+  .pulled {
+    transition: none;
+  }
+}

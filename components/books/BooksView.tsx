@@ -233,6 +233,15 @@ function DesktopReading({
   const [pickedId, setPickedId] = useState<string | null>(reading[0]?.id ?? null);
   const picked = reading.find((b) => b.id === pickedId) ?? reading[0];
   const stat = picked ? stats?.[picked.id] : undefined;
+  const shown = reading.slice(0, 6);
+  const pickedIndex = picked
+    ? Math.max(
+        0,
+        shown.findIndex((b) => b.id === picked.id)
+      )
+    : 0;
+  // 고른 책의 칸 가운데 아래로 간지가 옮겨 간다 — 양 끝에서는 선반 폭 안에 머문다
+  const center = (pickedIndex + 0.5) / Math.max(1, shown.length);
   return (
     <>
       <h1 className="font-sans text-page-title-lg text-ink">책장</h1>
@@ -257,7 +266,7 @@ function DesktopReading({
             role="group"
             aria-label="읽는 중인 책"
           >
-            {reading.slice(0, 6).map((b) => (
+            {shown.map((b) => (
               <button
                 key={b.id}
                 type="button"
@@ -276,7 +285,12 @@ function DesktopReading({
               </button>
             ))}
           </div>
-          <div className="mt-[clamp(20px,4vh,40px)] max-w-[560px]">
+          <div
+            className={clsx('mt-[clamp(20px,4vh,40px)]', styles.pulled)}
+            style={{
+              marginLeft: `clamp(0px, calc(${center} * 100% - min(280px, 50%)), calc(100% - min(560px, 100%)))`,
+            }}
+          >
             <div className="vellum -rotate-[0.5deg] rounded-[3px] px-[30px] py-[26px]">
               <div className="font-serif text-[30px] font-bold leading-[1.3] tracking-[-0.01em] text-ink">
                 {titleOf(picked)}
