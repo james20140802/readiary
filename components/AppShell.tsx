@@ -13,7 +13,6 @@ import { TopBarProvider } from '@/components/shell/TopBarContext';
 import { TopBar } from '@/components/shell/TopBar';
 import { TabBar } from '@/components/shell/TabBar';
 import { Sidebar } from '@/components/shell/Sidebar';
-import { GuestBar } from '@/components/shell/GuestBar';
 import { frameFor, ruledFor, showsNav, type Frame } from '@/lib/shell/routes';
 
 interface AppShellProps {
@@ -84,7 +83,6 @@ export default function AppShell({ initialLoggedIn, initialUnread, children }: A
         <TopBar hasUnread={hasUnread} />
       )}
       {nav && <Sidebar hasUnread={hasUnread} prefetch={dataNav} />}
-      {frame === 'landing' && <GuestBar />}
       {/* w-full을 주지 않는다 — 블록은 사이드바 여백(ml)을 뺀 폭을 스스로 채운다. w-full이면 폭 100%에 여백이 더해져 오른쪽이 화면 밖으로 밀린다 */}
       <main className={clsx('relative', mainClass(frame, nav))}>
         {frame === 'plain' || frame === 'feed' ? (
