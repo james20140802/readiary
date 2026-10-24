@@ -37,7 +37,16 @@ function createRegistry(): LeavesRegistry {
  * 모바일 장 묶음. 각 Leaf를 관찰해 60% 이상 보이는 장 중 DOM 순서로 가장 뒤의 장(없으면 첫 장)을
  * 현재 장으로 보고 상단 바 제목·재질(scrolled)에 알린다. sticky로 덮인 장도 보이는 것으로 잡힌다.
  */
-export function Leaves({ children }: { children: React.ReactNode }) {
+export function Leaves({
+  children,
+  desktop = false,
+  className = '',
+}: {
+  children: React.ReactNode;
+  /** 같은 입력 DOM을 데스크톱에서도 유지하는 반응형 장 묶음 */
+  desktop?: boolean;
+  className?: string;
+}) {
   useStableViewportHeight();
   const { setLeafTitle, setScrolled, claimScroll } = useTopBarState();
   const [registry] = useState(createRegistry);
@@ -73,7 +82,7 @@ export function Leaves({ children }: { children: React.ReactNode }) {
 
   return (
     <LeavesContext.Provider value={registry}>
-      <div className="leaves lg:hidden">{children}</div>
+      <div className={`leaves ${desktop ? '' : 'lg:hidden'} ${className}`}>{children}</div>
     </LeavesContext.Provider>
   );
 }
