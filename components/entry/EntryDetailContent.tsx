@@ -5,20 +5,20 @@ import ReflectionThread from '@/components/reflections/ReflectionThread';
 import EntryDeleteWarning from '@/components/reflections/EntryDeleteWarning';
 import { useActionLock } from '@/hooks/useActionLock';
 import { apiFetch } from '@/lib/api/fetch';
-import { Fragment, useRef, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 import Link from 'next/link';
-import { Lock } from 'lucide-react';
+import { Pencil, Share, Trash2 } from 'lucide-react';
 import Modal from '@/components/ui/Modal';
+import Sheet from '@/components/ui/Sheet';
 import { Entry } from '@/types/entry';
 import { Book } from '@/types/book';
 import { Profile } from '@/types/profile';
-import { formatKoreanDate } from '@/lib/dates';
 import SocialActionBar from '../social/SocialActionBar';
-import ShareEntryButton from '@/components/entries/ShareEntryButton';
+import ShareEntrySheet from '@/components/entries/ShareEntrySheet';
 import Button from '../ui/Button';
 import CommentSection from '../comments/CommentSection';
+import EntryLayer from './EntryLayer';
 
 interface Props {
   entry: Entry;
@@ -32,13 +32,10 @@ interface Props {
   openComposer?: boolean;
 }
 
-function formatPages(fromPage?: number | null, toPage?: number | null) {
-  if (fromPage != null && toPage != null && fromPage !== toPage) return `p.${fromPage}–${toPage}`;
-  const page = fromPage ?? toPage;
-  return page != null ? `p.${page}` : null;
-}
+const MENU_ROW =
+  'flex min-h-[54px] w-full items-center gap-3 border-t border-hairline text-left font-sans text-[17px] font-medium text-ink first:border-t-0';
 
-/** 기록 상세 — 카드 박스 없이 원고 흐름 문법으로, 문장이 지면의 주인공이 된다 */
+/** 기록 한 장(시안 entry-layer.html) — 데이터와 동작을 맡고, 모양은 EntryLayer가 그린다 */
 export default function EntryDetailContent({
   entry,
   book,
@@ -52,18 +49,18 @@ export default function EntryDetailContent({
 }: Props) {
   const enabled = useReflectionFeature();
   const router = useRouter();
-  const [thoughtCount, setThoughtCount] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const deletion = useActionLock();
   const isDeleting = deletion.busy;
   const [deleteReady, setDeleteReady] = useState<number | null>(null);
   const [deleteCheck, setDeleteCheck] = useState(0);
   const [deleteError, setDeleteError] = useState('');
-  const commentRef = useRef<HTMLDivElement>(null);
   const [commentCount, setCommentCount] = useState(initialCommentCount);
 
   const scrollToComments = () => {
-    commentRef.current?.scrollIntoView({ behavior: 'smooth' });
+    document.getElementById('entry-comments')?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const handleDelete = async () => {
@@ -79,9 +76,9 @@ export default function EntryDetailContent({
       if (res.status === 409) {
         setDeleteReady(null);
         setDeleteCheck((v) => v + 1);
-        throw new Error('함께 삭제할 생각 수가 변경됐어요. 다시 확인해 주세요.');
+        throw new Error('함께 지울 생각 수가 바뀌었어요. 다시 확인해 주세요.');
       }
-      if (!res.ok) throw new Error('삭제 실패');
+      if (!res.ok) throw new Error('지우지 못했어요. 다시 시도해 주세요.');
       router.push(`/books/${book.id}`);
     } catch (error) {
       setDeleteError((error as Error).message);
@@ -94,179 +91,139 @@ export default function EntryDetailContent({
       ? `/social/u/${friendProfile.nickname + '-' + friendProfile.tag}/books/${book.id}`
       : `/books/${book.id}`;
 
-  const pages = formatPages(entry.from_page, entry.to_page);
+  const canShare = !isFriend && !entry.is_private;
 
   return (
-    <Fragment>
-      <section className="space-y-8">
-        {/* 출처 — 이 문장이 어느 책에서 왔는지 */}
-        <Link href={bookUrl} className="group flex items-center gap-4">
-          <Image
-            src={book.cover_url ?? '/images/default-book-cover.png'}
-            alt={`『${book.title ?? '제목 없음'}』 표지`}
-            width={48}
-            height={72}
-            className="rounded border border-hairline object-cover"
-          />
-          <div>
-            <h2 className="font-serif text-section-title leading-tight text-ink transition-colors group-hover:text-accent">
-              {book.title ?? '제목 없음'}
-            </h2>
-            <p className="mt-1 text-caption text-ink-sub">{book.author ?? '저자 미상'}</p>
-          </div>
-        </Link>
-
-        <section className="space-y-8">
-          <article>
-            <p className="mb-5 text-caption tabular-nums text-ink-sub">
-              <time dateTime={entry.date}>{formatKoreanDate(entry.date) ?? entry.date}</time>
-              {pages && ` · ${pages}`}
-              {entry.is_private && (
-                <span className="ml-3 inline-flex items-center gap-1">
-                  <Lock size={10} aria-hidden />
-                  비공개
-                </span>
-              )}
-            </p>
-            {/* 북라이트 — 왼쪽 위 어딘가에 달린 등이 원고 첫머리를 비스듬히 비춘다.
-                다크모드에서 특히 살아난다. 램프 자체는 그리지 않는다 — 빛만이 정직한 입체다 */}
-            <div className="relative">
-              <div
-                aria-hidden
-                className="pointer-events-none absolute left-[32%] top-[-4rem] h-72 w-[34rem] max-w-[130%] -translate-x-1/2 bg-[radial-gradient(ellipse_at_center,rgba(255,196,110,0.14),transparent_68%)]"
+    <>
+      <EntryLayer
+        entry={entry}
+        book={book}
+        bookUrl={bookUrl}
+        isFriend={isFriend}
+        back={isFriend ? { href: bookUrl, label: '책' } : { href: '/today', label: '오늘' }}
+        onShare={canShare ? () => setShareOpen(true) : undefined}
+        onMore={isFriend ? undefined : () => setMenuOpen(true)}
+        reflections={
+          enabled ? (
+            <ReflectionThread
+              openComposer={openComposer && !isFriend}
+              entryId={entry.id}
+              entryDate={entry.date}
+              quote={entry.quote}
+            />
+          ) : undefined
+        }
+        reactions={
+          <>
+            <div className="flex min-h-10 items-center">
+              <SocialActionBar
+                entryId={entry.id}
+                initialLikeCount={initialLikeCount}
+                initialLiked={initialLiked}
+                commentCount={commentCount}
+                onCommentClick={scrollToComments}
+                border={false}
               />
-              <div className="relative">
-                {entry.quote && (
-                  <div>
-                    <span
-                      aria-hidden
-                      className="block font-serif text-quote-mark leading-none text-accent"
-                    >
-                      &ldquo;
-                    </span>
-                    <blockquote className="mt-1 whitespace-pre-wrap font-serif text-quote leading-[1.9] text-ink">
-                      {entry.quote}
-                    </blockquote>
-                  </div>
-                )}
-                {enabled && entry.note && thoughtCount > 0 && (
-                  <h3 className="mt-6 text-caption text-ink-sub">남긴 생각</h3>
-                )}
-                {entry.note && (
-                  <p
-                    className={`whitespace-pre-wrap font-serif leading-[1.9] ${
-                      entry.quote ? 'mt-6 text-body text-ink-sub' : 'text-body text-ink'
-                    }`}
-                  >
-                    {entry.note}
-                  </p>
-                )}
-              </div>
             </div>
+            <div id="entry-comments" className="scroll-mt-24">
+              <CommentSection
+                entryId={entry.id}
+                currentUserId={currentUserId}
+                onCountChange={setCommentCount}
+              />
+            </div>
+          </>
+        }
+      />
 
-            {/* 원문에 속한 반응과 관리 행동을 원문 바로 아래에 모은다 */}
-            <footer className="mt-6 border-t border-hairline pt-3">
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-                <SocialActionBar
-                  entryId={entry.id}
-                  initialLikeCount={initialLikeCount}
-                  initialLiked={initialLiked}
-                  commentCount={commentCount}
-                  onCommentClick={scrollToComments}
-                  border={false}
-                />
-                {!isFriend && (
-                  <ShareEntryButton
-                    entryId={entry.id}
-                    quote={entry.quote}
-                    note={entry.note}
-                    date={entry.date}
-                    isPrivate={entry.is_private}
-                    bookTitle={book.title}
-                    bookAuthor={book.author}
-                  />
-                )}
-                {!isFriend && (
-                  <>
-                    <span aria-hidden className="h-4 w-px bg-hairline" />
-                    <Link
-                      href={`/entry/${entry.id}/edit`}
-                      className="text-button-sm text-ink-faint transition-colors hover:text-accent"
-                    >
-                      원문 수정
-                    </Link>
-                    <button
-                      onClick={() => setIsDeleteDialogOpen(true)}
-                      className="text-button-sm text-ink-faint transition-colors hover:text-danger"
-                    >
-                      삭제
-                    </button>
-                  </>
-                )}
-              </div>
-            </footer>
-            {!isFriend && !entry.is_private && (
-              <p className="mt-3 text-caption text-ink-faint">
-                공유하면 기록과 닉네임이 링크를 아는 누구에게나 공개됩니다. 비공개로 바꾸면 링크가
-                닫힙니다.
+      {!isFriend && (
+        <>
+          <Sheet open={menuOpen} onClose={() => setMenuOpen(false)} ariaLabel="기록 메뉴">
+            <div className="-mt-3">
+              {canShare && (
+                <button
+                  type="button"
+                  className={MENU_ROW}
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setShareOpen(true);
+                  }}
+                >
+                  <Share size={20} strokeWidth={1.75} className="text-ink-sub" aria-hidden />
+                  공유하기
+                </button>
+              )}
+              <Link href={`/entry/${entry.id}/edit`} className={MENU_ROW}>
+                <Pencil size={20} strokeWidth={1.75} className="text-ink-sub" aria-hidden />
+                원문 고치기
+              </Link>
+              <button
+                type="button"
+                className={`${MENU_ROW} text-danger`}
+                onClick={() => {
+                  setMenuOpen(false);
+                  setIsDeleteDialogOpen(true);
+                }}
+              >
+                <Trash2 size={20} strokeWidth={1.75} aria-hidden />
+                지우기
+              </button>
+            </div>
+          </Sheet>
+
+          {canShare && (
+            <ShareEntrySheet
+              open={shareOpen}
+              onClose={() => setShareOpen(false)}
+              entryId={entry.id}
+              quote={entry.quote}
+              note={entry.note}
+              date={entry.date}
+              bookTitle={book.title}
+              bookAuthor={book.author}
+            />
+          )}
+
+          {/* 지우기 확인 */}
+          <Modal
+            ariaLabel="이 기록을 지울까요"
+            isOpen={isDeleteDialogOpen}
+            onClose={() => {
+              if (!deletion.isLocked()) setIsDeleteDialogOpen(false);
+            }}
+          >
+            <h2 className="font-sans text-[18px] font-bold text-ink">이 기록을 지울까요</h2>
+            <div className="mt-2">
+              {isDeleteDialogOpen && entry.id && (
+                <EntryDeleteWarning key={deleteCheck} entryId={entry.id} onReady={setDeleteReady} />
+              )}
+            </div>
+            {deleteError && (
+              <p role="alert" className="mt-3 font-sans text-caption text-danger">
+                {deleteError}
               </p>
             )}
-            {enabled && (
-              <div id="reflections" className="scroll-mt-24">
-                <ReflectionThread
-                  openComposer={openComposer && !isFriend}
-                  entryId={entry.id}
-                  onSummary={(summary) => setThoughtCount(summary?.total ?? 0)}
-                />
-              </div>
-            )}
-          </article>
-        </section>
-
-        {/* 푸터 위 헤어라인이 이미 본문을 닫는다 — 여기 선을 또 그으면 허공에 뜬다 */}
-        <div ref={commentRef}>
-          <CommentSection
-            entryId={entry.id}
-            currentUserId={currentUserId}
-            onCountChange={setCommentCount}
-          />
-        </div>
-      </section>
-
-      {/* 삭제 확인 모달 */}
-      <Modal
-        ariaLabel="정말 삭제하시겠어요?"
-        isOpen={isDeleteDialogOpen}
-        onClose={() => {
-          if (!deletion.isLocked()) setIsDeleteDialogOpen(false);
-        }}
-      >
-        <div className="space-y-4">
-          <h2 className="text-section-title font-bold text-ink">정말 삭제하시겠어요?</h2>
-          {isDeleteDialogOpen && entry.id && (
-            <EntryDeleteWarning key={deleteCheck} entryId={entry.id} onReady={setDeleteReady} />
-          )}
-          {deleteError && <p className="text-caption text-danger">{deleteError}</p>}
-          <div className="flex justify-end gap-2 pt-2">
-            <Button
-              size="sm"
-              variant="ghost"
-              disabled={isDeleting}
-              onClick={() => setIsDeleteDialogOpen(false)}
-            >
-              취소
-            </Button>
-            <Button
-              size="sm"
-              variant="danger"
-              onClick={handleDelete}
-              disabled={isDeleting || deleteReady === null}
-            >
-              {isDeleting ? '삭제 중...' : '삭제하기'}
-            </Button>
-          </div>
-        </div>
-      </Modal>
-    </Fragment>
+            <div className="mt-5 flex gap-2">
+              <Button
+                variant="secondary"
+                className="flex-1"
+                disabled={isDeleting}
+                onClick={() => setIsDeleteDialogOpen(false)}
+              >
+                그대로 두기
+              </Button>
+              <Button
+                variant="danger"
+                className="flex-1"
+                onClick={handleDelete}
+                disabled={isDeleting || deleteReady === null}
+              >
+                {isDeleting ? '지우는 중…' : '지우기'}
+              </Button>
+            </div>
+          </Modal>
+        </>
+      )}
+    </>
   );
 }

@@ -43,56 +43,34 @@ export default function ConsentFieldset({
 
   return (
     <>
-      <fieldset className="space-y-2 pt-1">
+      {/* 시안 auth.html `.cons`: 헤어라인 사이 48px 줄, 먹색 체크, 오른쪽 "보기" */}
+      <fieldset className="!mt-5">
         <legend className="sr-only">가입을 위한 필수 확인</legend>
-        <label htmlFor={ageId} className="flex items-center gap-2 text-body-sm text-ink-sub">
-          <input
-            type="checkbox"
-            id={ageId}
-            checked={value.age}
-            onChange={(e) => onChange({ ...value, age: e.target.checked })}
-            className="h-4 w-4 accent-accent"
-          />
-          <span>만 14세 이상입니다 (필수)</span>
-        </label>
-        <label htmlFor={privacyId} className="flex items-center gap-2 text-body-sm text-ink-sub">
-          <input
-            type="checkbox"
-            id={privacyId}
-            checked={value.privacy}
-            onChange={(e) => onChange({ ...value, privacy: e.target.checked })}
-            className="h-4 w-4 accent-accent"
-          />
-          <span>
-            <button
-              type="button"
-              onClick={() => setOpenDoc('privacy')}
-              className="underline underline-offset-4 hover:text-ink"
-            >
-              개인정보 수집 및 이용
-            </button>
-            에 동의합니다 (필수)
-          </span>
-        </label>
-        <label htmlFor={termsId} className="flex items-center gap-2 text-body-sm text-ink-sub">
-          <input
-            type="checkbox"
-            id={termsId}
-            checked={value.terms}
-            onChange={(e) => onChange({ ...value, terms: e.target.checked })}
-            className="h-4 w-4 accent-accent"
-          />
-          <span>
-            <button
-              type="button"
-              onClick={() => setOpenDoc('terms')}
-              className="underline underline-offset-4 hover:text-ink"
-            >
-              서비스 이용 약관
-            </button>
-            에 동의합니다 (필수)
-          </span>
-        </label>
+        <ConsentRow
+          id={ageId}
+          checked={value.age}
+          onChange={(checked) => onChange({ ...value, age: checked })}
+        >
+          만 14세 이상이에요
+        </ConsentRow>
+        <ConsentRow
+          id={termsId}
+          checked={value.terms}
+          onChange={(checked) => onChange({ ...value, terms: checked })}
+          onView={() => setOpenDoc('terms')}
+          viewLabel="서비스 이용 약관 보기"
+        >
+          서비스 이용 약관에 동의해요
+        </ConsentRow>
+        <ConsentRow
+          id={privacyId}
+          checked={value.privacy}
+          onChange={(checked) => onChange({ ...value, privacy: checked })}
+          onView={() => setOpenDoc('privacy')}
+          viewLabel="개인정보 수집 및 이용 동의서 보기"
+        >
+          개인정보 수집·이용에 동의해요
+        </ConsentRow>
       </fieldset>
 
       <Modal
@@ -121,6 +99,53 @@ export default function ConsentFieldset({
         />
       </Modal>
     </>
+  );
+}
+
+/** 동의 한 줄 — 체크박스와 문구가 한 label, 본문 보기는 label 밖의 따로 누르는 버튼 */
+function ConsentRow({
+  id,
+  checked,
+  onChange,
+  onView,
+  viewLabel,
+  children,
+}: {
+  id: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  onView?: () => void;
+  viewLabel?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex min-h-12 items-center gap-3 border-t border-hairline last:border-b">
+      <label
+        htmlFor={id}
+        className="flex min-h-12 flex-1 cursor-pointer items-center gap-3 font-sans text-caption text-ink"
+      >
+        <input
+          type="checkbox"
+          id={id}
+          checked={checked}
+          onChange={(e) => onChange(e.target.checked)}
+          className="h-5 w-5 shrink-0 accent-ink"
+        />
+        <span>
+          {children} <span className="text-ink-faint">(필수)</span>
+        </span>
+      </label>
+      {onView && (
+        <button
+          type="button"
+          onClick={onView}
+          aria-label={viewLabel}
+          className="min-h-11 shrink-0 rounded-sm px-1 font-sans text-overline font-medium text-ink-sub underline underline-offset-[3px] hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        >
+          보기
+        </button>
+      )}
+    </div>
   );
 }
 

@@ -21,7 +21,7 @@ const show = () => {
       onSubmit: submit,
     })
   );
-  fireEvent.click(screen.getByRole('button', { name: '비공개' }));
+  fireEvent.click(screen.getByRole('switch', { name: '나만 보기' }));
   return submit;
 };
 it('does not show or require thought acknowledgement for zero public thoughts without rollout', async () => {

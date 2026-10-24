@@ -1,9 +1,7 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import SentenceCard from '@/components/entries/SentenceCard';
+import ShareEntryView from '@/components/tools/ShareEntryView';
 import { fetchPublicEntry } from '@/lib/share/fetchPublicEntry';
-import { formatDateLabel } from '@/lib/share/format';
 
 type Props = { params: Promise<{ entry_id: string }> };
 
@@ -22,25 +20,5 @@ export default async function ShareEntryPage({ params }: Props) {
   const entry = await fetchPublicEntry(entry_id);
   if (!entry) notFound();
 
-  return (
-    <div className="max-w-md mx-auto py-10 space-y-6">
-      <div className="bg-card border border-hairline rounded-2xl p-6">
-        <SentenceCard
-          quote={entry.quote}
-          note={entry.note}
-          bookTitle={entry.bookTitle}
-          bookAuthor={entry.bookAuthor}
-          dateLabel={formatDateLabel(entry.date)}
-          nickname={entry.nickname}
-          showWordmark
-        />
-      </div>
-      <Link
-        href="/"
-        className="block text-center text-button text-accent hover:text-accent-hover transition-colors"
-      >
-        Readiary에서 나의 문장 기록하기
-      </Link>
-    </div>
-  );
+  return <ShareEntryView entry={entry} />;
 }

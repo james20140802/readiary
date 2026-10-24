@@ -17,7 +17,13 @@ const BARE_PREFIXES = [
 ] as const;
 
 /** 간지(여백선) 틀을 쓰는 화면 — 화면별 PR이 하나씩 추가한다 */
-export const LEAVES_ROUTES: readonly string[] = ['/design-lab/leaves'];
+export const LEAVES_ROUTES: readonly string[] = [
+  '/design-lab/leaves',
+  '/profile',
+  '/design-lab/me/profile',
+  '/today',
+  '/design-lab/today',
+];
 
 /**
  * 하위 주소는 다른 틀을 쓰므로 주소 하나만 정확히 맞추는 간지 화면 — 책장(/books)과 책 한 권(/books/[id]).
@@ -37,6 +43,12 @@ function matches(pathname: string, prefix: string): boolean {
 export function frameFor(pathname: string): Frame {
   if (pathname === '/') return 'landing';
   if (BARE_PREFIXES.some((p) => matches(pathname, p))) return 'bare';
+  if (
+    /^\/entry\/[^/]+$/.test(pathname) ||
+    /^\/social\/u\/[^/]+\/entry\/[^/]+$/.test(pathname) ||
+    pathname === '/design-lab/entry'
+  )
+    return 'leaves';
   if (LEAVES_ROUTES.some((p) => matches(pathname, p))) return 'leaves';
   if (LEAVES_EXACT.some((re) => re.test(pathname))) return 'leaves';
   return 'plain';

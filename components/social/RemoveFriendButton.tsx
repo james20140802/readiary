@@ -1,89 +1,76 @@
 'use client';
 
-import { apiFetch } from '@/lib/api/fetch';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { useActionLock } from '@/hooks/useActionLock';
-import { toast } from 'sonner';
+import Button from '@/components/ui/Button';
+import Sheet from '@/components/ui/Sheet';
+import { useRemoveFriend } from './useRemoveFriend';
 
 interface Props {
   friendId: string;
+  /** 확인 문구에 쓰는 이름 */
+  name?: string;
 }
 
-export default function RemoveFriendButton({ friendId }: Props) {
-  const action = useActionLock();
-  const isPending = action.busy;
-  const [showConfirm, setShowConfirm] = useState(false);
-  const router = useRouter();
-
-  const handleRemove = async () => {
-    if (!action.acquire()) return;
-    try {
-      const res = await apiFetch('/api/friends/remove', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ friendId }),
-      });
-
-      if (res.ok) {
-        toast.success('친구를 삭제했어요.');
-        router.refresh();
-      } else {
-        toast.error('친구 삭제에 실패했어요.');
-      }
-      setShowConfirm(false);
-    } catch {
-      toast.error('친구 삭제 결과를 확인하지 못했어요. 목록을 새로고침해 주세요.');
-      router.refresh();
-    } finally {
-      action.release();
-    }
-  };
+/** "친구 끊기" 글자 버튼 + 확인 시트 */
+export default function RemoveFriendButton({ friendId, name }: Props) {
+  const [confirming, setConfirming] = useState(false);
+  const { remove, busy, isLocked } = useRemoveFriend();
 
   return (
     <>
       <button
         type="button"
-        onClick={() => setShowConfirm(true)}
-        className="transition-colors hover:text-danger"
+        onClick={() => setConfirming(true)}
+        className="min-h-11 font-sans text-button-sm text-ink-sub transition-colors hover:text-danger focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
       >
-        친구 삭제
+        친구 끊기
       </button>
-
-      {/* 확인 다이얼로그 */}
-      {showConfirm && (
-        <>
-          <div
-            className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm"
-            onClick={() => {
-              if (!action.isLocked()) setShowConfirm(false);
-            }}
-          />
-          <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-72 bg-card border border-hairline rounded-2xl p-6 animate-in fade-in zoom-in-95 duration-150">
-            <p className="text-body-sm font-bold text-ink mb-2">친구를 삭제할까요?</p>
-            <p className="text-caption text-ink-faint mb-5">
-              삭제하면 서로의 피드에서 보이지 않아요.
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => {
-                  if (!action.isLocked()) setShowConfirm(false);
-                }}
-                className="flex-1 py-2.5 rounded-xl border border-hairline text-button-sm font-bold text-ink-sub hover:bg-card-raised transition-colors"
-              >
-                취소
-              </button>
-              <button
-                onClick={handleRemove}
-                disabled={isPending}
-                className="flex-1 py-2.5 rounded-xl bg-danger text-ink-invert text-button-sm font-bold hover:bg-danger/90 transition-colors disabled:opacity-50"
-              >
-                {isPending ? '삭제 중...' : '삭제'}
-              </button>
-            </div>
-          </div>
-        </>
-      )}
+      <RemoveFriendConfirm
+        open={confirming}
+        name={name}
+        busy={busy}
+        onCancel={() => {
+          if (!isLocked()) setConfirming(false);
+        }}
+        onConfirm={async () => {
+          await remove(friendId);
+          setConfirming(false);
+        }}
+      />
     </>
+  );
+}
+
+/** 친구 끊기 확인 — 친구 목록 메뉴와 서재에서 함께 쓴다 */
+export function RemoveFriendConfirm({
+  open,
+  name,
+  busy,
+  onCancel,
+  onConfirm,
+}: {
+  open: boolean;
+  name?: string;
+  busy: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const title = name ? `${name}님과 친구를 끊을까요?` : '친구를 끊을까요?';
+  return (
+    <Sheet open={open} onClose={onCancel} ariaLabel={title}>
+      <h2 className="font-sans text-[18px] font-bold text-ink">{title}</h2>
+      <p className="mt-2 font-sans text-body-sm text-ink-sub">
+        서로의 &lsquo;친구에게 보임&rsquo; 기록과 서가를 더는 볼 수 없어요. 다시 친구가 되려면
+        신청부터 해야 해요.
+      </p>
+      <div className="mt-6 flex justify-end gap-2">
+        <Button size="sm" variant="secondary" onClick={onCancel} disabled={busy}>
+          그대로 두기
+        </Button>
+        <Button size="sm" variant="danger" onClick={onConfirm} disabled={busy}>
+          {busy ? '끊는 중…' : '친구 끊기'}
+        </Button>
+      </div>
+    </Sheet>
   );
 }

@@ -3,17 +3,15 @@
 import { apiFetch } from '@/lib/api/fetch';
 import { useState, useEffect, useRef } from 'react';
 import { useActionLock } from '@/hooks/useActionLock';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { useFold } from '@/hooks/useFold';
 import { FoldDiv, FoldList } from '@/components/ui/FoldList';
-import { SHEET_TRANSITION } from '@/lib/motion';
-import { X } from 'lucide-react';
 import { Comment } from '@/types/comments';
 import CommentItem from './CommentItem';
 import CommentInput from './CommentInput';
 import Modal from '@/components/ui/Modal';
 import Button from '@/components/ui/Button';
-import BodyPortal from '@/components/ui/BodyPortal';
+import Sheet from '@/components/ui/Sheet';
 
 interface Props {
   entryId: string;
@@ -21,6 +19,8 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   onCountChange?: (count: number) => void;
+  /** 시트 머리 아래에 한 줄로 보이는 맥락(어느 문장에 단 댓글인지) */
+  context?: string;
 }
 
 export default function CommentBottomSheet({
@@ -29,6 +29,7 @@ export default function CommentBottomSheet({
   isOpen,
   onClose,
   onCountChange,
+  context,
 }: Props) {
   const [loadAttempt, setLoadAttempt] = useState(0);
   const mutationVersion = useRef(0);
@@ -42,7 +43,7 @@ export default function CommentBottomSheet({
   // 지운 댓글은 접히며 빠지고 아래 댓글이 그만큼 올라온다(이미 있던 댓글과 새 댓글은 그 자리에 놓인다)
   const fold = useFold();
   const isDeleting = deletion.busy;
-  const [isPosting, setIsPosting] = useState(false);
+  const [, setIsPosting] = useState(false);
   const postingRef = useRef(false);
   const onPosting = (busy: boolean) => {
     postingRef.current = busy;
@@ -120,163 +121,131 @@ export default function CommentBottomSheet({
     }
   };
 
+  const requestClose = () => {
+    if (!postingRef.current && !deletion.isLocked()) onClose();
+  };
+  const roots = comments.filter((c) => !c.parent_id);
+
   return (
-    <BodyPortal>
-      <AnimatePresence>
-        {isOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => {
-                if (!postingRef.current && !deletion.isLocked()) onClose();
-              }}
-              className="fixed inset-0 bg-black/60 z-[60] backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={SHEET_TRANSITION}
-              className="fixed bottom-0 left-0 right-0 z-[70] bg-card border border-hairline max-h-[90vh] rounded-t-[20px] flex flex-col w-full mx-auto sm:max-w-[640px] sm:bottom-4 sm:rounded-[24px]"
+    <>
+      <Sheet open={isOpen} onClose={requestClose} title={`댓글 ${comments.length}`}>
+        {context && (
+          <p className="pb-3 font-serif text-[16px] leading-[1.6] text-ink-sub">{context}</p>
+        )}
+        <div className="min-h-[160px]">
+          {isLoading ? (
+            <p role="status" className="py-10 text-center font-sans text-caption text-ink-sub">
+              댓글을 불러오는 중…
+            </p>
+          ) : (
+            <FoldList
+              isEmpty={comments.length === 0}
+              empty={
+                <p className="border-t border-hairline py-10 text-center font-sans text-caption text-ink-sub">
+                  아직 댓글이 없어요. 처음으로 한마디 남겨 보세요.
+                </p>
+              }
             >
-              {/* 헤더 */}
-              <div className="flex items-center justify-between px-5 py-4 border-b border-hairline">
-                <h3 className="text-section-title font-bold">댓글 {comments.length}</h3>
-                <button
-                  disabled={isPosting || isDeleting}
-                  onClick={() => {
-                    if (!postingRef.current && !deletion.isLocked()) onClose();
-                  }}
-                  className="p-1.5 bg-card-raised rounded-full"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-
-              {/* 리스트 영역 (스크롤) */}
-              <div className="flex-1 overflow-y-auto px-5 py-2 custom-scrollbar min-h-[300px]">
-                {isLoading ? (
-                  <div className="py-10 text-center text-ink-faint text-caption">
-                    기록을 불러오는 중...
-                  </div>
-                ) : (
-                  <>
-                    <FoldList
-                      className="divide-y divide-hairline"
-                      isEmpty={comments.length === 0}
-                      empty={
-                        <div className="py-12 text-center text-ink-faint text-caption">
-                          아직 댓글이 없어요. 첫 인사를 남겨보세요!
-                        </div>
-                      }
-                    >
-                      {comments
-                        .filter((c) => !c.parent_id)
-                        .map((rootComment) => (
-                          <FoldDiv key={rootComment.id} {...fold} className="flex flex-col">
-                            {/* 부모 댓글 */}
-                            <CommentItem
-                              comment={rootComment}
-                              currentUserId={currentUserId}
-                              onDelete={handleDelete}
-                              onReplyClick={() => {
-                                if (!postingRef.current && !deletion.isLocked())
-                                  setReplyingTo(rootComment);
-                              }} // 답글 달기 버튼 클릭 시
-                            />
-
-                            {/* 2. 해당 부모를 parent_id로 가지는 대댓글들 필터링 */}
-                            <div className="ml-10 border-l-2 border-hairline">
-                              <AnimatePresence initial={false}>
-                                {comments
-                                  .filter((reply) => reply.parent_id === rootComment.id)
-                                  .map((reply) => (
-                                    <FoldDiv key={reply.id} {...fold}>
-                                      <CommentItem
-                                        comment={reply}
-                                        currentUserId={currentUserId}
-                                        onDelete={handleDelete}
-                                        isReply // 대댓글임을 표시하는 prop (디자인 조정용)
-                                      />
-                                    </FoldDiv>
-                                  ))}
-                              </AnimatePresence>
-                            </div>
-                          </FoldDiv>
-                        ))}
-                    </FoldList>
-                  </>
-                )}
-              </div>
-
-              {/* 고정 입력창 (Sticky) */}
-              <div className="p-4 border-t border-hairline bg-card sm:rounded-b-[24px]">
-                {!hasLoaded && !isLoading && (
-                  <button
-                    type="button"
-                    className="text-caption underline"
-                    onClick={() => {
-                      setIsLoading(true);
-                      setLoadAttempt((n) => n + 1);
+              {roots.map((rootComment) => (
+                <FoldDiv key={rootComment.id} {...fold}>
+                  <CommentItem
+                    comment={rootComment}
+                    currentUserId={currentUserId}
+                    onDelete={handleDelete}
+                    onReplyClick={() => {
+                      if (!postingRef.current && !deletion.isLocked()) setReplyingTo(rootComment);
                     }}
                   >
-                    댓글 다시 불러오기
-                  </button>
-                )}
-                <CommentInput
-                  onCommentSubmit={handleAddComment}
-                  entryId={entryId}
-                  disabled={isDeleting || !hasLoaded}
-                  onBusyChange={onPosting}
-                  replyingTo={replyingTo}
-                  onCancelReply={() => setReplyingTo(null)}
-                />
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+                    <AnimatePresence initial={false}>
+                      {comments
+                        .filter((reply) => reply.parent_id === rootComment.id)
+                        .map((reply) => (
+                          <FoldDiv key={reply.id} {...fold}>
+                            <CommentItem
+                              comment={reply}
+                              currentUserId={currentUserId}
+                              onDelete={handleDelete}
+                              isReply
+                            />
+                          </FoldDiv>
+                        ))}
+                    </AnimatePresence>
+                  </CommentItem>
+                </FoldDiv>
+              ))}
+            </FoldList>
+          )}
+        </div>
 
-      {/* 삭제 확인 모달 */}
+        {/* 입력줄은 목록이 길어도 시트 아래에 붙어 있다 */}
+        <div className="sticky bottom-0 -mx-[22px] bg-sheet px-[22px] pb-1">
+          {!hasLoaded && !isLoading && (
+            <button
+              type="button"
+              className="mb-2 min-h-11 font-sans text-button-sm text-accent"
+              onClick={() => {
+                setIsLoading(true);
+                setLoadAttempt((n) => n + 1);
+              }}
+            >
+              댓글 다시 불러오기
+            </button>
+          )}
+          <CommentInput
+            onCommentSubmit={handleAddComment}
+            entryId={entryId}
+            disabled={isDeleting || !hasLoaded}
+            onBusyChange={onPosting}
+            replyingTo={replyingTo}
+            onCancelReply={() => setReplyingTo(null)}
+          />
+        </div>
+      </Sheet>
+
+      {/* 지우기 확인 */}
       <Modal
-        ariaLabel="정말 삭제하시겠어요?"
+        ariaLabel="이 댓글을 지울까요?"
         isOpen={!!deleteModalCommentId}
         onClose={() => {
           if (!deletion.isLocked()) setDeleteModalCommentId(null);
         }}
       >
         <div className="space-y-4">
-          <h2 className="text-section-title font-bold text-ink">정말 삭제하시겠어요?</h2>
-          <p className="text-caption text-ink-sub">이 작업은 되돌릴 수 없습니다.</p>
+          <h2 className="font-sans text-[18px] font-bold text-ink">이 댓글을 지울까요?</h2>
+          <p className="font-sans text-body-sm text-ink-sub">
+            답글도 함께 지워지고, 되돌릴 수 없어요.
+          </p>
           <div className="flex justify-end gap-2 pt-2">
-            <Button size="sm" disabled={isDeleting} onClick={() => setDeleteModalCommentId(null)}>
-              취소
+            <Button
+              size="sm"
+              variant="secondary"
+              disabled={isDeleting}
+              onClick={() => setDeleteModalCommentId(null)}
+            >
+              그대로 두기
             </Button>
             <Button size="sm" variant="danger" onClick={confirmDeleteComment} disabled={isDeleting}>
-              {isDeleting ? '삭제 중...' : '삭제하기'}
+              {isDeleting ? '지우는 중…' : '지우기'}
             </Button>
           </div>
         </div>
       </Modal>
 
-      {/* 에러 모달 */}
+      {/* 오류 안내 */}
       <Modal
-        ariaLabel="알림"
+        ariaLabel="댓글 안내"
         isOpen={!!errorModalMessage}
         onClose={() => setErrorModalMessage(null)}
       >
         <div className="space-y-4">
-          <h2 className="text-section-title font-bold text-ink">알림</h2>
-          <p className="text-caption text-ink-sub">{errorModalMessage}</p>
-          <div className="flex justify-end gap-2 pt-2">
+          <p className="font-sans text-body text-ink">{errorModalMessage}</p>
+          <div className="flex justify-end pt-2">
             <Button size="sm" onClick={() => setErrorModalMessage(null)}>
               확인
             </Button>
           </div>
         </div>
       </Modal>
-    </BodyPortal>
+    </>
   );
 }

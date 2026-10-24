@@ -1,0 +1,33 @@
+/* 기록 한 장(시안 entry-layer.html). 모바일은 장 넘김(Leaves) 두 장, 데스크톱은 같은 DOM을 두 단으로 편다.
+   Leaves는 데스크톱에서 숨는 부품이라(lg:hidden) 여기서만 다시 보이게 하고, 둘째 장의 간지 재질은 데스크톱에서 걷는다. */
+@media (min-width: 1024px) {
+  .root > :global(.leaves),
+  .root > .flow {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    gap: 64px;
+    align-items: start;
+  }
+  .root > :global(.leaves) > :global(.leaf.vellum) {
+    background: none !important;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .root > :global(.leaves) > :global(.leaf):last-child,
+  .root > .flow > :last-child {
+    position: sticky;
+    top: 44px;
+  }
+}
+
+/* 데스크톱의 문장은 56px 괘선 위에 앉는다(시안 .onrule) */
+@media (min-width: 1024px) {
+  .onrule {
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0 55px,
+      rgb(var(--hairline)) 55px 56px
+    );
+  }
+}

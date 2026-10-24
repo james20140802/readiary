@@ -149,7 +149,7 @@ export default function FeaturedQuoteSelection({ userId, value, onChange, disabl
   return (
     <>
       <ProfileSelection
-        label="뒷표지 문장"
+        label="표지 문장"
         options={options}
         selectedOption={selected}
         selectedLoading={Boolean(value && selected?.id !== value && selectedFailureId !== value)}
@@ -163,8 +163,8 @@ export default function FeaturedQuoteSelection({ userId, value, onChange, disabl
           setSelected(options.find((o) => o.id === id));
           onChange(id);
         }}
-        emptyLabel="뒷표지를 비워 둡니다"
-        emptyMessage="아직 인용을 남긴 기록이 없습니다."
+        emptyLabel="표지에 문장을 넣지 않아요"
+        emptyMessage="아직 문장을 남긴 기록이 없어요."
         searchPlaceholder="책 제목이나 문장 검색"
         filterByBook
         disabled={disabled}

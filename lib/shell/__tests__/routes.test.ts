@@ -8,7 +8,6 @@ describe('frameFor', () => {
     ['/share/e/abc', 'bare'],
     ['/invite/x', 'bare'],
     ['/privacy', 'bare'],
-    ['/today', 'plain'],
     ['/books', 'leaves'],
     ['/books/1', 'leaves'],
     ['/books/new', 'plain'],
@@ -18,6 +17,13 @@ describe('frameFor', () => {
     ['/design-lab/books', 'leaves'],
     ['/design-lab/books/detail', 'leaves'],
     ['/design-lab/books/new', 'plain'],
+    ['/today', 'leaves'],
+    ['/entry/abc', 'leaves'],
+    ['/entry/abc/edit', 'plain'],
+    ['/entryish/abc', 'plain'],
+    ['/design-lab/entry', 'leaves'],
+    ['/design-lab/entry/excerpts', 'plain'],
+    ['/social/u/a/entry/abc', 'leaves'],
     ['/sharing', 'plain'],
   ])('%s의 틀은 %s', (p, f) => expect(frameFor(p)).toBe(f));
 });
@@ -64,4 +70,20 @@ describe('showsNav', () => {
 
 describe('견본 장 넘김', () => {
   it('견본 장 넘김 화면은 leaves', () => expect(frameFor('/design-lab/leaves')).toBe('leaves'));
+});
+
+describe('나 화면', () => {
+  it('나는 장 넘김(leaves), 설정은 도구 화면(plain)', () => {
+    expect(frameFor('/profile')).toBe('leaves');
+    expect(frameFor('/settings')).toBe('plain');
+    expect(frameFor('/design-lab/me/profile')).toBe('leaves');
+    expect(frameFor('/design-lab/me/settings')).toBe('plain');
+  });
+});
+
+describe('오늘', () => {
+  it('오늘 견본도 간지 틀(여백선·장 넘김), 비슷한 접두사는 아니다', () => {
+    expect(frameFor('/design-lab/today')).toBe('leaves');
+    expect(frameFor('/todayx')).toBe('plain');
+  });
 });

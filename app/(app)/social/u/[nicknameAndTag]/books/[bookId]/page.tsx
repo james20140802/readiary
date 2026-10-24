@@ -41,7 +41,7 @@ export default async function FriendBookDetailPage({ params }: FriendBookDetailP
 
   return (
     <>
-      <FriendProfileHeader profile={profile} />
+      <FriendProfileHeader profile={profile} title={book.books.title} />
       <div className="mt-6">
         <BookDetailContent
           userBook={book}

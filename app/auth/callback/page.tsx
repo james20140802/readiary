@@ -3,13 +3,14 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createSupabaseClient } from '@/lib/supabase/client';
+import AuthFrame from '@/components/auth/AuthFrame';
 
 type Destination = 'onboarding' | 'dashboard' | 'login';
 
 const MESSAGES: Record<Destination, string> = {
-  onboarding: '이메일 인증이 완료되었습니다. 프로필 설정으로 이동합니다...',
-  dashboard: '이메일 인증이 완료되었습니다. 홈으로 이동합니다...',
-  login: '인증 정보를 확인하지 못했습니다. 로그인 페이지로 이동합니다...',
+  onboarding: '메일 인증을 마쳤어요. 일기장 이름을 정하러 갈게요.',
+  dashboard: '메일 인증을 마쳤어요. 오늘로 갈게요.',
+  login: '인증 정보를 확인하지 못했어요. 로그인 화면으로 갈게요.',
 };
 
 /**
@@ -51,10 +52,10 @@ export default function AuthCallbackPage() {
   }, [router]);
 
   return (
-    <div className="flex min-h-[60vh] items-center justify-center text-ink">
-      <p className="text-center text-caption">
-        {destination ? MESSAGES[destination] : '이메일 인증을 확인하는 중...'}
+    <AuthFrame title="메일 인증">
+      <p role="status" className="mt-5 font-sans text-body text-ink-sub">
+        {destination ? MESSAGES[destination] : '메일 인증을 확인하고 있어요.'}
       </p>
-    </div>
+    </AuthFrame>
   );
 }

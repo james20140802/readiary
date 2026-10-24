@@ -7,11 +7,10 @@ import { fetchFeaturedBookmark } from '@/lib/profile/fetchFeaturedBookmark';
 import { fetchBookReadingStats } from '@/lib/queries/fetchBookReadingStats';
 import { getUserStats } from '@/lib/stats/getUserStats';
 import { PROFILE_SHELF_LIMIT, toShelfBook } from '@/lib/books/shelfBook';
-import ProfileBook from '@/components/profile/ProfileBook';
-import ProfileShelf from '@/components/profile/ProfileShelf';
-import ProfileExcerpts from '@/components/profile/ProfileExcerpts';
-
-const excerptsHref = (bookId: string) => `/books/${bookId}/excerpts`;
+import { buildInviteSlug } from '@/lib/social/invite';
+import { todayKST } from '@/lib/dates';
+import MeView from '@/components/profile/MeView';
+import { diaryShelf, formatPublishedDate, monthRows } from '@/components/profile/meModel';
 
 export default async function ProfilePage() {
   const {
@@ -20,7 +19,7 @@ export default async function ProfilePage() {
   } = await getServerUser();
 
   if (!user || userError) {
-    return <p className="text-center mt-10 text-danger">로그인이 필요합니다.</p>;
+    return <p className="mt-10 text-center text-danger">로그인이 필요합니다.</p>;
   }
 
   const [{ profile, userBooks }, stats, retrospect, readingStats] = await Promise.all([
@@ -44,28 +43,26 @@ export default async function ProfilePage() {
     .map((ub) =>
       toShelfBook(ub, readingStats, `/books/${ub.book_id}`, `/books/${ub.book_id}/entry/new`)
     );
-  const finishedBooks = retrospect?.finishedBooks ?? [];
+  const today = todayKST();
 
   return (
-    <div className="pb-16">
-      <section className="space-y-8">
-        <ProfileBook
-          user={user}
-          profile={profile}
-          stats={stats}
-          monthly={retrospect?.monthly ?? []}
-          featuredQuote={featuredQuote}
-          bookmark={bookmark}
-          bookmarkHref={bookmark ? excerptsHref(bookmark.bookId) : null}
-          canBookmark={userBooks.some((ub) => ub.is_finished)}
-        />
-        <ProfileShelf books={shelfBooks} total={userBooks.length} shelfHref="/books" isOwnProfile />
-        {retrospect ? (
-          <ProfileExcerpts books={finishedBooks} hrefFor={excerptsHref} />
-        ) : (
-          <p className="mt-10 text-body-sm text-ink-faint">회고 정보를 불러올 수 없습니다.</p>
-        )}
-      </section>
-    </div>
+    <MeView
+      name={profile.name || profile.nickname || '이름 없음'}
+      handle={`${profile.nickname}#${profile.tag || '0000'}`}
+      inviteSlug={buildInviteSlug(profile.nickname, profile.tag)}
+      bio={profile.bio}
+      coverQuote={featuredQuote}
+      year={Number(today.slice(0, 4))}
+      publishedDate={formatPublishedDate(profile.created_at)}
+      stats={stats}
+      finishedBooks={retrospect?.finishedBooks ?? []}
+      shelfBooks={shelfBooks}
+      shelfTotal={userBooks.length}
+      diary={diaryShelf(profile.created_at, today)}
+      months={monthRows(retrospect?.monthly ?? [])}
+      monthsError={!retrospect}
+      bookmark={bookmark}
+      canBookmark={userBooks.some((ub) => ub.is_finished)}
+    />
   );
 }
