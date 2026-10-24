@@ -82,3 +82,21 @@ export function progressParts(
 ): { read: number | null; total: number | null } {
   return { read: lastReadPage, total: totalPages != null && totalPages > 0 ? totalPages : null };
 }
+
+/**
+ * 간지 큰 제목 — 'A: B'·'A - B'처럼 부제가 붙은 제목은 부제를 떼어 작은 줄로 보낸다.
+ * 앞부분이 너무 짧으면(2자 이하) 떼지 않는다.
+ */
+export function splitTitle(title: string): { main: string; sub: string | null } {
+  const m = /^(.{3,}?)\s*(?::|\s[-–—]\s)\s*(.+)$/.exec(title.trim());
+  if (!m) return { main: title.trim(), sub: null };
+  return { main: m[1].trim(), sub: m[2].trim() };
+}
+
+/** 큰 제목 글자 크기 단계 — 길수록 작게 써서 간지가 제목으로 길어지지 않게 한다 */
+export function titleTier(main: string): 'lg' | 'md' | 'sm' {
+  const n = [...main].length;
+  if (n <= 12) return 'lg';
+  if (n <= 22) return 'md';
+  return 'sm';
+}

@@ -44,9 +44,6 @@ function compareEntries(order: Order) {
   };
 }
 
-const FLAG_HINT =
-  '책 옆으로 나온 플래그는 기록을 남긴 쪽이에요. 위가 앞쪽, 아래가 뒤쪽. 같은 날 남긴 기록은 같은 색이에요.';
-
 /**
  * 책 한 권 — 시안 book-layer.html. 왼쪽(모바일은 첫 장)에 표지 위 기록 간지와 플래그,
  * 오른쪽(모바일은 다음 장)에 이 책에서 남긴 기록이 원고처럼 흐른다.
@@ -160,11 +157,7 @@ export default function BookDetailContent({
   );
 
   const hintText =
-    flags.length > 0
-      ? FLAG_HINT
-      : list.length > 0
-        ? '쪽 번호를 적은 기록은 책 옆에 플래그로 꽂혀요.'
-        : null;
+    flags.length === 0 && list.length > 0 ? '쪽 번호를 적은 기록은 책 옆에 플래그로 꽂혀요.' : null;
   const hint = hintText && (
     <p className="mt-2.5 font-sans text-caption leading-[1.5] text-ink-sub">{hintText}</p>
   );

@@ -14,21 +14,19 @@ export const DEFAULT_TIME_ZONE = 'Asia/Seoul';
 
 /** 표지 위·아래 끝에서 플래그를 띄우는 거리(px) — 시안 `14+(pg/T)*(H-28)` */
 export const FLAG_EDGE = 14;
-/** 이보다 가까이 붙은 플래그는 나온 길이를 한 단씩 달리한다(px) */
-export const FLAG_CROWD = 11;
+/** 이보다 가까이 붙은 플래그는 나온 길이를 한 단씩 달리한다(px) — 두께 + 1 */
+export const FLAG_CROWD = 15;
 /** 단계 수 — 짧은 것, 중간, 긴 것 */
 export const FLAG_TIERS = 3;
-/** 가장 짧은 플래그가 옆면 밖으로 나온 길이와 단계마다 늘어나는 길이(px) */
-export const FLAG_LEN = 14;
-export const FLAG_LEN_STEP = 9;
+/** 가장 짧은 플래그가 옆면 밖으로 나온 길이와 단계마다 늘어나는 길이(px) — 손가락으로 누르기 쉽게 시안(14·9)보다 키웠다 */
+export const FLAG_LEN = 20;
+export const FLAG_LEN_STEP = 10;
 /** 표지 뒤 쪽 사이로 들어가 보이지 않는 밑동 길이(px) */
 export const FLAG_HIDDEN = 18;
-/** 플래그 두께(px) */
-export const FLAG_THICKNESS = 10;
-/** 누름 영역이 플래그 위아래로 더 나오는 만큼 — 시안 `.flag::after{top:-2px;bottom:-2px}` */
-export const FLAG_HIT_HALF = FLAG_THICKNESS / 2 + 2;
-/** 누름 영역의 최소 높이(px) — 몰려도 플래그마다 눌릴 자리가 남는다 */
-export const FLAG_HIT_MIN = 0.25;
+/** 플래그 두께(px) — 시안 10px보다 키웠다 */
+export const FLAG_THICKNESS = 14;
+/** 누름 영역이 플래그 가운데에서 위아래로 나오는 만큼 — 플래그 한 개도 22px 높이로 눌린다 */
+export const FLAG_HIT_HALF = FLAG_THICKNESS / 2 + 4;
 
 export interface FlagSource {
   id: string;
@@ -150,71 +148,54 @@ export interface FlagLayout {
   len: number;
   /** 짧은 것이 앞에 */
   z: number;
-  /** 누름 영역 — 나온 부분 안에서만, 옆 플래그와 겹치지 않는다 */
+}
+
+/** 누름 영역이 겹칠 만큼 가까운 플래그 묶음 — 하나의 버튼이 되고, 누르면 묶인 기록이 함께 펼쳐진다 */
+export interface FlagCluster {
+  /** 앞쪽부터 */
+  ids: string[];
   hit: FlagRect;
 }
 
 /**
  * 표지 높이에 맞춰 플래그를 세운다. 입력은 앞쪽부터(buildFlags 순서).
  * 가까이 붙은 플래그는 실제 플래그 묶음처럼 나온 길이를 한 단씩 달리한다 — 짧은 것이 앞에, 긴 것은 뒤에서 끝만.
- *
- * 누름 영역: 가까운(누름 높이가 겹칠 수 있는) 이웃 중 더 짧은 것이 있으면 그 끝부터 시작한다 —
- * 긴 플래그는 짧은 플래그 너머로 나온 끝만 눌린다. 길이가 같은 이웃과는 세로를 반으로 나눈다.
  */
 export function layoutFlags(flags: { id: string; ratio: number }[], height: number): FlagLayout[] {
   if (!(height > 0)) return [];
   const span = Math.max(0, height - FLAG_EDGE * 2);
-  const placed: { id: string; y: number; tier: number; len: number }[] = [];
+  const out: FlagLayout[] = [];
   let prev: { y: number; tier: number } | null = null;
   for (const f of flags) {
     const y = FLAG_EDGE + f.ratio * span;
     const tier: number = prev && y - prev.y < FLAG_CROWD ? (prev.tier + 1) % FLAG_TIERS : 0;
-    placed.push({ id: f.id, y, tier, len: FLAG_LEN + tier * FLAG_LEN_STEP });
+    out.push({ id: f.id, y, tier, len: FLAG_LEN + tier * FLAG_LEN_STEP, z: FLAG_TIERS - tier });
     prev = { y, tier };
   }
+  return out;
+}
 
-  const reach = FLAG_HIT_HALF * 2;
-  return placed.map((p, i) => {
-    let x0 = 0;
-    // 같은 자리·같은 길이로 겹친 플래그(같은 쪽 기록)는 누름 영역을 위아래로 균등하게 나눈다 — 높이가 0이 되지 않게
-    let group = 0;
-    let rank = 0;
-    let above = -Infinity;
-    let below = Infinity;
-    placed.forEach((q, j) => {
-      if (i === j) return;
-      const d = Math.abs(p.y - q.y);
-      if (d >= reach) return;
-      if (q.len < p.len) x0 = Math.max(x0, q.len);
-      else if (q.len === p.len) {
-        if (d < 1e-6) {
-          group += 1;
-          if (j < i) rank += 1;
-        } else if (q.y < p.y) above = Math.max(above, p.y - d / 2);
-        else below = Math.min(below, p.y + d / 2);
-      }
-    });
-    const n = group + 1;
-    const slice = (FLAG_HIT_HALF * 2) / n;
-    let y0 = p.y - FLAG_HIT_HALF + slice * rank;
-    let y1 = y0 + slice;
-    // 맞붙은 이웃과는 가운데에서 나누되, 영역이 사라질 만큼 줄이지는 않는다
-    if (rank === 0) y0 = Math.max(y0, above);
-    if (rank === n - 1) y1 = Math.min(y1, below);
-    if (y1 - y0 < FLAG_HIT_MIN) {
-      // 영역이 사라지지 않게, 바깥으로 막히지 않은 쪽으로 최소 높이만큼 되살린다
-      if (rank === n - 1 && y1 === below) y0 = y1 - FLAG_HIT_MIN;
-      else y1 = y0 + FLAG_HIT_MIN;
-    }
-    return {
-      id: p.id,
-      y: p.y,
-      tier: p.tier,
-      len: p.len,
-      z: FLAG_TIERS - p.tier,
-      hit: { x0, x1: p.len, y0, y1 },
-    };
-  });
+/**
+ * 누름 영역 — 플래그마다 위아래 FLAG_HIT_HALF씩. 이웃과 영역이 겹칠 만큼 가까우면 한 묶음으로 합쳐
+ * 손가락 하나 크기의 영역을 나누지 않는다. 묶음끼리는 겹치지 않는다. 입력은 layoutFlags 결과(위에서 아래 순서).
+ */
+export function clusterFlags(layout: FlagLayout[]): FlagCluster[] {
+  const sorted = [...layout].sort((a, b) => a.y - b.y);
+  const groups: FlagLayout[][] = [];
+  for (const l of sorted) {
+    const last = groups[groups.length - 1];
+    if (last && l.y - last[last.length - 1].y < FLAG_HIT_HALF * 2) last.push(l);
+    else groups.push([l]);
+  }
+  return groups.map((g) => ({
+    ids: g.map((l) => l.id),
+    hit: {
+      x0: 0,
+      x1: Math.max(...g.map((l) => l.len)),
+      y0: g[0].y - FLAG_HIT_HALF,
+      y1: g[g.length - 1].y + FLAG_HIT_HALF,
+    },
+  }));
 }
 
 /** 두 누름 영역이 겹치는지(경계가 맞닿는 것은 겹침이 아니다) */
