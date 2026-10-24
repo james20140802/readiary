@@ -384,7 +384,7 @@ function DesktopFinished({
  * 데스크톱은 같은 세 장을 한 화면씩 끊고 오른쪽 위 전환 버튼으로도 옮겨 간다.
  */
 export default function BooksView({ books, stats, today }: Props) {
-  useTopBar({ title: '책장', brand: false });
+  useTopBar({ title: '책장' });
   const { reading, finished } = splitShelf(books, stats);
 
   return (

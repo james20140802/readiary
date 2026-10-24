@@ -416,7 +416,7 @@ export default function MeView(props: MeViewProps) {
     canBookmark,
     settingsHref = '/settings',
   } = props;
-  useTopBar({ title: '나', brand: false });
+  useTopBar({ title: '나' });
   const [inviting, setInviting] = useState(false);
   const entries = stats?.totalEntries ?? null;
   const diaryTitle = `${ordinalCount(diary.count)} 일기장`;

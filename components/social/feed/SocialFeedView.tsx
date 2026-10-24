@@ -43,7 +43,7 @@ export default function SocialFeedView({
   pageSize,
   loadPage,
 }: SocialFeedViewProps) {
-  useTopBar({ title: '친구의 문장', brand: false });
+  useTopBar({ title: '친구의 문장' });
   const now = useMemo(() => new Date(referenceTime), [referenceTime]);
 
   const [feed, setFeed] = useState(initialFeed);
