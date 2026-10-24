@@ -159,11 +159,11 @@ export default function OnboardingForm({
 
   return (
     <AuthFrame
-      title="프로필 설정"
+      title="내 일기장의 이름을 적어 주세요"
       lead={
         requireConsent
-          ? '이름과 닉네임을 정하고, 만 14세 이상 확인과 필수 동의를 마치면 책장이 열립니다.'
-          : '이름과 닉네임을 정하면 책장이 열립니다.'
+          ? '친구는 닉네임#태그로 나를 찾아요. 태그는 자동으로 붙어요. 아래 필수 확인도 함께 해 주세요.'
+          : '친구는 닉네임#태그로 나를 찾아요. 태그는 자동으로 붙어요.'
       }
     >
       <form onSubmit={handleSubmit} noValidate className="space-y-5">
@@ -198,7 +198,7 @@ export default function OnboardingForm({
               autoCapitalize="none"
               spellCheck={false}
               maxLength={MAX_NICKNAME_LENGTH}
-              placeholder="영문·숫자·언더스코어"
+              placeholder="영문, 숫자, _"
               value={nickname}
               onChange={(e) => {
                 setNickname(e.target.value);
@@ -207,21 +207,21 @@ export default function OnboardingForm({
               error={nicknameError ?? undefined}
               required
             />
-            <p className="text-caption text-ink-faint">
-              영어 알파벳과 숫자, 언더스코어(_)만 쓸 수 있습니다. 친구가 나를 찾을 때 씁니다.
+            <p className="font-sans text-fine text-ink-sub">
+              영문·숫자·언더스코어(_)만 쓸 수 있어요. 예: readiary → readiary#0417
             </p>
           </FormGroup>
 
           <FormGroup>
             <FormLabel variant="line" htmlFor="bio">
-              자기소개
+              한 줄 소개 · 선택
             </FormLabel>
             <Textarea
               variant="line"
               id="bio"
               name="bio"
               rows={3}
-              placeholder="한 줄이면 충분합니다 (선택)"
+              placeholder="어떻게 읽는 사람인가요"
               value={bio}
               onChange={(e) => setBio(e.target.value)}
               fullWidth
@@ -254,8 +254,14 @@ export default function OnboardingForm({
             저장 결과를 확인하지 못했습니다. 같은 내용으로 다시 등록해 주세요.
           </p>
         )}
-        <Button type="submit" fullWidth loading={loading} disabled={!canSubmit} className="mt-2">
-          {loading ? '등록 중...' : '프로필 등록하기'}
+        <Button
+          type="submit"
+          fullWidth
+          loading={loading}
+          disabled={!canSubmit}
+          className="!mt-[22px]"
+        >
+          {loading ? '펼치는 중...' : '일기장 펼치기'}
         </Button>
       </form>
       <ActionNavigation href={action.destination} />

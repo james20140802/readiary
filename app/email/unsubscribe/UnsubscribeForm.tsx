@@ -36,36 +36,38 @@ export default function UnsubscribeForm() {
     }
   }
   return (
-    <div className="space-y-5">
+    <div className="mt-3 space-y-5">
       {done ? (
-        <p role="status">
-          Readiary 소식·이벤트 이메일 수신거부가 처리되었습니다.{' '}
-          {new Date().toLocaleDateString('ko-KR')}
+        <p role="status" className="font-sans text-body text-ink">
+          Readiary 소식·이벤트 이메일 수신거부를 마쳤어요. ({new Date().toLocaleDateString('ko-KR')}
+          )
         </p>
       ) : (
         <>
-          <p className="text-body text-ink-sub">
-            수신을 거부하면 Readiary 소식·이벤트 이메일을 더 이상 보내지 않습니다. 계정 인증 메일은
-            계속 받을 수 있습니다.
+          <p className="font-sans text-body text-ink-sub">
+            수신을 거부하면 Readiary 소식·이벤트 이메일을 더 보내지 않아요. 계정 인증 메일은 계속
+            받을 수 있어요.
           </p>
           {token === '' && (
-            <p role="alert">메일의 수신거부 링크를 다시 열거나 알림 설정에서 변경해 주세요.</p>
+            <p role="alert" className="font-sans text-caption text-danger">
+              메일의 수신거부 링크를 다시 열거나, 알림 설정에서 바꿔 주세요.
+            </p>
           )}
-          <Button onClick={withdraw} loading={busy} disabled={!token || busy}>
+          <Button onClick={withdraw} loading={busy} disabled={!token || busy} fullWidth>
             이메일 수신거부
           </Button>
         </>
       )}
       {error && (
-        <p role="alert" className="text-body-sm text-danger">
+        <p role="alert" className="font-sans text-caption text-danger">
           {error}
         </p>
       )}
       <a
         href="/notifications/settings"
-        className="inline-flex min-h-11 items-center underline underline-offset-4"
+        className="inline-flex min-h-11 items-center rounded-sm font-sans text-caption text-ink-sub underline underline-offset-4 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
       >
-        알림 설정으로 이동
+        알림 설정으로 가기
       </a>
     </div>
   );

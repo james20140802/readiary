@@ -113,8 +113,10 @@ export default function UpdatePasswordPage() {
 
   if (gate === 'checking') {
     return (
-      <AuthFrame title="새 비밀번호 설정">
-        <p className="text-center text-body-sm text-ink-sub">링크를 확인하는 중...</p>
+      <AuthFrame title="새 비밀번호">
+        <p role="status" className="mt-5 font-sans text-caption text-ink-sub">
+          링크를 확인하고 있어요.
+        </p>
         <ActionNavigation href={action.destination} />
       </AuthFrame>
     );
@@ -123,23 +125,19 @@ export default function UpdatePasswordPage() {
   if (gate === 'denied') {
     return (
       <AuthFrame
-        title="새 비밀번호 설정"
-        lead="이 화면은 비밀번호 재설정 메일의 링크로만 열립니다."
-        footer={
-          <p>
-            <Link href="/login">로그인으로 돌아가기</Link>
-          </p>
-        }
+        title="새 비밀번호"
+        lead="비밀번호 찾기 메일의 링크로 들어왔을 때만 열리는 화면이에요."
+        footer={<Link href="/login">로그인으로</Link>}
       >
-        <div className="space-y-4 text-center">
-          <p className="break-keep text-body-sm text-ink-sub">
+        <div className="mt-5 space-y-5">
+          <p className="break-keep font-sans text-body text-ink-sub">
             {hasSession
-              ? '이미 로그인되어 있습니다. 비밀번호를 바꾸려면 프로필에서 현재 비밀번호를 확인한 뒤 바꿔 주세요.'
-              : '링크가 만료됐거나 이미 사용됐다면 재설정을 다시 요청해주세요.'}
+              ? '이미 로그인되어 있어요. 비밀번호를 바꾸려면 프로필에서 지금 비밀번호를 확인한 뒤 바꿔 주세요.'
+              : '링크가 만료됐거나 이미 쓰였다면 비밀번호 찾기를 다시 요청해 주세요.'}
           </p>
           <Button asChild variant="secondary" fullWidth>
             <Link href={hasSession ? '/profile/update-password' : '/reset-password'}>
-              {hasSession ? '프로필에서 비밀번호 변경' : '재설정 다시 요청하기'}
+              {hasSession ? '프로필에서 비밀번호 바꾸기' : '비밀번호 찾기 다시 하기'}
             </Link>
           </Button>
         </div>
@@ -149,7 +147,10 @@ export default function UpdatePasswordPage() {
   }
 
   return (
-    <AuthFrame title="새 비밀번호 설정" lead="앞으로 쓸 비밀번호를 정해 주세요.">
+    <AuthFrame
+      title="새 비밀번호"
+      lead="앞으로 쓸 비밀번호를 정해 주세요. 바꾸면 다른 기기의 알림은 꺼지고, 새 비밀번호로 다시 로그인해요."
+    >
       <form onSubmit={handleUpdate} noValidate className="space-y-5">
         {formError && <FormAlert>{formError}</FormAlert>}
         <FormGroup>
@@ -172,7 +173,7 @@ export default function UpdatePasswordPage() {
         </FormGroup>
         <FormGroup>
           <FormLabel variant="line" htmlFor="new-password-confirm">
-            새 비밀번호 확인
+            새 비밀번호 한 번 더
           </FormLabel>
           <PasswordInput
             variant="line"
@@ -194,9 +195,9 @@ export default function UpdatePasswordPage() {
           fullWidth
           loading={loading}
           disabled={!password || !confirmPassword}
-          className="mt-2"
+          className="!mt-6"
         >
-          {loading ? '변경 중...' : '비밀번호 변경하기'}
+          {loading ? '바꾸는 중...' : '바꾸기'}
         </Button>
       </form>
       <ActionNavigation href={action.destination} />

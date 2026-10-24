@@ -8,7 +8,7 @@ describe('frameFor', () => {
     ['/share/e/abc', 'bare'],
     ['/invite/x', 'bare'],
     ['/privacy', 'bare'],
-    ['/today', 'plain'],
+    ['/today', 'leaves'],
     ['/books/1', 'plain'],
     ['/sharing', 'plain'],
   ])('%s의 틀은 %s', (p, f) => expect(frameFor(p)).toBe(f));
@@ -64,5 +64,12 @@ describe('나 화면', () => {
     expect(frameFor('/settings')).toBe('plain');
     expect(frameFor('/design-lab/me/profile')).toBe('leaves');
     expect(frameFor('/design-lab/me/settings')).toBe('plain');
+  });
+});
+
+describe('오늘', () => {
+  it('오늘 견본도 간지 틀(여백선·장 넘김), 비슷한 접두사는 아니다', () => {
+    expect(frameFor('/design-lab/today')).toBe('leaves');
+    expect(frameFor('/todayx')).toBe('plain');
   });
 });

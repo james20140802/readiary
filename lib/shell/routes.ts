@@ -21,6 +21,8 @@ export const LEAVES_ROUTES: readonly string[] = [
   '/design-lab/leaves',
   '/profile',
   '/design-lab/me/profile',
+  '/today',
+  '/design-lab/today',
 ];
 
 /** 같은 경로이거나 `접두사/…`일 때만 맞는다 (`/sharing`은 `/share`가 아니다) */

@@ -7,9 +7,10 @@ export default function Highlight({ text, query }: { text: string; query: string
     <>
       {text.split(expression).map((part, index) =>
         index % 2 ? (
+          // 형광펜 밑줄 — 시안 search.html의 mark: 글자 아래 42%만 파란 잉크로 칠한다
           <mark
             key={index}
-            className="bg-accent-soft text-ink underline decoration-accent underline-offset-4"
+            className="bg-transparent bg-[linear-gradient(transparent_58%,rgb(var(--accent)/0.24)_58%)] text-inherit"
           >
             {part}
           </mark>
