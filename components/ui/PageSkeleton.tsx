@@ -69,7 +69,14 @@ function Shelf() {
 }
 
 /** Static server-rendered placeholders, with reduced-motion support. */
-export default function PageSkeleton({ kind = 'page' }: { kind?: PageKind }) {
+export default function PageSkeleton({
+  kind = 'page',
+  leaves = false,
+}: {
+  kind?: PageKind;
+  /** 장 틀(leaves) 화면 — 본문 여백이 없으므로 스스로 일반 화면과 같은 여백을 둔다 */
+  leaves?: boolean;
+}) {
   let content: ReactNode;
   switch (kind) {
     case 'dashboard':
@@ -215,7 +222,15 @@ export default function PageSkeleton({ kind = 'page' }: { kind?: PageKind }) {
       );
   }
   return (
-    <div role="status" aria-label="페이지를 불러오는 중입니다" className="w-full">
+    <div
+      role="status"
+      aria-label="페이지를 불러오는 중입니다"
+      className={
+        leaves
+          ? 'mx-auto w-full max-w-[1400px] px-6 pt-[calc(72px+var(--app-safe-top))] lg:pb-16 lg:pl-20 lg:pr-14 lg:pt-11'
+          : 'w-full'
+      }
+    >
       <span className="sr-only">페이지를 불러오는 중입니다.</span>
       <div aria-hidden="true" className="space-y-8 motion-safe:animate-pulse">
         <div className="flex items-center justify-between gap-4">

@@ -9,7 +9,7 @@ function Block({ className }: { className: string }) {
 export default function TodaySkeleton() {
   return (
     <div role="status" aria-label="오늘을 불러오는 중입니다" className="motion-safe:animate-pulse">
-      <div className="px-6 pt-[calc(60px+var(--app-safe-top))] lg:hidden">
+      <div className="px-6 pt-[calc(72px+var(--app-safe-top))] lg:hidden">
         <Block className="h-24 w-40" />
         <div className={s.write}>
           <Block className="h-6 w-3/4" />

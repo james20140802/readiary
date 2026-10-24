@@ -14,6 +14,10 @@ import type { FinishedBookExcerpt } from '@/lib/profile/fetchRetrospectData';
 import InviteSheet from './InviteSheet';
 import { ordinalCount, ordinalVolume, type DiaryShelf, type MonthRow } from './meModel';
 import s from './me.module.css';
+import { coverTier } from './coverTier';
+
+/** 긴 대표 문장은 작게 — 표지 안에 끝까지 들어가게 */
+const COVER_TIER = { lg: undefined, md: s.coverTitleMd, sm: s.coverTitleSm } as const;
 
 export interface MeViewProps {
   name: string;
@@ -72,7 +76,14 @@ function CoverBook({
       <div className={s.coverBy} aria-hidden>
         {name} 지음
       </div>
-      <div className={clsx(s.coverTitle, !quote && s.coverTitleEmpty)} aria-hidden>
+      <div
+        className={clsx(
+          s.coverTitle,
+          quote && COVER_TIER[coverTier(quote.quote)],
+          !quote && s.coverTitleEmpty
+        )}
+        aria-hidden
+      >
         {quote?.quote ?? `${name}의 독서 일기`}
       </div>
       <div className={s.coverFoot} aria-hidden>
@@ -376,14 +387,14 @@ function MonthList({
 
 const DESK_ITEMS = [
   { id: 'me-cover', label: '표지' },
-  { id: 'me-made', label: '나를 만든 책' },
-  { id: 'me-shelf', label: '서가' },
+  { id: 'me-books', label: '나를 만든 책·서가' },
   { id: 'me-diary', label: '일기장' },
 ];
 
 /**
  * 나 — 한 사람의 독서를 한 권의 책처럼. 문장 표지 → 나를 만든 책 → 서가 → 일기장 → 판권·책갈피.
- * 모바일은 한 화면씩 끊기는 장(Leaves), 데스크톱은 장 단위 + 오른쪽 위 전환 버튼(시안 me.html).
+ * 모바일은 한 화면씩 끊기는 장(Leaves), 데스크톱은 내용 높이대로 이어지는 펼침 + 오른쪽 위 차례 버튼.
+ * 데스크톱은 빈 곳이 없도록 나를 만든 책과 서가를 한 줄에 나란히 놓는다.
  */
 export default function MeView(props: MeViewProps) {
   const {
@@ -405,7 +416,7 @@ export default function MeView(props: MeViewProps) {
     canBookmark,
     settingsHref = '/settings',
   } = props;
-  useTopBar({ title: '나', brand: false });
+  useTopBar({ title: '나' });
   const [inviting, setInviting] = useState(false);
   const entries = stats?.totalEntries ?? null;
   const diaryTitle = `${ordinalCount(diary.count)} 일기장`;
@@ -463,7 +474,7 @@ export default function MeView(props: MeViewProps) {
           {pickCover && <div className="mt-1 text-center">{pickCover}</div>}
         </Leaf>
 
-        <Leaf title="나를 만든 책" vellum>
+        <Leaf title="나를 만든 책" vellum free>
           <h2 className={H2}>나를 만든 책</h2>
           <MadeBooks books={finishedBooks} />
           {stats && (
@@ -484,7 +495,7 @@ export default function MeView(props: MeViewProps) {
           <Shelf books={shelfBooks} total={shelfTotal} />
         </Leaf>
 
-        <Leaf title="일기장" vellum>
+        <Leaf title="일기장" vellum free>
           <h2 className={H2}>{diaryTitle}</h2>
           <p className={clsx(CAP, 'mt-1.5')}>{diaryCap}</p>
           <Volumes diary={diary} name={name} mobile />
@@ -526,26 +537,29 @@ export default function MeView(props: MeViewProps) {
           </div>
         </DesktopLeaf>
 
-        <DesktopLeaf id="me-made">
-          <h2 className={H2_DESK}>나를 만든 책</h2>
-          <div className="mt-2.5 max-w-[960px]">
-            <MadeBooks books={finishedBooks} />
-            {stats && (
-              <div className="pt-10">
-                <StatGrid stats={stats} desk />
+        <DesktopLeaf id="me-books">
+          <div className="grid items-start gap-14 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] xl:gap-16">
+            <div>
+              <h2 className={H2_DESK}>나를 만든 책</h2>
+              <div className="mt-2.5 max-w-[720px]">
+                <MadeBooks books={finishedBooks} />
               </div>
-            )}
+            </div>
+            <div>
+              <h2 className={clsx(H2_DESK, 'mb-[22px]')}>
+                서가{' '}
+                <span className="font-sans text-[20px] font-medium text-ink-sub">
+                  {shelfTotal.toLocaleString('ko-KR')}권
+                </span>
+              </h2>
+              <Shelf books={shelfBooks} total={shelfTotal} />
+              {stats && (
+                <div className="pt-6">
+                  <StatGrid stats={stats} desk />
+                </div>
+              )}
+            </div>
           </div>
-        </DesktopLeaf>
-
-        <DesktopLeaf id="me-shelf">
-          <h2 className={clsx(H2_DESK, 'mb-[22px]')}>
-            서가{' '}
-            <span className="font-sans text-[20px] font-medium text-ink-sub">
-              {shelfTotal.toLocaleString('ko-KR')}권
-            </span>
-          </h2>
-          <Shelf books={shelfBooks} total={shelfTotal} />
         </DesktopLeaf>
 
         <DesktopLeaf id="me-diary">

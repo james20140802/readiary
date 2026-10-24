@@ -132,7 +132,8 @@ export default function CommentBottomSheet({
         {context && (
           <p className="pb-3 font-serif text-[16px] leading-[1.6] text-ink-sub">{context}</p>
         )}
-        <div className="min-h-[160px]">
+        {/* 불러오는 중에도 시트가 넉넉한 높이로 열린다 — 댓글이 도착할 때 시트가 갑자기 커지며 화면이 덜컹이지 않게 */}
+        <div className="min-h-[min(48dvh,420px)]">
           {isLoading ? (
             <p role="status" className="py-10 text-center font-sans text-caption text-ink-sub">
               댓글을 불러오는 중…

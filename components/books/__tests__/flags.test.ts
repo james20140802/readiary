@@ -10,6 +10,7 @@ import {
   flagDay,
   flagEnd,
   flagPage,
+  clusterFlags,
   layoutFlags,
   rectsOverlap,
   type FlagSource,
@@ -197,32 +198,59 @@ describe('layoutFlags', () => {
     expect(out.map((f) => f.tier)).toEqual([0, 0, 0, 1, 2, 0, 0, 1, 2]);
   });
 
-  it('누름 영역은 나온 부분 안에만 있다', () => {
-    const out = layoutFlags(
-      [0.2, 0.21, 0.6].map((ratio, i) => ({ id: String(i), ratio })),
+  it('높이를 모르면 아무것도 세우지 않는다', () => {
+    expect(layoutFlags([{ id: 'a', ratio: 0.5 }], 0)).toEqual([]);
+  });
+});
+
+describe('clusterFlags', () => {
+  const H = 279;
+  const lay = (ratios: number[]) =>
+    layoutFlags(
+      ratios.map((ratio, i) => ({ id: String(i), ratio })),
       H
     );
-    for (const f of out) {
-      expect(f.hit.x0).toBeGreaterThanOrEqual(0);
-      expect(f.hit.x1).toBe(f.len);
-      expect(f.hit.x1).toBeGreaterThan(f.hit.x0);
-      expect(f.hit.y1 - f.hit.y0).toBeLessThanOrEqual(FLAG_HIT_HALF * 2);
+
+  it('떨어진 플래그는 하나씩, 플래그 길이만큼 눌린다', () => {
+    const out = clusterFlags(lay([0.1, 0.5, 0.9]));
+    expect(out.map((c) => c.ids)).toEqual([['0'], ['1'], ['2']]);
+    for (const c of out) {
+      expect(c.hit.x0).toBe(0);
+      expect(c.hit.x1).toBe(FLAG_LEN);
+      expect(c.hit.y1 - c.hit.y0).toBe(FLAG_HIT_HALF * 2);
     }
   });
 
-  it('긴 플래그는 바로 옆의 짧은 플래그 너머로 나온 끝만 눌린다', () => {
-    const [short, long] = layoutFlags(
-      [
-        { id: 's', ratio: 0.5 },
-        { id: 'l', ratio: 0.51 },
-      ],
-      H
-    );
-    expect(long.hit.x0).toBe(short.len);
-    expect(short.hit.x0).toBe(0);
+  it('누름 영역이 겹칠 만큼 가까운 플래그는 한 묶음이 되고, 가장 긴 플래그 끝까지 눌린다', () => {
+    const layout = lay([0.5, 0.51, 0.52, 0.9]);
+    const [group, alone] = clusterFlags(layout);
+    expect(group.ids).toEqual(['0', '1', '2']);
+    expect(alone.ids).toEqual(['3']);
+    expect(group.hit.x1).toBe(Math.max(...layout.slice(0, 3).map((l) => l.len)));
+    expect(group.hit.y0).toBe(layout[0].y - FLAG_HIT_HALF);
+    expect(group.hit.y1).toBe(layout[2].y + FLAG_HIT_HALF);
   });
 
-  it('어떤 배치에서도 두 누름 영역은 겹치지 않는다', () => {
+  it('같은 쪽에 일곱 기록이 몰리면 손가락 크기의 버튼 하나에 일곱 기록이 모이고, 세 개만 그린다', () => {
+    const [only, ...rest] = clusterFlags(lay(Array(7).fill(0.5)));
+    expect(rest).toEqual([]);
+    expect(only.ids).toHaveLength(7);
+    expect(only.visible).toEqual(['0', '1', '2']);
+    expect(only.hit.y1 - only.hit.y0).toBeGreaterThanOrEqual(FLAG_HIT_HALF * 2);
+  });
+
+  it('플래그가 아주 많아도 하나로 뭉치지 않고, 묶음마다 한 칸 남짓으로 나뉜다', () => {
+    // 412쪽 책에 기록 94개가 고르게 흩어진 경우
+    const out = clusterFlags(lay(Array.from({ length: 94 }, (_, i) => (i * 4.4) / 412)));
+    expect(out.length).toBeGreaterThan(8);
+    for (const c of out) {
+      expect(c.hit.y1 - c.hit.y0).toBeLessThanOrEqual(FLAG_HIT_HALF * 4);
+      expect(c.hit.y1 - c.hit.y0).toBeGreaterThanOrEqual(FLAG_HIT_HALF);
+      expect(c.visible.length).toBeLessThanOrEqual(3);
+    }
+  });
+
+  it('어떤 배치에서도 묶음끼리 겹치지 않고, 모든 플래그가 한 묶음에 든다', () => {
     let seed = 7;
     const rand = () => {
       seed = (seed * 9301 + 49297) % 233280;
@@ -233,28 +261,16 @@ describe('layoutFlags', () => {
       const ratios = Array.from({ length: n }, () =>
         rand() < 0.3 ? Math.round(rand() * 4) / 4 : rand()
       ).sort((a, b) => a - b);
-      const out = layoutFlags(
-        ratios.map((ratio, i) => ({ id: String(i), ratio })),
-        200 + rand() * 300
+      const out = clusterFlags(
+        layoutFlags(
+          ratios.map((ratio, i) => ({ id: String(i), ratio })),
+          200 + rand() * 300
+        )
       );
+      expect(out.flatMap((c) => c.ids).sort()).toEqual(ratios.map((_, i) => String(i)).sort());
       for (let i = 0; i < out.length; i++)
         for (let j = i + 1; j < out.length; j++)
           expect(rectsOverlap(out[i].hit, out[j].hit), `${round}:${i}-${j}`).toBe(false);
     }
-  });
-
-  it('같은 쪽에 일곱 기록이 몰려도 모든 플래그가 눌릴 자리를 가진다', () => {
-    const out = layoutFlags(
-      Array.from({ length: 7 }, (_, i) => ({ id: String(i), ratio: 0.5 })),
-      H
-    );
-    for (const f of out) expect(f.hit.y1 - f.hit.y0).toBeGreaterThan(0);
-    for (let i = 0; i < out.length; i++)
-      for (let j = i + 1; j < out.length; j++)
-        expect(rectsOverlap(out[i].hit, out[j].hit)).toBe(false);
-  });
-
-  it('높이를 모르면 아무것도 세우지 않는다', () => {
-    expect(layoutFlags([{ id: 'a', ratio: 0.5 }], 0)).toEqual([]);
   });
 });

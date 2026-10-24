@@ -26,7 +26,13 @@
   }
   .item {
     scroll-snap-align: start;
-    scroll-margin-top: calc(64px + var(--app-safe-top));
+    scroll-margin-top: calc(76px + var(--app-safe-top));
+  }
+  /* 맨 위(친구들이 읽는 책)에도 멈출 자리 — 없으면 위로 올려도 첫 글로 다시 끌려 내려간다.
+     여백을 넉넉히 줘 멈춤 위치가 문서 맨 위(0)로 잡힌다 */
+  .feed {
+    scroll-snap-align: start;
+    scroll-margin-top: 100vh;
   }
 }
 

@@ -6,8 +6,8 @@ import clsx from 'clsx';
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import styles from './books.module.css';
 import { spineColor } from './shelfStyle';
-import { FLAG_HIDDEN, layoutFlags, type BookFlag, type FlagLayout } from './flags';
-import { shortDate } from './bookFormat';
+import { FLAG_HIDDEN, clusterFlags, layoutFlags, type BookFlag } from './flags';
+import { shortDate, splitTitle, titleTier } from './bookFormat';
 
 export interface FlagEntry {
   id: string;
@@ -37,6 +37,13 @@ interface Props {
   headingLevel?: 1 | 2;
 }
 
+/** 큰 제목 글자 크기 — 시안 26/30px에서 길이에 따라 줄인다 */
+const TITLE_SIZE = {
+  lg: 'text-[26px] lg:text-[30px]',
+  md: 'text-[23px] lg:text-[27px]',
+  sm: 'text-[20px] lg:text-[24px]',
+} as const;
+
 /** 간지를 왼쪽으로 밀 수 있는 한계(px) — 시안 room() */
 const roomFor = (velWidth: number) => -Math.min(110, velWidth * 0.42);
 
@@ -61,6 +68,7 @@ export default function BookStack({
   const velRef = useRef<HTMLDivElement>(null);
   const [apart, setApart] = useState(false);
   const Heading = headingLevel === 1 ? 'h1' : 'h2';
+  const heading = splitTitle(title);
 
   const set = useCallback((d: number) => {
     const st = stackRef.current;
@@ -144,8 +152,18 @@ export default function BookStack({
         <div className="font-sans text-[12px] font-semibold tracking-[0.04em] text-ink-sub">
           {kicker}
         </div>
-        <Heading className="mt-[18px] font-serif text-[26px] font-bold leading-[1.3] tracking-[-0.01em] text-ink lg:text-[30px]">
-          {title}
+        <Heading
+          className={clsx(
+            'mt-[18px] font-serif font-bold leading-[1.3] tracking-[-0.01em] text-ink',
+            TITLE_SIZE[titleTier(heading.main)]
+          )}
+        >
+          <span className="line-clamp-3">{heading.main}</span>
+          {heading.sub && (
+            <span className="mt-1 line-clamp-2 font-serif text-[16px] font-semibold leading-[1.45] text-ink-sub lg:text-[18px]">
+              {heading.sub}
+            </span>
+          )}
         </Heading>
         {author && (
           <div className="mt-1 font-sans text-[14px] font-medium text-ink-sub">{author}</div>
@@ -208,8 +226,12 @@ function FlagRack({
     return () => ro.disconnect();
   }, []);
 
-  const layout: FlagLayout[] = layoutFlags(flags, height);
+  const layout = layoutFlags(flags, height);
+  const clusters = clusterFlags(layout);
   const byId = new Map(flags.map((f) => [f.id, f]));
+  const layoutById = new Map(layout.map((l) => [l.id, l]));
+  // 묶음의 키는 맨 앞 플래그의 id
+  const clusterByKey = new Map(clusters.map((c) => [c.ids[0], c]));
 
   const close = useCallback((refocus: boolean) => {
     setOpen((cur) => {
@@ -256,7 +278,9 @@ function FlagRack({
     setOpen({ id, left, top: br.bottom - sr.top + 8, ox: cx - left });
   };
 
-  const current = open ? byId.get(open.id) : null;
+  const currentGroup = open
+    ? (clusterByKey.get(open.id)?.ids.map((id) => byId.get(id)!) ?? null)
+    : null;
 
   return (
     <>
@@ -266,50 +290,71 @@ function FlagRack({
         role="group"
         aria-label={flags.length ? `기록을 남긴 쪽마다 꽂힌 플래그 ${flags.length}개` : undefined}
       >
-        {layout.map((l) => {
-          const f = byId.get(l.id)!;
-          const kind = f.source.quote ? '문장' : '생각';
+        {clusters.map((c) => {
+          const key = c.ids[0];
+          const members = c.ids.map((id) => byId.get(id)!);
+          const first = members[0];
+          const last = members[members.length - 1];
+          const label =
+            members.length === 1
+              ? `${first.page}쪽, ${shortDate(first.day)}의 ${first.source.quote ? '문장' : '생각'}`
+              : `${first.page === last.page ? `${first.page}쪽` : `${first.page}~${last.page}쪽`} 기록 ${members.length}개`;
           return (
-            <span key={l.id} className={styles[`c-${f.color}`]}>
+            <span key={key} className={styles.flagGroup}>
               <button
                 type="button"
                 ref={(el) => {
-                  if (el) buttons.current.set(l.id, el);
-                  else buttons.current.delete(l.id);
+                  if (el) buttons.current.set(key, el);
+                  else buttons.current.delete(key);
                 }}
-                aria-label={`${f.page}쪽, ${shortDate(f.day)}의 ${kind}`}
-                aria-expanded={open?.id === l.id}
-                aria-controls={open?.id === l.id ? popId : undefined}
+                aria-label={label}
+                aria-expanded={open?.id === key}
+                aria-controls={open?.id === key ? popId : undefined}
                 onPointerDown={(e) => e.stopPropagation()}
                 onClick={(e) => {
                   e.stopPropagation();
-                  toggle(l.id);
+                  toggle(key);
                 }}
                 className={styles.flagHit}
                 style={{
-                  marginLeft: l.hit.x0,
-                  width: l.hit.x1 - l.hit.x0,
-                  top: l.hit.y0,
-                  height: l.hit.y1 - l.hit.y0,
-                  zIndex: l.z + 3,
+                  marginLeft: c.hit.x0,
+                  width: c.hit.x1 - c.hit.x0,
+                  top: c.hit.y0,
+                  height: c.hit.y1 - c.hit.y0,
+                  zIndex: FLAG_HIT_Z,
                 }}
               />
-              <span
-                aria-hidden
-                className={styles.flag}
-                style={{ top: l.y, width: l.len + FLAG_HIDDEN, zIndex: l.z }}
-              />
+              {c.visible.map((id) => {
+                const l = layoutById.get(id)!;
+                return (
+                  <span key={id} className={styles[`c-${byId.get(id)!.color}`]}>
+                    <span
+                      aria-hidden
+                      className={styles.flag}
+                      style={{ top: l.y, width: l.len + FLAG_HIDDEN, zIndex: l.z }}
+                    />
+                  </span>
+                );
+              })}
             </span>
           );
         })}
       </div>
-      {open && current && (
+      {open && currentGroup && (
         <div
           ref={popRef}
           id={popId}
           role="dialog"
-          aria-label={`${current.page}쪽 기록`}
-          className={clsx('vellum', styles.fpop, styles[`c-${current.color}`])}
+          aria-label={
+            currentGroup.length === 1
+              ? `${currentGroup[0].page}쪽 기록`
+              : `${currentGroup[0].page}쪽 근처 기록 ${currentGroup.length}개`
+          }
+          className={clsx(
+            'vellum',
+            styles.fpop,
+            currentGroup.length === 1 && styles[`c-${currentGroup[0].color}`]
+          )}
           style={
             {
               left: open.left,
@@ -319,28 +364,51 @@ function FlagRack({
           }
           onPointerDown={(e) => e.stopPropagation()}
         >
-          <p
-            className={clsx(
-              'line-clamp-6 font-serif text-[17px] leading-[1.55]',
-              current.source.quote ? 'text-ink' : 'text-ink-sub'
-            )}
-          >
-            {current.source.quote ?? current.source.note}
-          </p>
-          <div className="mt-2 flex items-center justify-between font-mono text-[12px] font-medium text-ink-sub">
-            <span>
-              <i aria-hidden className={styles.swatch} />
-              p.{current.page} · {shortDate(current.day)}
-            </span>
-            <Link
-              href={current.source.href}
-              className="inline-flex min-h-8 items-center font-sans text-[14px] font-semibold text-accent"
-            >
-              펼치기
-            </Link>
-          </div>
+          {currentGroup.length === 1 ? (
+            <FlagNote flag={currentGroup[0]} lines={6} />
+          ) : (
+            <ul className={styles.fpopList}>
+              {currentGroup.map((f) => (
+                <li key={f.id} className={styles[`c-${f.color}`]}>
+                  <FlagNote flag={f} lines={3} />
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
+    </>
+  );
+}
+
+/** 누름 영역이 플래그 그림보다 앞에 온다 — 묶음끼리는 겹치지 않으므로 하나의 값이면 된다 */
+const FLAG_HIT_Z = 10;
+
+/** 플래그를 눌러 펼친 기록 한 개 — 문장(없으면 생각), 쪽·날짜, 펼치기 */
+function FlagNote({ flag, lines }: { flag: BookFlag<FlagEntry>; lines: 3 | 6 }) {
+  return (
+    <>
+      <p
+        className={clsx(
+          'font-serif text-[17px] leading-[1.55]',
+          lines === 6 ? 'line-clamp-6' : 'line-clamp-3',
+          flag.source.quote ? 'text-ink' : 'text-ink-sub'
+        )}
+      >
+        {flag.source.quote ?? flag.source.note}
+      </p>
+      <div className="mt-2 flex items-center justify-between font-mono text-[12px] font-medium text-ink-sub">
+        <span>
+          <i aria-hidden className={styles.swatch} />
+          p.{flag.page} · {shortDate(flag.day)}
+        </span>
+        <Link
+          href={flag.source.href}
+          className="inline-flex min-h-8 items-center font-sans text-[14px] font-semibold text-accent"
+        >
+          펼치기
+        </Link>
+      </div>
     </>
   );
 }

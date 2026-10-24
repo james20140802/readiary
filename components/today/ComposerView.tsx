@@ -227,15 +227,17 @@ export default function ComposerView(props: ComposerViewProps) {
         )}
       </div>
 
-      <textarea
-        id={`${idBase}-composer-text`}
-        value={primary}
-        onChange={(e) => props.onChange(mode, e.target.value)}
-        disabled={disabled}
-        placeholder={desk ? copy.primary.replace('\n', ' ') : copy.primary}
-        aria-label={copy.primaryLabel}
-        className={clsx(s.primary, mode === 'quote' && s.quoteMode)}
-      />
+      <div className={s.primaryField}>
+        <textarea
+          id={`${idBase}-composer-text`}
+          value={primary}
+          onChange={(e) => props.onChange(mode, e.target.value)}
+          disabled={disabled}
+          placeholder={desk ? copy.primary.replace('\n', ' ') : copy.primary}
+          aria-label={copy.primaryLabel}
+          className={clsx(s.primary, mode === 'quote' && s.quoteMode)}
+        />
+      </div>
       {showSecondary && (
         <textarea
           value={secondary}

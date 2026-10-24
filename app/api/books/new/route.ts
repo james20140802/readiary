@@ -3,6 +3,7 @@ import { revalidatePath } from 'next/cache';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { isUuid } from '@/lib/share/validation';
 import { randomUUID } from 'node:crypto';
+import { originalCoverUrl } from '@/lib/books/coverUrl';
 
 export async function POST(req: Request) {
   try {
@@ -35,7 +36,8 @@ export async function POST(req: Request) {
       p_author: author.trim(),
       p_total_pages: total_pages ?? null,
       p_isbn: isbn?.trim() || null,
-      p_cover_url: cover_url?.trim() || null,
+      // 예전 화면이 보낸 카카오 썸네일도 원본 표지로 저장한다
+      p_cover_url: originalCoverUrl(cover_url?.trim()) || null,
     });
     if (error || !data) {
       return Response.json(

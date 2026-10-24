@@ -43,6 +43,20 @@ describe('atomic book registration API', () => {
       replayed: false,
     });
   });
+  it('saves the original cover instead of the Kakao thumbnail', async () => {
+    await POST(
+      request({
+        title: 't',
+        author: 'a',
+        client_request_id: id,
+        cover_url:
+          'https://search1.kakaocdn.net/thumb/R120x174.q85/?fname=http%3A%2F%2Ft1.daumcdn.net%2Flbook%2Fimage%2F525352%3Ftimestamp%3D20260829111003',
+      })
+    );
+    expect(rpc.mock.calls[0][1].p_cover_url).toBe(
+      'https://t1.daumcdn.net/lbook/image/525352?timestamp=20260829111003'
+    );
+  });
   it('preserves replay results', async () => {
     rpc.mockResolvedValue({
       data: { book_id: 'book', user_book_id: 'shelf', replayed: true },

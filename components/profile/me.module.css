@@ -1,7 +1,7 @@
 /*
  * '나' 화면의 책 물건 — 문장 표지, 나를 만든 책의 선반, 해마다 쌓이는 일기장.
  * 색은 시안(me.html)의 책 표지 값이다. 종이·먹 토큰이 아니라 "책 물건의 표지색"이라 토큰을 새로 만들지 않고
- * 이 파일에만 둔다(설계 2.1이 허용하는 시안 전용 CSS 값). 깊이도 시안 그대로 이 물건들에만 준다 — 일반 카드에 넓히지 않는다.
+ * 이 파일에만 둔다(설계 2.1이 허용하는 시안 전용 CSS 값). 친구 서재 표지처럼 바닥 그림자 없이 평평하게 두고, 책등의 안쪽 음영만 남긴다.
  */
 
 /* ── 문장 표지 ── */
@@ -15,9 +15,7 @@
   padding: 22px 22px 18px 28px;
   display: flex;
   flex-direction: column;
-  box-shadow:
-    inset 8px 0 10px -6px rgb(0 0 0 / 0.35),
-    0 28px 44px -20px rgb(20 20 40 / 0.55);
+  box-shadow: inset 8px 0 10px -6px rgb(0 0 0 / 0.35);
 }
 .coverBy {
   font-family: var(--font-sans);
@@ -39,6 +37,17 @@
   overflow: hidden;
   word-break: keep-all;
   overflow-wrap: anywhere;
+}
+.coverTitleMd {
+  font-size: 18px;
+  line-height: 1.5;
+  -webkit-line-clamp: 7;
+}
+.coverTitleSm {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.6;
+  -webkit-line-clamp: 9;
 }
 .coverTitleEmpty {
   opacity: 0.72;
@@ -62,6 +71,12 @@
   .coverTitle {
     font-size: 30px;
   }
+  .coverTitleMd {
+    font-size: 24px;
+  }
+  .coverTitleSm {
+    font-size: 20px;
+  }
 }
 
 /* ── 나를 만든 책: 선반 위에 선 표지 ── */
@@ -77,15 +92,15 @@
 .madeBook {
   position: relative;
   display: block;
-  flex: none;
-  width: 92px;
+  /* 좁은 화면(320px)에서도 세 권이 다 보이도록 줄어든다 — 높이는 비율을 따른다 */
+  flex: 0 1 92px;
+  min-width: 0;
   aspect-ratio: 2 / 3;
   border-radius: 2px 4px 4px 2px;
   overflow: hidden;
-  box-shadow: 0 18px 28px -14px rgb(30 20 10 / 0.55);
 }
 .madeBook:first-child {
-  width: 120px;
+  flex-basis: 120px;
 }
 /* 표지가 없는 책은 표지색을 흉내 낸 면에 제목만 */
 .madeBlank {
@@ -115,10 +130,10 @@
     gap: 30px;
   }
   .madeBook {
-    width: 180px;
+    flex-basis: 180px;
   }
   .madeBook:first-child {
-    width: 220px;
+    flex-basis: 220px;
   }
   .madeBlank {
     font-size: 18px;
@@ -137,9 +152,7 @@
   width: 210px;
   height: 290px;
   border-radius: 3px 8px 8px 3px;
-  box-shadow:
-    inset 9px 0 0 -2px rgb(0 0 0 / 0.18),
-    0 24px 40px -22px rgb(20 15 10 / 0.6);
+  box-shadow: inset 9px 0 0 -2px rgb(0 0 0 / 0.18);
 }
 .lab {
   position: absolute;
@@ -218,5 +231,13 @@
   .v3 {
     left: 10px;
     top: 24px;
+  }
+}
+/* 좁은 데스크톱: 펼침 왼쪽 칸이 일기장 묶음(420px)보다 좁아 옆 차례를 덮지 않도록 줄인다 */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .vols {
+    transform: scale(0.76);
+    transform-origin: 0 0;
+    margin-bottom: -113px;
   }
 }

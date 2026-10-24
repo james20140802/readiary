@@ -4,7 +4,7 @@ export default function Loading() {
     <div
       role="status"
       aria-label="나의 책을 펼치는 중"
-      className="flex flex-col items-center px-6 pt-[calc(68px+var(--app-safe-top))] lg:items-start lg:px-20 lg:pt-10"
+      className="flex flex-col items-center px-6 pt-[calc(72px+var(--app-safe-top))] lg:items-start lg:px-20 lg:pt-10"
     >
       <div className="aspect-[7/10] w-[min(230px,60vw)] rounded-[2px_6px_6px_2px] bg-hairline/70 lg:w-[340px]" />
       <div className="mt-[22px] h-7 w-32 rounded-md bg-hairline/60" />

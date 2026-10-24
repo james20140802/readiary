@@ -121,7 +121,7 @@ export function LeafStack({ children }: { children: React.ReactNode }) {
   return <div className="leaf-stack">{children}</div>;
 }
 
-/* ── 데스크톱: 한 화면씩 끊기는 장 + 오른쪽 위 전환 버튼 ── */
+/* ── 데스크톱: 내용 높이대로 이어지는 구역 + 오른쪽 위 차례 버튼 ── */
 
 export function DesktopLeaves({ children }: { children: React.ReactNode }) {
   return <div className="dleaves hidden lg:block">{children}</div>;
@@ -146,17 +146,29 @@ export function LeafSwitch({
   const ids = items.map((i) => i.id).join('|');
 
   useEffect(() => {
+    // 구역 높이가 제각각이라 보이는 비율 대신, 화면 위쪽 40% 선을 지나는 구역을 지금 구역으로 본다
     const io = new IntersectionObserver(
       (entries) => {
         for (const e of entries) if (e.isIntersecting) setCurrent(e.target.id);
       },
-      { threshold: 0.55 }
+      { rootMargin: '-40% 0px -59% 0px' }
     );
-    ids.split('|').forEach((id) => {
+    const list = ids.split('|');
+    list.forEach((id) => {
       const el = document.getElementById(id);
       if (el) io.observe(el);
     });
-    return () => io.disconnect();
+    // 짧은 마지막 구역은 그 선까지 못 올라오므로 바닥에 닿으면 마지막 구역으로 본다
+    const onScroll = () => {
+      const root = document.documentElement;
+      if (window.scrollY + window.innerHeight >= root.scrollHeight - 4)
+        setCurrent(list[list.length - 1]);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      io.disconnect();
+      window.removeEventListener('scroll', onScroll);
+    };
   }, [ids]);
 
   return (
@@ -169,6 +181,15 @@ export function LeafSwitch({
           key={it.id}
           href={`#${it.id}`}
           aria-current={current === it.id ? 'true' : undefined}
+          onClick={(e) => {
+            const el = document.getElementById(it.id);
+            if (!el) return;
+            e.preventDefault();
+            const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            el.scrollIntoView({ behavior: still ? 'auto' : 'smooth', block: 'start' });
+            history.replaceState(null, '', `#${it.id}`);
+            setCurrent(it.id);
+          }}
           className="dseg-item flex items-center rounded-[9px] px-4 text-[14px] font-semibold text-ink-sub"
         >
           {it.label}

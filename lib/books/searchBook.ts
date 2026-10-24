@@ -1,5 +1,6 @@
 import { apiFetch } from '@/lib/api/fetch';
 import { KakaoBookSearchResponse } from '@/types/kakao';
+import { originalCoverUrl } from './coverUrl';
 
 export async function searchBook(query: string) {
   const res = await apiFetch(`/api/books/search?q=${encodeURIComponent(query)}`);
@@ -15,7 +16,8 @@ export async function searchBook(query: string) {
     title: doc.title,
     authors: doc.authors,
     publisher: doc.publisher,
-    thumbnail: doc.thumbnail,
+    // 고를 때부터 원본 표지를 보여 준다(썸네일은 120px이라 흐리다)
+    thumbnail: originalCoverUrl(doc.thumbnail),
     isbn: doc.isbn,
     contents: doc.contents,
     datetime: doc.datetime,

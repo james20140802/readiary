@@ -116,7 +116,7 @@ function mainClass(frame: Frame, nav: boolean): string {
     case 'plain':
     case 'feed':
       return clsx(
-        'px-6 pt-[calc(64px+var(--app-safe-top))] lg:pb-16 lg:pl-20 lg:pr-14 lg:pt-11',
+        'px-6 pt-[calc(76px+var(--app-safe-top))] lg:pb-16 lg:pl-20 lg:pr-14 lg:pt-11',
         nav
           ? 'pb-[calc(var(--app-tabbar-h)+48px+var(--app-safe-bottom))] lg:ml-[var(--app-side)]'
           : 'pb-[calc(48px+var(--app-safe-bottom))] lg:ml-0'
