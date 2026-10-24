@@ -763,20 +763,22 @@ li {
   }
 }
 
-/* 데스크톱 .dleaves: 한 화면씩 끊기고, 오른쪽 위 전환 버튼(.dseg)으로도 이동한다 */
+/* 데스크톱 .dleaves: 구역이 내용 높이대로 이어진다 — 한 화면씩 끊으면 트랙패드 관성과 부딪치고
+   내용이 적은 구역은 화면 아래가 비어 보인다. 오른쪽 위 전환 버튼(.dseg)은 구역으로 건너뛰는 차례다 */
 @media (min-width: 1024px) {
-  html:has(.dleaves) {
-    scroll-snap-type: y mandatory;
-  }
   .dleaf {
     position: relative;
-    min-height: 100dvh;
     max-width: 1400px;
     /* 넓은 화면에서 사이드바 오른쪽 공간의 가운데에 앉는다(왼쪽 쏠림 방지) */
     margin-inline: auto;
-    padding: 40px 56px 40px 80px;
-    scroll-snap-align: start;
-    scroll-snap-stop: always;
+    padding: 56px 56px 64px 80px;
+    scroll-margin-top: 8px;
+  }
+  .dleaf:first-child {
+    padding-top: 40px;
+  }
+  .dleaf:last-child {
+    padding-bottom: 96px;
   }
   .dleaf + .dleaf {
     border-top: 1px solid rgb(var(--hairline));
