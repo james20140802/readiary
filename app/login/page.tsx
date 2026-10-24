@@ -13,7 +13,7 @@ import Button from '@/components/ui/Button';
 import FormGroup from '@/components/ui/FormGroup';
 import FormLabel from '@/components/ui/FormLabel';
 import FormAlert from '@/components/ui/FormAlert';
-import AuthFrame from '@/components/auth/AuthFrame';
+import AuthFrame, { AuthLinks } from '@/components/auth/AuthFrame';
 import PasswordInput from '@/components/auth/PasswordInput';
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 import OrDivider from '@/components/auth/OrDivider';
@@ -121,18 +121,7 @@ export default function LoginPage() {
   const signupHref = authHrefWithRedirect('/signup', redirectParam);
 
   return (
-    <AuthFrame title="로그인" lead="이어서 오늘의 문장을 남겨 보세요.">
-      {isGoogleLoginEnabled() && (
-        <>
-          <GoogleSignInButton
-            redirectParam={redirectParam}
-            disabled={isSubmitting}
-            onBusyChange={setIsSubmitting}
-          />
-          <OrDivider />
-        </>
-      )}
-
+    <AuthFrame title="다시 만나서 반가워요" wordmark>
       <form onSubmit={handleLogin} noValidate className="space-y-5">
         {formError && (
           <FormAlert>
@@ -192,18 +181,27 @@ export default function LoginPage() {
           />
         </FormGroup>
 
-        <Button type="submit" fullWidth loading={isSubmitting} className="mt-2">
+        <Button type="submit" fullWidth loading={isSubmitting} className="!mt-6">
           {isSubmitting ? '로그인 중...' : '로그인'}
         </Button>
       </form>
-      <div className="mt-3 space-y-2 text-center text-body-sm text-ink-sub [&_a]:underline [&_a]:underline-offset-4 [&_a:hover]:text-ink">
-        <p>
-          비밀번호를 잊으셨나요? <Link href="/reset-password">비밀번호 찾기</Link>
-        </p>
-        <p>
-          아직 회원이 아니신가요? <Link href={signupHref}>가입하기</Link>
-        </p>
-      </div>
+      <AuthLinks>
+        <Link href="/reset-password">비밀번호를 잊었어요</Link>
+        <Link href={signupHref}>처음이에요</Link>
+      </AuthLinks>
+
+      {isGoogleLoginEnabled() && (
+        <>
+          <OrDivider />
+          <div className="mt-3">
+            <GoogleSignInButton
+              redirectParam={redirectParam}
+              disabled={isSubmitting}
+              onBusyChange={setIsSubmitting}
+            />
+          </div>
+        </>
+      )}
       <ActionNavigation href={action.destination} />
     </AuthFrame>
   );

@@ -16,13 +16,15 @@ interface GoogleSignInButtonProps {
   consented?: boolean;
   disabled?: boolean;
   onBusyChange?: (busy: boolean) => void;
+  /** 버튼이 왜 눌리지 않는지 알리는 안내문의 id */
+  describedBy?: string;
   children?: React.ReactNode;
 }
 
 /** Google 'G' 마크 — 브랜드 지침상 네 가지 고정색을 쓴다(UI 토큰 예외) */
 function GoogleMark() {
   return (
-    <svg aria-hidden viewBox="0 0 24 24" className="h-4 w-4 shrink-0">
+    <svg aria-hidden viewBox="0 0 24 24" className="h-[18px] w-[18px] shrink-0">
       <path
         fill="#4285F4"
         d="M23.5 12.27c0-.79-.07-1.54-.2-2.27H12v4.3h6.46a5.52 5.52 0 0 1-2.4 3.62v3h3.87c2.27-2.09 3.57-5.17 3.57-8.65Z"
@@ -53,6 +55,7 @@ export default function GoogleSignInButton({
   consented = false,
   disabled,
   onBusyChange,
+  describedBy,
   children = 'Google로 계속하기',
 }: GoogleSignInButtonProps) {
   const action = useActionLock();
@@ -89,6 +92,7 @@ export default function GoogleSignInButton({
       fullWidth
       loading={loading}
       disabled={disabled}
+      aria-describedby={describedBy}
       onClick={handleClick}
     >
       {!loading && <GoogleMark />}
