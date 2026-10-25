@@ -1,3 +1,4 @@
+import { buildRhythm } from '@/lib/profile/readingRhythm';
 import type { ShelfBook } from '@/components/books/BookSpineShelf';
 import type { MeViewProps } from '@/components/profile/MeView';
 import { diaryShelf, monthRows } from '@/components/profile/meModel';
@@ -103,6 +104,20 @@ export const ME_FULL: MeViewProps = {
   },
   canBookmark: true,
   settingsHref: '/design-lab/me/settings',
+  // 언제 읽었나 — 일요일 밤이 석 달 내내, 토요일 낮이 두 달
+  rhythm: buildRhythm(
+    [
+      { month: '2026-08', day: 6, slot: 3, count: 1 },
+      { month: '2026-09', day: 6, slot: 3, count: 2 },
+      { month: '2026-10', day: 6, slot: 3, count: 1 },
+      { month: '2026-08', day: 5, slot: 1, count: 1 },
+      { month: '2026-10', day: 5, slot: 1, count: 2 },
+      { month: '2026-08', day: 3, slot: 0, count: 1 },
+      { month: '2026-09', day: 1, slot: 2, count: 1 },
+      { month: '2026-10', day: 3, slot: 3, count: 1 },
+    ],
+    '2026-10-25'
+  ),
 };
 
 /** 막 가입한 사람 — 표지 문장·다 읽은 책·책·기록이 없다 */

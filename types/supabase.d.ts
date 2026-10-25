@@ -488,6 +488,10 @@ export type Database = {
         };
         Returns: Json;
       };
+      reading_rhythm: {
+        Args: { p_since: string };
+        Returns: { month: string; day: number; slot: number; count: number }[];
+      };
       get_books_page: { Args: Record<string, never>; Returns: Json };
       get_profile_retrospect: {
         Args: { p_user_id: string; p_today: string; p_public_only?: boolean };
