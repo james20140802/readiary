@@ -158,8 +158,13 @@ export default function OverlappedMonths({
       )}
     </p>
   );
+  // 판은 aria-hidden이라, 고른 달마다 기록이 있는 요일·시간대를 글로 읽어 준다
   const counts = (
-    <p className="sr-only">{active.map((m) => `${m.label} ${m.total}개`).join(', ')}</p>
+    <ul className="sr-only">
+      {active.map((m) => (
+        <li key={m.key}>{describeMonth(m)}</li>
+      ))}
+    </ul>
   );
 
   if (split) {
@@ -186,6 +191,17 @@ export default function OverlappedMonths({
       {counts}
     </div>
   );
+}
+
+function describeMonth(m: RhythmMonth) {
+  const cells = m.cells.flatMap((n, idx) =>
+    n > 0
+      ? [
+          `${RHYTHM_DAYS[Math.floor(idx / RHYTHM_TIMES.length)]}요일 ${RHYTHM_TIMES[idx % RHYTHM_TIMES.length]} ${n}개`,
+        ]
+      : []
+  );
+  return `${m.label} 기록 ${m.total}개${cells.length ? `: ${cells.join(', ')}` : ''}`;
 }
 
 function Row({ label }: { label: string }) {
