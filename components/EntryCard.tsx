@@ -118,11 +118,13 @@ export default function EntryCard({
         aria-label={`${shortDate(date)}${pages ? ` ${pages}` : ''} 기록 펼치기`}
         className="self-start font-mono text-[14px] font-medium leading-[1.5] text-ink-sub hover:text-accent"
       >
-        <time dateTime={date.slice(0, 10)}>{shortDate(date)}</time>
+        <time data-skeleton dateTime={date.slice(0, 10)}>
+          {shortDate(date)}
+        </time>
         {pages && (
           <>
             <br />
-            {pages}
+            <span data-skeleton>{pages}</span>
           </>
         )}
       </Link>
@@ -130,17 +132,26 @@ export default function EntryCard({
       <div className="min-w-0">
         <ClampedText fadeFromClassName="from-sheet">
           {quote && (
-            <blockquote className="whitespace-pre-wrap font-serif text-[21px] font-semibold leading-[1.65] text-ink lg:text-[24px]">
+            <blockquote
+              data-skeleton
+              className="whitespace-pre-wrap font-serif text-[21px] font-semibold leading-[1.65] text-ink lg:text-[24px]"
+            >
               {quote}
             </blockquote>
           )}
           {note &&
             (quote ? (
-              <p className="mt-2 whitespace-pre-wrap pl-3 font-serif text-[18px] leading-[1.65] text-ink-sub shadow-[inset_2px_0_0_rgb(var(--hairline))]">
+              <p
+                data-skeleton
+                className="mt-2 whitespace-pre-wrap pl-3 font-serif text-[18px] leading-[1.65] text-ink-sub shadow-[inset_2px_0_0_rgb(var(--hairline))]"
+              >
                 {note}
               </p>
             ) : (
-              <p className="whitespace-pre-wrap font-serif text-[20px] leading-[1.65] text-ink">
+              <p
+                data-skeleton
+                className="whitespace-pre-wrap font-serif text-[20px] leading-[1.65] text-ink"
+              >
                 {note}
               </p>
             ))}
@@ -153,7 +164,7 @@ export default function EntryCard({
             aria-pressed={isLiked}
             className={clsx(reactBtn, isLiked && 'text-accent', isLikeLoading && 'cursor-progress')}
           >
-            좋아요 {likeCount}
+            좋아요 <span data-skeleton>{likeCount}</span>
           </button>
           <button
             type="button"
@@ -161,7 +172,7 @@ export default function EntryCard({
             aria-label={`댓글 ${commentCount}개 보기`}
             className={reactBtn}
           >
-            댓글 {commentCount}
+            댓글 <span data-skeleton>{commentCount}</span>
           </button>
           {own && (
             <span className="font-sans text-[14px] font-medium text-ink-sub">
@@ -204,10 +215,17 @@ export default function EntryCard({
           )}
         >
           <span className="block font-sans text-[13px] font-semibold text-ink-sub">
-            <time dateTime={latest.created_at}>{addedThoughtLabel(date, latest.created_at)}</time>
-            {summary && summary.total > 1 && ` · 생각 ${summary.total}`}
+            <time data-skeleton dateTime={latest.created_at}>
+              {addedThoughtLabel(date, latest.created_at)}
+            </time>
+            {summary && summary.total > 1 && (
+              <span data-skeleton>{` · 생각 ${summary.total}`}</span>
+            )}
           </span>
-          <span className="mt-1 line-clamp-3 block whitespace-pre-wrap break-words font-serif text-[17px] leading-[1.6] text-ink">
+          <span
+            data-skeleton
+            className="mt-1 line-clamp-3 block whitespace-pre-wrap break-words font-serif text-[17px] leading-[1.6] text-ink"
+          >
             {latest.body}
           </span>
         </Link>

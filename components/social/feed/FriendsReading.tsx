@@ -32,10 +32,16 @@ export function FriendsReadingStrip({ list }: { list: FriendReading[] }) {
                 width={56}
                 className="mb-1.5"
               />
-              <span className="w-full truncate font-sans text-[14px] font-semibold text-ink">
+              <span
+                data-skeleton
+                className="w-full truncate font-sans text-[14px] font-semibold text-ink"
+              >
                 {r.profile.name}
               </span>
-              <span className="w-full truncate font-sans text-[13px] font-medium text-ink-sub">
+              <span
+                data-skeleton
+                className="w-full truncate font-sans text-[13px] font-medium text-ink-sub"
+              >
                 {r.label}
               </span>
               <span className="sr-only">『{r.book.title}』 읽는 중, 서재 보기</span>
@@ -71,13 +77,16 @@ export function FriendsReadingList({ list }: { list: FriendReading[] }) {
                 width={40}
                 className="row-span-2"
               />
-              <span className="self-end font-sans text-[16px] font-semibold text-ink">
+              <span data-skeleton className="self-end font-sans text-[16px] font-semibold text-ink">
                 {r.profile.name}
               </span>
               <span className="row-span-2 font-sans text-[14px] font-semibold text-accent">
                 서재
               </span>
-              <span className="col-start-2 self-start truncate font-sans text-[14px] font-medium text-ink-sub">
+              <span
+                data-skeleton
+                className="col-start-2 self-start truncate font-sans text-[14px] font-medium text-ink-sub"
+              >
                 {r.book.title} · {r.label}
               </span>
             </Link>

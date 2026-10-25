@@ -72,6 +72,7 @@ export default function FeedPost({ item, userId, now, index }: Props) {
           <div className="min-w-0">
             <Link
               href={libraryHref}
+              data-skeleton
               className={clsx(
                 'font-sans text-[16px] font-semibold text-ink hover:underline',
                 FOCUS
@@ -79,13 +80,19 @@ export default function FeedPost({ item, userId, now, index }: Props) {
             >
               {profile.name}
             </Link>
-            <p className="font-sans text-[14px] font-medium text-ink-sub lg:hidden">{source}</p>
-            <p className="hidden truncate font-sans text-[14px] font-medium text-ink-sub lg:block">
+            <p data-skeleton className="font-sans text-[14px] font-medium text-ink-sub lg:hidden">
+              {source}
+            </p>
+            <p
+              data-skeleton
+              className="hidden truncate font-sans text-[14px] font-medium text-ink-sub lg:block"
+            >
               {sourceDesk}
             </p>
           </div>
           <time
             dateTime={entry.created_at}
+            data-skeleton
             className="ml-auto self-start whitespace-nowrap font-sans text-[14px] font-medium text-ink-sub lg:hidden"
           >
             {when}
@@ -140,7 +147,9 @@ export default function FeedPost({ item, userId, now, index }: Props) {
             index % 2 === 0 ? 'lg:mr-[120px]' : 'lg:mr-[160px]'
           )}
         >
-          <p className="font-sans text-[13px] font-semibold text-ink-sub">{profile.name}의 생각</p>
+          <p className="font-sans text-[13px] font-semibold text-ink-sub">
+            <span data-skeleton>{profile.name}</span>의 생각
+          </p>
           <Clamp
             lines={6}
             className="mt-1 whitespace-pre-wrap font-serif text-[18px] leading-[1.6] text-ink"
@@ -224,6 +233,7 @@ function Clamp({
     <>
       <p
         ref={ref}
+        data-skeleton
         className={className}
         style={
           expanded

@@ -28,6 +28,7 @@ export default function BookThumb({ url, title, width, className }: BookThumbPro
       ) : (
         <span
           aria-hidden
+          data-skeleton
           className="grid h-full place-items-center font-serif text-[13px] font-semibold text-ink-sub"
         >
           {title.trim().charAt(0)}

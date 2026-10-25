@@ -74,7 +74,7 @@ export default function ReadingBooks({ books, currentId, latestTexts, desk }: Pr
     </div>
   );
   const fraction = frac && (
-    <div className="whitespace-nowrap font-serif text-[26px] text-ink">
+    <div data-skeleton className="whitespace-nowrap font-serif text-[26px] text-ink">
       {frac.now} <span className="text-ink-faint">{frac.of}</span>
     </div>
   );
@@ -89,10 +89,13 @@ export default function ReadingBooks({ books, currentId, latestTexts, desk }: Pr
           {covers}
           <div className="min-w-0">
             {fraction}
-            <div className="mt-1 font-sans text-caption text-ink-sub">{current.books.title}</div>
+            <div data-skeleton className="mt-1 font-sans text-caption text-ink-sub">
+              {current.books.title}
+            </div>
             {rest > 0 && (
               <Link
                 href="/books"
+                data-skeleton
                 className="mt-1 inline-flex min-h-10 items-center font-sans text-caption text-accent focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               >
                 {rest}권 더 읽는 중
@@ -108,14 +111,16 @@ export default function ReadingBooks({ books, currentId, latestTexts, desk }: Pr
     <>
       <div className="mt-6">{covers}</div>
       {fraction && <div className="mt-5">{fraction}</div>}
-      <div className="mt-1.5 font-sans text-caption text-ink-sub">
+      <div data-skeleton className="mt-1.5 font-sans text-caption text-ink-sub">
         {current.books.title}
         {rest > 0 ? ` · 외 ${rest}권 읽는 중` : ''}
       </div>
       {latest && (
         <div className="mt-[22px] border-t border-hairline pt-4">
           <div className="font-sans text-overline text-ink-sub">마지막으로 남긴 문장</div>
-          <p className="mt-1.5 line-clamp-3 font-serif text-note text-ink">{latest}</p>
+          <p data-skeleton className="mt-1.5 line-clamp-3 font-serif text-note text-ink">
+            {latest}
+          </p>
         </div>
       )}
       <Link

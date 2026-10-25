@@ -1,5 +1,5 @@
-import PageSkeleton from '@/components/ui/PageSkeleton';
+import FriendsSkeleton from '@/components/social/friends/FriendsSkeleton';
 
 export default function Loading() {
-  return <PageSkeleton kind="friends" />;
+  return <FriendsSkeleton />;
 }

@@ -5,7 +5,7 @@ import clsx from 'clsx';
 
 interface SegmentedProps<T extends string> {
   label: string;
-  items: { value: T; label: string }[];
+  items: { value: T; label: React.ReactNode }[];
   value: T;
   onChange: (value: T) => void;
   /** 탭 i가 조종하는 패널의 id */

@@ -121,6 +121,7 @@ function PushRow({ d, now }: { d: Delivery; now: Date }) {
             <li key={i}>
               <Link
                 href={item.href}
+                data-skeleton
                 className="font-sans text-[16px] font-medium leading-[1.5] text-ink hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
               >
                 {item.label}
@@ -130,6 +131,7 @@ function PushRow({ d, now }: { d: Delivery; now: Date }) {
         </ul>
         <time
           dateTime={d.created_at}
+          data-skeleton
           className="mt-1.5 block font-sans text-[13px] font-medium text-ink-faint"
         >
           {formatRelativeTime(d.created_at, now)}
@@ -147,14 +149,16 @@ function SocialRow({ n, now }: { n: NotificationItem; now: Date }) {
 
   const body = (
     <>
-      <Avatar
-        src={n.actorProfileImage}
-        alt=""
-        fallbackText={n.actorNickname.charAt(0).toUpperCase()}
-        className="!border-0 !bg-hairline"
-      />
+      <span data-skeleton>
+        <Avatar
+          src={n.actorProfileImage}
+          alt=""
+          fallbackText={n.actorNickname.charAt(0).toUpperCase()}
+          className="!border-0 !bg-hairline"
+        />
+      </span>
       <div className="min-w-0">
-        <p className="font-sans text-[16px] font-medium leading-[1.5] text-ink">
+        <p data-skeleton className="font-sans text-[16px] font-medium leading-[1.5] text-ink">
           {name && <b className="font-bold">{name}</b>}
           {message.slice(name.length)}
         </p>
@@ -163,6 +167,7 @@ function SocialRow({ n, now }: { n: NotificationItem; now: Date }) {
         )}
         <time
           dateTime={n.createdAt}
+          data-skeleton
           className="mt-1.5 block font-sans text-[13px] font-medium text-ink-faint"
         >
           {formatRelativeTime(n.createdAt, now)}

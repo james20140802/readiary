@@ -49,7 +49,7 @@ export default function WeeklyRecords({
           <LargeTitle>이번 주의 기록</LargeTitle>
           {period && (
             <p className="mt-1.5 font-sans text-caption text-ink-sub">
-              지난 7일 <span aria-hidden="true">·</span> {period}
+              지난 7일 <span aria-hidden="true">·</span> <span data-skeleton>{period}</span>
             </p>
           )}
           {!failed && entries.length > 0 && (
@@ -60,7 +60,10 @@ export default function WeeklyRecords({
               <p className="font-sans text-caption font-semibold text-accent">
                 책 사이에 남겨 둔 문장과 생각
               </p>
-              <p className="mt-2 font-serif text-[21px] font-semibold leading-[1.6] tracking-[-0.01em] text-ink">
+              <p
+                data-skeleton
+                className="mt-2 font-serif text-[21px] font-semibold leading-[1.6] tracking-[-0.01em] text-ink"
+              >
                 {summarizeWeek(
                   entries.map((e) => ({
                     title: e.user_books.books?.title ?? null,

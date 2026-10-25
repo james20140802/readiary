@@ -56,10 +56,31 @@ export default function FriendsView({
   const [confirmFor, setConfirmFor] = useState<Profile | null>(null);
   const removal = useRemoveFriend();
 
-  const tabs: { value: FriendsTabValue; label: string }[] = [
-    { value: 'friends', label: `친구 ${acceptedFriends.length}` },
-    { value: 'pending', label: `받은 요청 ${pendingFriends.length}` },
-    { value: 'sent', label: `보낸 요청 ${sentFriends.length}` },
+  const tabs: { value: FriendsTabValue; label: React.ReactNode }[] = [
+    {
+      value: 'friends',
+      label: (
+        <>
+          친구 <span data-skeleton>{acceptedFriends.length}</span>
+        </>
+      ),
+    },
+    {
+      value: 'pending',
+      label: (
+        <>
+          받은 요청 <span data-skeleton>{pendingFriends.length}</span>
+        </>
+      ),
+    },
+    {
+      value: 'sent',
+      label: (
+        <>
+          보낸 요청 <span data-skeleton>{sentFriends.length}</span>
+        </>
+      ),
+    },
   ];
 
   return (
@@ -196,13 +217,15 @@ function Row({
   children?: React.ReactNode;
 }) {
   const name = (
-    <span className="block truncate font-sans text-[17px] font-semibold text-ink">
+    <span data-skeleton className="block truncate font-sans text-[17px] font-semibold text-ink">
       {profile.name}
     </span>
   );
   return (
     <div className="grid grid-cols-[44px_1fr_auto] items-center gap-x-3.5 border-t border-hairline py-3">
-      <FriendAvatar profile={profile} />
+      <span data-skeleton>
+        <FriendAvatar profile={profile} />
+      </span>
       <div className="min-w-0">
         {href ? (
           <Link
@@ -217,7 +240,10 @@ function Row({
         ) : (
           name
         )}
-        <span className="block truncate font-sans text-[14px] font-medium text-ink-sub">
+        <span
+          data-skeleton
+          className="block truncate font-sans text-[14px] font-medium text-ink-sub"
+        >
           {profile.nickname}#{profile.tag}
         </span>
       </div>

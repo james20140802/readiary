@@ -42,6 +42,7 @@ const Bookshelf = forwardRef<
               href={b.href}
               title={b.title}
               aria-label={label}
+              data-skeleton-surface
               className={clsx(styles.spine, b.isFinished && styles.done)}
               style={
                 {
@@ -58,7 +59,7 @@ const Bookshelf = forwardRef<
                   <span aria-hidden className={styles.spineScrim} />
                 </>
               )}
-              <span aria-hidden className={styles.spineText}>
+              <span aria-hidden data-skeleton className={styles.spineText}>
                 <SpineTitle title={b.title} />
               </span>
             </Link>

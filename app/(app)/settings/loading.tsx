@@ -1,5 +1,5 @@
-import PageSkeleton from '@/components/ui/PageSkeleton';
+import SettingsSkeleton from '@/components/settings/SettingsSkeleton';
 
 export default function Loading() {
-  return <PageSkeleton kind="page" />;
+  return <SettingsSkeleton />;
 }

@@ -78,7 +78,7 @@ function CoverBook({
       aria-label={`${name}의 책 표지${quote ? `: ${quote.quote}` : ''}`}
     >
       <div className={s.coverBy} aria-hidden>
-        {name} 지음
+        <span data-skeleton>{name}</span> 지음
       </div>
       <div
         className={clsx(
@@ -88,11 +88,21 @@ function CoverBook({
         )}
         aria-hidden
       >
-        {quote?.quote ?? `${name}의 독서 일기`}
+        {quote ? (
+          <span data-skeleton>{quote.quote}</span>
+        ) : (
+          <>
+            <span data-skeleton>{name}</span>의 독서 일기
+          </>
+        )}
       </div>
       <div className={s.coverFoot} aria-hidden>
         <span>{year}</span>
-        {count !== null && <span>기록 {count.toLocaleString('ko-KR')}</span>}
+        {count !== null && (
+          <span>
+            기록 <span data-skeleton>{count.toLocaleString('ko-KR')}</span>
+          </span>
+        )}
       </div>
     </div>
   );
@@ -101,11 +111,17 @@ function CoverBook({
 function Who({ name, bio, center }: { name: string; bio: string | null; center?: boolean }) {
   return (
     <div className={center ? 'text-center' : undefined}>
-      <h1 className="font-serif text-[28px] font-bold leading-tight text-ink lg:text-[36px]">
+      <h1
+        data-skeleton
+        className="font-serif text-[28px] font-bold leading-tight text-ink lg:text-[36px]"
+      >
         {name}
       </h1>
       {bio && (
-        <p className="mt-1.5 whitespace-pre-line font-serif text-[17px] leading-[1.6] text-ink-sub">
+        <p
+          data-skeleton
+          className="mt-1.5 whitespace-pre-line font-serif text-[17px] leading-[1.6] text-ink-sub"
+        >
           {bio}
         </p>
       )}
@@ -133,7 +149,7 @@ function Colophon({
       {rows.map(([k, v]) => (
         <div key={k} className="contents">
           <dt className="text-[15px] text-ink-sub">{k}</dt>
-          <dd>{v}</dd>
+          <dd data-skeleton>{v}</dd>
         </div>
       ))}
     </dl>
@@ -178,9 +194,14 @@ function Bookmarks({
             className="vellum block rounded-[3px] px-[18px] py-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
             style={{ transform: `rotate(${MARK_TILT[i % MARK_TILT.length]})` }}
           >
-            <p className="font-serif text-[19px] font-semibold leading-[1.6] text-ink">{q}</p>
+            <p
+              data-skeleton
+              className="font-serif text-[19px] font-semibold leading-[1.6] text-ink"
+            >
+              {q}
+            </p>
             <p className="mt-1.5 font-sans text-[14px] font-medium text-ink-sub">
-              {bookmark.title}
+              <span data-skeleton>{bookmark.title}</span>
               <span className="sr-only"> 발췌집 열기</span>
             </p>
           </Link>
@@ -220,7 +241,9 @@ function MadeBooks({ books }: { books: FinishedBookExcerpt[] }) {
                   className="object-cover"
                 />
               ) : (
-                <span className={clsx(s.madeBlank, 'absolute inset-0 block')}>{b.title}</span>
+                <span data-skeleton className={clsx(s.madeBlank, 'absolute inset-0 block')}>
+                  {b.title}
+                </span>
               )}
               <span className="sr-only"> 발췌집 열기</span>
             </Link>
@@ -233,9 +256,9 @@ function MadeBooks({ books }: { books: FinishedBookExcerpt[] }) {
             key={b.bookId}
             className="font-serif text-[15px] leading-normal text-ink-sub lg:text-[17px]"
           >
-            {b.title}
+            <span data-skeleton>{b.title}</span>
             <span className="mt-0.5 block font-sans text-[13px] font-medium text-ink-faint">
-              옮긴 문장 {b.quoteCount}
+              옮긴 문장 <span data-skeleton>{b.quoteCount}</span>
             </span>
           </li>
         ))}
@@ -258,7 +281,10 @@ function StatGrid({ stats, desk }: { stats: Stats; desk?: boolean }) {
       {items.map(([n, label]) => (
         <div key={label} className="flex flex-col-reverse">
           <dt className="font-sans text-[15px] font-medium text-ink-sub">{label}</dt>
-          <dd className="font-serif text-[34px] font-bold leading-tight tabular-nums text-ink">
+          <dd
+            data-skeleton
+            className="font-serif text-[34px] font-bold leading-tight tabular-nums text-ink"
+          >
             {n.toLocaleString('ko-KR')}
           </dd>
         </div>
@@ -283,7 +309,7 @@ function Shelf({ books, total }: { books: ShelfBook[]; total: number }) {
       <BookSpineShelf books={books} />
       {total > books.length && (
         <Link href="/books" className={clsx(TEXT_LINK, 'mt-4 inline-flex min-h-11 items-center')}>
-          책장에서 {total.toLocaleString('ko-KR')}권 모두 보기
+          책장에서 <span data-skeleton>{total.toLocaleString('ko-KR')}</span>권 모두 보기
         </Link>
       )}
     </>
@@ -306,7 +332,8 @@ function Volumes({ diary, name, mobile }: { diary: DiaryShelf; name: string; mob
               <div className={s.lab}>
                 <b className={s.labTitle}>독서 일기 {current}</b>
                 <span className={s.labBy}>
-                  {name} · {ordinalVolume(diary.count)}
+                  <span data-skeleton>{name}</span> ·{' '}
+                  <span data-skeleton>{ordinalVolume(diary.count)}</span>
                 </span>
               </div>
             )}
@@ -350,8 +377,11 @@ function MonthList({
       {shown.map((m) => {
         const body = (
           <>
-            <span className="font-sans text-[15px] font-semibold text-ink">{m.month}</span>
+            <span data-skeleton className="font-sans text-[15px] font-semibold text-ink">
+              {m.month}
+            </span>
             <span
+              data-skeleton={Boolean(m.quote)}
               className={clsx(
                 'line-clamp-2 font-serif text-[17px] leading-normal',
                 m.quote ? 'text-ink' : 'text-ink-faint'
@@ -361,7 +391,7 @@ function MonthList({
             </span>
             <span className="font-mono text-[14px] font-medium text-ink-sub">
               <span className="sr-only">기록 </span>
-              {m.count}
+              <span data-skeleton>{m.count}</span>
             </span>
           </>
         );
@@ -424,11 +454,21 @@ export default function MeView(props: MeViewProps) {
   useTopBar({ title: '나' });
   const [inviting, setInviting] = useState(false);
   const entries = stats?.totalEntries ?? null;
-  const diaryTitle = `${ordinalCount(diary.count)} 일기장`;
+  const diaryTitle = (
+    <>
+      <span data-skeleton>{ordinalCount(diary.count)}</span> 일기장
+    </>
+  );
   const diaryCap =
-    diary.count > 1
-      ? `${diary.firstYear}년부터 해마다 한 권씩`
-      : `${diary.firstYear}년에 펴낸 첫 권`;
+    diary.count > 1 ? (
+      <>
+        <span data-skeleton>{diary.firstYear}</span>년부터 해마다 한 권씩
+      </>
+    ) : (
+      <>
+        <span data-skeleton>{diary.firstYear}</span>년에 펴낸 첫 권
+      </>
+    );
 
   const actions = (desk: boolean) => (
     <>
@@ -493,7 +533,7 @@ export default function MeView(props: MeViewProps) {
           <h2 className={H2}>
             서가{' '}
             <span className="font-sans text-[17px] font-medium text-ink-sub">
-              {shelfTotal.toLocaleString('ko-KR')}권
+              <span data-skeleton>{shelfTotal.toLocaleString('ko-KR')}</span>권
             </span>
           </h2>
           <p className={clsx(CAP, 'mb-[18px] mt-1.5')}>친구에게도 보이는 서가예요</p>
@@ -561,7 +601,7 @@ export default function MeView(props: MeViewProps) {
               <h2 className={clsx(H2_DESK, 'mb-[22px]')}>
                 서가{' '}
                 <span className="font-sans text-[20px] font-medium text-ink-sub">
-                  {shelfTotal.toLocaleString('ko-KR')}권
+                  <span data-skeleton>{shelfTotal.toLocaleString('ko-KR')}</span>권
                 </span>
               </h2>
               <Shelf books={shelfBooks} total={shelfTotal} />

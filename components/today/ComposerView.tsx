@@ -258,7 +258,9 @@ export default function ComposerView(props: ComposerViewProps) {
         aria-label={selectedBook ? `책 고르기, 지금 ${selectedBook.books.title}` : '책 고르기'}
         className="mt-1 inline-flex h-11 max-w-full items-center gap-1.5 border-b-[1.5px] border-ink font-sans text-[17px] font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-60"
       >
-        <span className="truncate">{selectedBook?.books.title ?? '어느 책에서 남길까요'}</span>
+        <span className="truncate" data-skeleton>
+          {selectedBook?.books.title ?? '어느 책에서 남길까요'}
+        </span>
         <ChevronDown size={18} strokeWidth={1.75} aria-hidden className="shrink-0" />
       </button>
 

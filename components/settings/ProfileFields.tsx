@@ -58,7 +58,10 @@ export function ProfileFieldsView(props: ProfileFieldsViewProps) {
               className="object-cover"
             />
           ) : (
-            <span className="grid h-full w-full place-items-center font-serif text-[28px] font-bold text-ink-faint">
+            <span
+              data-skeleton
+              className="grid h-full w-full place-items-center font-serif text-[28px] font-bold text-ink-faint"
+            >
               {props.displayName.at(0) ?? '?'}
             </span>
           )}
@@ -69,7 +72,7 @@ export function ProfileFieldsView(props: ProfileFieldsViewProps) {
           )}
         </div>
         <div className="min-w-0">
-          <b className="block truncate font-sans text-[20px] font-bold text-ink">
+          <b data-skeleton className="block truncate font-sans text-[20px] font-bold text-ink">
             {props.displayName}
           </b>
           <button
@@ -77,7 +80,7 @@ export function ProfileFieldsView(props: ProfileFieldsViewProps) {
             onClick={() => void copyHandle()}
             className="inline-flex min-h-10 items-center gap-1.5 font-mono text-[15px] font-medium text-ink-sub"
           >
-            {props.handle}
+            <span data-skeleton>{props.handle}</span>
             <Copy size={16} strokeWidth={1.75} aria-hidden />
             <span className="sr-only">복사하기</span>
           </button>

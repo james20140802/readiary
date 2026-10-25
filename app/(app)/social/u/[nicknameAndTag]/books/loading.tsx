@@ -1,5 +1,5 @@
-import PageSkeleton from '@/components/ui/PageSkeleton';
+import FriendBooksSkeleton from '@/components/books/FriendBooksSkeleton';
 
 export default function Loading() {
-  return <PageSkeleton kind="books" />;
+  return <FriendBooksSkeleton />;
 }

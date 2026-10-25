@@ -58,7 +58,9 @@ export default function InviteCard({ nickname, tag, className }: Props) {
       <p className="mt-1.5 font-serif text-[16px] leading-[1.65] text-ink-sub">
         링크를 받은 사람이 로그인하면 바로 나에게 친구 신청을 보낼 수 있어요.
       </p>
-      <p className="mt-3.5 font-mono text-[15px] font-medium text-ink">{handle}</p>
+      <p className="mt-3.5 font-mono text-[15px] font-medium text-ink" data-skeleton>
+        {handle}
+      </p>
       <div className="mt-3 flex gap-2">
         <Button size="sm" onClick={share}>
           초대 링크 보내기

@@ -70,7 +70,9 @@ export default function WeeklyTimeline({
         {groupByDay(entries).map(([date, items]) => (
           <li key={date} className="mt-[34px]">
             <h2 className="mb-1.5 font-sans text-overline text-ink-sub">
-              <time dateTime={date}>{dayLabel(date)}</time>
+              <time data-skeleton dateTime={date}>
+                {dayLabel(date)}
+              </time>
             </h2>
             <ul>
               {items.map((entry) => (

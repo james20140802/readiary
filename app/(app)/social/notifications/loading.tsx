@@ -1,5 +1,5 @@
-import PageSkeleton from '@/components/ui/PageSkeleton';
+import NotificationsSkeleton from '../_components/NotificationsSkeleton';
 
 export default function Loading() {
-  return <PageSkeleton kind="notifications" />;
+  return <NotificationsSkeleton />;
 }

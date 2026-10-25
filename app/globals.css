@@ -855,3 +855,55 @@ li {
     backdrop-filter: none;
   }
 }
+
+/* ── 불러오는 동안(SkeletonScope): 실제 컴포넌트를 그리되, 불러오는 데이터([data-skeleton])만 같은 폭의 먹 막대로,
+   사진과 책 제목에서 정해지는 표지·책등 색([data-skeleton-surface])은 빈 면으로 바꾼다. 고정 문구·아이콘·선·간지는 실제 그대로 보인다.
+   취소선을 굵게 칠하면 글줄마다 글자 폭만큼 막대가 생긴다(블록 안 맨 글자에도 걸린다). 겹친 요소마다
+   다시 그려지므로 투명도 대신 종이에 섞은 불투명 색을 써야 진해지지 않는다. 범위 밖에서 data-skeleton은 아무 일도 하지 않는다. */
+.skeleton-scope {
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.skeleton-scope [data-skeleton],
+.skeleton-scope [data-skeleton] * {
+  -webkit-text-fill-color: transparent;
+  text-decoration-line: line-through;
+  text-decoration-thickness: 0.72em;
+  text-decoration-color: color-mix(in srgb, rgb(var(--ink)) 10%, rgb(var(--paper)));
+  text-decoration-skip-ink: none;
+}
+/* 기존 값이 채워진 채 열리는 폼(고치기) — 입력칸 안의 글자도 막대로 */
+.skeleton-scope [data-skeleton-fields] :is(textarea, input:not([type='checkbox'])) {
+  -webkit-text-fill-color: transparent;
+  text-decoration-line: line-through;
+  text-decoration-thickness: 0.72em;
+  text-decoration-color: color-mix(in srgb, rgb(var(--ink)) 10%, rgb(var(--paper)));
+  text-decoration-skip-ink: none;
+}
+.skeleton-scope [data-skeleton-fields] ::-webkit-calendar-picker-indicator {
+  opacity: 0;
+}
+.skeleton-scope [data-skeleton] svg {
+  visibility: hidden;
+}
+.skeleton-scope [data-skeleton-surface] {
+  --c: color-mix(in srgb, rgb(var(--ink)) 8%, rgb(var(--paper))) !important;
+  background: var(--c) !important;
+}
+.skeleton-scope img {
+  object-position: -99999px 0;
+  background-color: rgb(var(--ink) / 0.06);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .skeleton-scope [data-skeleton],
+  .skeleton-scope [data-skeleton-surface],
+  .skeleton-scope img {
+    animation: skeleton-breathe 1.6s ease-in-out infinite;
+  }
+}
+@keyframes skeleton-breathe {
+  50% {
+    opacity: 0.55;
+  }
+}

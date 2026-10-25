@@ -1,5 +1,5 @@
-import PageSkeleton from '@/components/ui/PageSkeleton';
+import EntryDetailSkeleton from '@/components/entry/EntryDetailSkeleton';
 
 export default function Loading() {
-  return <PageSkeleton kind="entry" leaves />;
+  return <EntryDetailSkeleton />;
 }
