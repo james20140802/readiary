@@ -585,17 +585,22 @@ export default function MeView(props: MeViewProps) {
               <h2 className={H2_DESK}>최근의 차례</h2>
               <p className={clsx(CAP, 'mt-1.5')}>달마다 가장 최근에 남긴 문장</p>
               <MonthList months={months} error={monthsError} />
-              {rhythm && (
-                <>
-                  <h2 className={clsx(H2_DESK, 'mt-14')}>언제 읽었나</h2>
-                  <p className={clsx(CAP, 'mt-1.5')}>달마다 한 장씩, 기록을 남긴 요일과 시간</p>
-                  <div className="max-w-[520px]">
-                    <OverlappedMonths months={rhythm} />
-                  </div>
-                </>
-              )}
             </div>
           </div>
+          {rhythm && (
+            <div className="mt-20 border-t border-hairline pt-14">
+              <OverlappedMonths
+                months={rhythm}
+                split
+                heading={
+                  <>
+                    <h2 className={H2_DESK}>언제 읽었나</h2>
+                    <p className={clsx(CAP, 'mt-1.5')}>달마다 한 장씩, 기록을 남긴 요일과 시간</p>
+                  </>
+                }
+              />
+            </div>
+          )}
         </DesktopLeaf>
       </DesktopLeaves>
 
