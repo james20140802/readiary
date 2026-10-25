@@ -2,6 +2,7 @@ import { getServerUser } from '@/lib/supabase/getServerUser';
 import { notFound } from 'next/navigation';
 import { fetchProfileData } from '@/lib/profile/fetchProfileData';
 import { fetchRetrospectData } from '@/lib/profile/fetchRetrospectData';
+import { fetchReadingRhythm } from '@/lib/profile/fetchReadingRhythm';
 import { fetchFeaturedQuote } from '@/lib/profile/fetchFeaturedQuote';
 import { fetchFeaturedBookmark } from '@/lib/profile/fetchFeaturedBookmark';
 import { fetchBookReadingStats } from '@/lib/queries/fetchBookReadingStats';
@@ -22,11 +23,12 @@ export default async function ProfilePage() {
     return <p className="mt-10 text-center text-danger">로그인이 필요합니다.</p>;
   }
 
-  const [{ profile, userBooks }, stats, retrospect, readingStats] = await Promise.all([
+  const [{ profile, userBooks }, stats, retrospect, readingStats, rhythm] = await Promise.all([
     fetchProfileData(user.id),
     getUserStats(user.id),
     fetchRetrospectData(user.id),
     fetchBookReadingStats(),
+    fetchReadingRhythm(),
   ]);
 
   if (!profile || !userBooks) {
@@ -63,6 +65,7 @@ export default async function ProfilePage() {
       monthsError={!retrospect}
       bookmark={bookmark}
       canBookmark={userBooks.some((ub) => ub.is_finished)}
+      rhythm={rhythm}
     />
   );
 }

@@ -11,6 +11,8 @@ import { TopBarActions, useTopBar } from '@/components/shell/TopBarContext';
 import { DesktopLeaf, DesktopLeaves, Leaf, LeafSwitch, Leaves } from '@/components/shell/Leaves';
 import type { FeaturedBookmark, FeaturedQuote, Stats } from '@/types/profile';
 import type { FinishedBookExcerpt } from '@/lib/profile/fetchRetrospectData';
+import type { RhythmMonth } from '@/lib/profile/readingRhythm';
+import OverlappedMonths from './OverlappedMonths';
 import InviteSheet from './InviteSheet';
 import { ordinalCount, ordinalVolume, type DiaryShelf, type MonthRow } from './meModel';
 import s from './me.module.css';
@@ -46,6 +48,8 @@ export interface MeViewProps {
   canBookmark: boolean;
   /** 견본에서 화면 주소를 바꿔 끼운다 */
   settingsHref?: string;
+  /** 최근 석 달의 기록 시각 무늬(언제 읽었나) — 없거나 못 읽으면 그 칸을 그리지 않는다 */
+  rhythm?: RhythmMonth[] | null;
 }
 
 const MADE_COUNT = 3;
@@ -415,6 +419,7 @@ export default function MeView(props: MeViewProps) {
     bookmark,
     canBookmark,
     settingsHref = '/settings',
+    rhythm,
   } = props;
   useTopBar({ title: '나' });
   const [inviting, setInviting] = useState(false);
@@ -500,6 +505,13 @@ export default function MeView(props: MeViewProps) {
           <p className={clsx(CAP, 'mt-1.5')}>{diaryCap}</p>
           <Volumes diary={diary} name={name} mobile />
           <MonthList months={months} error={monthsError} limit={3} />
+          {rhythm && (
+            <>
+              <h2 className={clsx(H2, 'mt-[34px]')}>언제 읽었나</h2>
+              <p className={clsx(CAP, 'mt-1.5')}>달마다 한 장씩, 기록을 남긴 요일과 시간</p>
+              <OverlappedMonths months={rhythm} />
+            </>
+          )}
         </Leaf>
 
         <Leaf title="판권과 책갈피" vellum free>
@@ -573,6 +585,15 @@ export default function MeView(props: MeViewProps) {
               <h2 className={H2_DESK}>최근의 차례</h2>
               <p className={clsx(CAP, 'mt-1.5')}>달마다 가장 최근에 남긴 문장</p>
               <MonthList months={months} error={monthsError} />
+              {rhythm && (
+                <>
+                  <h2 className={clsx(H2_DESK, 'mt-14')}>언제 읽었나</h2>
+                  <p className={clsx(CAP, 'mt-1.5')}>달마다 한 장씩, 기록을 남긴 요일과 시간</p>
+                  <div className="max-w-[520px]">
+                    <OverlappedMonths months={rhythm} />
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </DesktopLeaf>
