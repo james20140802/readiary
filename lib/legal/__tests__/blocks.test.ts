@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { splitLegalBlocks } from '@/lib/legal/blocks';
 import {
-  EMAIL_PRIVACY_ADDENDUM,
   LEGAL_ANNOUNCED,
   PRIVACY_EFFECTIVE,
   PRIVACY_POLICY,
   TERMS_EFFECTIVE,
   TERMS_OF_SERVICE,
 } from '@/lib/legal/texts';
+import { PRIVACY_2026_09_15, TERMS_2026_09_13 } from '@/lib/legal/archive';
 
 describe('splitLegalBlocks', () => {
   it('빈 줄로 나눈 덩어리마다 하나의 블록을 만든다', () => {
@@ -61,19 +61,29 @@ describe('법적 고지 본문', () => {
     expect(PRIVACY_POLICY).not.toContain('가입 동의 시각');
   });
 
-  it('개정판은 공고하고 7일 뒤 시행한다 — 처리방침과 이메일 소식 안내가 같은 날짜를 쓴다', () => {
+  it('개정판은 공고하고 7일 뒤 시행한다', () => {
     expect(LEGAL_ANNOUNCED).toBe('2026년 10월 27일');
     expect(TERMS_EFFECTIVE).toBe('2026년 11월 3일');
     expect(PRIVACY_EFFECTIVE).toBe('2026년 11월 3일');
     expect(PRIVACY_POLICY).toContain(`${LEGAL_ANNOUNCED} 공고하며 ${PRIVACY_EFFECTIVE}부터 시행`);
-    expect(EMAIL_PRIVACY_ADDENDUM).toContain(
-      `${LEGAL_ANNOUNCED} 공고하며 ${PRIVACY_EFFECTIVE}부터 시행`
-    );
   });
 
   it('미완성 표식이 남아 있지 않다', () => {
-    for (const text of [TERMS_OF_SERVICE, PRIVACY_POLICY, EMAIL_PRIVACY_ADDENDUM]) {
+    for (const text of [TERMS_OF_SERVICE, PRIVACY_POLICY, TERMS_2026_09_13, PRIVACY_2026_09_15]) {
       expect(text).not.toMatch(/TODO|TBD|\[\s*\]/);
     }
+  });
+
+  it('이메일 소식은 덧붙인 문서가 아니라 방침 조문(항목·목적·보관·위탁·권리)에 들어 있다', () => {
+    expect(PRIVACY_POLICY).toContain('5. 선택한 이메일 소식을 받을 때 저장하는 정보');
+    expect(PRIVACY_POLICY).toContain('5. 선택한 이메일 소식: Readiary의 새 기능');
+    expect(PRIVACY_POLICY).toMatch(/수신거부 링크에서 로그인 없이 무료로 철회/);
+    expect(PRIVACY_POLICY).not.toContain('추가 처리 안내');
+  });
+
+  it('지난 판은 그때 시행일을 그대로 적고, 이메일 소식을 담지 않는다', () => {
+    expect(PRIVACY_2026_09_15).toContain('2026년 9월 15일부터 시행합니다');
+    expect(PRIVACY_2026_09_15).not.toContain('이메일 소식');
+    expect(TERMS_2026_09_13).toContain('2026년 9월 13일부터 적용됩니다');
   });
 });

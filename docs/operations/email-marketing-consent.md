@@ -33,7 +33,7 @@ Resend에 넘긴 뒤에는 철회로 메일을 회수할 수 없다. DB 검사�
 ## 활성화 순서
 
 1. Draft PR 검토 후 별도 머지 절차를 따른다. 마이그레이션 `20261007090000_email_marketing_consent.sql`을 먼저 적용하고 service_role RPC, 인증 사용자 본인 읽기, 익명/타인/직접 쓰기 차단을 실제 환경에서 확인한다.
-2. `/privacy`의 이메일 추가 처리 안내는 **2026-10-27 공고, 2026-11-03 시행**으로 확정했다(`lib/legal/texts.ts`의 `LEGAL_ANNOUNCED`·`PRIVACY_EFFECTIVE`, 방침 제11조의 7일 고지). 공고일에 프로덕션에 배포돼 화면에 실려야 공고한 것이다. 배포가 늦어지면 두 날짜를 함께 미룬다. 개인정보 이용·광고 수신 선택 문구, Google 로그인 이메일 선택 이용과 Resend 이전 조건을 함께 확인한다. 공고를 했다고 소급 기록하지 않는다.
+2. 이메일 소식 처리 내용은 `/privacy` 본문 조문(제1·2·3·5·6·8조)에 넣어 **2026-10-27 공고, 2026-11-03 시행**으로 확정했다. `/privacy`·`/terms` 위에는 개정 안내와 지난 판(`/privacy/2026-09-15`, `/terms/2026-09-13`) 링크를, 오늘 화면에는 시행일까지 닫을 수 있는 한 줄 안내(`PolicyNotice`)를 둔다(`lib/legal/texts.ts`의 `LEGAL_ANNOUNCED`·`PRIVACY_EFFECTIVE`, 방침 제11조의 7일 고지). 공고일에 프로덕션에 배포돼 화면에 실려야 공고한 것이다. 배포가 늦어지면 두 날짜를 함께 미룬다. 개인정보 이용·광고 수신 선택 문구, Google 로그인 이메일 선택 이용과 Resend 이전 조건을 함께 확인한다. 공고를 했다고 소급 기록하지 않는다.
 3. 승인된 공급 경로로 `SUPABASE_SERVICE_ROLE_KEY`를 서버에 설정한다. 실제 시행일을 ISO 형식 `EMAIL_CONSENT_EFFECTIVE_AT`(`2026-11-03T00:00:00+09:00`)에 지정하고 `EMAIL_CONSENT_ENABLED=true`로 수집을 연다. 날짜 전에는 신규 선택을 받지 않는다. 수집 플래그를 꺼도 저장된 상태 조회·철회는 유지하며 수신거부 API를 차단하지 않는다.
 4. 이후 캠페인 작업 시 `RESEND_API_KEY`, `EMAIL_MARKETING_FROM`, `EMAIL_MARKETING_SENDER_INFO`(발신자·연락처), HTTPS `EMAIL_PUBLIC_ORIGIN`, 32자 이상 무작위 `EMAIL_UNSUBSCRIBE_SECRET`을 별도로 공급한다. 기존 Supabase SMTP 자격 증명이 앱 서버에도 있다고 가정하지 않는다. 키를 파일로 복사하거나 로그/PR에 노출하지 않는다.
 5. `EMAIL_MARKETING_SEND_ENABLED`는 이번 작업에서 **설정하지 않는다**. 모든 텍스트 메일에 `(광고)`와 발신자 정보, 수신거부 경로를 추가하는 어댑터만 준비한다. 추적 비활성화·공급자 보관 설정과 쿼리 로그 제외를 확인한 후 별도 캠페인 승인으로 활성화한다.

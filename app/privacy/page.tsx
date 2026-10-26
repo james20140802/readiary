@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import LegalDocument from '@/components/legal/LegalDocument';
-import { PRIVACY_EFFECTIVE, PRIVACY_POLICY, EMAIL_PRIVACY_ADDENDUM } from '@/lib/legal/texts';
+import { LEGAL_REVISION, PRIVACY_EFFECTIVE, PRIVACY_POLICY } from '@/lib/legal/texts';
 
 export const metadata: Metadata = {
   title: '개인정보처리방침 | Readiary',
@@ -15,8 +15,14 @@ export default function PrivacyPage() {
       seal="Privacy Policy"
       title="개인정보처리방침"
       effective={`${PRIVACY_EFFECTIVE} 시행`}
-      body={`${PRIVACY_POLICY}\n\n${EMAIL_PRIVACY_ADDENDUM}`}
+      body={PRIVACY_POLICY}
       sibling={{ href: '/terms', label: '서비스 이용 약관' }}
+      revision={{
+        announced: LEGAL_REVISION.announced,
+        effective: LEGAL_REVISION.effective,
+        changes: LEGAL_REVISION.privacyChanges,
+        previous: { href: '/privacy/2026-09-15', label: '지난 판(2026년 9월 15일 시행) 보기' },
+      }}
     />
   );
 }
