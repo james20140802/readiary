@@ -1,6 +1,6 @@
 import PushSeen from '@/components/PushSeen';
 import { getServerUser } from '@/lib/supabase/getServerUser';
-// app/(app)/social/page.tsx
+// app/(app)/social/(feed)/page.tsx
 import { redirect } from 'next/navigation';
 import { fetchDetailSocialFeedEntries } from '@/lib/queries/fetchSocialFeedEntries';
 import { fetchFriendList, fetchReceivedFriendRequests } from '@/lib/friends/fetchFriendList';
