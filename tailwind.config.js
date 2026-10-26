@@ -99,7 +99,6 @@ module.exports = {
         'ink-out': 'var(--ease-out)',
         'ink-in-out': 'var(--ease-in-out)',
         drawer: 'var(--ease-drawer)',
-        page: 'var(--ease-page)',
       },
       fontFamily: {
         sans: ['var(--font-sans)', 'ui-sans-serif', 'system-ui'],
