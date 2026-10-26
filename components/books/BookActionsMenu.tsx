@@ -2,12 +2,13 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { BookOpen, Ellipsis, Search, Trash2 } from 'lucide-react';
+import { BookOpen, Ellipsis, RotateCcw, Search, Trash2 } from 'lucide-react';
 import clsx from 'clsx';
 import Sheet from '@/components/ui/Sheet';
 import { useActionLock } from '@/hooks/useActionLock';
 import { apiFetch, SessionExpiredError } from '@/lib/api/fetch';
 import { BTN_DANGER, BTN_LINE } from './buttonStyles';
+import UnfinishBookSheet from './UnfinishBookSheet';
 
 const ROW =
   'flex min-h-[54px] w-full items-center gap-3 border-t border-hairline text-left font-sans text-[17px] font-medium text-ink focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent';
@@ -15,21 +16,28 @@ const ROW =
 /**
  * 책 메뉴 — 시안 book-layer.html `#bmenu`. 상단 바(모바일)나 옆 칸(데스크톱)의 "더 보기"로 여는 바텀 시트.
  * 책 지우기는 한 번 더 묻는다(덧붙인 생각·댓글·좋아요·공유 링크까지 함께 사라지고 되돌릴 수 없다).
+ * 다 읽은 책의 완독 취소도 드물게 쓰는 되돌리기라 여기 둔다(onUnfinish를 넘길 때).
  */
 export default function BookActionsMenu({
   userBookId,
   title,
   bookId,
   isFinished = false,
+  onUnfinish,
+  unfinishAction,
   triggerClassName,
 }: {
   userBookId: string;
   title: string;
   bookId?: string;
   isFinished?: boolean;
+  /** 완독 취소가 끝난 뒤 — 넘기면 다 읽은 책 메뉴에 '완독 취소'가 생긴다 */
+  onUnfinish?: () => void;
+  unfinishAction?: ReturnType<typeof useActionLock>;
   triggerClassName?: string;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [unfinishOpen, setUnfinishOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [error, setError] = useState('');
   const action = useActionLock();
@@ -76,6 +84,19 @@ export default function BookActionsMenu({
               발췌집 펼치기
             </Link>
           )}
+          {isFinished && onUnfinish && (
+            <button
+              type="button"
+              className={ROW}
+              onClick={() => {
+                setMenuOpen(false);
+                setUnfinishOpen(true);
+              }}
+            >
+              <RotateCcw size={20} strokeWidth={1.75} className="text-ink-sub" aria-hidden />
+              완독 취소
+            </button>
+          )}
           <Link href="/search" className={ROW}>
             <Search size={20} strokeWidth={1.75} className="text-ink-sub" aria-hidden />
             책과 기록 찾기
@@ -93,6 +114,16 @@ export default function BookActionsMenu({
           </button>
         </div>
       </Sheet>
+
+      {onUnfinish && (
+        <UnfinishBookSheet
+          open={unfinishOpen}
+          onClose={() => setUnfinishOpen(false)}
+          action={unfinishAction}
+          userBookId={userBookId}
+          onUnfinish={onUnfinish}
+        />
+      )}
 
       <Sheet open={confirmOpen} onClose={closeConfirm} title="이 책과 기록을 지울까요?">
         <p className="break-words font-serif text-[18px] font-semibold text-ink">{title}</p>

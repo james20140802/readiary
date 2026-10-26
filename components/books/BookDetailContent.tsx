@@ -20,7 +20,6 @@ import { Profile } from '@/types/profile';
 import BookStack, { type FlagEntry } from './BookStack';
 import BookActionsMenu from './BookActionsMenu';
 import { useMarkAsFinished } from './MarkAsFinishedButton';
-import UnfinishBookButton from './UnfinishBookButton';
 import { buildFlags } from './flags';
 import { monthDay, pageLabel, shortDate } from './bookFormat';
 import { BTN_INK, BTN_LINE } from './buttonStyles';
@@ -168,16 +167,9 @@ export default function BookDetailContent({
         이어서 남기기
       </Link>
       {isFinished ? (
-        <>
-          <Link href={`/books/${book_id}/excerpts`} className={BTN_LINE}>
-            발췌집 펼치기
-          </Link>
-          <UnfinishBookButton
-            action={finishAction}
-            userBookId={id}
-            onUnfinish={() => setIsFinished(false)}
-          />
-        </>
+        <Link href={`/books/${book_id}/excerpts`} className={BTN_LINE}>
+          발췌집 펼치기
+        </Link>
       ) : (
         <button
           type="button"
@@ -280,6 +272,8 @@ export default function BookDetailContent({
               bookId={book_id}
               title={title}
               isFinished={isFinished}
+              onUnfinish={() => setIsFinished(false)}
+              unfinishAction={finishAction}
             />
           }
           stack={stack}
