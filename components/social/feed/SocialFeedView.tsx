@@ -130,7 +130,15 @@ export default function SocialFeedView({
             <LargeTitle>소셜</LargeTitle>
           </div>
           <Button asChild size="sm" variant="secondary" className="ml-auto hidden lg:inline-flex">
-            <Link href={FRIENDS_HREF}>친구 찾기{friendCount > 0 ? ` · ${friendCount}` : ''}</Link>
+            <Link href={FRIENDS_HREF}>
+              친구 찾기
+              {friendCount > 0 && (
+                <>
+                  {' · '}
+                  <span data-skeleton>{friendCount}</span>
+                </>
+              )}
+            </Link>
           </Button>
         </div>
 

@@ -74,7 +74,7 @@ export default function OverlappedMonths({
             className={clsx('h-2 w-2 rounded-full', MONTH_COLORS[i % MONTH_COLORS.length])}
             aria-hidden
           />
-          {m.label}
+          <span data-skeleton>{m.label}</span>
         </Chip>
       ))}
     </div>
@@ -146,7 +146,9 @@ export default function OverlappedMonths({
       aria-live="polite"
     >
       {strong ? (
-        `${RHYTHM_DAYS[strong.day]}요일 ${RHYTHM_TIMES[strong.time]}에 가장 자주 책을 펼쳤어요.`
+        <span data-skeleton>
+          {RHYTHM_DAYS[strong.day]}요일 {RHYTHM_TIMES[strong.time]}에 가장 자주 책을 펼쳤어요.
+        </span>
       ) : active.length < 2 ? (
         <span className="font-sans text-caption font-medium text-ink-sub">
           두 달 이상 겹치면 자주 펼친 때가 보여요.

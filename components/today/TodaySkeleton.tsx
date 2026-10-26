@@ -1,33 +1,88 @@
-import clsx from 'clsx';
-import s from './today.module.css';
+'use client';
 
-function Block({ className }: { className: string }) {
-  return <div className={clsx('rounded-[3px] bg-hairline/70', className)} />;
+import { addDays, format, parseISO } from 'date-fns';
+import { SkeletonScope, filler } from '@/components/ui/Skeleton';
+import { todayKST } from '@/lib/dates';
+import type { RecentEntry } from '@/lib/dashboard/fetchRecentEntries';
+import type { MyBook } from '@/types/book';
+import ComposerView from './ComposerView';
+import TodayView from './TodayView';
+
+const noop = () => {};
+// 회상은 실제 화면에서도 늦게 도착해 자리를 미리 잡지 않는다
+const NO_RECALL = Promise.resolve(null);
+
+const BOOKS: MyBook[] = [0, 1, 2].map((i) => ({
+  id: `skeleton-${i}`,
+  book_id: `skeleton-${i}`,
+  progress: null,
+  created_at: null,
+  is_finished: false,
+  last_read_page: i === 0 ? 100 : null,
+  books: { id: `skeleton-${i}`, title: filler(8), author: null, total_pages: 300, cover_url: null },
+}));
+
+function recent(today: string): RecentEntry[] {
+  return [0, 1, 2].map((ago, i) => {
+    const date = format(addDays(parseISO(today), -ago), 'yyyy-MM-dd');
+    return {
+      id: `skeleton-${i}`,
+      quote: filler([30, 22, 34][i]),
+      note: null,
+      date,
+      createdAt: `${date}T09:00:00+09:00`,
+      userBookId: BOOKS[0].id,
+      bookTitle: filler(8),
+      bookAuthor: null,
+    };
+  });
 }
 
-/** 오늘을 불러오는 동안 — 큰 날짜와 쓰기 자리만 먼저. 화면 틀(leaves)은 여백을 장이 잡으므로 여기서 둔다 */
+/** 오늘을 불러오는 동안 — 실제 TodayView·ComposerView를 자리용 데이터로 그린다 */
 export default function TodaySkeleton() {
+  const today = todayKST();
   return (
-    <div role="status" aria-label="오늘을 불러오는 중입니다" className="motion-safe:animate-pulse">
-      <div className="px-6 pt-[calc(72px+var(--app-safe-top))] lg:hidden">
-        <Block className="h-24 w-40" />
-        <div className={s.write}>
-          <Block className="h-6 w-3/4" />
-          <Block className="mt-4 h-6 w-1/2" />
-          <Block className="mt-10 h-9 w-36" />
-        </div>
-      </div>
-      <div className={clsx('hidden lg:grid', s.spread)}>
-        <div>
-          <Block className="h-36 w-64" />
-          <Block className="mt-14 h-7 w-3/4" />
-          <Block className="mt-4 h-7 w-1/2" />
-        </div>
-        <div>
-          <Block className="h-56 w-full" />
-          <Block className="mt-11 h-64 w-full" />
-        </div>
-      </div>
-    </div>
+    <SkeletonScope label="오늘을 펼치는 중">
+      <TodayView
+        todayKst={today}
+        weeklyCount={3}
+        weekActivity={[false, false, true, false, true, false, true]}
+        books={BOOKS}
+        latestTexts={{}}
+        recentUserBookId={BOOKS[0].id}
+        recentEntries={recent(today)}
+        recall={NO_RECALL}
+        markSeen={false}
+        composer={
+          <ComposerView
+            books={BOOKS}
+            selectedId={BOOKS[0].id}
+            mode="quote"
+            quote=""
+            note=""
+            isPrivate={false}
+            ready={false}
+            disabled
+            canSave={false}
+            pendingSubmission={false}
+            submitting={false}
+            draftKept={false}
+            storageError={false}
+            saveError={null}
+            saved={null}
+            onChange={noop}
+            onMode={noop}
+            onTogglePrivate={noop}
+            onSelectBook={noop}
+            onSave={noop}
+            onExtraOpen={noop}
+            onExtraChange={noop}
+            onAddExtra={noop}
+            onAddPages={() => false}
+            onAgain={noop}
+          />
+        }
+      />
+    </SkeletonScope>
   );
 }

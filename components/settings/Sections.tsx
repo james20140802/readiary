@@ -40,7 +40,7 @@ export function AccountSection({
     <SettingsSection id="account" title="계정">
       <div className="mt-3">
         {email && (
-          <SettingsRow value={email} chevron={false}>
+          <SettingsRow value={<span data-skeleton>{email}</span>} chevron={false}>
             이메일
           </SettingsRow>
         )}

@@ -210,7 +210,9 @@ export default function BookList({
           <h2 className="shrink-0 font-serif text-[32px] font-bold leading-[1.3] tracking-[-0.01em] text-ink">
             서가
           </h2>
-          <span className="shrink-0 font-sans text-caption text-ink-sub">{books.length}권</span>
+          <span className="shrink-0 font-sans text-caption text-ink-sub">
+            <span data-skeleton>{books.length}</span>권
+          </span>
           {chips}
           <div className="ml-auto xl:ml-0">{viewSwitch}</div>
         </div>
@@ -246,10 +248,13 @@ export default function BookList({
                   titleSize={8}
                   className="row-span-2 w-11"
                 />
-                <b className="self-end font-serif text-[17px] font-semibold text-ink">
+                <b data-skeleton className="self-end font-serif text-[17px] font-semibold text-ink">
                   {b.books.title}
                 </b>
-                <span className="self-start font-sans text-[14px] font-medium text-ink-sub">
+                <span
+                  data-skeleton
+                  className="self-start font-sans text-[14px] font-medium text-ink-sub"
+                >
                   {listMeta(b, stats?.[b.id])}
                 </span>
               </Link>
@@ -266,7 +271,13 @@ export default function BookList({
           onClick={() => setExpanded(!expanded)}
           className="mt-2.5 inline-flex min-h-11 items-center gap-1.5 font-sans text-[17px] font-semibold text-ink"
         >
-          {expanded ? '접기' : `${arranged.length}권 모두 보기`}
+          {expanded ? (
+            '접기'
+          ) : (
+            <>
+              <span data-skeleton>{arranged.length}</span>권 모두 보기
+            </>
+          )}
           {!expanded && <ArrowRight size={18} strokeWidth={1.75} aria-hidden />}
         </button>
       )}

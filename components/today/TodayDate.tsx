@@ -24,7 +24,7 @@ export default function TodayDate({
         <div>
           <div className={clsx(s.month, 'font-sans text-ink')}>{month}</div>
           <div className={clsx(s.weekday, 'font-sans')}>
-            {weekday} · {ordinal}
+            {weekday} · <span data-skeleton>{ordinal}</span>
           </div>
         </div>
       </div>

@@ -53,10 +53,16 @@ export default function WeekDiary({
     >
       <span>이번 주</span>
       <span>
-        <b className="mr-[3px] font-serif text-[22px] font-bold text-ink">{weeklyCount}</b>기록
+        <b data-skeleton className="mr-[3px] font-serif text-[22px] font-bold text-ink">
+          {weeklyCount}
+        </b>
+        기록
       </span>
       <span>
-        <b className="mr-[3px] font-serif text-[22px] font-bold text-ink">{days}</b>일
+        <b data-skeleton className="mr-[3px] font-serif text-[22px] font-bold text-ink">
+          {days}
+        </b>
+        일
       </span>
     </p>
   );
@@ -119,7 +125,10 @@ export default function WeekDiary({
                 key={`rest-${r.from}`}
                 className="grid grid-cols-[58px_1fr] gap-3 border-t border-hairline py-2"
               >
-                <span className="font-mono text-[14px] font-medium leading-normal text-ink-sub">
+                <span
+                  data-skeleton
+                  className="font-mono text-[14px] font-medium leading-normal text-ink-sub"
+                >
                   {r.label}
                 </span>
                 <span className="font-sans text-[14px] font-medium text-ink-faint">쉬어 간 날</span>
@@ -130,11 +139,14 @@ export default function WeekDiary({
                   href={`/entry/${r.entry.id}`}
                   className="grid grid-cols-[58px_1fr] gap-3 py-3.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
                 >
-                  <span className="font-mono text-[14px] font-medium leading-normal text-ink-sub">
+                  <span
+                    data-skeleton
+                    className="font-mono text-[14px] font-medium leading-normal text-ink-sub"
+                  >
                     <b className="block font-sans text-[15px] font-semibold text-ink">{r.label}</b>
                     {r.short}
                   </span>
-                  <span className="min-w-0">
+                  <span data-skeleton className="min-w-0">
                     <span className="line-clamp-2 block font-serif text-[18px] leading-[1.55] text-ink">
                       {r.text}
                     </span>

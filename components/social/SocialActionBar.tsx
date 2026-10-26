@@ -74,7 +74,7 @@ export default function SocialActionBar({
           fill={isLiked ? 'currentColor' : 'none'}
           strokeWidth={1.75}
         />
-        {!onLikeCountClick && <span>{formatCount(likeCount)}</span>}
+        {!onLikeCountClick && <span data-skeleton>{formatCount(likeCount)}</span>}
       </button>
       {onLikeCountClick && (
         <button
@@ -87,7 +87,7 @@ export default function SocialActionBar({
           aria-label={`좋아요 ${formatCount(likeCount)}개, 좋아한 사람 보기`}
           className={`${ACT} -ml-2 ${likeTone}`}
         >
-          {formatCount(likeCount)}
+          <span data-skeleton>{formatCount(likeCount)}</span>
         </button>
       )}
 
@@ -102,7 +102,7 @@ export default function SocialActionBar({
         }}
       >
         <MessageCircle aria-hidden="true" size={20} strokeWidth={1.75} />
-        {showCommentCount && <span>{formatCount(commentCount)}</span>}
+        {showCommentCount && <span data-skeleton>{formatCount(commentCount)}</span>}
       </button>
     </div>
   );

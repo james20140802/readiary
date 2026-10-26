@@ -31,22 +31,30 @@ function Frac({ b, className }: { b: MyBook; className?: string }) {
   if (total != null && total > 0)
     return (
       <div className={clsx(styles.frac, className)}>
-        {b.last_read_page ?? 0} <span>/ {total}</span>
+        <span data-skeleton>{b.last_read_page ?? 0}</span>{' '}
+        <span>
+          / <span data-skeleton>{total}</span>
+        </span>
       </div>
     );
   if (b.last_read_page != null)
     return (
       <div className={clsx(styles.frac, className)}>
-        {b.last_read_page}
+        <span data-skeleton>{b.last_read_page}</span>
         <span>쪽</span>
       </div>
     );
   return null;
 }
 
-function readingMeta(b: MyBook, stat: BookReadingStat | undefined, today: string): string {
-  if (!stat || stat.entryCount === 0) return '아직 남긴 기록이 없어요';
-  return `${lastRecordedLabel(stat.lastDate, today)} · 기록 ${stat.entryCount}`;
+/** 읽는 중 책의 아래 한 줄 — 데이터가 있을 때만 그 부분을 자리로 바꾼다 */
+function ReadingMeta({ stat, today }: { stat: BookReadingStat | undefined; today: string }) {
+  if (!stat || stat.entryCount === 0) return <>아직 남긴 기록이 없어요</>;
+  return (
+    <span data-skeleton>
+      {lastRecordedLabel(stat.lastDate, today)} · 기록 {stat.entryCount}
+    </span>
+  );
 }
 
 function EmptyShelf() {
@@ -71,15 +79,17 @@ function PulledBook({ b, stat, today }: { b: MyBook; stat?: BookReadingStat; tod
         <BookCover title={titleOf(b)} coverUrl={b.books.cover_url} className="w-24" sizes="96px" />
       </Link>
       <div className="min-w-0">
-        <div className="font-serif text-[21px] font-semibold leading-snug text-ink">
+        <div data-skeleton className="font-serif text-[21px] font-semibold leading-snug text-ink">
           {titleOf(b)}
         </div>
         {b.books.author && (
-          <div className="mt-0.5 font-sans text-caption text-ink-sub">{b.books.author}</div>
+          <div data-skeleton className="mt-0.5 font-sans text-caption text-ink-sub">
+            {b.books.author}
+          </div>
         )}
         <Frac b={b} className="mt-3 text-[24px]" />
         <div className="mt-1 font-sans text-caption text-ink-sub">
-          {readingMeta(b, stat, today)}
+          <ReadingMeta stat={stat} today={today} />
         </div>
       </div>
       <div className="col-span-2 flex gap-2 border-t border-hairline pt-3">
@@ -114,7 +124,8 @@ function ReadingLeafBody({
       ) : (
         <>
           <div className="mb-5 mt-1.5 font-sans text-caption text-ink-sub">
-            읽는 중 {reading.length}권 · 서가에 {books.length}권
+            읽는 중 <span data-skeleton>{reading.length}</span>권 · 서가에{' '}
+            <span data-skeleton>{books.length}</span>권
           </div>
           {first ? (
             <>
@@ -134,7 +145,7 @@ function ReadingLeafBody({
                     </Link>
                   ))}
                   <span className="ml-1.5 font-sans text-caption text-ink-sub">
-                    함께 읽는 중 {rest.length}권
+                    함께 읽는 중 <span data-skeleton>{rest.length}</span>권
                   </span>
                 </div>
               )}
@@ -174,7 +185,7 @@ function FinishedRows({
       ) : (
         <>
           <div className="mb-3.5 mt-1.5 font-sans text-caption text-ink-sub">
-            발췌집이 {finished.length}권 쌓였어요
+            발췌집이 <span data-skeleton>{finished.length}</span>권 쌓였어요
           </div>
           <ul>
             {finished.map((b) => {
@@ -193,11 +204,20 @@ function FinishedRows({
                     titleSize={8}
                   />
                   <Link href={`/books/${b.book_id}`} className="min-w-0">
-                    <div className="font-serif text-[18px] font-semibold leading-snug text-ink">
+                    <div
+                      data-skeleton
+                      className="font-serif text-[18px] font-semibold leading-snug text-ink"
+                    >
                       {titleOf(b)}
                     </div>
                     <div className="font-sans text-caption text-ink-sub">
-                      {stat ? `${monthDay(stat.lastDate)} · 기록 ${stat.entryCount}` : '다 읽음'}
+                      {stat ? (
+                        <span data-skeleton>
+                          {monthDay(stat.lastDate)} · 기록 {stat.entryCount}
+                        </span>
+                      ) : (
+                        '다 읽음'
+                      )}
                     </div>
                   </Link>
                   <Link
@@ -292,19 +312,26 @@ function DesktopReading({
             }}
           >
             <div className="vellum -rotate-[0.5deg] rounded-[3px] px-[30px] py-[26px]">
-              <div className="font-serif text-[30px] font-bold leading-[1.3] tracking-[-0.01em] text-ink">
+              <div
+                data-skeleton
+                className="font-serif text-[30px] font-bold leading-[1.3] tracking-[-0.01em] text-ink"
+              >
                 {titleOf(picked)}
               </div>
               {picked.books.author && (
-                <div className="mt-1 font-sans text-[16px] font-medium text-ink-sub">
+                <div data-skeleton className="mt-1 font-sans text-[16px] font-medium text-ink-sub">
                   {picked.books.author}
                 </div>
               )}
               <Frac b={picked} className="mt-[18px] text-[32px]" />
               <div className="mt-1.5 font-sans text-caption text-ink-sub">
-                {stat && stat.entryCount > 0
-                  ? `${monthDay(stat.firstDate)}부터 · 기록 ${stat.entryCount}`
-                  : '아직 남긴 기록이 없어요'}
+                {stat && stat.entryCount > 0 ? (
+                  <span data-skeleton>
+                    {monthDay(stat.firstDate)}부터 · 기록 {stat.entryCount}
+                  </span>
+                ) : (
+                  '아직 남긴 기록이 없어요'
+                )}
               </div>
               <div className="mt-[22px] flex gap-2.5">
                 <Link href={`/books/${picked.book_id}/entry/new`} className={BTN_INK}>
@@ -316,7 +343,7 @@ function DesktopReading({
               </div>
             </div>
             <p className="mt-4 font-sans text-caption text-ink-sub">
-              {readingMeta(picked, stat, today)}
+              <ReadingMeta stat={stat} today={today} />
             </p>
           </div>
         </>
@@ -340,7 +367,7 @@ function DesktopFinished({
         </h2>
         {finished.length > 0 && (
           <span className="font-sans text-caption text-ink-sub">
-            {finished.length}권 · 발췌집으로 묶였어요
+            <span data-skeleton>{finished.length}</span>권 · 발췌집으로 묶였어요
           </span>
         )}
       </div>
@@ -363,11 +390,20 @@ function DesktopFinished({
                     sizes="200px"
                     titleSize={16}
                   />
-                  <div className="mt-3 font-serif text-[16px] font-semibold leading-snug text-ink">
+                  <div
+                    data-skeleton
+                    className="mt-3 font-serif text-[16px] font-semibold leading-snug text-ink"
+                  >
                     {titleOf(b)}
                   </div>
                   <div className="font-sans text-caption text-ink-sub">
-                    {stat ? `${monthDay(stat.lastDate)} · 기록 ${stat.entryCount}` : '다 읽음'}
+                    {stat ? (
+                      <span data-skeleton>
+                        {monthDay(stat.lastDate)} · 기록 {stat.entryCount}
+                      </span>
+                    ) : (
+                      '다 읽음'
+                    )}
                   </div>
                 </Link>
               </li>

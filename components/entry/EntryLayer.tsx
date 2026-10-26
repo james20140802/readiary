@@ -105,20 +105,29 @@ export default function EntryLayer({
           <First title={title}>
             {parts && (
               <div className="flex items-start gap-3.5">
-                <span className="font-serif text-[96px] font-normal leading-[0.86] tracking-[-0.04em] text-ink lg:text-[150px]">
+                <span
+                  data-skeleton
+                  className="font-serif text-[96px] font-normal leading-[0.86] tracking-[-0.04em] text-ink lg:text-[150px]"
+                >
                   {parts.day}
                 </span>
                 <div>
-                  <div className="pt-1.5 font-sans text-[22px] font-bold text-ink lg:pt-4 lg:text-[28px]">
+                  <div
+                    data-skeleton
+                    className="pt-1.5 font-sans text-[22px] font-bold text-ink lg:pt-4 lg:text-[28px]"
+                  >
                     {parts.month}
                   </div>
                   <div className="mt-1.5 font-sans text-[16px] font-medium text-ink-sub">
-                    <time dateTime={entry.date}>{parts.meta}</time>
+                    <time data-skeleton dateTime={entry.date}>
+                      {parts.meta}
+                    </time>
                   </div>
                 </div>
               </div>
             )}
             <p
+              data-skeleton
               className={clsx(
                 styles.onrule,
                 'mt-[38px] whitespace-pre-wrap break-words pl-[34px] font-serif text-[25px] leading-[40px] tracking-[-0.01em] text-ink lg:mt-14 lg:pl-0 lg:text-[32px] lg:leading-[56px]',
@@ -128,19 +137,26 @@ export default function EntryLayer({
               {main}
             </p>
             <div className="mt-3 pl-[34px] font-sans text-[15px] font-medium text-ink-sub lg:pl-0">
-              <Link href={bookUrl} className="underline-offset-4 hover:text-ink hover:underline">
+              <Link
+                href={bookUrl}
+                data-skeleton
+                className="underline-offset-4 hover:text-ink hover:underline"
+              >
                 {book.title ?? '제목 없음'}
               </Link>
-              {book.author && ` · ${book.author}`}
-              {pages && ` · ${pages}`}
+              {book.author && <span data-skeleton>{` · ${book.author}`}</span>}
+              {pages && <span data-skeleton>{` · ${pages}`}</span>}
             </div>
             <div className="mt-6 pl-[34px] lg:mt-9 lg:max-w-[600px] lg:pl-0">
               {then && (
                 <div>
                   <div className={clsx(LABEL, 'text-ink-faint')}>
-                    그때의 생각 · {monthDay(entry.date, today)}
+                    그때의 생각 · <span data-skeleton>{monthDay(entry.date, today)}</span>
                   </div>
-                  <p className="mt-0.5 whitespace-pre-wrap break-words font-serif text-[20px] leading-[40px] text-ink-sub lg:text-[22px]">
+                  <p
+                    data-skeleton
+                    className="mt-0.5 whitespace-pre-wrap break-words font-serif text-[20px] leading-[40px] text-ink-sub lg:text-[22px]"
+                  >
                     {then}
                   </p>
                 </div>
@@ -175,7 +191,7 @@ export default function EntryLayer({
                 <div className="mt-4 lg:mt-7">
                   <Link href={`/entry/${entry.id}/edit`} className={ROW}>
                     <span>공개 범위</span>
-                    <span className="ml-auto text-ink-sub">
+                    <span data-skeleton className="ml-auto text-ink-sub">
                       {entry.is_private ? '나만 보기' : '친구에게 보임'}
                     </span>
                     <ChevronRight

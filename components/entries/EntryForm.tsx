@@ -51,10 +51,13 @@ export default function EntryForm({
             className="rounded-[3px] object-cover"
           />
           <div className="min-w-0">
-            <strong className="block truncate font-serif text-[19px] font-semibold leading-tight text-ink">
+            <strong
+              data-skeleton
+              className="block truncate font-serif text-[19px] font-semibold leading-tight text-ink"
+            >
               {book.title ?? '제목 없음'}
             </strong>
-            <span className="mt-1 block font-sans text-caption text-ink-sub">
+            <span data-skeleton className="mt-1 block font-sans text-caption text-ink-sub">
               {book.author ?? '저자 미상'}
             </span>
           </div>

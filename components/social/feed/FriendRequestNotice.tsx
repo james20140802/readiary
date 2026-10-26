@@ -25,7 +25,9 @@ export default function FriendRequestNotice({ pending, friendCount, variant, cla
   const single = pending.length === 1 ? pending[0].profile : null;
   const message = (
     <>
-      <b className="font-semibold">{who(pending)}</b>
+      <b className="font-semibold" data-skeleton>
+        {who(pending)}
+      </b>
       {subjectParticle(who(pending))} 친구 신청을 보냈어요
     </>
   );
@@ -62,7 +64,13 @@ export default function FriendRequestNotice({ pending, friendCount, variant, cla
       <div className="flex shrink-0 gap-1.5">
         <Button asChild size="sm" variant="secondary">
           <Link href={single ? '/social/friends' : '/social/friends?tab=pending'}>
-            {single ? `친구 ${friendCount}` : '받은 요청'}
+            {single ? (
+              <>
+                친구 <span data-skeleton>{friendCount}</span>
+              </>
+            ) : (
+              '받은 요청'
+            )}
           </Link>
         </Button>
         {single && <AcceptFriendRequestButton friendUserId={single.id} name={single.name} />}

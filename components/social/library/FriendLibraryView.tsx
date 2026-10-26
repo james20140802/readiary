@@ -89,14 +89,6 @@ export default function FriendLibraryView({
   });
 
   const year = profile.created_at ? new Date(profile.created_at).getFullYear() : null;
-  const statLine = [
-    isOwn ? '나' : '친구',
-    stats && `함께한 책 ${stats.totalBooks}`,
-    stats && `남긴 문장 ${stats.totalEntries}`,
-    stats && `완독 ${stats.finishedBooks}`,
-  ]
-    .filter(Boolean)
-    .join(' · ');
 
   return (
     <div className="lg:grid lg:grid-cols-[300px_minmax(0,1fr)] lg:items-start lg:gap-[72px]">
@@ -108,9 +100,10 @@ export default function FriendLibraryView({
           className="mx-auto flex aspect-[7/10] w-[min(220px,58vw)] flex-col rounded-[6px] lg:mx-0 bg-ink pb-[18px] pl-7 pr-[22px] pt-[22px] text-paper lg:w-[280px]"
         >
           <span className="font-sans text-[12px] font-semibold tracking-[0.06em] opacity-80">
-            {profile.name} 지음
+            <span data-skeleton>{profile.name}</span> 지음
           </span>
           <span
+            data-skeleton
             className={clsx(
               'mt-auto font-serif',
               COVER_TEXT[featuredQuote ? coverTier(featuredQuote.quote) : 'lg']
@@ -119,8 +112,12 @@ export default function FriendLibraryView({
             {featuredQuote?.quote ?? `${profile.name}의 서재`}
           </span>
           <span className="mt-5 flex justify-between font-mono text-[12px] font-medium opacity-70">
-            <span>{year ?? ''}</span>
-            {stats && <span>문장 {stats.totalEntries}</span>}
+            <span data-skeleton>{year ?? ''}</span>
+            {stats && (
+              <span>
+                문장 <span data-skeleton>{stats.totalEntries}</span>
+              </span>
+            )}
           </span>
         </div>
         {featuredQuote && (
@@ -131,17 +128,32 @@ export default function FriendLibraryView({
         )}
 
         <p className="mt-5 font-sans text-[20px] font-bold text-ink">
-          {profile.name}{' '}
-          <span className="font-mono text-[15px] font-medium text-ink-sub">
+          <span data-skeleton>{profile.name}</span>{' '}
+          <span className="font-mono text-[15px] font-medium text-ink-sub" data-skeleton>
             {profile.nickname}#{profile.tag}
           </span>
         </p>
         {profile.bio && (
-          <p className="mt-1 whitespace-pre-wrap font-serif text-[17px] leading-[1.65] text-ink-sub">
+          <p
+            data-skeleton
+            className="mt-1 whitespace-pre-wrap font-serif text-[17px] leading-[1.65] text-ink-sub"
+          >
             {profile.bio}
           </p>
         )}
-        <p className="mt-2.5 font-sans text-[15px] font-medium text-ink-sub">{statLine}</p>
+        <p className="mt-2.5 font-sans text-[15px] font-medium text-ink-sub">
+          {isOwn ? '나' : '친구'}
+          {stats && (
+            <>
+              {' · 함께한 책 '}
+              <span data-skeleton>{stats.totalBooks}</span>
+              {' · 남긴 문장 '}
+              <span data-skeleton>{stats.totalEntries}</span>
+              {' · 완독 '}
+              <span data-skeleton>{stats.finishedBooks}</span>
+            </>
+          )}
+        </p>
       </div>
 
       <div>
@@ -154,11 +166,14 @@ export default function FriendLibraryView({
             >
               <BookThumb url={current.coverUrl} title={current.title} width={72} />
               <span>
-                <span className="block font-serif text-[19px] font-semibold text-ink">
+                <span data-skeleton className="block font-serif text-[19px] font-semibold text-ink">
                   {current.title}
                 </span>
                 {current.lastReadPage != null && (
-                  <span className="mt-1.5 block whitespace-nowrap font-serif text-[22px] text-ink">
+                  <span
+                    data-skeleton
+                    className="mt-1.5 block whitespace-nowrap font-serif text-[22px] text-ink"
+                  >
                     {current.lastReadPage}
                     {current.totalPages != null && (
                       <span className="text-ink-faint"> / {current.totalPages}</span>
@@ -181,10 +196,16 @@ export default function FriendLibraryView({
               {sentences.map((s) => {
                 const body = (
                   <>
-                    <span className="block font-serif text-[20px] font-semibold leading-[1.6] tracking-[-0.01em] text-ink">
+                    <span
+                      data-skeleton
+                      className="block font-serif text-[20px] font-semibold leading-[1.6] tracking-[-0.01em] text-ink"
+                    >
                       {s.quote}
                     </span>
-                    <span className="mt-1.5 block font-sans text-[15px] font-medium text-ink-sub">
+                    <span
+                      data-skeleton
+                      className="mt-1.5 block font-sans text-[15px] font-medium text-ink-sub"
+                    >
                       {s.meta}
                     </span>
                   </>
@@ -207,7 +228,9 @@ export default function FriendLibraryView({
 
         <section aria-labelledby="lib-shelf" className="mt-[34px]">
           <div className="flex items-baseline justify-between">
-            <SectionLabel id="lib-shelf">서가 {shelfTotal}권</SectionLabel>
+            <SectionLabel id="lib-shelf">
+              서가 <span data-skeleton>{shelfTotal}</span>권
+            </SectionLabel>
             {shelfTotal > 0 && (
               <Link
                 href={shelfHref}
@@ -252,11 +275,14 @@ export default function FriendLibraryView({
                   >
                     <BookThumb url={ex.coverUrl} title={ex.title} width={52} />
                     <span className="min-w-0">
-                      <span className="block truncate font-serif text-[17px] font-semibold text-ink">
+                      <span
+                        data-skeleton
+                        className="block truncate font-serif text-[17px] font-semibold text-ink"
+                      >
                         {ex.title}
                       </span>
                       <span className="block font-sans text-[15px] font-medium text-ink-sub">
-                        문장 {ex.quoteCount}
+                        문장 <span data-skeleton>{ex.quoteCount}</span>
                       </span>
                     </span>
                     <span className="font-sans text-[15px] font-semibold text-accent">펼치기</span>

@@ -144,6 +144,7 @@ function SpineItem({
   const inner = (
     <>
       <span
+        data-skeleton
         className="min-h-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap font-serif text-[12px] tracking-[0.06em] text-ink"
         style={{ writingMode: 'vertical-rl', ...textStyle }}
       >

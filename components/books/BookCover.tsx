@@ -48,10 +48,11 @@ export default function BookCover({
       role={alt ? 'img' : undefined}
       aria-label={alt || undefined}
       aria-hidden={alt ? undefined : true}
+      data-skeleton-surface
       className={clsx(base, styles.coverPh)}
       style={{ background: bg, color: fg, fontSize: titleSize }}
     >
-      {title}
+      <span data-skeleton>{title}</span>
     </div>
   );
 }

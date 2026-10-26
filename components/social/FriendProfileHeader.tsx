@@ -17,7 +17,7 @@ interface Props {
  */
 export default function FriendProfileHeader({ profile, title }: Props) {
   const libraryHref = `/social/u/${profile.nickname}-${profile.tag}`;
-  useTopBar({ title, back: { href: libraryHref, label: `${profile.name}의 서재` } });
+  useTopBar({ title, back: { href: libraryHref, label: `${profile.name}의 서재`, data: true } });
 
   return (
     <Link
@@ -27,9 +27,9 @@ export default function FriendProfileHeader({ profile, title }: Props) {
       <FriendAvatar profile={profile} className="!h-10 !w-10" />
       <span>
         <span className="block font-sans text-[17px] font-semibold text-ink">
-          {profile.name}의 서재
+          <span data-skeleton>{profile.name}</span>의 서재
         </span>
-        <span className="block font-sans text-[14px] font-medium text-ink-sub">
+        <span data-skeleton className="block font-sans text-[14px] font-medium text-ink-sub">
           {profile.nickname}#{profile.tag}
         </span>
       </span>

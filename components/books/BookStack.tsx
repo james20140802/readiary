@@ -141,18 +141,23 @@ export default function BookStack({
           <div
             role="img"
             aria-label={`${title} 표지`}
+            data-skeleton-surface
             className={clsx(styles.coverPh, 'h-full w-full text-[18px]')}
             style={{ background: bg, color: fg }}
           >
-            {title}
+            <span data-skeleton>{title}</span>
           </div>
         )}
       </div>
       <div ref={velRef} className={styles.vel}>
-        <div className="font-sans text-[12px] font-semibold tracking-[0.04em] text-ink-sub">
+        <div
+          data-skeleton
+          className="font-sans text-[12px] font-semibold tracking-[0.04em] text-ink-sub"
+        >
           {kicker}
         </div>
         <Heading
+          data-skeleton
           className={clsx(
             'mt-[18px] font-serif font-bold leading-[1.3] tracking-[-0.01em] text-ink',
             TITLE_SIZE[titleTier(heading.main)]
@@ -166,15 +171,23 @@ export default function BookStack({
           )}
         </Heading>
         {author && (
-          <div className="mt-1 font-sans text-[14px] font-medium text-ink-sub">{author}</div>
+          <div data-skeleton className="mt-1 font-sans text-[14px] font-medium text-ink-sub">
+            {author}
+          </div>
         )}
         {frac && (
-          <div className={clsx(styles.frac, 'mt-4 text-[30px] text-ink lg:text-[34px]')}>
+          <div
+            data-skeleton
+            className={clsx(styles.frac, 'mt-4 text-[30px] text-ink lg:text-[34px]')}
+          >
             {frac[0]} {frac[1] != null ? <span>/ {frac[1]}</span> : <span>쪽</span>}
           </div>
         )}
         {quote && (
-          <p className="mt-auto line-clamp-4 border-t border-[rgb(127_127_127/.22)] pt-[18px] font-serif text-[17px] leading-[1.6] text-ink">
+          <p
+            data-skeleton
+            className="mt-auto line-clamp-4 border-t border-[rgb(127_127_127/.22)] pt-[18px] font-serif text-[17px] leading-[1.6] text-ink"
+          >
             {quote}
           </p>
         )}
@@ -185,8 +198,8 @@ export default function BookStack({
               quote ? 'mt-3' : 'mt-auto pt-[18px]'
             )}
           >
-            <span>{metaStart}</span>
-            <span>{metaEnd}</span>
+            <span data-skeleton>{metaStart}</span>
+            <span data-skeleton>{metaEnd}</span>
           </div>
         )}
       </div>

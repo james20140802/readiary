@@ -30,18 +30,25 @@ export default function EntryRow({ href, aside, quote, note, source, onClick }: 
       )}
     >
       {aside && (
-        <div className="whitespace-nowrap font-mono text-overline font-medium text-ink-sub">
+        <div
+          data-skeleton
+          className="whitespace-nowrap font-mono text-overline font-medium text-ink-sub"
+        >
           {aside}
         </div>
       )}
       <div className="min-w-0">
         {quote && (
-          <p className="whitespace-pre-line break-words font-serif text-note font-semibold text-ink line-clamp-6">
+          <p
+            data-skeleton
+            className="whitespace-pre-line break-words font-serif text-note font-semibold text-ink line-clamp-6"
+          >
             {quote}
           </p>
         )}
         {note && (
           <p
+            data-skeleton
             className={clsx(
               'whitespace-pre-line break-words font-serif text-body line-clamp-4',
               noteOnly ? 'text-ink' : 'mt-1.5 text-ink-sub'
@@ -53,7 +60,10 @@ export default function EntryRow({ href, aside, quote, note, source, onClick }: 
         {!quote && !note && (
           <p className="font-serif text-body text-ink-sub">읽은 분량을 기록했어요.</p>
         )}
-        <p className="mt-1.5 break-words font-sans text-overline font-medium text-ink-sub">
+        <p
+          data-skeleton
+          className="mt-1.5 break-words font-sans text-overline font-medium text-ink-sub"
+        >
           {source}
         </p>
       </div>
