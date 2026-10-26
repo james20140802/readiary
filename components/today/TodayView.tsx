@@ -8,6 +8,7 @@ import type { RecentEntry } from '@/lib/dashboard/fetchRecentEntries';
 import type { RecallEntry } from '@/lib/recall/fetchRecallEntry';
 import type { MyBook } from '@/types/book';
 import TodayDate from './TodayDate';
+import PolicyNotice from './PolicyNotice';
 import RecallSlip from './RecallSlip';
 import WeekDiary from './WeekDiary';
 import ReadingBooks from './ReadingBooks';
@@ -87,6 +88,7 @@ export default function TodayView(p: TodayViewProps) {
         <Leaf title="오늘" label="오늘 쓰기" free>
           <div className={s.leafBody}>
             <TodayDate todayKst={p.todayKst} weeklyCount={p.weeklyCount} desk={desk === true} />
+            <PolicyNotice />
             {p.composer}
             <div className="lg:hidden">
               <Suspense fallback={null}>

@@ -11,7 +11,7 @@ import FormGroup from '@/components/ui/FormGroup';
 import FormLabel from '@/components/ui/FormLabel';
 import FormAlert from '@/components/ui/FormAlert';
 import AuthFrame from '@/components/auth/AuthFrame';
-import { describeAuthError, validateEmail } from '@/lib/auth/authErrors';
+import { NETWORK_ERROR_MESSAGE, describeAuthError, validateEmail } from '@/lib/auth/authErrors';
 import { passwordResetRedirectTo } from '@/lib/auth/emailRedirect';
 
 export default function ResetPasswordPage() {
@@ -62,12 +62,12 @@ export default function ResetPasswordPage() {
         redirectTo: passwordResetRedirectTo(window.location.origin),
       });
       if (error) {
-        setFormError(describeAuthError('reset', error.message));
+        setFormError(describeAuthError('reset', error));
         return;
       }
       setSent(true);
     } catch {
-      setFormError('서버와 통신 중 오류가 발생했습니다.');
+      setFormError(NETWORK_ERROR_MESSAGE);
     } finally {
       setLoading(false);
     }

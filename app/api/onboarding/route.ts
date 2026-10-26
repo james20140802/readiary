@@ -43,8 +43,8 @@ export async function POST(req: Request) {
       return emailReply({ error: 'Invalid JSON' }, 400);
     const { name: rawName, nickname: rawNickname, tag, bio: rawBio, consent } = body;
 
-    // 약관·개인정보 동의 없이는 프로필(개인정보)을 만들지 않는다 — 이메일 가입과 가입 화면 Google은
-    // 표식을 갖고 오고, 로그인 화면 Google로 처음 온 사람은 온보딩 폼에서 동의해 consent: true 로 보낸다
+    // 만 14세 확인 없이는 프로필(개인정보)을 만들지 않는다 — 이메일·Google 가입 모두 온보딩 폼에서
+    // 확인해 consent: true 로 보낸다. 체크박스 가입 시절의 계정은 표식을 이미 갖고 온다
     const consentedBefore = hasConsented(user.user_metadata);
     const consentedNow = consent === true;
     if (!consentedBefore && !consentedNow) {
@@ -119,7 +119,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: '프로필 등록에 실패했습니다.' }, { status: 500 });
     }
 
-    // 메타데이터 뒷정리 한 번에: 여기서 처음 동의했다면 표식을 남기고, 초대 링크로 가입한 사람이면
+    // 메타데이터 뒷정리 한 번에: 여기서 처음 확인했다면 표식을 남기고, 초대 링크로 가입한 사람이면
     // 가입 때 실어 둔 복귀 경로를 한 번 쓰고 비운다. 실패해도 등록은 끝났으니 성공으로 답한다
     // (표식이 안 남아도 프로필이 있으면 온보딩은 다시 열리지 않는다)
     const redirectTo = readPendingRedirect(user.user_metadata);

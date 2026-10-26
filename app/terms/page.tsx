@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import LegalDocument from '@/components/legal/LegalDocument';
-import { TERMS_EFFECTIVE, TERMS_OF_SERVICE } from '@/lib/legal/texts';
+import { LEGAL_REVISION, TERMS_EFFECTIVE, TERMS_OF_SERVICE } from '@/lib/legal/texts';
 
 export const metadata: Metadata = {
   title: '서비스 이용 약관 | Readiary',
@@ -16,6 +16,12 @@ export default function TermsPage() {
       effective={`${TERMS_EFFECTIVE} 시행`}
       body={TERMS_OF_SERVICE}
       sibling={{ href: '/privacy', label: '개인정보처리방침' }}
+      revision={{
+        announced: LEGAL_REVISION.announced,
+        effective: LEGAL_REVISION.effective,
+        changes: LEGAL_REVISION.termsChanges,
+        previous: { href: '/terms/2026-09-13', label: '지난 판(2026년 9월 13일 시행) 보기' },
+      }}
     />
   );
 }

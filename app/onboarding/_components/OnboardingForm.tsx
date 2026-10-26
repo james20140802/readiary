@@ -15,11 +15,8 @@ import FormGroup from '@/components/ui/FormGroup';
 import FormLabel from '@/components/ui/FormLabel';
 import FormAlert from '@/components/ui/FormAlert';
 import AuthFrame from '@/components/auth/AuthFrame';
-import ConsentFieldset, {
-  NO_CONSENT,
-  isConsentComplete,
-  type Consent,
-} from '@/components/auth/ConsentFieldset';
+import AgeConfirmField from '@/components/auth/AgeConfirmField';
+import LegalNotice from '@/components/auth/LegalNotice';
 import { validateNickname, MAX_NICKNAME_LENGTH } from '@/lib/profile/nickname';
 import { sanitizeRedirectPath } from '@/lib/auth/safeRedirect';
 import { CONSENT_REQUIRED_MESSAGE } from '@/lib/auth/consent';
@@ -39,8 +36,8 @@ interface OnboardingFormProps {
   /** 소셜 로그인이 알려 준 이름 — 있으면 미리 채워 두고, 사용자가 고칠 수 있다 */
   defaultName?: string;
   /**
-   * 약관·개인정보 동의를 아직 받지 않은 계정인가(로그인 화면의 Google 버튼으로 처음 온 사람).
-   * 이메일 가입과 가입 화면 Google은 이미 동의했으므로 다시 묻지 않는다.
+   * 만 14세 확인을 아직 받지 않은 계정인가. 이메일·Google 가입 모두 여기서 처음 받는다 — 가입 화면이
+   * 체크박스로 동의를 받던 때 가입해 표식을 이미 가진 계정만 다시 묻지 않는다.
    */
   requireConsent?: boolean;
   email?: string | null;
@@ -62,14 +59,14 @@ export default function OnboardingForm({
   const [name, setName] = useState(defaultName);
   const [nickname, setNickname] = useState('');
   const [bio, setBio] = useState('');
-  const [consent, setConsent] = useState<Consent>(NO_CONSENT);
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [nicknameError, setNicknameError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const action = useActionLock();
   const loading = action.busy;
   const setLoading = (value: boolean) => (value ? action.acquire() : action.release());
   const navigating = useRef(false);
-  const consented = !requireConsent || isConsentComplete(consent);
+  const consented = !requireConsent || ageConfirmed;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,7 +102,7 @@ export default function OnboardingForm({
         const res = await apiFetch('/api/onboarding', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          // 동의를 여기서 받았다면 서버가 표식을 남기도록 함께 보낸다
+          // 만 14세 확인을 여기서 받았다면 서버가 표식을 남기도록 함께 보낸다
           body: JSON.stringify({
             name,
             nickname,
@@ -162,7 +159,7 @@ export default function OnboardingForm({
       title="내 일기장의 이름을 적어 주세요"
       lead={
         requireConsent
-          ? '친구는 닉네임#태그로 나를 찾아요. 태그는 자동으로 붙어요. 아래 필수 확인도 함께 해 주세요.'
+          ? '친구는 닉네임#태그로 나를 찾아요. 태그는 자동으로 붙어요. 아래 만 14세 확인도 함께 해 주세요.'
           : '친구는 닉네임#태그로 나를 찾아요. 태그는 자동으로 붙어요.'
       }
     >
@@ -229,24 +226,29 @@ export default function OnboardingForm({
             />
           </FormGroup>
 
-          {requireConsent && (
-            <ConsentFieldset
-              idPrefix="onboarding"
-              value={consent}
-              onChange={(next) => {
-                setConsent(next);
-                if (formError) setFormError(null);
-              }}
-            />
-          )}
-
-          {emailConsentAvailable && (
-            <EmailConsentField
-              checked={emailEnabled}
-              onChange={setEmailEnabled}
-              email={email}
-              disabled={loading || uncertainEmailAttempt}
-            />
+          {(requireConsent || emailConsentAvailable) && (
+            // 확인 줄들을 헤어라인 사이 한 묶음으로 — 시안 auth.html `.cons`
+            <div className="border-t border-hairline">
+              {requireConsent && (
+                <AgeConfirmField
+                  id="onboarding-age"
+                  checked={ageConfirmed}
+                  onChange={(checked) => {
+                    setAgeConfirmed(checked);
+                    if (formError) setFormError(null);
+                  }}
+                />
+              )}
+              {emailConsentAvailable && (
+                <EmailConsentField
+                  compact
+                  checked={emailEnabled}
+                  onChange={setEmailEnabled}
+                  email={email}
+                  disabled={loading || uncertainEmailAttempt}
+                />
+              )}
+            </div>
           )}
         </fieldset>
         {uncertainEmailAttempt && (
@@ -263,6 +265,9 @@ export default function OnboardingForm({
         >
           {loading ? '펼치는 중...' : '일기장 펼치기'}
         </Button>
+        {(requireConsent || emailConsentAvailable) && (
+          <LegalNotice action="일기장을 펼치면" className="text-center" />
+        )}
       </form>
       <ActionNavigation href={action.destination} />
     </AuthFrame>

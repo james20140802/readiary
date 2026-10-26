@@ -19,7 +19,12 @@ import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 import OrDivider from '@/components/auth/OrDivider';
 import { SESSION_EXPIRED_ERROR_PARAM } from '@/lib/api/fetch';
 import { authHrefWithRedirect, sanitizeRedirectPath } from '@/lib/auth/safeRedirect';
-import { describeAuthError, isEmailNotConfirmed, validateEmail } from '@/lib/auth/authErrors';
+import {
+  NETWORK_ERROR_MESSAGE,
+  describeAuthError,
+  isEmailNotConfirmed,
+  validateEmail,
+} from '@/lib/auth/authErrors';
 import { emailConfirmRedirectTo } from '@/lib/auth/emailRedirect';
 import { isGoogleLoginEnabled } from '@/lib/auth/oauthRedirect';
 
@@ -80,8 +85,8 @@ export default function LoginPage() {
         password,
       });
       if (error) {
-        setFormError(describeAuthError('login', error.message));
-        setUnconfirmed(isEmailNotConfirmed(error.message));
+        setFormError(describeAuthError('login', error));
+        setUnconfirmed(isEmailNotConfirmed(error));
         return;
       }
       navigating.current = true;
@@ -89,7 +94,7 @@ export default function LoginPage() {
       router.push(sanitizeRedirectPath(redirectParam));
       router.refresh();
     } catch {
-      setFormError('서버와 통신 중 오류가 발생했습니다.');
+      setFormError(NETWORK_ERROR_MESSAGE);
     } finally {
       if (!navigating.current) setIsSubmitting(false);
     }
@@ -108,7 +113,7 @@ export default function LoginPage() {
         },
       });
       if (error) {
-        toast.error(describeAuthError('signup', error.message));
+        toast.error(describeAuthError('signup', error));
       } else {
         toast.success('인증 메일을 다시 보냈습니다. 받은 메일함을 확인해주세요.');
       }

@@ -3,8 +3,6 @@ import type { EmailOtpType } from '@supabase/supabase-js';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { DEFAULT_REDIRECT_PATH, sanitizeRedirectPath } from '@/lib/auth/safeRedirect';
 import { PENDING_REDIRECT_KEY, toPendingRedirect } from '@/lib/auth/pendingRedirect';
-import { CONSENTED_AT_KEY, consentStamp } from '@/lib/auth/consent';
-import { OAUTH_CONSENT_PARAM } from '@/lib/auth/oauthRedirect';
 
 const DEFAULT_NEXT = DEFAULT_REDIRECT_PATH;
 
@@ -76,7 +74,6 @@ export async function GET(request: NextRequest) {
   const type = searchParams.get('type');
   const code = searchParams.get('code');
   const next = resolveNext(searchParams.get('next'), request.nextUrl.origin);
-  const consented = searchParams.get(OAUTH_CONSENT_PARAM) === '1';
 
   const redirect = (path: string) => NextResponse.redirect(new URL(path, request.url));
 
@@ -128,16 +125,14 @@ export async function GET(request: NextRequest) {
     return redirect(next);
   }
 
-  // OAuth로 처음 온 사람이 초대 링크 등에서 출발했다면 목적지가 `next`에만 있고, 가입 화면에서
-  // 동의를 마쳤다는 사실은 `consent`에만 있다 — 이메일 가입이 user_metadata에 실어 두는 것과 같은
-  // 자리에 넣어, 온보딩이 동의를 다시 묻지 않고 끝에서 /api/onboarding 이 복귀 경로를 꺼내 쓴다.
-  // 실어 두기에 실패해도 온보딩 자체는 막지 않는다(동의를 한 번 더 묻고, 복귀만 홈으로 바뀐다)
+  // OAuth로 처음 온 사람이 초대 링크 등에서 출발했다면 목적지가 `next`에만 있다 — 이메일 가입이
+  // user_metadata에 실어 두는 것과 같은 자리에 넣어, 온보딩 끝에서 /api/onboarding 이 복귀 경로를
+  // 꺼내 쓴다. 실어 두기에 실패해도 온보딩 자체는 막지 않는다(복귀만 홈으로 바뀐다)
   const pendingRedirect = next !== DEFAULT_NEXT ? toPendingRedirect(next) : null;
-  const stash: Record<string, string> = {};
-  if (pendingRedirect) stash[PENDING_REDIRECT_KEY] = pendingRedirect;
-  if (consented) stash[CONSENTED_AT_KEY] = consentStamp();
-  if (Object.keys(stash).length > 0) {
-    const { error: stashError } = await supabase.auth.updateUser({ data: stash });
+  if (pendingRedirect) {
+    const { error: stashError } = await supabase.auth.updateUser({
+      data: { [PENDING_REDIRECT_KEY]: pendingRedirect },
+    });
     if (stashError) {
       console.error('[AUTH CONFIRM METADATA STASH ERROR]', stashError);
     }

@@ -16,7 +16,11 @@ import FormLabel from '@/components/ui/FormLabel';
 import FormAlert from '@/components/ui/FormAlert';
 import AuthFrame from '@/components/auth/AuthFrame';
 import PasswordInput from '@/components/auth/PasswordInput';
-import { describeAuthError, validateNewPassword } from '@/lib/auth/authErrors';
+import {
+  NETWORK_ERROR_MESSAGE,
+  describeAuthError,
+  validateNewPassword,
+} from '@/lib/auth/authErrors';
 import { hasRecoveryMethod } from '@/lib/auth/recoverySession';
 
 type Gate = 'checking' | 'allowed' | 'denied';
@@ -80,7 +84,7 @@ export default function UpdatePasswordPage() {
     try {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) {
-        setFormError(describeAuthError('updatePassword', error.message));
+        setFormError(describeAuthError('updatePassword', error));
         return;
       }
       await disableAccountPush().catch(() => {
@@ -105,7 +109,7 @@ export default function UpdatePasswordPage() {
       router.replace('/login');
       router.refresh();
     } catch {
-      setFormError('서버와 통신 중 오류가 발생했습니다.');
+      setFormError(NETWORK_ERROR_MESSAGE);
     } finally {
       if (!navigating.current) setLoading(false);
     }
