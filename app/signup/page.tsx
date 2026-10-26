@@ -14,14 +14,10 @@ import FormAlert from '@/components/ui/FormAlert';
 import AuthFrame, { AuthLinks } from '@/components/auth/AuthFrame';
 import PasswordInput from '@/components/auth/PasswordInput';
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
-import ConsentFieldset, {
-  NO_CONSENT,
-  isConsentComplete,
-  type Consent,
-} from '@/components/auth/ConsentFieldset';
+import LegalNotice from '@/components/auth/LegalNotice';
 import { PENDING_REDIRECT_KEY, toPendingRedirect } from '@/lib/auth/pendingRedirect';
-import { CONSENTED_AT_KEY, CONSENT_REQUIRED_MESSAGE, consentStamp } from '@/lib/auth/consent';
 import {
+  NETWORK_ERROR_MESSAGE,
   describeAuthError,
   validateEmail,
   validateNewPassword,
@@ -42,7 +38,6 @@ export default function SignupPage() {
   const [confirmError, setConfirmError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [signupComplete, setSignupComplete] = useState(false);
-  const [consent, setConsent] = useState<Consent>(NO_CONSENT);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const supabase = createSupabaseClient();
   const searchParams = useSearchParams();
@@ -52,25 +47,23 @@ export default function SignupPage() {
   const pendingRedirectHint = redirectParam?.startsWith('/invite/')
     ? ' 일기장 이름을 정하면 받은 초대로 돌아가요.'
     : null;
-  const consented = isConsentComplete(consent);
   const googleEnabled = isGoogleLoginEnabled();
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
 
-    // 서버에 보내기 전에 걸러낼 수 있는 것은 여기서 — 형식·길이·일치·동의
+    // 서버에 보내기 전에 걸러낼 수 있는 것은 여기서 — 형식·길이·일치
     const emailProblem = validateEmail(email);
     const passwordProblem = validateNewPassword(password, confirmPassword);
-    const consentProblem = !consented ? CONSENT_REQUIRED_MESSAGE : null;
     const passwordTooShort = password.length < MIN_PASSWORD_LENGTH;
     flushSync(() => {
       setEmailError(emailProblem);
       setPasswordError(passwordTooShort ? passwordProblem : null);
       setConfirmError(!passwordTooShort ? passwordProblem : null);
-      setFormError(consentProblem);
+      setFormError(null);
     });
-    if (emailProblem || passwordProblem || consentProblem) {
+    if (emailProblem || passwordProblem) {
       if (emailProblem) emailRef.current?.focus();
       else if (passwordProblem) {
         (passwordTooShort ? passwordRef : confirmRef).current?.focus();
@@ -80,24 +73,21 @@ export default function SignupPage() {
 
     setIsSubmitting(true);
     try {
-      // 동의 표식과, 초대 링크 등에서 왔다면 목적지를 계정 메타데이터에 실어 이메일 인증(다른
-      // 기기여도)과 온보딩을 지나게 한다 — 온보딩은 표식을 보고 동의를 다시 묻지 않고,
-      // /api/onboarding 이 목적지를 꺼내 복귀시킨다. 쿼리·쿠키는 그 사이에 끊긴다
+      // 초대 링크 등에서 왔다면 목적지를 계정 메타데이터에 실어 이메일 인증(다른 기기여도)과
+      // 온보딩을 지나게 한다 — /api/onboarding 이 꺼내 복귀시킨다. 쿼리·쿠키는 그 사이에 끊긴다.
+      // 만 14세 확인은 Google 가입과 같은 자리(온보딩)에서 받는다
       const pendingRedirect = toPendingRedirect(redirectParam);
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password,
         options: {
           emailRedirectTo: emailConfirmRedirectTo(window.location.origin, redirectParam),
-          data: {
-            [CONSENTED_AT_KEY]: consentStamp(),
-            ...(pendingRedirect ? { [PENDING_REDIRECT_KEY]: pendingRedirect } : {}),
-          },
+          ...(pendingRedirect ? { data: { [PENDING_REDIRECT_KEY]: pendingRedirect } } : {}),
         },
       });
 
       if (error) {
-        setFormError(describeAuthError('signup', error.message));
+        setFormError(describeAuthError('signup', error));
         return;
       }
       // 이메일 확인이 켜진 프로젝트는 기존 계정이어도 성공처럼 답하되 identities가 비어 온다 —
@@ -108,7 +98,7 @@ export default function SignupPage() {
       }
       setSignupComplete(true);
     } catch {
-      setFormError('서버와 통신 중 오류가 발생했습니다.');
+      setFormError(NETWORK_ERROR_MESSAGE);
     } finally {
       setIsSubmitting(false);
     }
@@ -207,15 +197,6 @@ export default function SignupPage() {
           />
         </FormGroup>
 
-        <ConsentFieldset
-          idPrefix="signup"
-          value={consent}
-          onChange={(next) => {
-            setConsent(next);
-            if (formError) setFormError(null);
-          }}
-        />
-
         <Button type="submit" fullWidth loading={isSubmitting} className="!mt-[22px]">
           {isSubmitting ? '가입 중...' : '가입하기'}
         </Button>
@@ -223,24 +204,10 @@ export default function SignupPage() {
 
       {googleEnabled && (
         <div className="mt-3">
-          <GoogleSignInButton
-            redirectParam={redirectParam}
-            consented
-            disabled={!consented}
-            describedBy={consented ? undefined : 'signup-google-hint'}
-          >
-            Google로 가입하기
-          </GoogleSignInButton>
-          {!consented && (
-            <p
-              id="signup-google-hint"
-              className="mt-2 text-center font-sans text-fine text-ink-sub"
-            >
-              위 세 가지를 확인하면 Google 계정으로도 가입할 수 있어요.
-            </p>
-          )}
+          <GoogleSignInButton redirectParam={redirectParam}>Google로 가입하기</GoogleSignInButton>
         </div>
       )}
+      <LegalNotice action="가입하면" className="mt-4 text-center" />
       <AuthLinks>
         <Link href={loginHref}>이미 계정이 있어요</Link>
       </AuthLinks>

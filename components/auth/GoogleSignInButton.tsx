@@ -9,11 +9,6 @@ import { buildOAuthRedirectTo } from '@/lib/auth/oauthRedirect';
 interface GoogleSignInButtonProps {
   /** 로그인 뒤 돌아갈 같은 오리진 경로(`?redirect=`) — 없으면 홈 */
   redirectParam: string | null;
-  /**
-   * 약관·개인정보 동의를 이 화면에서 이미 받았는가. 가입 화면은 동의 뒤에만 버튼이 눌리므로 true,
-   * 로그인 화면은 false — 처음 온 사람이면 온보딩에서 동의를 받는다.
-   */
-  consented?: boolean;
   disabled?: boolean;
   onBusyChange?: (busy: boolean) => void;
   /** 버튼이 왜 눌리지 않는지 알리는 안내문의 id */
@@ -52,7 +47,6 @@ function GoogleMark() {
  */
 export default function GoogleSignInButton({
   redirectParam,
-  consented = false,
   disabled,
   onBusyChange,
   describedBy,
@@ -69,7 +63,7 @@ export default function GoogleSignInButton({
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: buildOAuthRedirectTo(window.location.origin, redirectParam, { consented }),
+          redirectTo: buildOAuthRedirectTo(window.location.origin, redirectParam),
         },
       });
       // 성공하면 브라우저가 Google로 떠나므로 여기 돌아오는 건 실패했을 때뿐

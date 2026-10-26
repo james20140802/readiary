@@ -17,7 +17,6 @@ interface LegalDocumentProps {
  * 공개 법적 고지 한 장 — /terms, /privacy. 메뉴 없는 괘선 종이 위 도구 화면 문법:
  * 위에 'Readiary'와 로그인·시작하기, 산세리프 큰 제목, 헤어라인으로 나눈 조문.
  * 본문은 줄바꿈을 그대로 살려 목록 들여쓰기가 텍스트에 적힌 대로 보이게 한다.
- * 동의 모달(ConsentFieldset)의 본문과 같은 문자열을 같은 파서로 나눠 그린다.
  */
 export default function LegalDocument({
   seal,

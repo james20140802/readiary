@@ -16,7 +16,6 @@ function setup(password: string, confirm: string) {
     target: { value: password },
   });
   fireEvent.change(screen.getByLabelText('비밀번호 확인'), { target: { value: confirm } });
-  for (const checkbox of screen.getAllByRole('checkbox')) fireEvent.click(checkbox);
   fireEvent.click(screen.getByRole('button', { name: '가입하기' }));
 }
 it('attaches length errors to password while preserving help and typed values', () => {
@@ -46,5 +45,16 @@ it('attaches mismatch to confirmation and preserves the password', () => {
   expect(confirm.getAttribute('aria-invalid')).toBeNull();
   expect((screen.getByLabelText('비밀번호', { exact: true }) as HTMLInputElement).value).toBe(
     'long-enough'
+  );
+});
+
+it('asks for no checkbox and shows the terms and privacy notice as links before signing up', () => {
+  render(React.createElement(SignupPage));
+  expect(screen.queryAllByRole('checkbox')).toHaveLength(0);
+  expect(screen.getByRole('link', { name: /서비스 이용 약관/ }).getAttribute('href')).toBe(
+    '/terms'
+  );
+  expect(screen.getByRole('link', { name: /개인정보처리방침/ }).getAttribute('href')).toBe(
+    '/privacy'
   );
 });

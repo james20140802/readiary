@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { splitLegalBlocks } from '@/lib/legal/blocks';
-import { PRIVACY_POLICY, TERMS_OF_SERVICE, PRIVACY_CONSENT } from '@/lib/legal/texts';
+import {
+  EMAIL_PRIVACY_ADDENDUM,
+  LEGAL_ANNOUNCED,
+  PRIVACY_EFFECTIVE,
+  PRIVACY_POLICY,
+  TERMS_EFFECTIVE,
+  TERMS_OF_SERVICE,
+} from '@/lib/legal/texts';
 
 describe('splitLegalBlocks', () => {
   it('빈 줄로 나눈 덩어리마다 하나의 블록을 만든다', () => {
@@ -48,12 +55,24 @@ describe('법적 고지 본문', () => {
     expect(PRIVACY_POLICY).toMatch(/문의/);
   });
 
-  it('동의서는 전체 방침 경로를 안내한다', () => {
-    expect(PRIVACY_CONSENT).toContain('/privacy');
+  it('필수 처리는 계약 이행 근거로, 만 14세 확인은 프로필을 만들 때로 안내한다', () => {
+    expect(PRIVACY_POLICY).toContain('제15조 제1항 제4호');
+    expect(TERMS_OF_SERVICE).toContain('처음 프로필을 만들 때 만 14세 이상임을 확인받습니다');
+    expect(PRIVACY_POLICY).not.toContain('가입 동의 시각');
+  });
+
+  it('개정판은 공고하고 7일 뒤 시행한다 — 처리방침과 이메일 소식 안내가 같은 날짜를 쓴다', () => {
+    expect(LEGAL_ANNOUNCED).toBe('2026년 10월 27일');
+    expect(TERMS_EFFECTIVE).toBe('2026년 11월 3일');
+    expect(PRIVACY_EFFECTIVE).toBe('2026년 11월 3일');
+    expect(PRIVACY_POLICY).toContain(`${LEGAL_ANNOUNCED} 공고하며 ${PRIVACY_EFFECTIVE}부터 시행`);
+    expect(EMAIL_PRIVACY_ADDENDUM).toContain(
+      `${LEGAL_ANNOUNCED} 공고하며 ${PRIVACY_EFFECTIVE}부터 시행`
+    );
   });
 
   it('미완성 표식이 남아 있지 않다', () => {
-    for (const text of [TERMS_OF_SERVICE, PRIVACY_POLICY, PRIVACY_CONSENT]) {
+    for (const text of [TERMS_OF_SERVICE, PRIVACY_POLICY, EMAIL_PRIVACY_ADDENDUM]) {
       expect(text).not.toMatch(/TODO|TBD|\[\s*\]/);
     }
   });
