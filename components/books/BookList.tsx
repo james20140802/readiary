@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { ArrowRight, Check, ChevronDown } from 'lucide-react';
 import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headlessui/react';
 import clsx from 'clsx';
@@ -25,6 +26,22 @@ interface Props {
 }
 
 type View = 'spine' | 'list';
+
+/**
+ * 순서·거르기를 바꿀 때 책등과 목록 줄이 새 자리로 옮겨 가고, 빠지는 책은 흐려지며 사라진다.
+ * 이름표(view-transition-name)는 globals.css의 .vt-book이 보이는 책에만 붙인다.
+ * 화면 전환을 모르는 브라우저와 움직임 줄이기 설정에서는 바로 바뀐다.
+ */
+function withShelfMotion(update: () => void) {
+  if (
+    typeof document.startViewTransition !== 'function' ||
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  ) {
+    update();
+    return;
+  }
+  document.startViewTransition(() => flushSync(update));
+}
 
 /** 목록으로 볼 때 접어 두는 권수 */
 const LIST_PREVIEW = 5;
@@ -85,8 +102,9 @@ export default function BookList({
     href: hrefFor(b),
   }));
 
-  // 선반이 세 칸을 넘는지 — 넘을 때만 "모두 보기"를 둔다
-  useEffect(() => {
+  // 선반이 세 칸을 넘는지 — 넘을 때만 "모두 보기"를 둔다.
+  // 화면 전환이 새 화면을 찍기 전에 가려진 책등이 inert로 표시되도록 그리기 직후에 잰다
+  useLayoutEffect(() => {
     const el = shelfRef.current;
     if (!el || view !== 'spine' || expanded) return;
     const check = () => {
@@ -161,7 +179,7 @@ export default function BookList({
             key={f.value}
             type="button"
             aria-pressed={filter === f.value}
-            onClick={() => setFilter(f.value)}
+            onClick={() => withShelfMotion(() => setFilter(f.value))}
             className={styles.tab}
           >
             {f.label}
@@ -169,7 +187,7 @@ export default function BookList({
         ))}
       </div>
       <div className="flex items-center gap-5">
-        <Listbox value={order} onChange={setOrder}>
+        <Listbox value={order} onChange={(v) => withShelfMotion(() => setOrder(v))}>
           <ListboxButton
             className={styles.sortBtn}
             // Headless UI는 닫힌 버튼의 Enter를 폼 제출로 돌린다 — 폼 밖의 이 버튼은 Enter도 Space처럼 연다
@@ -257,7 +275,11 @@ export default function BookList({
       ) : (
         <ul id={listId} aria-label="서가 목록">
           {listItems.map((b) => (
-            <li key={b.id}>
+            <li
+              key={b.id}
+              className="vt-book"
+              style={{ '--vt': `book-${b.id}` } as React.CSSProperties}
+            >
               <Link
                 href={hrefFor(b)}
                 className="grid grid-cols-[44px_1fr] items-center gap-x-3.5 gap-y-0.5 border-t border-hairline py-2.5"

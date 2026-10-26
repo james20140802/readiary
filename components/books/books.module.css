@@ -161,10 +161,20 @@
     0 0 0 1px rgb(var(--hairline-strong)),
     0 8px 24px rgb(0 0 0 / 0.1);
   outline: none;
-  transition: opacity 120ms ease-out;
+  /* 메뉴는 그것을 연 버튼(오른쪽 위)에서 펼쳐져 나온다 */
+  transform-origin: top right;
+  transition:
+    opacity 120ms ease-out,
+    transform 120ms ease-out;
 }
 .sortMenu[data-closed] {
   opacity: 0;
+  transform: scale(0.96);
+}
+@media (prefers-reduced-motion: reduce) {
+  .sortMenu[data-closed] {
+    transform: none;
+  }
 }
 .sortOption {
   display: flex;

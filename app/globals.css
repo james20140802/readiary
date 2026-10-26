@@ -907,3 +907,17 @@ li {
     opacity: 0.55;
   }
 }
+
+/* 서가의 순서·거르기 전환 — 보이는 책등과 목록 줄만 이름표를 달아 새 자리로 옮겨 간다.
+   접힌 선반 아래로 가려진(inert) 책은 이름표가 없어 제자리에서 흐려지거나 나타난다(BookList withShelfMotion) */
+.vt-book:not([inert]) {
+  view-transition-name: var(--vt);
+  view-transition-class: book;
+}
+::view-transition-group(.book) {
+  animation-duration: 320ms;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+::view-transition-group(root) {
+  animation-duration: 200ms;
+}
