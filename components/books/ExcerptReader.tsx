@@ -64,14 +64,22 @@ export default function ExcerptReader({
           <div className="font-sans text-[13px] font-semibold tracking-[0.16em] text-ink-sub">
             발췌집
           </div>
-          <h1 className="mt-[18px] text-balance break-keep font-serif text-[30px] font-bold leading-[1.35] text-ink">
+          <h1
+            data-skeleton
+            className="mt-[18px] text-balance break-keep font-serif text-[30px] font-bold leading-[1.35] text-ink"
+          >
             {bookTitle}
           </h1>
           {author && (
-            <div className="mt-2 font-sans text-[16px] font-medium text-ink-sub">{author}</div>
+            <div data-skeleton className="mt-2 font-sans text-[16px] font-medium text-ink-sub">
+              {author}
+            </div>
           )}
           {has && (
-            <p className="mt-[26px] text-balance font-serif text-[17px] leading-[1.7] text-ink-sub">
+            <p
+              data-skeleton
+              className="mt-[26px] text-balance font-serif text-[17px] leading-[1.7] text-ink-sub"
+            >
               {spanSentence(
                 quotes.map((q) => q.date),
                 quotes.length
@@ -102,15 +110,15 @@ export default function ExcerptReader({
           )}
           {/* 판권 */}
           <div className="mt-[30px] border-t border-ink pt-5 font-sans text-[14px] font-medium leading-[1.9] text-ink-sub">
-            {bookTitle} 발췌집
+            <span data-skeleton>{bookTitle}</span> 발췌집
             {period && (
               <>
                 <br />
-                {period}
+                <span data-skeleton>{period}</span>
               </>
             )}
             <br />
-            문장 {quotes.length}
+            문장 <span data-skeleton>{quotes.length}</span>
           </div>
         </div>
       </div>
@@ -136,11 +144,16 @@ const LINK = 'min-h-10 font-sans text-[15px] font-semibold';
 function ExcerptSlip({ quote, today }: { quote: Quote; today: string }) {
   return (
     <>
-      <p className="whitespace-pre-wrap break-words font-serif text-[22px] font-semibold leading-[1.65] tracking-[-0.01em] text-ink lg:text-[24px]">
+      <p
+        data-skeleton
+        className="whitespace-pre-wrap break-words font-serif text-[22px] font-semibold leading-[1.65] tracking-[-0.01em] text-ink lg:text-[24px]"
+      >
         {quote.quote}
       </p>
       <div className="mt-auto flex justify-end pt-3.5 font-mono text-[13px] font-medium text-ink-faint">
-        <time dateTime={quote.date}>{monthDay(quote.date, today)}</time>
+        <time data-skeleton dateTime={quote.date}>
+          {monthDay(quote.date, today)}
+        </time>
       </div>
     </>
   );
@@ -203,7 +216,11 @@ function ExcerptPile({ quotes, today }: { quotes: Quote[]; today: string }) {
       className="lg:max-w-[500px]"
       renderHeader={({ position, next, canNext, nextLabel }) => (
         <div className="mb-2 mt-2 flex items-center justify-between gap-2">
-          <span aria-live="polite" className="font-mono text-[13px] font-medium text-ink-sub">
+          <span
+            data-skeleton
+            aria-live="polite"
+            className="font-mono text-[13px] font-medium text-ink-sub"
+          >
             {position}
           </span>
           <span className="flex gap-3.5">
