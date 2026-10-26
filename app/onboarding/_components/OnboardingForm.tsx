@@ -226,24 +226,29 @@ export default function OnboardingForm({
             />
           </FormGroup>
 
-          {requireConsent && (
-            <AgeConfirmField
-              id="onboarding-age"
-              checked={ageConfirmed}
-              onChange={(checked) => {
-                setAgeConfirmed(checked);
-                if (formError) setFormError(null);
-              }}
-            />
-          )}
-
-          {emailConsentAvailable && (
-            <EmailConsentField
-              checked={emailEnabled}
-              onChange={setEmailEnabled}
-              email={email}
-              disabled={loading || uncertainEmailAttempt}
-            />
+          {(requireConsent || emailConsentAvailable) && (
+            // 확인 줄들을 헤어라인 사이 한 묶음으로 — 시안 auth.html `.cons`
+            <div className="border-t border-hairline">
+              {requireConsent && (
+                <AgeConfirmField
+                  id="onboarding-age"
+                  checked={ageConfirmed}
+                  onChange={(checked) => {
+                    setAgeConfirmed(checked);
+                    if (formError) setFormError(null);
+                  }}
+                />
+              )}
+              {emailConsentAvailable && (
+                <EmailConsentField
+                  compact
+                  checked={emailEnabled}
+                  onChange={setEmailEnabled}
+                  email={email}
+                  disabled={loading || uncertainEmailAttempt}
+                />
+              )}
+            </div>
           )}
         </fieldset>
         {uncertainEmailAttempt && (
@@ -260,7 +265,9 @@ export default function OnboardingForm({
         >
           {loading ? '펼치는 중...' : '일기장 펼치기'}
         </Button>
-        {requireConsent && <LegalNotice action="일기장을 펼치면" className="text-center" />}
+        {(requireConsent || emailConsentAvailable) && (
+          <LegalNotice action="일기장을 펼치면" className="text-center" />
+        )}
       </form>
       <ActionNavigation href={action.destination} />
     </AuthFrame>

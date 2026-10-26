@@ -1,5 +1,7 @@
 export const EMAIL_COPY_VERSION = 'email-news-v1';
-export const EMAIL_CONSENT_LABEL = 'Readiary 소식·이벤트 이메일 받기 (선택)';
+/** 체크박스 문구 — 온보딩은 이 한 줄과 아래 약관·처리방침 고지만 두고, 알림 설정은 DETAILS까지 보인다 */
+export const EMAIL_CONSENT_TITLE = 'Readiary 소식·이벤트 이메일 받기';
+export const EMAIL_CONSENT_LABEL = `${EMAIL_CONSENT_TITLE} (선택)`;
 export const EMAIL_CONSENT_DETAILS =
   '이메일 주소를 Readiary의 새 기능·리뉴얼·이벤트 소식에 이용합니다. 개인 독서 기록은 메일 생성에 사용하지 않습니다. 거부해도 가입과 이용에 제한이 없으며, 알림 설정이나 메일의 수신거부 링크에서 언제든 철회할 수 있습니다. 동의와 철회 이력은 탈퇴 시까지 보관합니다.';
 export interface EmailPreferences {

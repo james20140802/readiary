@@ -15,8 +15,8 @@ export default function AgeConfirmField({
   id?: string;
 }) {
   return (
-    // 시안 auth.html `.cons`: 헤어라인 사이 48px 줄, 먹색 체크
-    <div className="flex min-h-12 items-center border-y border-hairline">
+    // 시안 auth.html `.cons`: 48px 줄, 먹색 체크, 아랫선 — 묶음의 윗선은 감싸는 쪽이 긋는다
+    <div className="flex min-h-12 items-center border-b border-hairline">
       <label
         htmlFor={id}
         className="flex min-h-12 flex-1 cursor-pointer items-center gap-3 font-sans text-caption text-ink"
