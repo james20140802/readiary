@@ -157,9 +157,8 @@
   padding: 4px;
   border-radius: 6px;
   background: rgb(var(--sheet));
-  box-shadow:
-    0 0 0 1px rgb(var(--hairline-strong)),
-    0 8px 24px rgb(0 0 0 / 0.1);
+  /* 도구는 그림자 없이 헤어라인으로만 띄운다 — 깊이는 간지의 몫 */
+  box-shadow: 0 0 0 1px rgb(var(--hairline-strong));
   outline: none;
   /* 메뉴는 그것을 연 버튼(오른쪽 위)에서 펼쳐져 나온다 */
   transform-origin: top right;
