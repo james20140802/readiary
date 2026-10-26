@@ -137,7 +137,7 @@ export const config = {
   matcher: [
     '/',
     '/login',
-    '/signup',
+    '/signup/:path*',
     '/onboarding/:path*',
     '/invite/:path*',
     '/today/:path*',

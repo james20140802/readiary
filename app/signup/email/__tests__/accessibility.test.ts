@@ -2,15 +2,14 @@
 import React from 'react';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, expect, it, vi } from 'vitest';
-import SignupPage from '../page';
+import EmailSignupPage from '../page';
 vi.mock('next/navigation', () => ({ useSearchParams: () => new URLSearchParams() }));
 vi.mock('@/lib/supabase/client', () => ({
   createSupabaseClient: () => ({ auth: { signUp: vi.fn() } }),
 }));
-vi.mock('@/lib/auth/oauthRedirect', () => ({ isGoogleLoginEnabled: () => false }));
 afterEach(cleanup);
 function setup(password: string, confirm: string) {
-  render(React.createElement(SignupPage));
+  render(React.createElement(EmailSignupPage));
   fireEvent.change(screen.getByLabelText('이메일'), { target: { value: 'reader@example.com' } });
   fireEvent.change(screen.getByLabelText('비밀번호', { exact: true }), {
     target: { value: password },
@@ -49,7 +48,7 @@ it('attaches mismatch to confirmation and preserves the password', () => {
 });
 
 it('asks for no checkbox and shows the terms and privacy notice as links before signing up', () => {
-  render(React.createElement(SignupPage));
+  render(React.createElement(EmailSignupPage));
   expect(screen.queryAllByRole('checkbox')).toHaveLength(0);
   expect(screen.getByRole('link', { name: /서비스 이용 약관/ }).getAttribute('href')).toBe(
     '/terms'
