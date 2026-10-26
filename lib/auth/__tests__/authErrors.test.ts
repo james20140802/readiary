@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
+  NETWORK_ERROR_MESSAGE,
   describeAuthError,
   isEmailNotConfirmed,
+  isNetworkAuthError,
   validateEmail,
   validateNewPassword,
 } from '../authErrors';
@@ -56,5 +58,47 @@ describe('validateNewPassword', () => {
     expect(validateNewPassword('abc', 'abc')).toBe('비밀번호는 최소 6자 이상이어야 합니다.');
     expect(validateNewPassword('abcdef', 'abcdeg')).toBe('비밀번호가 일치하지 않습니다.');
     expect(validateNewPassword('abcdef', 'abcdef')).toBeNull();
+  });
+});
+
+describe('describeAuthError — 네트워크·서버 오류와 입력 오류를 가른다', () => {
+  it('fetch 자체가 실패하면(status 0) 연결 문제로 안내한다 — 비밀번호 탓으로 보이지 않게', () => {
+    const offline = { name: 'AuthRetryableFetchError', message: 'Failed to fetch', status: 0 };
+    expect(describeAuthError('login', offline)).toBe(NETWORK_ERROR_MESSAGE);
+    expect(describeAuthError('login', { message: 'Load failed' })).toBe(NETWORK_ERROR_MESSAGE);
+    expect(isNetworkAuthError(offline)).toBe(true);
+  });
+
+  it('5xx·게이트웨이·알 수 없는 응답은 서버 문제로 안내한다', () => {
+    for (const error of [
+      { name: 'AuthRetryableFetchError', message: '{}', status: 503 },
+      { name: 'AuthApiError', message: 'Internal Server Error', status: 500 },
+      { name: 'AuthUnknownError', message: 'Unexpected token <' },
+    ]) {
+      expect(describeAuthError('login', error)).toMatch(/서버에 일시적인 문제/);
+    }
+  });
+
+  it('틀린 이메일·비밀번호는 코드나 문구로 알아본다', () => {
+    expect(
+      describeAuthError('login', {
+        name: 'AuthApiError',
+        status: 400,
+        code: 'invalid_credentials',
+        message: 'Invalid login credentials',
+      })
+    ).toBe('이메일 또는 비밀번호가 일치하지 않습니다.');
+    expect(describeAuthError('login', { status: 400, code: 'invalid_credentials' })).toBe(
+      '이메일 또는 비밀번호가 일치하지 않습니다.'
+    );
+  });
+
+  it('429는 문구와 상관없이 잦은 시도로 안내한다', () => {
+    expect(describeAuthError('login', { status: 429, message: 'whatever' })).toMatch(/잦습니다/);
+  });
+
+  it('미인증은 코드로도 알아본다', () => {
+    expect(isEmailNotConfirmed({ status: 400, code: 'email_not_confirmed' })).toBe(true);
+    expect(isEmailNotConfirmed({ status: 400, code: 'invalid_credentials' })).toBe(false);
   });
 });
