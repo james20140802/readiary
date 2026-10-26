@@ -17,7 +17,7 @@ interface Props {
  */
 export default function FriendProfileHeader({ profile, title }: Props) {
   const libraryHref = `/social/u/${profile.nickname}-${profile.tag}`;
-  useTopBar({ title, back: { href: libraryHref, label: `${profile.name}의 서재` } });
+  useTopBar({ title, back: { href: libraryHref, label: `${profile.name}의 서재`, data: true } });
 
   return (
     <Link

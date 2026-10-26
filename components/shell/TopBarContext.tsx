@@ -10,11 +10,15 @@ import {
   useState,
 } from 'react';
 import { createPortal } from 'react-dom';
+import { useInSkeleton } from '@/components/ui/SkeletonContext';
 
 export interface TopBarConfig {
   title?: string;
   brand?: boolean;
-  back?: { href: string; label: string };
+  /** data: 라벨이 불러온 데이터에서 온다(친구 이름 등) — 불러오는 동안 막대로 */
+  back?: { href: string; label: string; data?: boolean };
+  /** 불러오는 동안(SkeletonScope) — 제목은 막대로, 뒤로는 누를 수 없게. 자리용 주소로 나가지 않는다 */
+  pending?: boolean;
 }
 
 const DEFAULT_CONFIG: TopBarConfig = { brand: true, title: '' };
@@ -99,7 +103,7 @@ export function useTopBarState(): TopBarState {
  *
  * 호출하는 쪽은 렌더마다 새 객체를 넘기므로 객체 자체를 effect 의존성으로 쓰면
  * setConfig → 리렌더 → 새 객체 → setConfig … 로 무한 반복한다. 그래서 값으로 비교할 수 있는
- * title·brand·back.href·back.label만 의존성으로 쓴다. 동작 버튼(ReactNode)은 config에 넣지 않고
+ * title·brand·back.href·back.label·back.data만 의존성으로 쓴다. 동작 버튼(ReactNode)은 config에 넣지 않고
  * TopBarActions 포털로 그린다.
  * 되돌릴 때는 내가 설정한 config가 아직 그대로일 때만 기본값으로 돌린다 —
  * 다음 화면이 먼저 마운트해 덮어썼다면 그 화면의 설정을 지우지 않는다.
@@ -109,28 +113,46 @@ export function useTopBar(config: TopBarConfig): void {
   const { title, brand, back } = config;
   const backHref = back?.href;
   const backLabel = back?.label;
+  const backData = back?.data;
+  const pending = useInSkeleton();
 
   useEffect(() => {
     const mine: TopBarConfig = {
       title: title ?? '',
       // 뒤로 링크가 있으면 브랜드는 자리를 내준다. 명시하면 그 값을 따른다.
       brand: brand ?? !backHref,
-      back: backHref !== undefined ? { href: backHref, label: backLabel ?? '' } : undefined,
+      back:
+        backHref !== undefined
+          ? { href: backHref, label: backLabel ?? '', data: backData }
+          : undefined,
+      pending: pending || undefined,
     };
     setConfig(mine);
     return () => setConfig((c) => (c === mine ? DEFAULT_CONFIG : c));
-  }, [title, brand, backHref, backLabel, setConfig]);
+  }, [title, brand, backHref, backLabel, backData, pending, setConfig]);
 }
 
 /**
  * 화면이 상단 바 오른쪽에 둘 동작 버튼. 포털로 그려 늘 최신 렌더 결과(클로저)가 보인다.
  * 하나라도 마운트되어 있으면 기본 찾기·알림은 숨는다. 상태에는 개수만 둔다(ReactNode 금지).
+ * 불러오는 동안에는 포털이 SkeletonScope의 inert 범위를 벗어나므로, 같은 범위로 다시 감싼다.
  */
 export function TopBarActions({ children }: { children: React.ReactNode }) {
   const { actionsSlot, setActionsCount } = useTopBarState();
+  const pending = useInSkeleton();
   useLayoutEffect(() => {
     setActionsCount((n) => n + 1);
     return () => setActionsCount((n) => n - 1);
   }, [setActionsCount]);
-  return actionsSlot ? createPortal(children, actionsSlot) : null;
+  if (!actionsSlot) return null;
+  return createPortal(
+    pending ? (
+      <span aria-hidden="true" inert className="skeleton-scope contents">
+        {children}
+      </span>
+    ) : (
+      children
+    ),
+    actionsSlot
+  );
 }

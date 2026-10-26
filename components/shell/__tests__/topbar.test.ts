@@ -10,6 +10,7 @@ import {
 } from '@/components/shell/TopBarContext';
 import { TopBar } from '@/components/shell/TopBar';
 import { LargeTitle } from '@/components/shell/LargeTitle';
+import { SkeletonProvider } from '@/components/ui/SkeletonContext';
 
 // 콜백을 테스트가 직접 호출하는 가짜 IntersectionObserver
 const observers: FakeIO[] = [];
@@ -164,6 +165,45 @@ describe('TopBar', () => {
     );
     rerender(h(TopBarProvider, null, h(TopBar, { hasUnread: false })));
     expect(screen.getByRole('link', { name: '책과 기록 찾기' })).toBeTruthy();
+  });
+
+  it('불러오는 동안에는 자리용 주소의 뒤로와 동작 버튼을 누를 수 없다', () => {
+    const remove = vi.fn();
+    renderWithProvider(
+      h(
+        Fragment,
+        null,
+        h(
+          SkeletonProvider,
+          null,
+          h(Configure, { title: '자리용 책', back: { href: '/books/skeleton-book', label: '책' } }),
+          h(TopBarActions, null, h('button', { onClick: remove }, '책 메뉴'))
+        ),
+        h(TopBar, { hasUnread: false })
+      )
+    );
+    expect(screen.queryByRole('link', { name: '책' })).toBeNull();
+    expect(screen.getByText('책').closest('[inert]')).toBeTruthy();
+    expect(screen.getByText('책 메뉴').closest('[inert]')).toBeTruthy();
+    expect(screen.getByText('자리용 책').hasAttribute('data-skeleton')).toBe(true);
+    // 동작 버튼이 있으니 기본 찾기·알림은 그대로 숨는다(도착 뒤와 같은 모양)
+    expect(screen.queryByRole('link', { name: '책과 기록 찾기' })).toBeNull();
+  });
+
+  it('불러오는 동안 데이터에서 온 뒤로 라벨만 막대로 그린다', () => {
+    renderWithProvider(
+      h(
+        Fragment,
+        null,
+        h(
+          SkeletonProvider,
+          null,
+          h(Configure, { back: { href: '/social/u/x-0000', label: '가나의 서재', data: true } })
+        ),
+        h(TopBar, { hasUnread: false })
+      )
+    );
+    expect(screen.getByText('가나의 서재').hasAttribute('data-skeleton')).toBe(true);
   });
 
   it('앞 화면이 늦게 언마운트되어도 다음 화면의 제목을 지우지 않는다', () => {

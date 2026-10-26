@@ -1,8 +1,11 @@
+import { SkeletonProvider } from './SkeletonContext';
+
 /**
  * 불러오는 동안의 자리 — 실제 화면 컴포넌트에 자리용 데이터를 넣어 그대로 그린다. 컴포넌트가 불러온 데이터를 그리는
  * 요소에 `data-skeleton`을 달아 두면 이 범위 안에서 그 글자만 먹 막대로, 사진은 빈 면으로 바뀐다(globals.css).
  * 고정 문구·아이콘·틀·여백·간지는 실제 화면과 같은 코드에서 나오므로, 내용이 도착해도 자리가 밀리지 않는다.
  * 범위 안은 보조기기와 키보드에서 빠진다(inert). 막대는 은은히 숨 쉬고, 동작 줄이기에서는 멈춘다.
+ * 화면이 상단 바에 넣는 제목·뒤로·동작 버튼도 이 범위를 알고 같은 규칙을 따른다(SkeletonContext).
  */
 export function SkeletonScope({
   label,
@@ -18,7 +21,7 @@ export function SkeletonScope({
     <div role="status" aria-label={label} className={className}>
       <span className="sr-only">{label}</span>
       <div aria-hidden="true" inert className="skeleton-scope">
-        {children}
+        <SkeletonProvider>{children}</SkeletonProvider>
       </div>
     </div>
   );
