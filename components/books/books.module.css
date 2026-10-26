@@ -102,34 +102,102 @@
 }
 
 /* ── 알약 칩·두 칸 전환 ── */
-.chips {
+/* 서가 도구 줄 — 헤어라인 위에 거르기 탭(왼쪽)과 순서 메뉴(오른쪽)가 놓인다.
+   거르기는 고른 탭 밑에 먹 선을 긋고, 순서는 지금 순서를 글자로 보여 주는 메뉴다 */
+.toolbar {
   display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  scrollbar-width: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: inset 0 -1px 0 rgb(var(--hairline));
 }
-.chips::-webkit-scrollbar {
-  display: none;
+.tabs {
+  display: flex;
+  gap: 18px;
 }
-.chip {
-  flex: none;
+.tab {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  height: 36px;
-  padding: 0 14px;
-  border-radius: 18px;
+  height: 44px;
   font:
-    600 14px var(--font-sans),
+    600 15px var(--font-sans),
     sans-serif;
   color: rgb(var(--ink-sub));
-  box-shadow: inset 0 0 0 1px rgb(var(--hairline));
+  white-space: nowrap;
 }
-.chip[aria-pressed='true'] {
+.tab[aria-pressed='true'] {
+  color: rgb(var(--ink));
+}
+.tab[aria-pressed='true']::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  height: 2px;
   background: rgb(var(--ink));
-  color: rgb(var(--paper));
-  box-shadow: none;
 }
-.chip:focus-visible,
+.sortBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 44px;
+  font:
+    600 15px var(--font-sans),
+    sans-serif;
+  color: rgb(var(--ink-sub));
+  white-space: nowrap;
+}
+.sortBtn[data-open],
+.sortBtn:hover {
+  color: rgb(var(--ink));
+}
+.sortMenu {
+  z-index: 40;
+  min-width: 168px;
+  padding: 4px;
+  border-radius: 6px;
+  background: rgb(var(--sheet));
+  /* 도구는 그림자 없이 헤어라인으로만 띄운다 — 깊이는 간지의 몫 */
+  box-shadow: 0 0 0 1px rgb(var(--hairline-strong));
+  outline: none;
+  /* 메뉴는 그것을 연 버튼(오른쪽 위)에서 펼쳐져 나온다 */
+  transform-origin: top right;
+  transition:
+    opacity 120ms ease-out,
+    transform 120ms ease-out;
+}
+.sortMenu[data-closed] {
+  opacity: 0;
+  transform: scale(0.96);
+}
+@media (prefers-reduced-motion: reduce) {
+  .sortMenu[data-closed] {
+    transform: none;
+  }
+}
+.sortOption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: 4px;
+  font:
+    500 15px var(--font-sans),
+    sans-serif;
+  color: rgb(var(--ink-sub));
+  cursor: default;
+}
+.sortOption[data-selected] {
+  color: rgb(var(--ink));
+  font-weight: 600;
+}
+.sortOption[data-focus] {
+  background: rgb(127 127 127 / 0.12);
+}
+.tab:focus-visible,
+.sortBtn:focus-visible,
 .segItem:focus-visible {
   outline: 2px solid rgb(var(--accent));
   outline-offset: 2px;

@@ -37,7 +37,11 @@ const Bookshelf = forwardRef<
         const [bg, fg] = spineColor(b.title);
         const label = b.isFinished ? `${b.title}, 다 읽음` : b.title;
         return (
-          <li key={b.id} className={styles.slot}>
+          <li
+            key={b.id}
+            className={clsx(styles.slot, 'vt-book')}
+            style={{ '--vt': `book-${b.id}` } as React.CSSProperties}
+          >
             <Link
               href={b.href}
               title={b.title}

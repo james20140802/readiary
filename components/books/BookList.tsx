@@ -1,8 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
-import { ArrowRight } from 'lucide-react';
+import { useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
+import { ArrowRight, Check, ChevronDown } from 'lucide-react';
+import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headlessui/react';
 import clsx from 'clsx';
 import { MyBook } from '@/types/book';
 import type { BookReadingStat } from '@/lib/queries/fetchBookReadingStats';
@@ -17,13 +19,29 @@ interface Props {
   stats?: Record<string, BookReadingStat> | null;
   isFriend?: boolean;
   nicknameAndTag?: string;
-  /** 머리줄 크기 — 데스크톱 책장 장은 큰 제목과 칩을 한 줄에 둔다 */
+  /** 머리줄 크기 — 데스크톱 책장 장은 큰 제목을 쓰고 책등/목록 전환을 도구 줄 오른쪽에 둔다 */
   size?: 'mobile' | 'desktop';
   /** 모두 보기로 펼치거나 접을 때 — 장 높이를 내용에 맞출지 정하는 쪽에 알린다 */
   onExpandedChange?: (expanded: boolean) => void;
 }
 
 type View = 'spine' | 'list';
+
+/**
+ * 순서·거르기를 바꿀 때 책등과 목록 줄이 새 자리로 옮겨 가고, 빠지는 책은 흐려지며 사라진다.
+ * 이름표(view-transition-name)는 globals.css의 .vt-book이 보이는 책에만 붙인다.
+ * 화면 전환을 모르는 브라우저와 움직임 줄이기 설정에서는 바로 바뀐다.
+ */
+function withShelfMotion(update: () => void) {
+  if (
+    typeof document.startViewTransition !== 'function' ||
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  ) {
+    update();
+    return;
+  }
+  document.startViewTransition(() => flushSync(update));
+}
 
 /** 목록으로 볼 때 접어 두는 권수 */
 const LIST_PREVIEW = 5;
@@ -42,7 +60,7 @@ function listMeta(b: MyBook, stat: BookReadingStat | undefined): string {
 }
 
 /**
- * 서가 — 시안 books.html의 "서가" 장. 순서·거르기 칩, 책등/목록 전환, 선반 세 칸까지 보이고 "모두 보기".
+ * 서가 — 시안 books.html의 "서가" 장. 거르기 탭·순서 메뉴, 책등/목록 전환, 선반 세 칸까지 보이고 "모두 보기".
  * 내 책장과 친구 책장이 함께 쓴다(친구 책장은 통계가 없어 '문장 많은 순'을 감춘다).
  */
 export default function BookList({
@@ -84,8 +102,9 @@ export default function BookList({
     href: hrefFor(b),
   }));
 
-  // 선반이 세 칸을 넘는지 — 넘을 때만 "모두 보기"를 둔다
-  useEffect(() => {
+  // 선반이 세 칸을 넘는지 — 넘을 때만 "모두 보기"를 둔다.
+  // 화면 전환이 새 화면을 찍기 전에 가려진 책등이 inert로 표시되도록 그리기 직후에 잰다
+  useLayoutEffect(() => {
     const el = shelfRef.current;
     if (!el || view !== 'spine' || expanded) return;
     const check = () => {
@@ -112,9 +131,11 @@ export default function BookList({
     ...(stats ? [{ value: 'entries' as const, label: '문장 많은 순' }] : []),
   ];
   const filters: { value: ShelfFilter; label: string }[] = [
-    { value: 'reading', label: '읽는 중만' },
-    { value: 'finished', label: '다 읽은 책만' },
+    { value: 'all', label: '전체' },
+    { value: 'reading', label: '읽는 중' },
+    { value: 'finished', label: '다 읽음' },
   ];
+  const orderLabel = orders.find((o) => o.value === order)?.label ?? orders[0].label;
 
   const desktop = size === 'desktop';
   const canExpand = view === 'spine' ? overflows || expanded : arranged.length > LIST_PREVIEW;
@@ -125,7 +146,7 @@ export default function BookList({
       role="group"
       aria-label="보기"
       className={clsx(styles.seg, 'shrink-0')}
-      style={{ width: desktop ? 150 : 140 }}
+      style={{ width: desktop ? 132 : 128 }}
     >
       {(
         [
@@ -149,39 +170,59 @@ export default function BookList({
     </div>
   );
 
-  const chips = (
-    <div
-      role="group"
-      aria-label="정리"
-      className={clsx(
-        styles.chips,
-        desktop
-          ? 'order-last basis-full xl:order-none xl:ml-auto xl:basis-auto'
-          : '-mx-6 mb-[18px] mt-3.5 px-6'
-      )}
-    >
-      {orders.map((o) => (
-        <button
-          key={o.value}
-          type="button"
-          aria-pressed={order === o.value}
-          onClick={() => setOrder(o.value)}
-          className={styles.chip}
-        >
-          {o.label}
-        </button>
-      ))}
-      {filters.map((f) => (
-        <button
-          key={f.value}
-          type="button"
-          aria-pressed={filter === f.value}
-          onClick={() => setFilter((cur) => (cur === f.value ? 'all' : f.value))}
-          className={styles.chip}
-        >
-          {f.label}
-        </button>
-      ))}
+  // 거르기는 탭, 순서는 메뉴 — 같은 줄에 놓아도 둘이 하는 일이 섞이지 않는다
+  const toolbar = (
+    <div className={clsx(styles.toolbar, desktop ? 'mb-7' : 'mb-6 mt-3')}>
+      <div role="group" aria-label="거르기" className={styles.tabs}>
+        {filters.map((f) => (
+          <button
+            key={f.value}
+            type="button"
+            aria-pressed={filter === f.value}
+            onClick={() => withShelfMotion(() => setFilter(f.value))}
+            className={styles.tab}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+      <div className="flex items-center gap-5">
+        <Listbox value={order} onChange={(v) => withShelfMotion(() => setOrder(v))}>
+          <ListboxButton
+            className={styles.sortBtn}
+            // Headless UI는 닫힌 버튼의 Enter를 폼 제출로 돌린다 — 폼 밖의 이 버튼은 Enter도 Space처럼 연다
+            onKeyDownCapture={(e: React.KeyboardEvent<HTMLButtonElement>) => {
+              if (e.key !== 'Enter') return;
+              e.preventDefault();
+              e.stopPropagation();
+              e.currentTarget.dispatchEvent(
+                new KeyboardEvent('keydown', { key: ' ', code: 'Space', bubbles: true })
+              );
+            }}
+          >
+            <span className="sr-only">순서: </span>
+            {orderLabel}
+            <ChevronDown size={16} strokeWidth={1.75} aria-hidden />
+          </ListboxButton>
+          <ListboxOptions
+            anchor={{ to: 'bottom end', gap: 4 }}
+            transition
+            className={styles.sortMenu}
+          >
+            {orders.map((o) => (
+              <ListboxOption key={o.value} value={o.value} className={styles.sortOption}>
+                {({ selected }) => (
+                  <>
+                    {o.label}
+                    {selected && <Check size={16} strokeWidth={1.75} aria-hidden />}
+                  </>
+                )}
+              </ListboxOption>
+            ))}
+          </ListboxOptions>
+        </Listbox>
+        {desktop && viewSwitch}
+      </div>
     </div>
   );
 
@@ -205,26 +246,25 @@ export default function BookList({
 
   return (
     <div>
-      {desktop ? (
-        <div className="mb-[22px] flex flex-wrap items-baseline gap-x-3.5 gap-y-3 pr-[330px]">
-          <h2 className="shrink-0 font-serif text-[32px] font-bold leading-[1.3] tracking-[-0.01em] text-ink">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-baseline gap-3">
+          <h2
+            className={clsx(
+              'font-serif text-ink',
+              desktop
+                ? 'text-[32px] font-bold leading-[1.3] tracking-[-0.01em]'
+                : 'text-section-title'
+            )}
+          >
             서가
           </h2>
-          <span className="shrink-0 font-sans text-caption text-ink-sub">
+          <span className="font-sans text-caption text-ink-sub">
             <span data-skeleton>{books.length}</span>권
           </span>
-          {chips}
-          <div className="ml-auto xl:ml-0">{viewSwitch}</div>
         </div>
-      ) : (
-        <>
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="font-serif text-section-title text-ink">서가</h2>
-            {viewSwitch}
-          </div>
-          {chips}
-        </>
-      )}
+        {!desktop && viewSwitch}
+      </div>
+      {toolbar}
 
       {arranged.length === 0 ? (
         <p className="py-10 text-center font-serif text-note text-ink-sub">
@@ -235,7 +275,11 @@ export default function BookList({
       ) : (
         <ul id={listId} aria-label="서가 목록">
           {listItems.map((b) => (
-            <li key={b.id}>
+            <li
+              key={b.id}
+              className="vt-book"
+              style={{ '--vt': `book-${b.id}` } as React.CSSProperties}
+            >
               <Link
                 href={hrefFor(b)}
                 className="grid grid-cols-[44px_1fr] items-center gap-x-3.5 gap-y-0.5 border-t border-hairline py-2.5"
