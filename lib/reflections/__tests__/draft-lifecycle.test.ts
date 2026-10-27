@@ -63,16 +63,16 @@ describe('draft retention through refresh and failed storage', () => {
   it('confirms deletion in a dialog, cancels without writing, and keeps failures visible', async () => {
     vi.mocked(apiFetch).mockResolvedValue(response(page([item(0)])));
     render(React.createElement(ReflectionThread, { entryId: 'entry' }));
-    fireEvent.click(await screen.findByRole('button', { name: '삭제' }));
-    await screen.findByRole('dialog', { name: '이 생각을 삭제할까요?' });
-    fireEvent.click(screen.getByRole('button', { name: '취소' }));
+    fireEvent.click(await screen.findByRole('button', { name: '지우기' }));
+    await screen.findByRole('dialog', { name: '이 생각을 지울까요?' });
+    fireEvent.click(screen.getByRole('button', { name: '그대로 두기' }));
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     expect(vi.mocked(apiFetch).mock.calls.some(([, options]) => options?.method === 'DELETE')).toBe(
       false
     );
-    fireEvent.click(screen.getByRole('button', { name: '삭제' }));
+    fireEvent.click(screen.getByRole('button', { name: '지우기' }));
     vi.mocked(apiFetch).mockResolvedValue(response({}, 500));
-    fireEvent.click(await screen.findByRole('button', { name: '생각 삭제' }));
+    fireEvent.click(await screen.findByRole('button', { name: '생각 지우기' }));
     expect(await screen.findByRole('alert')).toBeTruthy();
     expect(screen.getByRole('dialog').textContent).toContain('생각을 지우지 못했습니다.');
   });
@@ -92,8 +92,8 @@ describe('draft retention through refresh and failed storage', () => {
         })
       );
       const area = await screen.findByRole('textbox', { name: '생각 고치기' });
-      const privacy = screen.getByRole('button', { name: '비공개' });
-      expect(privacy.getAttribute('aria-pressed')).toBe(String(entryIsPrivate));
+      const privacy = screen.getByRole('switch', { name: '이 생각만 나만 보기' });
+      expect(privacy.getAttribute('aria-checked')).toBe(String(entryIsPrivate));
       expect((privacy as HTMLButtonElement).disabled).toBe(entryIsPrivate);
       fireEvent.change(area, { target: { value: '다시 읽으며 고친 생각' } });
       fireEvent.click(screen.getByRole('button', { name: '고쳐 남기기' }));
@@ -111,7 +111,7 @@ describe('draft retention through refresh and failed storage', () => {
   it('keeps an unsaved owner draft mounted after a transient focus refresh failure', async () => {
     vi.mocked(apiFetch).mockResolvedValue(response(page([], null)));
     render(React.createElement(ReflectionThread, { entryId: 'entry', openComposer: true }));
-    const area = await screen.findByRole('textbox', { name: '지금의 생각' });
+    const area = await screen.findByRole('textbox', { name: '지금 다시 읽으니' });
     vi.stubGlobal('sessionStorage', {
       length: 0,
       key: () => null,
@@ -129,7 +129,7 @@ describe('draft retention through refresh and failed storage', () => {
       window.dispatchEvent(new Event('focus'));
     });
     await screen.findByText('이어 남긴 생각을 불러오지 못했습니다.');
-    expect(screen.getByRole('textbox', { name: '지금의 생각' })).toBe(area);
+    expect(screen.getByRole('textbox', { name: '지금 다시 읽으니' })).toBe(area);
     expect((area as HTMLTextAreaElement).value).toBe('잃지 말아야 할 생각');
   });
   it('keeps the same editor for a thought beyond the first page after background refresh', async () => {
@@ -139,7 +139,7 @@ describe('draft retention through refresh and failed storage', () => {
     render(React.createElement(ReflectionThread, { entryId: 'entry' }));
     fireEvent.click(await screen.findByRole('button', { name: '다음 생각 더 읽기' }));
     await screen.findByText('생각 20');
-    fireEvent.click(screen.getAllByRole('button', { name: '수정' }).at(-1)!);
+    fireEvent.click(screen.getAllByRole('button', { name: '고치기' }).at(-1)!);
     const area = await screen.findByRole('textbox', { name: '생각 고치기' });
     vi.stubGlobal('sessionStorage', {
       length: 0,
@@ -185,23 +185,23 @@ describe('draft retention through refresh and failed storage', () => {
     const view = render(
       React.createElement(ReflectionThread, { entryId: 'entry', openComposer: false })
     );
-    await screen.findByRole('button', { name: '지금의 생각 남기기' });
+    await screen.findByRole('button', { name: '지금의 생각 덧붙이기' });
     view.rerender(React.createElement(ReflectionThread, { entryId: 'entry', openComposer: true }));
-    const area = await screen.findByRole('textbox', { name: '지금의 생각' });
+    const area = await screen.findByRole('textbox', { name: '지금 다시 읽으니' });
     await waitFor(() => expect(document.activeElement).toBe(area));
-    fireEvent.click(screen.getByRole('button', { name: '취소' }));
-    expect(screen.queryByRole('textbox')).toBeNull();
-    expect(screen.getByRole('button', { name: '지금의 생각 남기기' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: '닫기' }));
+    await waitFor(() => expect(screen.queryByRole('textbox')).toBeNull());
+    expect(screen.getByRole('button', { name: '지금의 생각 덧붙이기' })).toBeTruthy();
   });
   it('clears the timeline and editor on an explicit revoked-access response', async () => {
     vi.mocked(apiFetch).mockResolvedValue(response(page([])));
     render(React.createElement(ReflectionThread, { entryId: 'entry', openComposer: true }));
-    await screen.findByRole('textbox', { name: '지금의 생각' });
+    await screen.findByRole('textbox', { name: '지금 다시 읽으니' });
     vi.mocked(apiFetch).mockResolvedValue(response({}, 404));
     await act(async () => {
       window.dispatchEvent(new Event('focus'));
     });
     await screen.findByText('이 기록을 더 이상 볼 수 없습니다.');
-    expect(screen.queryByRole('textbox')).toBeNull();
+    await waitFor(() => expect(screen.queryByRole('textbox')).toBeNull());
   });
 });

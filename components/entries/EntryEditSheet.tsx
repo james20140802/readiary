@@ -8,7 +8,6 @@ import { Fragment, useEffect, useRef, useState } from 'react';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SHEET_TRANSITION } from '@/lib/motion';
-import { X } from 'lucide-react';
 import { Entry } from '@/types/entry';
 import InertBackground from '@/components/ui/InertBackground';
 import Modal from '@/components/ui/Modal';
@@ -98,7 +97,7 @@ export default function EntryEditSheet({
       if (res.status === 409) {
         setDeleteReady(null);
         setDeleteCheck((v) => v + 1);
-        throw new Error('함께 삭제할 생각 수가 변경됐어요. 다시 확인해 주세요.');
+        throw new Error('함께 지울 생각 수가 바뀌었어요. 다시 확인해 주세요.');
       }
       if (!res.ok) {
         const data = await res.json().catch(() => null);
@@ -125,103 +124,114 @@ export default function EntryEditSheet({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+              transition={{ duration: 0.32 }}
+              className="fixed inset-0 bg-scrim/[.32]"
             />
-            <DialogPanel as={Fragment}>
-              <motion.div
-                initial={{ y: '100%' }}
-                animate={{ y: 0 }}
-                exit={{ y: '100%' }}
-                transition={SHEET_TRANSITION}
-                className="fixed bottom-0 left-0 right-0 mx-auto flex max-h-[90vh] w-full flex-col rounded-t-[20px] border border-hairline bg-card sm:bottom-4 sm:max-w-[640px] sm:rounded-[24px]"
-              >
-                {/* 헤더 */}
-                <div className="flex items-center justify-between border-b border-hairline px-5 py-4">
-                  <DialogTitle as="h3" className="font-serif text-body font-bold text-ink">
-                    기록 고치기
-                  </DialogTitle>
-                  <button
-                    type="button"
-                    onClick={close}
-                    disabled={isSaving || isDeleting}
-                    aria-label="닫기"
-                    className="rounded-full bg-card-raised p-1.5"
-                  >
-                    <X size={18} />
-                  </button>
-                </div>
-
-                {/* 원고 — 스크롤 영역. 기록이 바뀌면 key로 폼 상태를 새로 잡는다 */}
-                <div className="custom-scrollbar flex-1 overflow-y-auto px-5 pb-5 sm:rounded-b-[24px]">
-                  <EntryFormBody
-                    entryId={entry.id}
-                    key={entry.id}
-                    totalPages={entry.book?.total_pages}
-                    submitLabel="고쳐 남기기"
-                    initial={{
-                      quote: entry.quote ?? '',
-                      note: entry.note ?? '',
-                      fromPage: entry.from_page,
-                      toPage: entry.to_page,
-                      date: entry.date,
-                      isPrivate: entry.is_private,
-                    }}
-                    onSubmit={handleSubmit}
-                    onBusyChange={onSaving}
-                    disabled={isDeleting}
-                    secondaryAction={
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (!saving.current && !deletion.isLocked()) setIsDeleteOpen(true);
-                        }}
-                        disabled={isSaving || isDeleting}
-                        className="text-button-sm text-ink-faint transition-colors hover:text-danger"
-                      >
-                        삭제
-                      </button>
-                    }
+            <div className="fixed inset-0 flex items-end justify-center lg:items-center">
+              <DialogPanel as={Fragment}>
+                <motion.div
+                  initial={{ y: '100%' }}
+                  animate={{ y: 0 }}
+                  exit={{ y: '100%' }}
+                  transition={SHEET_TRANSITION}
+                  className="mx-auto flex max-h-[88dvh] w-full max-w-[560px] flex-col rounded-t-[18px] bg-sheet text-ink shadow-[0_-10px_40px_-10px_rgb(30_20_10/.35)] lg:rounded-[16px] lg:shadow-[0_30px_80px_-20px_rgb(30_20_10/.45)]"
+                >
+                  <div
+                    aria-hidden
+                    className="mx-auto mt-2 h-[5px] w-9 shrink-0 rounded-[3px] bg-[rgb(127_127_127/.35)] lg:hidden"
                   />
-                </div>
-              </motion.div>
-            </DialogPanel>
+                  {/* 머리줄 — 간지 시트와 같은 제목 + 닫기 */}
+                  <div className="flex min-h-12 shrink-0 items-center gap-2 px-[22px] pt-2.5">
+                    <DialogTitle as="h2" className="font-sans text-[18px] font-bold">
+                      기록 고치기
+                    </DialogTitle>
+                    <button
+                      type="button"
+                      onClick={close}
+                      disabled={isSaving || isDeleting}
+                      className="ml-auto min-h-11 px-1 font-sans text-[16px] font-semibold text-accent disabled:opacity-50"
+                    >
+                      닫기
+                    </button>
+                  </div>
+
+                  {/* 원고 — 스크롤 영역. 기록이 바뀌면 key로 폼 상태를 새로 잡는다 */}
+                  <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-[22px] pb-[calc(26px+var(--app-safe-bottom))]">
+                    <EntryFormBody
+                      entryId={entry.id}
+                      key={entry.id}
+                      totalPages={entry.book?.total_pages}
+                      submitLabel="고쳐 남기기"
+                      initial={{
+                        quote: entry.quote ?? '',
+                        note: entry.note ?? '',
+                        fromPage: entry.from_page,
+                        toPage: entry.to_page,
+                        date: entry.date,
+                        isPrivate: entry.is_private,
+                      }}
+                      onSubmit={handleSubmit}
+                      onBusyChange={onSaving}
+                      disabled={isDeleting}
+                      secondaryAction={
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (!saving.current && !deletion.isLocked()) setIsDeleteOpen(true);
+                          }}
+                          disabled={isSaving || isDeleting}
+                          className="min-h-11 font-sans text-button-sm text-danger disabled:opacity-50"
+                        >
+                          지우기
+                        </button>
+                      }
+                    />
+                  </div>
+                </motion.div>
+              </DialogPanel>
+            </div>
           </Dialog>
         )}
       </AnimatePresence>
 
-      {/* 삭제 확인 — entry 상세와 같은 문구 */}
+      {/* 지우기 확인 — 기록 한 장과 같은 문구 */}
       <Modal
+        ariaLabel="이 기록을 지울까요"
         isOpen={isDeleteOpen}
         onClose={() => {
           if (!isDeleting) setIsDeleteOpen(false);
         }}
       >
-        <div className="space-y-4">
-          <h2 className="text-section-title font-bold text-ink">정말 삭제하시겠어요?</h2>
+        <h2 className="font-sans text-[18px] font-bold text-ink">이 기록을 지울까요</h2>
+        <div className="mt-2">
           {isDeleteOpen && entry?.id && (
             <EntryDeleteWarning key={deleteCheck} entryId={entry?.id} onReady={setDeleteReady} />
           )}
-          {deleteError && <p className="text-caption text-danger">{deleteError}</p>}
-          <div className="flex justify-end gap-2 pt-2">
-            {/* 지우는 중엔 취소도 막는다 — Modal.onClose의 isDeleting 가드와 같은 규칙. 여기서 빠져나가
-                시트를 닫고 같은 기록을 다시 열면, 늦게 성공한 DELETE가 이미 지워진 기록의 시트를 남긴다 */}
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => setIsDeleteOpen(false)}
-              disabled={isDeleting}
-            >
-              취소
-            </Button>
-            <Button
-              size="sm"
-              variant="danger"
-              onClick={confirmDelete}
-              disabled={isDeleting || deleteReady === null}
-            >
-              {isDeleting ? '삭제 중...' : '삭제하기'}
-            </Button>
-          </div>
+        </div>
+        {deleteError && (
+          <p role="alert" className="mt-3 font-sans text-caption text-danger">
+            {deleteError}
+          </p>
+        )}
+        <div className="mt-5 flex gap-2">
+          {/* 지우는 중엔 취소도 막는다 — Modal.onClose의 isDeleting 가드와 같은 규칙. 여기서 빠져나가
+              시트를 닫고 같은 기록을 다시 열면, 늦게 성공한 DELETE가 이미 지워진 기록의 시트를 남긴다 */}
+          <Button
+            variant="secondary"
+            className="flex-1"
+            onClick={() => setIsDeleteOpen(false)}
+            disabled={isDeleting}
+          >
+            그대로 두기
+          </Button>
+          <Button
+            variant="danger"
+            className="flex-1"
+            onClick={confirmDelete}
+            disabled={isDeleting || deleteReady === null}
+          >
+            {isDeleting ? '지우는 중…' : '지우기'}
+          </Button>
         </div>
       </Modal>
     </>

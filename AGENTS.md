@@ -22,38 +22,41 @@ Readiary는 마음에 남은 문장과 생각을 가볍게 기록하고, 시간�
 | 프로필  | 자신의 독서 이력을 한 권의 책처럼 펼쳐 보고 대표 문장·책갈피를 고른다 | `app/(app)/profile/`, `components/profile/` |
 | 알림    | 앱 안의 소식과 기기별 독서 알림 설정을 확인한다                       | `app/(app)/notifications/`, `lib/push/`     |
 
-## Design Context — 먹과 종이
+## Design Context — 일기장과 간지
 
-**문장이 주인공. 책의 목소리는 부리, 나의 도구는 산세리프. 그림자 대신 헤어라인. 파랑은 잉크처럼 아껴서.**
+**문장이 주인공. 책의 목소리는 부리, 나의 도구는 산세리프. 깊이는 간지에만, 나머지는 헤어라인. 파랑은 잉크처럼 아껴서.**
 
-기본 디자인 규범은 [UI Guidelines](docs/ui-guidelines.md), 런타임 토큰은 `app/globals.css` → `tailwind.config.js` → `components/ui/`로 이어진다. 새 화면도 이 문법과 기존 형제 화면을 따른다.
+일기장 괘선 위에 트레이싱지 같은 반투명 간지가 겹쳐 놓인 모습이 정체성이다. 한 장 요약은 [DESIGN.md](DESIGN.md), 기본 디자인 규범은 [UI Guidelines](docs/ui-guidelines.md), 결정과 순서는 [일기장과 간지 설계](docs/superpowers/specs/2026-10-20-diary-vellum-redesign-design.md)다. 런타임 토큰은 `app/globals.css` → `tailwind.config.js` → `components/ui/`로 이어진다. 새 화면도 이 문법을 따른다.
 
 ### 색과 서체
 
-- 종이 바탕 `paper`, 표면 `card`/`card-raised`, 본문 `ink`, 보조 `ink-sub`/`ink-faint`, 경계 `hairline`/`hairline-strong`를 사용한다.
-- 강조색은 파란 잉크로 확정됐다. 라이트 `#2D5FB8`, 다크 `#85A9EC`다. 주홍은 현재 대안이 아니다.
+- 종이 바탕 `paper`, 본문 `ink`, 보조 `ink-sub`/`ink-faint`, 경계 `hairline`/`hairline-strong`, 일기장 여백선 `margin`, 간지 바탕 `sheet`를 사용한다. `card`/`card-raised`는 시안에 대응 값이 없는 옛 토큰이다. 아직 쓰이므로 대체 값을 정하기 전까지 남긴다. 값 표는 ui-guidelines의 색 절을 따른다.
+- 강조색은 파란 잉크로 확정됐다. 라이트 `#2D5FB8`, 다크 `#85A9EC`다. 주홍은 현재 대안이 아니다. 다크 `ink-faint` `#8E8476`도 작은 글자 대비를 위해 시안 값 대신 유지한 값이다.
+- 책 플래그 색 `flag-*`는 강조색 규칙과 별개이며 책 플래그에만 쓴다.
 - 값은 토큰 정의에서 관리한다. 일반 UI에 임의의 hex나 `blue-500` 같은 원색 팔레트를 추가하지 않는다.
 - 문장·책 제목·회고 카피는 `font-serif`(셀프호스팅 마루 부리), 버튼·라벨·내비게이션·메타데이터는 `font-sans`(셀프호스팅 Pretendard)다.
-- `text-page-title`, `text-section-title`, `text-body`, `text-caption`, `text-quote`, `text-note`, `text-seal` 등 기존 크기 토큰을 우선 사용한다.
+- 글자는 시안의 큰 크기를 기준으로 한다. `text-page-title`, `text-section-title`, `text-body`, `text-caption`, `text-quote`, `text-quote-lg`, `text-note`, `text-input`, `text-button`, `text-seal` 등 기존 크기 토큰을 우선 사용하고, 크기 표는 ui-guidelines의 서체 절을 따른다.
 - 다크모드는 OS 설정을 따른다. 의미 토큰의 CSS 변수가 전환되므로 일반 컴포넌트에서 색을 `dark:`로 분기하지 않는다. 현재 앱 내 테마 토글은 없다.
 
 ### 표면과 상호작용 문법
 
-- 일반 도구·폼·카드는 종이색과 가는 선으로 위계를 만든다. 카드 기본 곡률은 6px, 버튼과 칩은 알약형이다.
-- `Button`의 주요 행동은 먹 배경, 보조 행동은 헤어라인 외곽선이다. 파란색을 모든 주요 버튼의 배경으로 쓰는 시스템이 아니다.
-- 짧은 입력(책 등록·인증·프로필 정보)은 `Input variant="line"`의 기존 1px 밑줄 색만 포커스 시 accent로 바꾼다. 긴 기록·생각·소개는 밑줄 없이 왼쪽의 짧은 accent 표시를 쓴다. 공용 `Textarea variant="line"`과 `writing-field` 문법을 참고한다.
+- 화면 뒤에는 일기장 괘선이 깔린다(`RuledPaper`, `lib/shell/routes.ts`의 `frameFor`). 도구 화면은 여백선 없이 괘선만, 간지 틀을 쓰는 화면은 여백선까지 둔다.
+- 일반 도구·폼·카드는 종이색과 가는 선으로 위계를 만들고 그림자를 쓰지 않는다. 깊이는 쌓여 있을 법한 것(회상, 덧붙인 생각 묶음, 발췌집 등)의 간지 재질에만 허용한다. 카드 기본 곡률은 6px, 버튼과 칩은 알약형이다.
+- `Button`의 주요 행동은 먹 배경, 보조 행동은 헤어라인 외곽선이다. 최소 높이는 40/48/48px이고 글자 굵기는 토큰의 600이다. 파란색을 모든 주요 버튼의 배경으로 쓰는 시스템이 아니다.
+- 짧은 입력(책 등록·인증·프로필 정보)은 `Input variant="line"`의 기존 1px 밑줄 색만 포커스 시 accent로 바꾼다(최소 높이 48px). 긴 기록·생각·소개는 밑줄 없이 왼쪽의 짧은 accent 표시를 쓴다. 공용 `Textarea variant="line"`과 `writing-field` 문법을 참고한다.
 - 책 상세의 기록은 기본적으로 테두리 카드의 반복보다 **원고 흐름**이다. 날짜·쪽수는 마진 노트, 문장과 생각은 부리 서체, 구분은 헤어라인이다.
 - 읽기 진도는 게이지보다 `184 / 300` 같은 잉크 분수다. 쪽수가 없다는 이유로 기록이나 완독을 막지 않는다.
-- 책등 서가, 펼치는 책, 발췌집, 소셜 엽서, 프로필 책은 제품의 특징이다. 일반 대시보드 카드로 일괄 치환하지 않는다.
+- 책등 서가와 발췌집은 남는 특징이고 발췌집은 간지 묶음으로 바뀐다. 프로필 3D 책, 소셜 엽서(절취선·그림자), 책장 3D 넘김은 설계 2.7에 따라 사라진다. 새 화면에서 이를 되살리거나 일반 대시보드 카드로 일괄 치환하지 않는다.
 - 아이콘은 `lucide-react`, 기본 선 굵기는 1.75다. 장식 이모지와 기울어진 도장 박스는 지양한다. `Seal`은 날짜·상태 라벨이다.
 - 문구는 사용자가 할 행동과 결과를 말한다. 예: “남기기”, “생각 덧붙이기”, “완독”, “이 기기 알림 켜기”. 기능 설명도 구현 방식보다 독자가 얻는 경험을 먼저 설명한다.
 
 ### 현재 문서와 구현의 차이
 
-아래는 새 디자인 결정이 아니라, 2026-09-08 기준 확인한 차이다.
+아래는 새 디자인 결정이 아니라, 2026-10-22 기준 확인한 차이다.
 
-- 가이드는 그림자 금지지만 `Slide`, `OpenBook`, 프로필 책, `.perforated` 엽서에는 깊이·그림자 효과가 있다. 이를 일반 카드의 기본값으로 확대하지 않는다. 기존 입체 표현을 없애거나 공식 예외로 확정하는 것은 별도의 디자인 결정이다.
-- `ink-faint`의 다크 값은 가이드의 `#6E655A`와 달리 코드에서 `#8E8476`으로 조정되어 있다. 현재 렌더링 값을 확인할 때는 CSS를 읽는다.
+- 새 디자인은 `redesign` 브랜치에서 화면을 하나씩 옮기며 쌓는 중이다. 옮기지 않은 화면은 새 토큰(색·큰 글자·괘선 바탕) 위에서 옛 모양으로 그려지며, 화면 이전이 끝나고 `main`에 한 번에 머지되기 전까지 `main`과 프로덕션은 옛 디자인이다.
+- 깊이(결·얕은 그림자)는 간지에만 쓴다. 옛 입체 표현(프로필 3D 책, 소셜 엽서 `.perforated`, 책 상세의 3D 넘김)과 `/design-lab` 견본은 2026-10-27에 걷어 냈다. 일반 카드에 그림자를 되살리지 않는다.
+- 이전에 있던 다크 `ink-faint` 값의 문서·코드 차이는 해소됐다. 문서도 코드와 같은 `#8E8476`이다.
 - 초기 설계에는 홈 피드 프리뷰 제거가 있지만 현재 홈에는 `BoardWidget` 등이 있다. 초기 설계의 모든 항목을 현재 구현 완료 상태로 해석하지 않는다.
 - README의 Next.js 14·배지 중심 설명은 현행 코드와 다르다. 현재 패키지는 Next.js 16, React 19다. 버전과 실행 명령은 `package.json` 및 lockfile을 확인한다.
 - 노션의 이전 색상 후보·서체 후보와 초기 체크리스트에는 과거 상태가 남아 있다. 확정 결정과 현재 구현을 함께 확인한다.
@@ -148,7 +151,7 @@ DB 집계·Supabase RPC·상한 있는 미리보기로 왕복과 전송량을 �
 
 ## 코드 탐색과 실행
 
-- Next.js App Router: `app/`; 재사용 UI: `components/`; 인증·데이터·도메인 로직: `lib/`; DB 변경: `supabase/migrations/`.
+- Next.js App Router: `app/`; 재사용 UI: `components/`(화면 틀인 상단 바·탭 바·사이드바·장 넘김은 `components/shell/`, 틀 판정은 `lib/shell/routes.ts`); 인증·데이터·도메인 로직: `lib/`; DB 변경: `supabase/migrations/`.
 - Supabase Auth와 PostgreSQL/RLS를 사용한다. 브라우저 API 호출의 기존 진입점은 `lib/api/fetch.ts`의 `apiFetch`, 읽기 서버 인증은 `getServerUser`다.
 - `401` 모두가 세션 만료는 아니다. 현재 API 계약은 `code: "session_expired"`로 구분한다.
 - 기록 공개 범위에서 `is_private=false`는 친구 열람 가능 상태이며, 인터넷 전체에 자동 공개한다는 뜻이 아니다. 외부 링크는 별도의 명시적 공유 상태(`shared_at`)를 확인한다.

@@ -1,5 +1,5 @@
-import PageSkeleton from '@/components/ui/PageSkeleton';
+import BookNewSkeleton from '@/components/books/BookNewSkeleton';
 
 export default function Loading() {
-  return <PageSkeleton kind="search" />;
+  return <BookNewSkeleton />;
 }

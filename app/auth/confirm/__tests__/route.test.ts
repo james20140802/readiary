@@ -231,35 +231,15 @@ describe('GET /auth/confirm', () => {
     expect(updateUser).not.toHaveBeenCalled();
   });
 
-  it('가입 화면에서 동의하고 온 OAuth(consent=1)는 동의 표식을 메타데이터에 남긴다', async () => {
+  it('consent=1 이 붙어 와도 동의 표식을 남기지 않는다 — 만 14세 확인은 온보딩에서만 받는다', async () => {
     const { updateUser } = buildSupabaseStub();
     const res = await get('?code=pkce-code&consent=1');
-    expect(updateUser).toHaveBeenCalledTimes(1);
-    expect(updateUser).toHaveBeenCalledWith({ data: { consented_at: expect.any(String) } });
+    expect(updateUser).not.toHaveBeenCalled();
     expect(location(res)).toBe('https://readiary.test/onboarding');
-  });
 
-  it('동의 표식과 복귀 경로는 한 번의 updateUser 로 함께 싣는다', async () => {
-    const { updateUser } = buildSupabaseStub();
     await get('?code=pkce-code&next=%2Finvite%2Fx&consent=1');
     expect(updateUser).toHaveBeenCalledTimes(1);
-    expect(updateUser).toHaveBeenCalledWith({
-      data: { pending_redirect: '/invite/x', consented_at: expect.any(String) },
-    });
-  });
-
-  it("consent 가 '1' 이 아니면 표식을 남기지 않는다 — 로그인 화면 Google 은 온보딩에서 동의를 받는다", async () => {
-    const { updateUser } = buildSupabaseStub();
-    await get('?code=pkce-code&consent=true');
-    await get('?code=pkce-code&consent=0');
-    expect(updateUser).not.toHaveBeenCalled();
-  });
-
-  it('프로필이 이미 있으면 consent=1 이어도 메타데이터를 건드리지 않고 목적지로 보낸다', async () => {
-    const { updateUser } = buildSupabaseStub({ profile: { id: 'user-1' } });
-    const res = await get('?code=pkce-code&consent=1');
-    expect(updateUser).not.toHaveBeenCalled();
-    expect(location(res)).toBe('https://readiary.test/today');
+    expect(updateUser).toHaveBeenCalledWith({ data: { pending_redirect: '/invite/x' } });
   });
 
   it('실어 두기에 실패해도 온보딩으로는 보낸다', async () => {

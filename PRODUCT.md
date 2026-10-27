@@ -50,7 +50,7 @@ Readiary(「하루 한 문장 독서 기록」)는 읽는 동안 마음에 남�
 - 이름: Readiary. 한국어 제품이며 `lang="ko"`다.
 - 문구는 사용자가 할 행동과 결과를 말한다. 예: "남기기", "생각 덧붙이기", "완독", "이 기기 알림 켜기". 기능 설명은 구현 방식보다 독자가 얻는 경험을 먼저 말한다.
 - 부담을 주는 랭킹·연속 기록 경쟁 대신 조용한 독서 습관과 개인의 서재를 지향한다.
-- 시각 체계의 현재 기준은 `AGENTS.md`의 Design Context와 `docs/ui-guidelines.md`에 있다. 이 파일은 시각 결정을 기록하지 않는다.
+- 시각 체계의 현재 기준은 `DESIGN.md`, `AGENTS.md`의 Design Context, `docs/ui-guidelines.md`에 있다. 이 파일은 시각 결정을 기록하지 않는다.
 
 ## Evidence on Hand
 

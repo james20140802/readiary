@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
-import { Mail } from 'lucide-react';
 import { createSupabaseClient } from '@/lib/supabase/client';
 import { Input } from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
@@ -12,7 +11,7 @@ import FormGroup from '@/components/ui/FormGroup';
 import FormLabel from '@/components/ui/FormLabel';
 import FormAlert from '@/components/ui/FormAlert';
 import AuthFrame from '@/components/auth/AuthFrame';
-import { describeAuthError, validateEmail } from '@/lib/auth/authErrors';
+import { NETWORK_ERROR_MESSAGE, describeAuthError, validateEmail } from '@/lib/auth/authErrors';
 import { passwordResetRedirectTo } from '@/lib/auth/emailRedirect';
 
 export default function ResetPasswordPage() {
@@ -63,12 +62,12 @@ export default function ResetPasswordPage() {
         redirectTo: passwordResetRedirectTo(window.location.origin),
       });
       if (error) {
-        setFormError(describeAuthError('reset', error.message));
+        setFormError(describeAuthError('reset', error));
         return;
       }
       setSent(true);
     } catch {
-      setFormError('서버와 통신 중 오류가 발생했습니다.');
+      setFormError(NETWORK_ERROR_MESSAGE);
     } finally {
       setLoading(false);
     }
@@ -76,19 +75,15 @@ export default function ResetPasswordPage() {
 
   return (
     <AuthFrame
-      title="비밀번호 재설정"
+      title={sent ? '메일을 확인해 주세요' : '비밀번호 찾기'}
       lead={
         sent
           ? undefined
           : fromAlert
-            ? '기억에 없는 변경이라면 지금 새 비밀번호를 정해 주세요. 로그인된 상태여도 이메일로 진행할 수 있습니다.'
-            : '가입할 때 쓴 이메일로 재설정 링크를 보내드립니다.'
+            ? '기억에 없는 변경이라면 지금 새 비밀번호를 정해 주세요. 로그인된 상태여도 메일로 진행할 수 있어요.'
+            : '가입한 메일로 새 비밀번호를 정할 수 있는 링크를 보내요.'
       }
-      footer={
-        <p>
-          <Link href="/login">로그인으로 돌아가기</Link>
-        </p>
-      }
+      footer={<Link href="/login">로그인으로</Link>}
     >
       {!sent ? (
         <form onSubmit={handleReset} noValidate className="space-y-5">
@@ -114,24 +109,22 @@ export default function ResetPasswordPage() {
               required
             />
           </FormGroup>
-          <Button type="submit" fullWidth loading={loading} className="mt-2">
-            {loading ? '보내는 중...' : '재설정 링크 보내기'}
+          <Button type="submit" fullWidth loading={loading} className="!mt-6">
+            {loading ? '보내는 중...' : '링크 받기'}
           </Button>
         </form>
       ) : (
-        <div className="space-y-3 text-center">
-          <div className="flex justify-center text-ink">
-            <Mail size={28} strokeWidth={1.75} />
+        <>
+          <div role="status" className="vellum mt-[26px] rounded-[3px] p-6">
+            <p className="break-keep font-serif text-note text-ink">
+              <strong className="font-semibold">{email.trim()}</strong>
+              (으)로 보낸 메일의 링크를 열면 새 비밀번호를 정할 수 있어요.
+            </p>
           </div>
-          <h2 className="text-section-title text-ink">이메일을 확인해주세요</h2>
-          <p className="break-keep text-body-sm text-ink-sub">
-            <strong className="text-ink">{email.trim()}</strong>
-            (으)로 재설정 링크를 보냈습니다. 메일의 링크를 열어 새 비밀번호를 정해 주세요.
+          <p className="mt-4 break-keep font-sans text-caption text-ink-sub">
+            메일이 보이지 않으면 스팸함을 확인해 주세요. 가입하지 않은 주소에는 메일이 가지 않아요.
           </p>
-          <p className="text-caption text-ink-faint">
-            메일이 보이지 않으면 스팸함을 확인해주세요. 가입되지 않은 주소에는 메일이 가지 않습니다.
-          </p>
-        </div>
+        </>
       )}
     </AuthFrame>
   );

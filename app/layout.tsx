@@ -1,11 +1,13 @@
 import ReflectionDraftGuard from '@/components/reflections/ReflectionDraftGuard';
 import PushAccountGuard from '@/components/PushAccountGuard';
 import type { Metadata, Viewport } from 'next';
+import { headers } from 'next/headers';
 import './globals.css';
 import { Toaster } from 'sonner';
 import AppShell from '@/components/AppShell';
 import MotionProvider from '@/components/MotionProvider';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { noFocusZoom } from '@/lib/browser/viewport';
 import { maruBuri, pretendard } from './fonts';
 
 export const metadata: Metadata = {
@@ -14,16 +16,26 @@ export const metadata: Metadata = {
   manifest: '/manifest.json',
 };
 
-export const viewport: Viewport = {
+const BASE_VIEWPORT: Viewport = {
   width: 'device-width',
   initialScale: 1,
   // 하단 탭바가 홈 인디케이터 뒤까지 깔리고 safe-area 여백으로 내용을 띄운다
   viewportFit: 'cover',
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#F7F3EC' },
-    { media: '(prefers-color-scheme: dark)', color: '#1B1612' },
+    { media: '(prefers-color-scheme: light)', color: '#F4F0E8' },
+    { media: '(prefers-color-scheme: dark)', color: '#1A1714' },
   ],
 };
+
+/**
+ * iOS는 입력칸을 누르면 화면을 그 칸으로 확대한다. maximum-scale=1은 그 자동 확대만 막고,
+ * 손가락 확대는 iOS가 접근성 때문에 그대로 허용한다. Android는 이 값이 손가락 확대까지 막으므로 붙이지 않는다.
+ * iPad Safari는 데스크톱 UA(Macintosh)를 보내므로 Macintosh에도 붙인다 — 데스크톱 브라우저는 viewport를 쓰지 않는다.
+ */
+export async function generateViewport(): Promise<Viewport> {
+  const ua = (await headers()).get('user-agent') ?? '';
+  return noFocusZoom(ua) ? { ...BASE_VIEWPORT, maximumScale: 1 } : BASE_VIEWPORT;
+}
 
 /** GNB용 로그인 여부 — 쿠키의 토큰을 검증해 판정. 보호는 proxy가 하고 여기서는 표시만 정한다 */
 async function isLoggedIn(): Promise<boolean> {
@@ -53,7 +65,7 @@ export default async function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
-      <body className="overflow-x-hidden bg-paper text-ink">
+      <body className="bg-paper text-ink">
         <PushAccountGuard />
         <ReflectionDraftGuard />
         <MotionProvider>

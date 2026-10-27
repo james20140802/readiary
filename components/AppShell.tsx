@@ -7,9 +7,13 @@ import { createSupabaseClient } from '@/lib/supabase/client';
 import { sweepLegacyPrivateCaches } from '@/lib/pwa/clear-caches';
 import { useUnreadNotifications } from '@/hooks/useUnreadNotifications';
 import { setSearchOwner } from '@/lib/search/memory';
-import Header from '@/components/Header';
 import { readComposerDraft, clearComposerDraft } from '@/lib/entries/composerDraft';
-import Navbar from '@/components/Navbar';
+import RuledPaper from '@/components/ui/RuledPaper';
+import { TopBarProvider } from '@/components/shell/TopBarContext';
+import { TopBar } from '@/components/shell/TopBar';
+import { TabBar } from '@/components/shell/TabBar';
+import { Sidebar } from '@/components/shell/Sidebar';
+import { frameFor, ruledFor, showsNav, type Frame } from '@/lib/shell/routes';
 
 interface AppShellProps {
   /** 서버(루트 레이아웃)가 쿠키로 판정한 초기 로그인 여부 — 첫 페인트부터 맞는 GNB를 그린다 */
@@ -19,20 +23,10 @@ interface AppShellProps {
   children: React.ReactNode;
 }
 
-/** 로그인 상태가 있어도 GNB 탭·종을 숨기는 화면 — 온보딩처럼 빠져나갈 수 없거나, 인증 절차 중인 곳 */
-const BARE_PREFIXES = [
-  '/login',
-  '/signup',
-  '/onboarding',
-  '/auth',
-  '/reset-password',
-  '/update-password',
-];
-
 /**
- * 앱 셸 — 로그인 여부·알림 뱃지·GNB 표시 여부를 한 곳에서 정하고 Header/Navbar에 내려준다.
+ * 앱 셸 — 로그인 여부·알림 뱃지·메뉴 표시 여부를 한 곳에서 정하고 상단 바·탭 바·사이드바에 내려준다.
  * 로그인 여부는 서버 초기값 + onAuthStateChange 구독으로 로그인·로그아웃 직후 즉시 갱신된다.
- * (예전엔 Header가 마운트 때 한 번만 세션을 읽어 로그아웃 뒤에도 종이 남았다)
+ * (예전엔 헤더가 마운트 때 한 번만 세션을 읽어 로그아웃 뒤에도 종이 남았다)
  */
 export default function AppShell({ initialLoggedIn, initialUnread, children }: AppShellProps) {
   const pathname = usePathname();
@@ -67,37 +61,64 @@ export default function AppShell({ initialLoggedIn, initialUnread, children }: A
     void sweepLegacyPrivateCaches();
   }, []);
 
-  const bare = BARE_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
-  const showNav = loggedIn && !bare;
-  // 랜딩은 화면 높이의 종이를 한 장씩 겹쳐 넘기는 슬라이드라 본문 칸(폭·위 여백)을 두지 않는다 —
-  // 각 장이 제 안에서 폭과 상단 크롬 여백을 잡는다 (로그인 상태면 서버가 홈으로 보내므로 늘 비로그인)
-  const fullBleed = pathname === '/';
-  // 뱃지 조회는 셸에서 한 번만 — 모바일 헤더·데스크톱 바가 같은 값을 나눠 쓴다
-  const hasUnread = useUnreadNotifications(showNav, initialUnread);
+  const frame = frameFor(pathname);
+  const nav = showsNav(frame, loggedIn);
+  const ruled = ruledFor(frame);
+  // 뱃지 조회는 셸에서 한 번만 — 모바일 상단 바·데스크톱 사이드바가 같은 값을 나눠 쓴다
+  const hasUnread = useUnreadNotifications(nav, initialUnread);
 
   // 보호 라우트 프리페치는 로그인한 뒤에만 — 비로그인 방문자가 매번 /login 리다이렉트만 받아오던 낭비
   useEffect(() => {
-    if (!showNav) return;
+    if (!nav) return;
     for (const href of ['/today', '/books', '/social', '/profile']) {
       router.prefetch(href);
     }
-  }, [showNav, router]);
+  }, [nav, router]);
 
   return (
-    <>
-      <Header loggedIn={loggedIn} showNav={showNav} hasUnread={hasUnread} />
-      <Navbar loggedIn={loggedIn} showNav={showNav} hasUnread={hasUnread} />
-      {/* 고정 크롬의 실제 높이 + 본문 간격. 하단 탭바 여백은 탭바가 보일 때만 확보한다. */}
-      <main
-        className={clsx(
-          'w-full',
-          !fullBleed &&
-            'mx-auto max-w-screen-md px-4 pt-[calc(var(--app-mobile-header-height)+1.5rem)] md:pt-[6rem] md:pb-16',
-          !fullBleed && (showNav ? 'pb-[calc(var(--app-mobile-nav-height)+1.5rem)]' : 'pb-8')
+    <TopBarProvider>
+      {ruled && <RuledPaper variant={ruled} besideSidebar={nav} />}
+      {nav && (frame === 'plain' || frame === 'leaves' || frame === 'feed') && (
+        <TopBar hasUnread={hasUnread} />
+      )}
+      {nav && <Sidebar hasUnread={hasUnread} prefetch={nav} />}
+      {/* w-full을 주지 않는다 — 블록은 사이드바 여백(ml)을 뺀 폭을 스스로 채운다. w-full이면 폭 100%에 여백이 더해져 오른쪽이 화면 밖으로 밀린다 */}
+      <main className={clsx('relative', mainClass(frame, nav))}>
+        {frame === 'plain' || frame === 'feed' ? (
+          <div
+            className={clsx(
+              'mx-auto w-full',
+              frame === 'feed' ? 'lg:max-w-[1400px]' : 'lg:max-w-[860px]'
+            )}
+          >
+            {children}
+          </div>
+        ) : (
+          children
         )}
-      >
-        {children}
       </main>
-    </>
+      {/* fixed라 화면은 같고, 키보드 순서는 본문 다음이 되도록 main 뒤에 둔다 */}
+      {nav && <TabBar prefetch={nav} />}
+    </TopBarProvider>
   );
+}
+
+/** 틀마다 본문 여백 — 랜딩은 장이 직접 잡고, 간지 틀은 모바일에서 장이 맡는다 */
+function mainClass(frame: Frame, nav: boolean): string {
+  switch (frame) {
+    case 'landing':
+      return '';
+    case 'bare':
+      return 'mx-auto max-w-[1100px] px-6 pt-[calc(12px+var(--app-safe-top))] pb-[calc(48px+var(--app-safe-bottom))]';
+    case 'leaves':
+      return nav ? 'lg:ml-[var(--app-side)]' : '';
+    case 'plain':
+    case 'feed':
+      return clsx(
+        'px-6 pt-[calc(76px+var(--app-safe-top))] lg:pb-16 lg:pl-20 lg:pr-14 lg:pt-11',
+        nav
+          ? 'pb-[calc(var(--app-tabbar-h)+48px+var(--app-safe-bottom))] lg:ml-[var(--app-side)]'
+          : 'pb-[calc(48px+var(--app-safe-bottom))] lg:ml-0'
+      );
+  }
 }

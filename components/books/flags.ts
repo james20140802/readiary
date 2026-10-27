@@ -1,0 +1,221 @@
+/**
+ * 책 플래그 — 설계 4.1. 쪽 번호가 있는 기록마다 표지 오른쪽 옆면에서 플래그 하나가 나온다.
+ * 위치·색·몰린 플래그의 길이 단계와 누름 영역을 계산하는 순수 함수만 둔다(화면 부품은 BookFlags).
+ * 값은 시안 docs/design/concept-2026-10/book-layer.html의 플래그 스크립트 그대로다.
+ */
+import { formatInTimeZone } from 'date-fns-tz';
+
+/** 플래그 색 여섯 — tailwind `flag-*` 토큰 이름과 같다. 기록한 날짜 순서대로 돌려 쓴다 */
+export const FLAG_COLORS = ['yellow', 'pink', 'orange', 'green', 'blue', 'purple'] as const;
+export type FlagColor = (typeof FLAG_COLORS)[number];
+
+/** 앱이 쓰는 사용자 시간대(lib/dates의 todayKST와 같은 기준) */
+export const DEFAULT_TIME_ZONE = 'Asia/Seoul';
+
+/** 표지 위·아래 끝에서 플래그를 띄우는 거리(px) — 시안 `14+(pg/T)*(H-28)` */
+export const FLAG_EDGE = 14;
+/** 이보다 가까이 붙은 플래그는 나온 길이를 한 단씩 달리한다(px) — 두께 + 1 */
+export const FLAG_CROWD = 15;
+/** 단계 수 — 짧은 것, 중간, 긴 것 */
+export const FLAG_TIERS = 3;
+/** 가장 짧은 플래그가 옆면 밖으로 나온 길이와 단계마다 늘어나는 길이(px) — 손가락으로 누르기 쉽게 시안(14·9)보다 키웠다 */
+export const FLAG_LEN = 20;
+export const FLAG_LEN_STEP = 10;
+/** 표지 뒤 쪽 사이로 들어가 보이지 않는 밑동 길이(px) */
+export const FLAG_HIDDEN = 18;
+/** 플래그 두께(px) — 시안 10px보다 키웠다 */
+export const FLAG_THICKNESS = 14;
+/** 누름 영역이 플래그 가운데에서 위아래로 나오는 만큼 — 플래그 한 개도 22px 높이로 눌린다 */
+export const FLAG_HIT_HALF = FLAG_THICKNESS / 2 + 4;
+
+export interface FlagSource {
+  id: string;
+  /** 기록의 날짜 'YYYY-MM-DD'(사용자가 고른 읽은 날, 이미 사용자 달력의 날짜) */
+  date: string | null;
+  /** date가 없을 때만 쓴다 — 시각을 사용자 시간대의 날짜로 바꾼다 */
+  createdAt?: string | null;
+  fromPage: number | null;
+  toPage: number | null;
+}
+
+export interface BookFlag<T extends FlagSource = FlagSource> {
+  id: string;
+  page: number;
+  /** 0(첫 쪽) ~ 1(마지막 쪽) */
+  ratio: number;
+  /** 'YYYY-MM-DD' */
+  day: string;
+  color: FlagColor;
+  source: T;
+}
+
+function validPage(n: number | null | undefined): n is number {
+  return typeof n === 'number' && Number.isFinite(n) && n > 0;
+}
+
+/** 플래그를 꽂을 쪽 — 시작 쪽, 없으면 끝 쪽. 쪽 번호가 없으면 null(플래그 없음) */
+export function flagPage(e: Pick<FlagSource, 'fromPage' | 'toPage'>): number | null {
+  if (validPage(e.fromPage)) return e.fromPage;
+  if (validPage(e.toPage)) return e.toPage;
+  return null;
+}
+
+/** 마지막 쪽 — 전체 쪽수, 없으면 그 책에서 기록한 가장 큰 쪽 */
+export function flagEnd(
+  totalPages: number | null | undefined,
+  entries: Pick<FlagSource, 'fromPage' | 'toPage'>[]
+): number | null {
+  if (validPage(totalPages)) return totalPages;
+  let max = 0;
+  for (const e of entries) {
+    if (validPage(e.fromPage)) max = Math.max(max, e.fromPage);
+    if (validPage(e.toPage)) max = Math.max(max, e.toPage);
+  }
+  return max > 0 ? max : null;
+}
+
+/** 기록한 날 — 사용자 시간대의 'YYYY-MM-DD' */
+export function flagDay(
+  e: Pick<FlagSource, 'date' | 'createdAt'>,
+  timeZone: string = DEFAULT_TIME_ZONE
+): string | null {
+  const d = e.date?.slice(0, 10);
+  if (d && /^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
+  if (e.createdAt) {
+    const t = new Date(e.createdAt);
+    if (!Number.isNaN(t.getTime())) return formatInTimeZone(t, timeZone, 'yyyy-MM-dd');
+  }
+  return null;
+}
+
+/** 날짜 → 색. 이른 날부터 여섯 색을 차례로 돌려 쓴다. 같은 날은 같은 색 */
+export function colorsByDay(days: string[]): Map<string, FlagColor> {
+  const sorted = [...new Set(days)].sort();
+  return new Map(sorted.map((d, i) => [d, FLAG_COLORS[i % FLAG_COLORS.length]]));
+}
+
+/**
+ * 기록 목록 → 플래그. 쪽 번호가 없는 기록은 빠진다. 앞쪽(작은 쪽)부터, 같은 쪽은 이른 날부터.
+ * 색은 플래그가 있는 기록뿐 아니라 그 책의 모든 기록 날짜로 돌린다 — 쪽 없는 기록을 남긴 날도 한 묶음이다.
+ */
+export function buildFlags<T extends FlagSource>(
+  entries: T[],
+  totalPages: number | null | undefined,
+  timeZone: string = DEFAULT_TIME_ZONE
+): BookFlag<T>[] {
+  const end = flagEnd(totalPages, entries);
+  if (end == null) return [];
+  const days = entries.map((e) => flagDay(e, timeZone)).filter((d): d is string => d != null);
+  const palette = colorsByDay(days);
+  const flags: BookFlag<T>[] = [];
+  for (const e of entries) {
+    const page = flagPage(e);
+    const day = flagDay(e, timeZone);
+    if (page == null || day == null) continue;
+    flags.push({
+      id: e.id,
+      page,
+      ratio: Math.min(1, Math.max(0, page / end)),
+      day,
+      color: palette.get(day) ?? FLAG_COLORS[0],
+      source: e,
+    });
+  }
+  return flags.sort(
+    (a, b) =>
+      a.page - b.page ||
+      a.day.localeCompare(b.day) ||
+      (a.source.createdAt ?? '').localeCompare(b.source.createdAt ?? '') ||
+      a.id.localeCompare(b.id)
+  );
+}
+
+export interface FlagRect {
+  /** 옆면(표지 오른쪽 끝)에서 잰 가로 범위(px) */
+  x0: number;
+  x1: number;
+  /** 표지 위에서 잰 세로 범위(px) */
+  y0: number;
+  y1: number;
+}
+
+export interface FlagLayout {
+  id: string;
+  /** 플래그 가운데의 세로 자리(px) */
+  y: number;
+  tier: number;
+  /** 옆면 밖으로 나온 길이(px) */
+  len: number;
+  /** 짧은 것이 앞에 */
+  z: number;
+}
+
+/**
+ * 손가락 한 칸(FLAG_HIT_HALF*2) 안에 든 플래그 묶음 — 하나의 버튼이 되고, 누르면 묶인 기록이 함께 펼쳐진다.
+ * 몰린 자리에는 플래그를 FLAG_TIERS개까지만 그린다(나머지는 펼친 목록에서 본다).
+ */
+export interface FlagCluster {
+  /** 앞쪽부터 */
+  ids: string[];
+  /** 그릴 플래그 — 앞쪽부터 FLAG_TIERS개까지 */
+  visible: string[];
+  hit: FlagRect;
+}
+
+/**
+ * 표지 높이에 맞춰 플래그를 세운다. 입력은 앞쪽부터(buildFlags 순서).
+ * 가까이 붙은 플래그는 실제 플래그 묶음처럼 나온 길이를 한 단씩 달리한다 — 짧은 것이 앞에, 긴 것은 뒤에서 끝만.
+ */
+export function layoutFlags(flags: { id: string; ratio: number }[], height: number): FlagLayout[] {
+  if (!(height > 0)) return [];
+  const span = Math.max(0, height - FLAG_EDGE * 2);
+  const out: FlagLayout[] = [];
+  let prev: { y: number; tier: number } | null = null;
+  for (const f of flags) {
+    const y = FLAG_EDGE + f.ratio * span;
+    const tier: number = prev && y - prev.y < FLAG_CROWD ? (prev.tier + 1) % FLAG_TIERS : 0;
+    out.push({ id: f.id, y, tier, len: FLAG_LEN + tier * FLAG_LEN_STEP, z: FLAG_TIERS - tier });
+    prev = { y, tier };
+  }
+  return out;
+}
+
+/**
+ * 누름 영역 — 위에서부터, 첫 플래그에서 한 칸(FLAG_HIT_HALF*2) 안에 드는 플래그를 한 묶음으로 끊는다.
+ * 묶음은 한 칸을 넘게 이어 붙지 않으므로 플래그가 아무리 많아도 하나로 뭉치지 않는다.
+ * 묶음 영역은 플래그 위아래로 FLAG_HIT_HALF씩, 이웃 묶음과는 두 플래그 사이 가운데에서 나눈다(겹치지 않는다).
+ * 입력은 layoutFlags 결과.
+ */
+export function clusterFlags(layout: FlagLayout[]): FlagCluster[] {
+  const cell = FLAG_HIT_HALF * 2;
+  const sorted = [...layout].sort((a, b) => a.y - b.y);
+  const groups: FlagLayout[][] = [];
+  for (const l of sorted) {
+    const last = groups[groups.length - 1];
+    if (last && l.y - last[0].y < cell) last.push(l);
+    else groups.push([l]);
+  }
+  return groups.map((g, i) => {
+    const top = g[0].y;
+    const bottom = g[g.length - 1].y;
+    const prev = groups[i - 1];
+    const next = groups[i + 1];
+    const y0 = prev
+      ? Math.max(top - FLAG_HIT_HALF, (prev[prev.length - 1].y + top) / 2)
+      : top - FLAG_HIT_HALF;
+    const y1 = next
+      ? Math.min(bottom + FLAG_HIT_HALF, (bottom + next[0].y) / 2)
+      : bottom + FLAG_HIT_HALF;
+    const visible = g.slice(0, FLAG_TIERS);
+    return {
+      ids: g.map((l) => l.id),
+      visible: visible.map((l) => l.id),
+      hit: { x0: 0, x1: Math.max(...visible.map((l) => l.len)), y0, y1 },
+    };
+  });
+}
+
+/** 두 누름 영역이 겹치는지(경계가 맞닿는 것은 겹침이 아니다) */
+export function rectsOverlap(a: FlagRect, b: FlagRect): boolean {
+  return a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1;
+}

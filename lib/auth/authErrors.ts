@@ -1,13 +1,38 @@
 /**
- * Supabase Auth 오류 문구를 화면에 보여줄 한국어로 옮긴다.
- * 표에 없는 문구는 레이트리밋만 따로 가려내고, 나머지는 흐름별 기본 문구로 뭉뚱그린다 —
- * 서버 문구를 그대로 노출하면 내부 사정(제공자·설정)이 새어 나간다.
+ * Supabase Auth 오류를 화면에 보여줄 한국어로 옮긴다.
+ * 먼저 "요청이 서버에 닿지 못했는가(네트워크)", "서버가 제대로 답하지 못했는가(5xx)"를 가려 독자가
+ * 자기 입력을 의심하지 않게 하고, 그다음 아는 문구·오류 코드를 옮긴다. 나머지는 흐름별 기본 문구로
+ * 뭉뚱그린다 — 서버 문구를 그대로 노출하면 내부 사정(제공자·설정)이 새어 나간다.
  */
 
 const RATE_LIMIT = /rate limit|too many requests|over_email_send_rate_limit/i;
 const RATE_LIMIT_MESSAGE = '시도가 너무 잦습니다. 잠시 후 다시 시도해주세요.';
 
+export const NETWORK_ERROR_MESSAGE =
+  '서버에 연결하지 못했습니다. 인터넷 연결을 확인하고 다시 시도해주세요.';
+const SERVER_ERROR_MESSAGE =
+  '서버에 일시적인 문제가 있습니다. 입력한 내용의 문제는 아니니 잠시 후 다시 시도해주세요.';
+
+/**
+ * supabase-js가 돌려주는 AuthError의 모양. 네트워크 실패도 예외로 던지지 않고 `error`로 돌려준다 —
+ * fetch 자체가 실패하면 AuthRetryableFetchError(status 0), 게이트웨이 오류는 같은 이름에 502~504.
+ */
+export interface AuthErrorLike {
+  message?: string | null;
+  name?: string;
+  status?: number;
+  code?: string;
+}
+
 export type AuthFlow = 'login' | 'signup' | 'reset' | 'updatePassword';
+
+/** 오류 코드(문구보다 안정적) — 문구 표보다 먼저 본다 */
+const CODE_TABLE: Partial<Record<AuthFlow, Record<string, string>>> = {
+  login: {
+    invalid_credentials: '이메일 또는 비밀번호가 일치하지 않습니다.',
+    email_not_confirmed: '이메일 인증이 완료되지 않았습니다. 받은 메일함을 확인해주세요.',
+  },
+};
 
 const TABLE: Record<AuthFlow, Record<string, string>> = {
   login: {
@@ -43,7 +68,34 @@ const FALLBACK: Record<AuthFlow, string> = {
   updatePassword: '비밀번호 변경 중 오류가 발생했습니다.',
 };
 
-export function describeAuthError(flow: AuthFlow, message: string | undefined | null): string {
+const NETWORK_MESSAGE = /failed to fetch|load failed|networkerror|network request failed/i;
+
+/** 요청이 서버에 닿지 못했는가 — 오프라인, DNS·TLS 실패, 연결 끊김 */
+export function isNetworkAuthError(error: AuthErrorLike | null | undefined): boolean {
+  if (!error) return false;
+  if (error.name === 'AuthRetryableFetchError' && !error.status) return true;
+  return NETWORK_MESSAGE.test(error.message ?? '');
+}
+
+/** 서버(또는 그 앞 게이트웨이)가 제대로 답하지 못했는가 */
+function isServerAuthError(error: AuthErrorLike): boolean {
+  if (typeof error.status === 'number' && error.status >= 500) return true;
+  return error.name === 'AuthUnknownError';
+}
+
+export function describeAuthError(
+  flow: AuthFlow,
+  errorOrMessage: AuthErrorLike | string | undefined | null
+): string {
+  const error: AuthErrorLike | null =
+    typeof errorOrMessage === 'string' ? { message: errorOrMessage } : (errorOrMessage ?? null);
+  if (!error) return FALLBACK[flow];
+  if (isNetworkAuthError(error)) return NETWORK_ERROR_MESSAGE;
+  if (error.status === 429) return RATE_LIMIT_MESSAGE;
+  if (isServerAuthError(error)) return SERVER_ERROR_MESSAGE;
+  const byCode = error.code ? CODE_TABLE[flow]?.[error.code] : undefined;
+  if (byCode) return byCode;
+  const message = error.message;
   if (message) {
     const known = TABLE[flow][message];
     if (known) return known;
@@ -53,8 +105,10 @@ export function describeAuthError(flow: AuthFlow, message: string | undefined | 
 }
 
 /** 로그인 실패가 "이메일 미인증"인지 — 이때만 인증 메일 재발송 버튼을 보여준다 */
-export function isEmailNotConfirmed(message: string | undefined | null): boolean {
-  return message === 'Email not confirmed';
+export function isEmailNotConfirmed(error: AuthErrorLike | string | undefined | null): boolean {
+  if (!error) return false;
+  if (typeof error === 'string') return error === 'Email not confirmed';
+  return error.code === 'email_not_confirmed' || error.message === 'Email not confirmed';
 }
 
 /** 서버에 보내기 전 걸러낼 수 있는 것 — 형식만 본다(존재 여부는 서버가 안다) */

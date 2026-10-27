@@ -1,5 +1,5 @@
-import PageSkeleton from '@/components/ui/PageSkeleton';
+import TodaySkeleton from '@/components/today/TodaySkeleton';
 
 export default function Loading() {
-  return <PageSkeleton kind="dashboard" />;
+  return <TodaySkeleton />;
 }

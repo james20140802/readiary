@@ -34,13 +34,14 @@ export default function EntryDeleteWarning({
     return () => controller.abort();
   }, [entryId, attempt, onReady]);
   return (
-    <div className="text-caption text-ink-sub">
+    <div className="font-serif text-[17px] leading-[1.6] text-ink-sub">
       {error ? (
         <>
           <p role="alert">함께 지워질 생각을 확인하지 못했어요.</p>
           <Button
             variant="secondary"
             size="sm"
+            className="mt-2"
             onClick={() => {
               setError(false);
               setCount(null);
@@ -51,11 +52,11 @@ export default function EntryDeleteWarning({
           </Button>
         </>
       ) : count === null ? (
-        <p role="status">이어 남긴 생각을 확인하는 중입니다.</p>
+        <p role="status">덧붙인 생각을 확인하고 있어요.</p>
       ) : count === 0 ? (
-        <p>이 기록을 삭제하면 되돌릴 수 없습니다.</p>
+        <p>지우면 되돌릴 수 없어요.</p>
       ) : (
-        <p>원래 기록과 이어 남긴 생각 {count}개가 함께 삭제됩니다. 되돌릴 수 없습니다.</p>
+        <p>덧붙인 생각 {count}개도 함께 지워지고 되돌릴 수 없어요.</p>
       )}
     </div>
   );

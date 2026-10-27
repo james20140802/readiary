@@ -4,7 +4,6 @@ import { SessionExpiredError } from '@/lib/api/fetch';
 import { useState, useRef, useEffect } from 'react';
 import { useActionLock } from '@/hooks/useActionLock';
 import { useCreationSubmission } from '@/hooks/useCreationSubmission';
-import { Send } from 'lucide-react';
 import { Comment } from '@/types/comments';
 
 interface CommentInputProps {
@@ -77,19 +76,20 @@ export default function CommentInput({
     }
   };
 
-  // 박스 대신 괘선 하나 — 종이의 줄 위에 쓰는 문법. 포커스하면 줄이 살짝 진해진다
+  const replying = creation.snapshot ? creation.snapshot.payload.parentId : replyingTo;
+
+  // 시안 .cin2 — 위에 헤어라인, 부리 글씨로 쓰는 한 줄과 먹색 "남기기"
   return (
-    <div className="border-b border-hairline transition-colors focus-within:border-hairline-strong">
-      {/* 답글 모드일 때 상단에 표시되는 바 */}
-      {(creation.snapshot ? creation.snapshot.payload.parentId : replyingTo) && (
-        <div className="flex items-center justify-between pb-1 animate-in fade-in slide-in-from-top-1">
-          <p className="text-caption text-ink-sub">
+    <div className="border-t border-hairline pt-3">
+      {replying && (
+        <div className="flex items-center justify-between gap-3 pb-1">
+          <p className="font-sans text-[14px] font-medium text-ink-sub">
             {creation.snapshot ? (
-              '이전에 선택한 댓글에 답글을 남기는 중'
+              '이전에 고른 댓글에 답글을 남기는 중'
             ) : (
               <>
-                <span className="font-bold text-accent">@{replyingTo?.profile.nickname}</span>님에게
-                답글 남기는 중
+                <span className="font-semibold text-ink">{replyingTo?.profile.name}</span>에게 답글
+                남기는 중
               </>
             )}
           </p>
@@ -97,41 +97,38 @@ export default function CommentInput({
             type="button"
             onClick={onCancelReply}
             disabled={isSubmitting || !!creation.snapshot}
-            className="text-button-sm text-ink-faint hover:text-ink-sub"
+            className="min-h-8 font-sans text-[14px] font-semibold text-accent disabled:opacity-40"
           >
-            취소
+            답글 그만두기
           </button>
         </div>
       )}
-      <form onSubmit={handleSubmit} className="flex items-center gap-3">
+      <form onSubmit={handleSubmit} className="flex items-center gap-2">
         <input
           type="text"
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder="칭찬과 응원은 큰 힘이 됩니다"
-          className="flex-1 bg-transparent border-none outline-none text-input py-2.5 text-ink placeholder:text-ink-faint"
+          placeholder={replying ? '답글 남기기' : '댓글 남기기'}
+          aria-label={replying ? '답글' : '댓글'}
+          className="h-11 min-w-0 flex-1 border-none bg-transparent font-serif text-[17px] text-ink outline-none placeholder:text-ink-faint"
           disabled={disabled || isSubmitting || !creation.ready || !!creation.snapshot}
         />
-
         <button
           type="submit"
           disabled={!content.trim() || disabled || isSubmitting || !creation.ready}
-          aria-label={creation.snapshot ? '저장 확인·재시도' : '댓글 남기기'}
-          className={`p-1.5 transition-colors ${
-            content.trim() && !isSubmitting ? 'text-accent' : 'text-ink-faint'
-          }`}
+          className="inline-flex min-h-10 shrink-0 items-center rounded-full bg-ink px-4 font-sans text-button-sm text-ink-invert transition-[opacity,transform] duration-150 ease-ink-out active:scale-[0.97] disabled:opacity-40 motion-reduce:active:scale-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
         >
-          <Send size={17} className={isSubmitting ? 'animate-pulse' : ''} />
+          {creation.snapshot ? '다시 남기기' : isSubmitting ? '남기는 중…' : '남기기'}
         </button>
       </form>
       {creation.error && (
-        <p role="alert" className="text-caption text-danger">
+        <p role="alert" className="mt-1 font-sans text-[14px] text-danger">
           {creation.error}
         </p>
       )}
       {creation.snapshot && !isSubmitting && (
-        <p className="text-caption text-ink-sub">
-          보내기 버튼을 눌러 이전 댓글의 저장을 확인해 주세요.
+        <p className="mt-1 font-sans text-[14px] text-ink-sub">
+          &lsquo;다시 남기기&rsquo;를 누르면 이전 댓글이 저장됐는지 확인하고 이어서 남겨요.
         </p>
       )}
     </div>

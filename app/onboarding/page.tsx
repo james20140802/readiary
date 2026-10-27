@@ -28,7 +28,7 @@ export default async function OnboardingPage() {
     redirect('/today');
   }
 
-  // 로그인 화면의 Google 버튼으로 처음 온 사람은 아직 약관·개인정보 동의를 하지 않았다 — 여기서 받는다
+  // 처음 온 사람은 이메일·Google 가입 모두 여기서 만 14세 확인을 받는다
   return (
     <OnboardingForm
       defaultName={nameFromMetadata(user.user_metadata)}

@@ -9,20 +9,17 @@ import { buildOAuthRedirectTo } from '@/lib/auth/oauthRedirect';
 interface GoogleSignInButtonProps {
   /** 로그인 뒤 돌아갈 같은 오리진 경로(`?redirect=`) — 없으면 홈 */
   redirectParam: string | null;
-  /**
-   * 약관·개인정보 동의를 이 화면에서 이미 받았는가. 가입 화면은 동의 뒤에만 버튼이 눌리므로 true,
-   * 로그인 화면은 false — 처음 온 사람이면 온보딩에서 동의를 받는다.
-   */
-  consented?: boolean;
   disabled?: boolean;
   onBusyChange?: (busy: boolean) => void;
+  /** 버튼이 왜 눌리지 않는지 알리는 안내문의 id */
+  describedBy?: string;
   children?: React.ReactNode;
 }
 
 /** Google 'G' 마크 — 브랜드 지침상 네 가지 고정색을 쓴다(UI 토큰 예외) */
 function GoogleMark() {
   return (
-    <svg aria-hidden viewBox="0 0 24 24" className="h-4 w-4 shrink-0">
+    <svg aria-hidden viewBox="0 0 24 24" className="h-[18px] w-[18px] shrink-0">
       <path
         fill="#4285F4"
         d="M23.5 12.27c0-.79-.07-1.54-.2-2.27H12v4.3h6.46a5.52 5.52 0 0 1-2.4 3.62v3h3.87c2.27-2.09 3.57-5.17 3.57-8.65Z"
@@ -50,9 +47,9 @@ function GoogleMark() {
  */
 export default function GoogleSignInButton({
   redirectParam,
-  consented = false,
   disabled,
   onBusyChange,
+  describedBy,
   children = 'Google로 계속하기',
 }: GoogleSignInButtonProps) {
   const action = useActionLock();
@@ -66,7 +63,7 @@ export default function GoogleSignInButton({
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: buildOAuthRedirectTo(window.location.origin, redirectParam, { consented }),
+          redirectTo: buildOAuthRedirectTo(window.location.origin, redirectParam),
         },
       });
       // 성공하면 브라우저가 Google로 떠나므로 여기 돌아오는 건 실패했을 때뿐
@@ -89,6 +86,7 @@ export default function GoogleSignInButton({
       fullWidth
       loading={loading}
       disabled={disabled}
+      aria-describedby={describedBy}
       onClick={handleClick}
     >
       {!loading && <GoogleMark />}

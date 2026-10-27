@@ -1,10 +1,8 @@
-import Link from 'next/link';
-import { Settings } from 'lucide-react';
 import { pushClient } from '@/lib/push/server';
 import { getServerUser } from '@/lib/supabase/getServerUser';
 // app/(app)/social/notifications/page.tsx
 import { fetchNotifications } from '@/lib/notifications/fetchNotifications';
-import BackButton from '@/components/ui/BackButton';
+import NotificationsHeader from '@/components/social/NotificationsHeader';
 import NotificationsView from '../_components/NotificationsView';
 
 export default async function NotificationsPage() {
@@ -28,20 +26,8 @@ export default async function NotificationsPage() {
   const { items: notifications, error } = notificationsResult;
 
   return (
-    <div className="space-y-4">
-      <header className="px-1 flex items-center gap-1">
-        <BackButton />
-        <h1 className="text-page-title text-ink">알림</h1>
-        <Link
-          href="/notifications/settings"
-          aria-label="알림 설정"
-          title="알림 설정"
-          className="ml-auto flex h-11 w-11 items-center justify-center rounded-full text-ink-sub hover:bg-card-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-        >
-          <Settings size={21} strokeWidth={1.75} aria-hidden />
-        </Link>
-      </header>
-
+    <>
+      <NotificationsHeader />
       <NotificationsView
         notifications={notifications}
         error={error}
@@ -49,6 +35,6 @@ export default async function NotificationsPage() {
         deliveriesError={!!deliveriesResult.error}
         referenceTime={new Date().toISOString()}
       />
-    </div>
+    </>
   );
 }

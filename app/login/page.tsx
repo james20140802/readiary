@@ -13,13 +13,18 @@ import Button from '@/components/ui/Button';
 import FormGroup from '@/components/ui/FormGroup';
 import FormLabel from '@/components/ui/FormLabel';
 import FormAlert from '@/components/ui/FormAlert';
-import AuthFrame from '@/components/auth/AuthFrame';
+import AuthFrame, { AuthLinks } from '@/components/auth/AuthFrame';
 import PasswordInput from '@/components/auth/PasswordInput';
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 import OrDivider from '@/components/auth/OrDivider';
 import { SESSION_EXPIRED_ERROR_PARAM } from '@/lib/api/fetch';
 import { authHrefWithRedirect, sanitizeRedirectPath } from '@/lib/auth/safeRedirect';
-import { describeAuthError, isEmailNotConfirmed, validateEmail } from '@/lib/auth/authErrors';
+import {
+  NETWORK_ERROR_MESSAGE,
+  describeAuthError,
+  isEmailNotConfirmed,
+  validateEmail,
+} from '@/lib/auth/authErrors';
 import { emailConfirmRedirectTo } from '@/lib/auth/emailRedirect';
 import { isGoogleLoginEnabled } from '@/lib/auth/oauthRedirect';
 
@@ -80,8 +85,8 @@ export default function LoginPage() {
         password,
       });
       if (error) {
-        setFormError(describeAuthError('login', error.message));
-        setUnconfirmed(isEmailNotConfirmed(error.message));
+        setFormError(describeAuthError('login', error));
+        setUnconfirmed(isEmailNotConfirmed(error));
         return;
       }
       navigating.current = true;
@@ -89,7 +94,7 @@ export default function LoginPage() {
       router.push(sanitizeRedirectPath(redirectParam));
       router.refresh();
     } catch {
-      setFormError('서버와 통신 중 오류가 발생했습니다.');
+      setFormError(NETWORK_ERROR_MESSAGE);
     } finally {
       if (!navigating.current) setIsSubmitting(false);
     }
@@ -108,7 +113,7 @@ export default function LoginPage() {
         },
       });
       if (error) {
-        toast.error(describeAuthError('signup', error.message));
+        toast.error(describeAuthError('signup', error));
       } else {
         toast.success('인증 메일을 다시 보냈습니다. 받은 메일함을 확인해주세요.');
       }
@@ -121,18 +126,7 @@ export default function LoginPage() {
   const signupHref = authHrefWithRedirect('/signup', redirectParam);
 
   return (
-    <AuthFrame title="로그인" lead="이어서 오늘의 문장을 남겨 보세요.">
-      {isGoogleLoginEnabled() && (
-        <>
-          <GoogleSignInButton
-            redirectParam={redirectParam}
-            disabled={isSubmitting}
-            onBusyChange={setIsSubmitting}
-          />
-          <OrDivider />
-        </>
-      )}
-
+    <AuthFrame title="다시 만나서 반가워요" wordmark>
       <form onSubmit={handleLogin} noValidate className="space-y-5">
         {formError && (
           <FormAlert>
@@ -192,18 +186,27 @@ export default function LoginPage() {
           />
         </FormGroup>
 
-        <Button type="submit" fullWidth loading={isSubmitting} className="mt-2">
+        <Button type="submit" fullWidth loading={isSubmitting} className="!mt-6">
           {isSubmitting ? '로그인 중...' : '로그인'}
         </Button>
       </form>
-      <div className="mt-3 space-y-2 text-center text-body-sm text-ink-sub [&_a]:underline [&_a]:underline-offset-4 [&_a:hover]:text-ink">
-        <p>
-          비밀번호를 잊으셨나요? <Link href="/reset-password">비밀번호 찾기</Link>
-        </p>
-        <p>
-          아직 회원이 아니신가요? <Link href={signupHref}>가입하기</Link>
-        </p>
-      </div>
+      <AuthLinks>
+        <Link href="/reset-password">비밀번호를 잊었어요</Link>
+        <Link href={signupHref}>처음이에요</Link>
+      </AuthLinks>
+
+      {isGoogleLoginEnabled() && (
+        <>
+          <OrDivider />
+          <div className="mt-3">
+            <GoogleSignInButton
+              redirectParam={redirectParam}
+              disabled={isSubmitting}
+              onBusyChange={setIsSubmitting}
+            />
+          </div>
+        </>
+      )}
       <ActionNavigation href={action.destination} />
     </AuthFrame>
   );

@@ -2,6 +2,7 @@
 
 import { updateEntry } from '@/lib/actions/updateEntry';
 import { useRouter } from 'next/navigation';
+import { usePrefetchDestination } from '@/hooks/usePrefetchDestination';
 import { Book } from '@/types/book';
 import EntryForm, { EntryFormValues } from '@/components/entries/EntryForm';
 
@@ -27,6 +28,7 @@ export default function EditEntryForm({
   initialDate,
 }: Props) {
   const router = useRouter();
+  usePrefetchDestination(`/entry/${entryId}`);
 
   const handleSubmit = async (values: EntryFormValues): Promise<string | null> => {
     const error = await updateEntry(entryId, values);
@@ -41,6 +43,7 @@ export default function EditEntryForm({
       book={book}
       successHref={`/entry/${entryId}`}
       heading="기록 고치기"
+      back={{ href: `/entry/${entryId}`, label: '기록' }}
       submitLabel="고쳐 남기기"
       initial={{
         quote: initialQuote,

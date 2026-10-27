@@ -52,7 +52,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               [describedBy, error ? errorId : undefined].filter(Boolean).join(' ') || undefined
             }
             className={clsx(
-              'min-h-11 w-full text-ink placeholder:text-ink-faint transition-colors focus:outline-none',
+              line ? 'min-h-12' : 'min-h-11',
+              'w-full text-ink placeholder:text-ink-faint transition-colors focus:outline-none',
               line
                 ? [
                     'border-b bg-transparent px-0 py-2 text-input',
