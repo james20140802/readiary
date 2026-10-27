@@ -3,6 +3,7 @@
 import { SessionExpiredError } from '@/lib/api/fetch';
 import { useCreationSubmission } from '@/hooks/useCreationSubmission';
 import { useRouter } from 'next/navigation';
+import { usePrefetchDestination } from '@/hooks/usePrefetchDestination';
 import { toast } from 'sonner';
 import { Book } from '@/types/book';
 import EntryForm, { EntryFormValues } from '@/components/entries/EntryForm';
@@ -16,6 +17,7 @@ interface Props {
 
 export default function NewEntryForm({ userBookId, book, bookId }: Props) {
   const router = useRouter();
+  usePrefetchDestination(`/books/${bookId}`);
   const creation = useCreationSubmission<EntryFormValues & { user_book_id: string }>(
     `entry:${userBookId}`,
     '/api/entries/new',

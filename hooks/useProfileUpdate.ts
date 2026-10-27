@@ -4,12 +4,14 @@ import { useEffect, useReducer, useRef, useState } from 'react';
 import { AvatarDraft, AvatarCleanupError } from '@/lib/profile/avatarDraft';
 import { createSupabaseClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
+import { usePrefetchDestination } from '@/hooks/usePrefetchDestination';
 import { Profile } from '@/types/profile';
 import { validateNickname } from '@/lib/profile/nickname';
 
 export function useProfileUpdate(initialProfile: Profile | null) {
   const supabase = createSupabaseClient();
   const router = useRouter();
+  usePrefetchDestination('/profile');
 
   const [destination, setDestination] = useState<string | null>(null);
   const [updating, setUpdating] = useState(false);

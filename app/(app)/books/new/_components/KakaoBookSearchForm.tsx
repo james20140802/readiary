@@ -6,6 +6,7 @@ import { useCreationSubmission } from '@/hooks/useCreationSubmission';
 import { useActionLock } from '@/hooks/useActionLock';
 import { BookSearchResult } from '@/types/book';
 import { useRouter } from 'next/navigation';
+import { usePrefetchDestination } from '@/hooks/usePrefetchDestination';
 import { toast } from 'sonner';
 import { searchBook } from '@/lib/books/searchBook';
 import { ChosenBook, LineField, ResultRow, SearchBox } from '@/components/books/BookNewParts';
@@ -63,6 +64,7 @@ export default function KakaoBookSearchForm({
     setPages(p.total_pages?.toString() ?? '');
   }
   const router = useRouter();
+  usePrefetchDestination('/books');
 
   const handleSearch = async () => {
     if (query.trim() === '' || loading) return;

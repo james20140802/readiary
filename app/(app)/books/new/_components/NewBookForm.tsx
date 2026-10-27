@@ -5,12 +5,14 @@ import { useCreationSubmission } from '@/hooks/useCreationSubmission';
 import { useActionLock } from '@/hooks/useActionLock';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { usePrefetchDestination } from '@/hooks/usePrefetchDestination';
 import { LineField } from '@/components/books/BookNewParts';
 import { BTN_INK } from '@/components/books/buttonStyles';
 
 /** 직접 적기 — 시안 book-new.html `#hand`. 밑줄 입력만, 쪽수는 비워도 된다 */
 export default function NewBookForm({ onBusyChange }: { onBusyChange?: (busy: boolean) => void }) {
   const router = useRouter();
+  usePrefetchDestination('/books');
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
   const [totalPages, setTotalPages] = useState('');
