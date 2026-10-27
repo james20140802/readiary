@@ -1,70 +1,68 @@
-# Readiary 📚🌙
+# Readiary
 
-Readiary는 매일의 독서 기록을 작성하고 친구들과 공유할 수 있는 감성적인 독서 일기 앱입니다.  
+Readiary는 마음에 남은 문장과 그때의 생각을 가볍게 남기고, 시간이 지난 뒤 다시 읽도록 돕는 한국어 독서 일기입니다.
 PWA(Progressive Web App)로 제공되어 홈 화면에 설치하고 앱처럼 사용할 수 있습니다.
 
-## ✨ 주요 기능
+## 주요 기능
 
-- 📖 책 등록 및 진행률 관리
-- ✍️ 매일의 줄거리/감상 기록 작성
-- 🎯 독서 성취도 기반 배지 시스템
-- 👥 친구의 독서 기록 확인 (소셜 기능)
-- 🔒 기본은 비공개, 친구와 공유 가능
-- 💡 애니메이션 기반 감성 UI + 다크모드 대응
-- 📲 PWA 지원 (설치형 웹앱)
+- 책의 문장이나 나의 생각 중 하나만 있어도 기록이 됩니다. 쪽수는 선택이고, 완독은 직접 선언합니다.
+- 오늘 화면에서 지난 문장을 간지로 다시 만나고, 지난 7일의 기록을 돌아봅니다.
+- 책장에서 책등이나 목록으로 책을 찾고, 완독한 책의 문장을 발췌집으로 모아 읽습니다.
+- 친구의 문장을 읽고 좋아요와 댓글을 남깁니다.
+- 기록은 기본 비공개이고, 친구 공개와 외부 링크 공유는 따로 켭니다.
+- 라이트·다크모드는 기기 설정을 따릅니다.
+- 홈 화면에 설치하고 기기별 독서 알림을 받을 수 있습니다.
 
-## 🛠️ 개발 환경
+## 개발 환경
 
-- Framework: [Next.js 14 (App Router)](https://nextjs.org/docs/app)
-- Styling: Tailwind CSS
-- Database: Supabase (PostgreSQL)
-- Auth: Supabase Auth
-- Deployment: Vercel
+- Framework: [Next.js 16 (App Router)](https://nextjs.org/docs/app), React 19
+- Styling: Tailwind CSS 3, 시맨틱 토큰(`app/globals.css` → `tailwind.config.js`)
+- Database·Auth: Supabase (PostgreSQL, RLS)
+- Deployment: Vercel (서울 리전 `icn1`)
 - PWA: next-pwa + Workbox
 
-## 🎨 디자인 가이드
+정확한 버전은 `package.json`과 `package-lock.json`을 확인하세요.
 
-Readiary의 일관된 UI/UX를 위해 커스텀 디자인 시스템(시맨틱 토큰)을 구축하여 사용하고 있습니다.
-자세한 디자인 규칙과 Tailwind 토큰 사용법은 [UI Guidelines](docs/ui-guidelines.md) 문서를 참고하세요.
+## 디자인
 
-## 🧪 로컬 개발 방법
+화면은 "일기장과 간지" 문법을 따릅니다. 일기장 괘선 위에 반투명한 간지가 겹쳐 놓인 모습입니다.
+한 장 요약은 [DESIGN.md](DESIGN.md), 규칙과 토큰 사용법은 [UI Guidelines](docs/ui-guidelines.md)를 참고하세요.
+
+## 로컬 개발
 
 ```bash
-# 패키지 설치
-npm install
-
-# 개발 서버 실행
-npm run dev
+npm ci            # 패키지 설치
+npm run dev       # 개발 서버 (next dev --webpack)
+npm test          # 테스트 (vitest)
+npm run lint      # 린트 (eslint)
+npm run build     # 프로덕션 빌드 (next build --webpack)
 ```
 
-브라우저에서 [http://localhost:3000](http://localhost:3000) 접속
+브라우저에서 [http://localhost:3000](http://localhost:3000)에 접속합니다. Supabase 환경값이 필요합니다.
 
-## 🚀 배포
-
-[Vercel](https://vercel.com) 을 통해 배포됩니다.
-
-## 📁 디렉토리 구조
+## 디렉터리 구조
 
 ```
-app/                 # Next.js App Router 기반 디렉토리
- ├─ layout.tsx       # 전체 레이아웃 (Navbar 포함)
- ├─ page.tsx         # 홈 (랜딩) 페이지
- ├─ (app)/          # 로그인 후 접근 가능한 앱 화면 (주소에는 나타나지 않는 route group)
- ├─ onboarding/      # 회원가입 후 추가정보 입력
-components/          # 재사용 가능한 UI 컴포넌트
-lib/                 # Supabase 클라이언트 등 유틸
-public/              # 정적 파일 (아이콘, 이미지, manifest 등)
-utils/               # 유틸리티 함수
+app/                 # Next.js App Router
+ ├─ page.tsx         # 랜딩
+ ├─ (app)/           # 로그인 후 앱 화면: 오늘·책장·소셜·프로필·알림 (주소에 나타나지 않는 route group)
+ ├─ api/             # API 라우트
+ ├─ share/           # 외부 링크로 공유받은 문장
+ └─ login/ signup/ onboarding/ …  # 인증과 가입
+components/          # 재사용 UI (화면 틀은 components/shell/, 공용 부품은 components/ui/)
+hooks/               # React 훅
+lib/                 # 인증·데이터·도메인 로직
+supabase/migrations/ # DB 스키마와 RLS
+docs/                # 설계·운영 문서
+public/              # 아이콘, manifest 등 정적 파일
 ```
 
-## 📦 PWA 지원
+## PWA
 
-- `/public/manifest.json`
-- `/public/icons/` 디렉토리의 아이콘들
-- 자동 생성된 `sw.js`, `workbox-*.js`
-
-Readiary는 Android 및 Desktop 브라우저에서 설치 가능한 앱으로 작동합니다.
+- `public/manifest.json`과 `public/icons/`의 아이콘을 씁니다.
+- 빌드할 때 `sw.js`와 `workbox-*.js`가 생성됩니다.
+- iOS Safari, Android, 데스크톱 브라우저에서 홈 화면에 설치할 수 있습니다.
 
 ---
 
-개선 아이디어나 피드백이 있다면 언제든지 제안해주세요!
+작업 규칙은 [AGENTS.md](AGENTS.md)에 있습니다.

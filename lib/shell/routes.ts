@@ -17,23 +17,13 @@ const BARE_PREFIXES = [
 ] as const;
 
 /** 간지(여백선) 틀을 쓰는 화면 — 화면별 PR이 하나씩 추가한다 */
-export const LEAVES_ROUTES: readonly string[] = [
-  '/design-lab/leaves',
-  '/profile',
-  '/design-lab/me/profile',
-  '/today',
-  '/design-lab/today',
-];
+export const LEAVES_ROUTES: readonly string[] = ['/profile', '/today'];
 
 /**
  * 하위 주소는 다른 틀을 쓰므로 주소 하나만 정확히 맞추는 간지 화면 — 책장(/books)과 책 한 권(/books/[id]).
  * 책 등록(/books/new)과 책 아래 주소(발췌집·기록 남기기)는 여기에 들지 않는다.
  */
-export const LEAVES_EXACT: readonly RegExp[] = [
-  /^\/books$/,
-  /^\/books\/(?!new$)[^/]+$/,
-  /^\/design-lab\/books(?:\/detail)?$/,
-];
+export const LEAVES_EXACT: readonly RegExp[] = [/^\/books$/, /^\/books\/(?!new$)[^/]+$/];
 
 /** 같은 경로이거나 `접두사/…`일 때만 맞는다 (`/sharing`은 `/share`가 아니다) */
 function matches(pathname: string, prefix: string): boolean {
@@ -43,11 +33,7 @@ function matches(pathname: string, prefix: string): boolean {
 export function frameFor(pathname: string): Frame {
   if (pathname === '/') return 'landing';
   if (BARE_PREFIXES.some((p) => matches(pathname, p))) return 'bare';
-  if (
-    /^\/entry\/[^/]+$/.test(pathname) ||
-    /^\/social\/u\/[^/]+\/entry\/[^/]+$/.test(pathname) ||
-    pathname === '/design-lab/entry'
-  )
+  if (/^\/entry\/[^/]+$/.test(pathname) || /^\/social\/u\/[^/]+\/entry\/[^/]+$/.test(pathname))
     return 'leaves';
   if (LEAVES_ROUTES.some((p) => matches(pathname, p))) return 'leaves';
   if (LEAVES_EXACT.some((re) => re.test(pathname))) return 'leaves';
@@ -88,8 +74,8 @@ export function tabFor(pathname: string): TabKey | null {
   return null;
 }
 
-/** 메뉴는 로그인한 앱 화면에서만 보인다. /design-lab은 견본 확인용 예외(6절 9에서 제거) */
-export function showsNav(frame: Frame, loggedIn: boolean, pathname: string): boolean {
+/** 메뉴는 로그인한 앱 화면에서만 보인다 */
+export function showsNav(frame: Frame, loggedIn: boolean): boolean {
   if (frame === 'bare' || frame === 'landing') return false;
-  return loggedIn || matches(pathname, '/design-lab');
+  return loggedIn;
 }
