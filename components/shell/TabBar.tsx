@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Library, NotebookPen, User, Users, type LucideIcon } from 'lucide-react';
 import clsx from 'clsx';
 import { NAV_TABS, tabFor } from '@/lib/shell/routes';
+import { onTabClick } from './tabScroll';
 
 const ICONS: Record<(typeof NAV_TABS)[number]['key'], LucideIcon> = {
   today: NotebookPen,
@@ -15,7 +16,8 @@ const ICONS: Record<(typeof NAV_TABS)[number]['key'], LucideIcon> = {
 
 /** 모바일 하단의 떠 있는 탭 바. lg 이상에서는 사이드바가 맡는다. */
 export function TabBar({ prefetch = false }: { prefetch?: boolean }) {
-  const current = tabFor(usePathname());
+  const pathname = usePathname();
+  const current = tabFor(pathname);
 
   return (
     <nav
@@ -31,6 +33,7 @@ export function TabBar({ prefetch = false }: { prefetch?: boolean }) {
             href={href}
             prefetch={prefetch}
             aria-current={active ? 'page' : undefined}
+            onClick={(e) => onTabClick(e, href, pathname)}
             className={clsx(
               'flex flex-col items-center justify-center gap-0.5 rounded-[28px] text-tab transition-transform duration-150 active:scale-[0.96] motion-reduce:active:scale-100',
               active ? 'tab-on text-accent' : 'text-ink-sub'

@@ -448,55 +448,49 @@ li {
   pointer-events: none;
 }
 
-/* 긴 글의 포커스는 구분선과 겹치지 않는 짧은 여백 표시로 알린다. */
+/* 긴 글의 포커스는 구분선과 겹치지 않는 왼쪽 여백 표시로 알린다.
+   표시는 글이 놓이는 칸(textarea의 위아래 여백 py-2 안쪽) 높이 전체를 덮는다 — 짧은 표시는 커서와 높이가 어긋나 보였다.
+   textarea는 ::before를 못 가지므로 감싼 칸(.writing-field)이 그린다. 오늘 쓰기(.primaryField)와 같은 문법이다. */
 @layer components {
   .writing-field {
     @apply relative;
   }
 
-  .writing-field::before,
-  .writing-field--labeled > label::before {
+  .writing-field::before {
     content: '';
     position: absolute;
     left: -0.625rem;
-    top: var(--writing-marker-top, 0.25rem);
+    top: 0.5rem;
+    bottom: 0.5rem;
     width: 2px;
-    height: 1.5rem;
     background: rgb(var(--accent));
     opacity: 0;
     pointer-events: none;
   }
 
-  .writing-field--labeled::before {
-    content: none;
-  }
-
-  .writing-field--labeled > label {
-    position: relative;
-  }
-
-  .writing-field--labeled > label::before {
-    top: 50%;
-    transform: translateY(-50%);
-  }
-
-  .writing-field:focus-within::before,
-  .writing-field--labeled:focus-within > label::before {
+  .writing-field:focus-within::before {
     opacity: 1;
   }
 
-  .writing-field:focus-within > label {
+  .writing-group:focus-within > label {
     color: rgb(var(--accent));
   }
 }
 
-/* 일기장 괘선 — 화면 뒤에 고정으로 깔린다. 본문(main)은 z-index 없이 relative만 둔다 — DOM 순서상 나중이라 위에 그려지고, 스태킹 컨텍스트를 만들지 않아 본문 안의 고정 오버레이가 크롬 위로 뜬다 */
+/* 일기장 괘선 — 문서 전체 높이에 깔려 글과 함께 넘어간다(종이가 고정되고 글만 미끄러지는 것보다 공책을 넘기는 느낌).
+   body가 기준 상자다(position: relative, 최소 한 화면). 본문(main)은 z-index 없이 relative만 둔다 — DOM 순서상 나중이라 위에 그려지고,
+   스태킹 컨텍스트를 만들지 않아 본문 안의 고정 오버레이가 크롬 위로 뜬다 */
+body {
+  position: relative;
+}
 .diary-ruled {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background:
+  /* 괘선은 40px 한 칸을 타일로 되풀이한다 — 문서 높이만 한 상자에 repeating-linear-gradient를 그리면
+     소수점 오차가 쌓여 선 간격이 들쭉날쭉해진다. 여백선은 한 장으로 세로 전체에 늘린다 */
+  background-image:
     linear-gradient(
       to right,
       transparent 51px,
@@ -504,17 +498,19 @@ li {
       rgb(var(--margin)) 52px,
       transparent 52px
     ),
-    repeating-linear-gradient(to bottom, transparent 0 39px, rgb(var(--hairline)) 39px 40px);
+    linear-gradient(to bottom, transparent 39px, rgb(var(--hairline)) 39px);
+  background-size:
+    100% 100%,
+    100% 40px;
+  background-repeat: no-repeat, repeat;
   background-position:
     0 0,
     0 18px;
 }
 .diary-ruled--plain {
-  background: repeating-linear-gradient(
-    to bottom,
-    transparent 0 39px,
-    rgb(var(--hairline)) 39px 40px
-  );
+  background-image: linear-gradient(to bottom, transparent 39px, rgb(var(--hairline)) 39px);
+  background-size: 100% 40px;
+  background-repeat: repeat;
   background-position: 0 18px;
 }
 @media (min-width: 1024px) {
@@ -584,6 +580,17 @@ li {
     height: auto;
     min-height: max(var(--vh, 100svh), 100lvh);
     overflow: visible;
+  }
+  /* 긴 장은 머리(start)와 바닥(end) 두 곳에 멈춘다. 그 사이는 장이 화면보다 커서 자유롭게 읽힌다
+     (스냅 영역이 화면보다 크면 브라우저가 안쪽 어느 위치든 멈출 수 있게 한다) */
+  .leaves .leaf--free > .leaf-end {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+    scroll-snap-align: end;
   }
   /* 덮이는 장은 도착하며 살짝 기울어져 내려앉고, 덮인 장은 안으로 가라앉는다 */
   @supports (animation-timeline: view()) {

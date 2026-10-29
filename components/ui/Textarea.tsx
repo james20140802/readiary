@@ -21,15 +21,25 @@ export function Textarea({
   ...props
 }: TextareaProps) {
   const line = variant === 'line';
-  return (
-    <div
+  const field = (
+    <textarea
       className={clsx(
-        'space-y-1',
-        line && 'writing-field',
-        line && label && 'writing-field--labeled',
-        fullWidth && 'w-full'
+        'block leading-relaxed text-ink placeholder:text-ink-faint transition-colors focus:outline-none',
+        line
+          ? 'border-0 bg-transparent px-0 py-2 text-input'
+          : [
+              'px-4 py-3 rounded-md border text-input bg-card',
+              'border-hairline-strong focus:border-accent focus:ring-1 focus:ring-accent',
+              error && 'border-danger',
+            ],
+        fullWidth && 'w-full',
+        className
       )}
-    >
+      {...props}
+    />
+  );
+  return (
+    <div className={clsx('space-y-1', line && 'writing-group', fullWidth && 'w-full')}>
       {label && (
         <label
           htmlFor={props.id}
@@ -38,21 +48,8 @@ export function Textarea({
           {label}
         </label>
       )}
-      <textarea
-        className={clsx(
-          'block leading-relaxed text-ink placeholder:text-ink-faint transition-colors focus:outline-none',
-          line
-            ? 'border-0 bg-transparent px-0 py-2 text-input'
-            : [
-                'px-4 py-3 rounded-md border text-input bg-card',
-                'border-hairline-strong focus:border-accent focus:ring-1 focus:ring-accent',
-                error && 'border-danger',
-              ],
-          fullWidth && 'w-full',
-          className
-        )}
-        {...props}
-      />
+      {/* 포커스 표시는 라벨이 아니라 글이 놓이는 칸 높이 전체에 — 깜빡이는 커서와 같은 줄에서 시작한다 */}
+      {line ? <div className="writing-field">{field}</div> : field}
       {error && <p className="text-caption text-danger">{error}</p>}
     </div>
   );
