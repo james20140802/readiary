@@ -54,6 +54,6 @@ PGLITE_MODULE=/tmp/readiary-pr91-sql/node_modules/@electric-sql/pglite/dist/inde
 
 읽기 전용 Supabase Advisor는 공개 공유 RPC와 인증된 알림·진도 RPC의 SECURITY DEFINER 권한을 표시했다. 공개 공유 RPC는 위 마이그레이션의 명시적 공유 조건으로 범위를 제한하고, 기존 알림·진도 RPC는 호출자 검사를 유지한다. `rls_auto_enable` 이벤트 트리거의 실행 권한, 유출 비밀번호 차단 설정, Postgres 보안 패치 적용은 별도 운영 점검 항목으로 남긴다. 이 PR에서 운영 인증 설정이나 DB 버전을 변경하지 않았다. [함수 실행 권한 안내](https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable), [유출 비밀번호 보호](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection), [DB 업그레이드](https://supabase.com/docs/guides/platform/upgrading).
 
-## 이메일 소식 선택 기능 (구현 준비)
+## 이메일 소식 선택 기능 (2026-11-03 수집 시작 예정)
 
-이메일 수신 동의는 필수 약관·Web Push와 분리한다. 적용할 신규 마이그레이션, 본인 읽기/서버 쓰기 권한, 수신거부 토큰 및 로그 제외, 탈퇴 시 CASCADE 삭제와 공급자 기록의 차이는 [이메일 소식 수신 동의 운영](email-marketing-consent.md)을 따른다. 이 기록은 운영 DB 적용·방침 공고·실발송 완료를 의미하지 않는다.
+이메일 수신 동의는 필수 약관·Web Push와 분리한다. 적용할 신규 마이그레이션, 본인 읽기/서버 쓰기 권한, 수신거부 토큰 및 로그 제외, 탈퇴 시 CASCADE 삭제와 공급자 기록의 차이는 [이메일 소식 수신 동의 운영](email-marketing-consent.md)을 따른다. 운영 DB 적용과 방침 공고(2026-10-27)는 끝났고 수집은 2026-11-03에 열린다. 실발송은 별도 작업이다. 수집 중지 절차와 담당자는 같은 문서를 따른다.
