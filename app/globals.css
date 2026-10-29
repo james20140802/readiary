@@ -488,7 +488,9 @@ body {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background:
+  /* 괘선은 40px 한 칸을 타일로 되풀이한다 — 문서 높이만 한 상자에 repeating-linear-gradient를 그리면
+     소수점 오차가 쌓여 선 간격이 들쭉날쭉해진다. 여백선은 한 장으로 세로 전체에 늘린다 */
+  background-image:
     linear-gradient(
       to right,
       transparent 51px,
@@ -496,17 +498,19 @@ body {
       rgb(var(--margin)) 52px,
       transparent 52px
     ),
-    repeating-linear-gradient(to bottom, transparent 0 39px, rgb(var(--hairline)) 39px 40px);
+    linear-gradient(to bottom, transparent 39px, rgb(var(--hairline)) 39px);
+  background-size:
+    100% 100%,
+    100% 40px;
+  background-repeat: no-repeat, repeat;
   background-position:
     0 0,
     0 18px;
 }
 .diary-ruled--plain {
-  background: repeating-linear-gradient(
-    to bottom,
-    transparent 0 39px,
-    rgb(var(--hairline)) 39px 40px
-  );
+  background-image: linear-gradient(to bottom, transparent 39px, rgb(var(--hairline)) 39px);
+  background-size: 100% 40px;
+  background-repeat: repeat;
   background-position: 0 18px;
 }
 @media (min-width: 1024px) {
