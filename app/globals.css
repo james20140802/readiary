@@ -448,51 +448,43 @@ li {
   pointer-events: none;
 }
 
-/* 긴 글의 포커스는 구분선과 겹치지 않는 짧은 여백 표시로 알린다. */
+/* 긴 글의 포커스는 구분선과 겹치지 않는 왼쪽 여백 표시로 알린다.
+   표시는 글이 놓이는 칸(textarea의 위아래 여백 py-2 안쪽) 높이 전체를 덮는다 — 짧은 표시는 커서와 높이가 어긋나 보였다.
+   textarea는 ::before를 못 가지므로 감싼 칸(.writing-field)이 그린다. 오늘 쓰기(.primaryField)와 같은 문법이다. */
 @layer components {
   .writing-field {
     @apply relative;
   }
 
-  .writing-field::before,
-  .writing-field--labeled > label::before {
+  .writing-field::before {
     content: '';
     position: absolute;
     left: -0.625rem;
-    top: var(--writing-marker-top, 0.25rem);
+    top: 0.5rem;
+    bottom: 0.5rem;
     width: 2px;
-    height: 1.5rem;
     background: rgb(var(--accent));
     opacity: 0;
     pointer-events: none;
   }
 
-  .writing-field--labeled::before {
-    content: none;
-  }
-
-  .writing-field--labeled > label {
-    position: relative;
-  }
-
-  .writing-field--labeled > label::before {
-    top: 50%;
-    transform: translateY(-50%);
-  }
-
-  .writing-field:focus-within::before,
-  .writing-field--labeled:focus-within > label::before {
+  .writing-field:focus-within::before {
     opacity: 1;
   }
 
-  .writing-field:focus-within > label {
+  .writing-group:focus-within > label {
     color: rgb(var(--accent));
   }
 }
 
-/* 일기장 괘선 — 화면 뒤에 고정으로 깔린다. 본문(main)은 z-index 없이 relative만 둔다 — DOM 순서상 나중이라 위에 그려지고, 스태킹 컨텍스트를 만들지 않아 본문 안의 고정 오버레이가 크롬 위로 뜬다 */
+/* 일기장 괘선 — 문서 전체 높이에 깔려 글과 함께 넘어간다(종이가 고정되고 글만 미끄러지는 것보다 공책을 넘기는 느낌).
+   body가 기준 상자다(position: relative, 최소 한 화면). 본문(main)은 z-index 없이 relative만 둔다 — DOM 순서상 나중이라 위에 그려지고,
+   스태킹 컨텍스트를 만들지 않아 본문 안의 고정 오버레이가 크롬 위로 뜬다 */
+body {
+  position: relative;
+}
 .diary-ruled {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
