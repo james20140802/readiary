@@ -577,6 +577,17 @@ body {
     min-height: max(var(--vh, 100svh), 100lvh);
     overflow: visible;
   }
+  /* 긴 장은 머리(start)와 바닥(end) 두 곳에 멈춘다. 그 사이는 장이 화면보다 커서 자유롭게 읽힌다
+     (스냅 영역이 화면보다 크면 브라우저가 안쪽 어느 위치든 멈출 수 있게 한다) */
+  .leaves .leaf--free > .leaf-end {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+    scroll-snap-align: end;
+  }
   /* 덮이는 장은 도착하며 살짝 기울어져 내려앉고, 덮인 장은 안으로 가라앉는다 */
   @supports (animation-timeline: view()) {
     @media (prefers-reduced-motion: no-preference) {

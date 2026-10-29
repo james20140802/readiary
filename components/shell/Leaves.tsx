@@ -112,6 +112,8 @@ export function Leaf({
   return (
     <section ref={ref} className={cls} data-title={title} aria-label={label ?? title}>
       <div className="leaf-in">{children}</div>
+      {/* 화면보다 긴 장의 바닥도 멈출 자리로 — 없으면 바닥 근처에서 다음 장 머리로 끌려가 끝을 보기 어렵다 */}
+      {free && <span aria-hidden className="leaf-end" />}
     </section>
   );
 }
