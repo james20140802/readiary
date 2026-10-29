@@ -37,7 +37,8 @@
 
 /* ── 쓰기 ── */
 .write {
-  margin: 34px 0 0 34px;
+  /* 모바일은 날짜·간지와 같은 왼쪽 선에서 시작한다 — 여백선 오른쪽으로 들이면 좁은 폭에서 칸이 줄고 좌우가 어긋난다 */
+  margin: 34px 0 0;
 }
 .deskWrite {
   margin: 56px 0 0;
@@ -107,12 +108,26 @@
   pointer-events: none;
 }
 
-/* ── 간지 위치: 모바일 오늘 장에서 쓰기 아래로 겹친다 ── */
+/* ── 간지 위치: 모바일 오늘 장에서 쓰기 아래, 장 바닥에 기울여 놓인다 ──
+   흐름 안에 둔다(절대 위치 아님) — 회상 문장이 길어 간지가 높아져도 쓰기 줄(공개 범위·남기기)을 덮지 않고,
+   남는 공간이 없으면 장이 아래로 늘어난다. 기울기가 만드는 살짝 걸친 모서리만 남긴다. */
+@media (max-width: 1023px) {
+  .leafBody {
+    display: flex;
+    flex-direction: column;
+    /* 장의 위·아래 여백(.leaves .leaf)을 뺀 한 화면 높이 */
+    min-height: calc(
+      var(--vh, 100svh) - 72px - var(--app-safe-top) - var(--app-tabbar-h) - 30px -
+        var(--app-safe-bottom)
+    );
+  }
+  .recallSpot {
+    margin-top: auto;
+    padding-top: 28px;
+  }
+}
 .recallMobile {
-  position: absolute;
-  left: -6px;
-  right: -14px;
-  bottom: calc(var(--app-tabbar-h) + 28px + var(--app-safe-bottom));
+  margin: 0 -14px 2px -6px;
   transform: rotate(-1.4deg);
   transform-origin: 0 100%;
 }
@@ -135,7 +150,7 @@
     margin-top: 22px;
   }
   .recallMobile {
-    bottom: calc(var(--app-tabbar-h) + 16px + var(--app-safe-bottom));
+    margin-bottom: -12px;
   }
   .recallQuote {
     -webkit-line-clamp: 2;

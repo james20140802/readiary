@@ -90,7 +90,7 @@ export default function TodayView(p: TodayViewProps) {
             <TodayDate todayKst={p.todayKst} weeklyCount={p.weeklyCount} desk={desk === true} />
             <PolicyNotice />
             {p.composer}
-            <div className="lg:hidden">
+            <div className={clsx('lg:hidden', s.recallSpot)}>
               <Suspense fallback={null}>
                 <Recall recall={p.recall} todayKst={p.todayKst} markSeen={markSeen} />
               </Suspense>
