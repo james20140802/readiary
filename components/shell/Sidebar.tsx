@@ -15,6 +15,7 @@ import {
 import clsx from 'clsx';
 import Button from '@/components/ui/Button';
 import { NAV_TABS, tabFor } from '@/lib/shell/routes';
+import { onTabClick } from './tabScroll';
 
 const ICONS: Record<(typeof NAV_TABS)[number]['key'], LucideIcon> = {
   today: NotebookPen,
@@ -34,7 +35,8 @@ export function Sidebar({
   hasUnread: boolean;
   prefetch?: boolean;
 }) {
-  const current = tabFor(usePathname());
+  const pathname = usePathname();
+  const current = tabFor(pathname);
 
   return (
     <aside
@@ -59,6 +61,7 @@ export function Sidebar({
               href={href}
               prefetch={prefetch}
               aria-current={active ? 'page' : undefined}
+              onClick={(e) => onTabClick(e, href, pathname)}
               className={clsx(ITEM, active && 'side-item-on font-[650]')}
             >
               <Icon

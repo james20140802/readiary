@@ -13,6 +13,7 @@ import { TopBarProvider } from '@/components/shell/TopBarContext';
 import { TopBar } from '@/components/shell/TopBar';
 import { TabBar } from '@/components/shell/TabBar';
 import { Sidebar } from '@/components/shell/Sidebar';
+import { useTopAfterTabNavigation } from '@/components/shell/tabScroll';
 import { frameFor, ruledFor, showsNav, type Frame } from '@/lib/shell/routes';
 
 interface AppShellProps {
@@ -66,6 +67,7 @@ export default function AppShell({ initialLoggedIn, initialUnread, children }: A
   const ruled = ruledFor(frame);
   // 뱃지 조회는 셸에서 한 번만 — 모바일 상단 바·데스크톱 사이드바가 같은 값을 나눠 쓴다
   const hasUnread = useUnreadNotifications(nav, initialUnread);
+  useTopAfterTabNavigation();
 
   // 보호 라우트 프리페치는 로그인한 뒤에만 — 비로그인 방문자가 매번 /login 리다이렉트만 받아오던 낭비
   useEffect(() => {
