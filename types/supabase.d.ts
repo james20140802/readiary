@@ -492,6 +492,10 @@ export type Database = {
         Args: { p_since: string };
         Returns: { month: string; day: number; slot: number; count: number }[];
       };
+      get_entry_months: {
+        Args: Record<string, never>;
+        Returns: { month: string; entry_count: number }[];
+      };
       get_books_page: { Args: Record<string, never>; Returns: Json };
       get_profile_retrospect: {
         Args: { p_user_id: string; p_today: string; p_public_only?: boolean };

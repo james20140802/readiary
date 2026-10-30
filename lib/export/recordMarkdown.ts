@@ -58,7 +58,7 @@ function pageLabel(from: number | null, to: number | null): string | null {
 }
 
 /** 날짜 → 작성 시각 → id 오름차순, 내용 없는 기록은 뺀다 */
-function readable(entries: ExportEntry[]): ExportEntry[] {
+export function exportableEntries(entries: ExportEntry[]): ExportEntry[] {
   return entries
     .filter((e) => hasText(e.quote) || hasText(e.note))
     .sort(
@@ -114,7 +114,7 @@ function period(entries: ExportEntry[]): string | null {
 const join = (blocks: string[]) => `${blocks.join('\n\n')}\n`;
 
 export function bookMarkdown(book: ExportBook): string {
-  const entries = readable(book.entries);
+  const entries = exportableEntries(book.entries);
   const meta = [book.author?.trim() || null, period(entries), book.isFinished ? '완독' : null]
     .filter(Boolean)
     .join(' · ');
@@ -129,7 +129,7 @@ export function bookMarkdown(book: ExportBook): string {
 export function monthMarkdown(month: string, books: ExportBook[]): string {
   const [y, m] = month.split('-').map(Number);
   const groups = books
-    .map((book) => ({ book, entries: readable(book.entries) }))
+    .map((book) => ({ book, entries: exportableEntries(book.entries) }))
     .filter((g) => g.entries.length > 0)
     .sort((a, b) => {
       const x = a.entries[0];
