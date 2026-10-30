@@ -132,7 +132,12 @@ try {
       r.is_nullable,
       normDefault(r.column_default),
     ]);
-    const expected = (fixture.columns[table] ?? []).map((c) => [c[0], c[1], c[2], normDefault(c[3])]);
+    const expected = (fixture.columns[table] ?? []).map((c) => [
+      c[0],
+      c[1],
+      c[2],
+      normDefault(c[3]),
+    ]);
     if (JSON.stringify(actual) !== JSON.stringify(expected)) {
       problems.push(
         `columns[${table}]: expected ${JSON.stringify(expected)} got ${JSON.stringify(actual)}`
@@ -226,7 +231,9 @@ try {
   const actualFns = fnRows.map((r) => [r.proname, r.args]).sort((a, b) => a[0].localeCompare(b[0]));
   const expectedFns = [...fixture.functions].sort((a, b) => a[0].localeCompare(b[0]));
   if (JSON.stringify(actualFns) !== JSON.stringify(expectedFns)) {
-    problems.push(`functions: expected ${JSON.stringify(expectedFns)} got ${JSON.stringify(actualFns)}`);
+    problems.push(
+      `functions: expected ${JSON.stringify(expectedFns)} got ${JSON.stringify(actualFns)}`
+    );
   }
 
   if (problems.length) {

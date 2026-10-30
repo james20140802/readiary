@@ -1,363 +1,732 @@
 {
   "_captured": "2026-10-30, read-only pg_catalog/information_schema queries against project piqlggyuhhicnjywombg (production). See docs/operations/supabase-api-grants.md.",
   "tables": [
-    "book_registration_requests","books","comments","email_consent_events","email_deliveries",
-    "email_preferences","entries","entry_reflections","feature_rollouts","friends","likes",
-    "notifications","profiles","push_deliveries","push_finished_receipts","push_preferences",
-    "push_seen","push_subscriptions","user_books"
+    "book_registration_requests",
+    "books",
+    "comments",
+    "email_consent_events",
+    "email_deliveries",
+    "email_preferences",
+    "entries",
+    "entry_reflections",
+    "feature_rollouts",
+    "friends",
+    "likes",
+    "notifications",
+    "profiles",
+    "push_deliveries",
+    "push_finished_receipts",
+    "push_preferences",
+    "push_seen",
+    "push_subscriptions",
+    "user_books"
   ],
   "columns": {
     "book_registration_requests": [
-      ["user_id","uuid","NO",null],["request_id","uuid","NO",null],["payload","jsonb","NO",null],
-      ["book_id","uuid","NO",null],["user_book_id","uuid","NO",null],
-      ["created_at","timestamp with time zone","NO","now()"]
+      ["user_id", "uuid", "NO", null],
+      ["request_id", "uuid", "NO", null],
+      ["payload", "jsonb", "NO", null],
+      ["book_id", "uuid", "NO", null],
+      ["user_book_id", "uuid", "NO", null],
+      ["created_at", "timestamp with time zone", "NO", "now()"]
     ],
     "books": [
-      ["id","uuid","NO","gen_random_uuid()"],["title","text","NO",null],["author","text","YES",null],
-      ["isbn","text","YES",null],["total_pages","integer","YES",null],["cover_url","text","YES",null]
+      ["id", "uuid", "NO", "gen_random_uuid()"],
+      ["title", "text", "NO", null],
+      ["author", "text", "YES", null],
+      ["isbn", "text", "YES", null],
+      ["total_pages", "integer", "YES", null],
+      ["cover_url", "text", "YES", null]
     ],
     "comments": [
-      ["id","uuid","NO","gen_random_uuid()"],["entry_id","uuid","NO",null],["user_id","uuid","NO",null],
-      ["content","text","NO",null],["parent_id","uuid","YES",null],
-      ["created_at","timestamp with time zone","NO","timezone('utc'::text, now())"]
+      ["id", "uuid", "NO", "gen_random_uuid()"],
+      ["entry_id", "uuid", "NO", null],
+      ["user_id", "uuid", "NO", null],
+      ["content", "text", "NO", null],
+      ["parent_id", "uuid", "YES", null],
+      ["created_at", "timestamp with time zone", "NO", "timezone('utc'::text, now())"]
     ],
     "email_consent_events": [
-      ["user_id","uuid","NO",null],["request_id","uuid","NO",null],["enabled","boolean","NO",null],
-      ["email","text","YES",null],["purpose","text","NO","'service_news_events'::text"],
-      ["channel","text","NO","'email'::text"],["copy_version","text","NO",null],["source","text","NO",null],
-      ["expected_version","integer","NO",null],["version","integer","NO",null],
-      ["created_at","timestamp with time zone","NO","now()"],["profile_input_hash","text","YES",null],
-      ["requested_email","text","YES",null]
+      ["user_id", "uuid", "NO", null],
+      ["request_id", "uuid", "NO", null],
+      ["enabled", "boolean", "NO", null],
+      ["email", "text", "YES", null],
+      ["purpose", "text", "NO", "'service_news_events'::text"],
+      ["channel", "text", "NO", "'email'::text"],
+      ["copy_version", "text", "NO", null],
+      ["source", "text", "NO", null],
+      ["expected_version", "integer", "NO", null],
+      ["version", "integer", "NO", null],
+      ["created_at", "timestamp with time zone", "NO", "now()"],
+      ["profile_input_hash", "text", "YES", null],
+      ["requested_email", "text", "YES", null]
     ],
     "email_deliveries": [
-      ["id","uuid","NO",null],["user_id","uuid","NO",null],["email","text","NO",null],
-      ["content_hash","text","NO",null],["token_hash","text","NO",null],
-      ["preference_version","integer","NO",null],["status","text","NO",null],
-      ["provider_id","text","YES",null],["first_attempt_at","timestamp with time zone","NO","now()"],
-      ["last_attempt_at","timestamp with time zone","NO","now()"]
+      ["id", "uuid", "NO", null],
+      ["user_id", "uuid", "NO", null],
+      ["email", "text", "NO", null],
+      ["content_hash", "text", "NO", null],
+      ["token_hash", "text", "NO", null],
+      ["preference_version", "integer", "NO", null],
+      ["status", "text", "NO", null],
+      ["provider_id", "text", "YES", null],
+      ["first_attempt_at", "timestamp with time zone", "NO", "now()"],
+      ["last_attempt_at", "timestamp with time zone", "NO", "now()"]
     ],
     "email_preferences": [
-      ["user_id","uuid","NO",null],["enabled","boolean","NO","false"],["email","text","YES",null],
-      ["version","integer","NO","0"],["consented_at","timestamp with time zone","YES",null],
-      ["withdrawn_at","timestamp with time zone","YES",null],
-      ["updated_at","timestamp with time zone","NO","now()"]
+      ["user_id", "uuid", "NO", null],
+      ["enabled", "boolean", "NO", "false"],
+      ["email", "text", "YES", null],
+      ["version", "integer", "NO", "0"],
+      ["consented_at", "timestamp with time zone", "YES", null],
+      ["withdrawn_at", "timestamp with time zone", "YES", null],
+      ["updated_at", "timestamp with time zone", "NO", "now()"]
     ],
     "entries": [
-      ["id","uuid","NO","gen_random_uuid()"],["user_book_id","uuid","NO",null],["date","date","NO",null],
-      ["from_page","integer","YES",null],["to_page","integer","YES",null],["note","text","YES",null],
-      ["created_at","timestamp with time zone","YES","timezone('utc'::text, now())"],
-      ["is_private","boolean","NO","false"],["quote","text","YES",null],
-      ["shared_at","timestamp with time zone","YES",null]
+      ["id", "uuid", "NO", "gen_random_uuid()"],
+      ["user_book_id", "uuid", "NO", null],
+      ["date", "date", "NO", null],
+      ["from_page", "integer", "YES", null],
+      ["to_page", "integer", "YES", null],
+      ["note", "text", "YES", null],
+      ["created_at", "timestamp with time zone", "YES", "timezone('utc'::text, now())"],
+      ["is_private", "boolean", "NO", "false"],
+      ["quote", "text", "YES", null],
+      ["shared_at", "timestamp with time zone", "YES", null]
     ],
     "entry_reflections": [
-      ["id","uuid","NO",null],["entry_id","uuid","NO",null],["user_id","uuid","NO","auth.uid()"],
-      ["body","text","NO",null],["is_private","boolean","NO","true"],
-      ["created_at","timestamp with time zone","NO","now()"],
-      ["updated_at","timestamp with time zone","NO","now()"]
+      ["id", "uuid", "NO", null],
+      ["entry_id", "uuid", "NO", null],
+      ["user_id", "uuid", "NO", "auth.uid()"],
+      ["body", "text", "NO", null],
+      ["is_private", "boolean", "NO", "true"],
+      ["created_at", "timestamp with time zone", "NO", "now()"],
+      ["updated_at", "timestamp with time zone", "NO", "now()"]
     ],
     "feature_rollouts": [
-      ["key","text","NO",null],["enabled","boolean","NO","false"],["percentage","integer","NO","0"],
-      ["user_ids","ARRAY","NO","'{}'::uuid[]"]
+      ["key", "text", "NO", null],
+      ["enabled", "boolean", "NO", "false"],
+      ["percentage", "integer", "NO", "0"],
+      ["user_ids", "ARRAY", "NO", "'{}'::uuid[]"]
     ],
     "friends": [
-      ["id","uuid","NO","gen_random_uuid()"],["user_id","uuid","NO",null],["friend_id","uuid","NO",null],
-      ["status","text","NO",null],["requested_at","timestamp with time zone","YES","now()"],
-      ["accepted_at","timestamp with time zone","YES",null]
+      ["id", "uuid", "NO", "gen_random_uuid()"],
+      ["user_id", "uuid", "NO", null],
+      ["friend_id", "uuid", "NO", null],
+      ["status", "text", "NO", null],
+      ["requested_at", "timestamp with time zone", "YES", "now()"],
+      ["accepted_at", "timestamp with time zone", "YES", null]
     ],
     "likes": [
-      ["id","uuid","NO","gen_random_uuid()"],["user_id","uuid","NO",null],["entry_id","uuid","NO",null],
-      ["created_at","timestamp with time zone","YES","timezone('utc'::text, now())"]
+      ["id", "uuid", "NO", "gen_random_uuid()"],
+      ["user_id", "uuid", "NO", null],
+      ["entry_id", "uuid", "NO", null],
+      ["created_at", "timestamp with time zone", "YES", "timezone('utc'::text, now())"]
     ],
     "notifications": [
-      ["id","uuid","NO","gen_random_uuid()"],["user_id","uuid","NO",null],["actor_id","uuid","NO",null],
-      ["type","text","NO",null],["entry_id","uuid","YES",null],
-      ["read_at","timestamp with time zone","YES",null],
-      ["created_at","timestamp with time zone","NO","now()"],["comment_id","uuid","YES",null],
-      ["friendship_id","uuid","YES",null]
+      ["id", "uuid", "NO", "gen_random_uuid()"],
+      ["user_id", "uuid", "NO", null],
+      ["actor_id", "uuid", "NO", null],
+      ["type", "text", "NO", null],
+      ["entry_id", "uuid", "YES", null],
+      ["read_at", "timestamp with time zone", "YES", null],
+      ["created_at", "timestamp with time zone", "NO", "now()"],
+      ["comment_id", "uuid", "YES", null],
+      ["friendship_id", "uuid", "YES", null]
     ],
     "profiles": [
-      ["id","uuid","NO",null],["name","text","NO",null],["nickname","text","NO",null],["tag","text","NO",null],
-      ["bio","text","YES",null],["profile_image","text","YES",null],
-      ["created_at","timestamp with time zone","YES","timezone('utc'::text, now())"],
-      ["featured_entry_id","uuid","YES",null],["bookmark_user_book_id","uuid","YES",null]
+      ["id", "uuid", "NO", null],
+      ["name", "text", "NO", null],
+      ["nickname", "text", "NO", null],
+      ["tag", "text", "NO", null],
+      ["bio", "text", "YES", null],
+      ["profile_image", "text", "YES", null],
+      ["created_at", "timestamp with time zone", "YES", "timezone('utc'::text, now())"],
+      ["featured_entry_id", "uuid", "YES", null],
+      ["bookmark_user_book_id", "uuid", "YES", null]
     ],
     "push_deliveries": [
-      ["id","uuid","NO","gen_random_uuid()"],["user_id","uuid","NO",null],["items","jsonb","NO",null],
-      ["created_at","timestamp with time zone","NO","now()"],["status","text","NO","'claimed'::text"],
-      ["opened_at","timestamp with time zone","YES",null]
+      ["id", "uuid", "NO", "gen_random_uuid()"],
+      ["user_id", "uuid", "NO", null],
+      ["items", "jsonb", "NO", null],
+      ["created_at", "timestamp with time zone", "NO", "now()"],
+      ["status", "text", "NO", "'claimed'::text"],
+      ["opened_at", "timestamp with time zone", "YES", null]
     ],
     "push_finished_receipts": [
-      ["user_id","uuid","NO",null],["user_book_id","uuid","NO",null]
+      ["user_id", "uuid", "NO", null],
+      ["user_book_id", "uuid", "NO", null]
     ],
     "push_preferences": [
-      ["user_id","uuid","NO",null],["enabled","boolean","NO","false"],["kinds","ARRAY","NO","'{}'::text[]"],
-      ["timezone","text","NO","'Asia/Seoul'::text"],["hour","integer","NO","20"],
-      ["weekdays","ARRAY","NO","'{0,1,2,3,4,5,6}'::integer[]"],
-      ["consent_at","timestamp with time zone","NO","now()"],["seen_at","timestamp with time zone","NO","now()"],
-      ["last_test_at","timestamp with time zone","YES",null]
+      ["user_id", "uuid", "NO", null],
+      ["enabled", "boolean", "NO", "false"],
+      ["kinds", "ARRAY", "NO", "'{}'::text[]"],
+      ["timezone", "text", "NO", "'Asia/Seoul'::text"],
+      ["hour", "integer", "NO", "20"],
+      ["weekdays", "ARRAY", "NO", "'{0,1,2,3,4,5,6}'::integer[]"],
+      ["consent_at", "timestamp with time zone", "NO", "now()"],
+      ["seen_at", "timestamp with time zone", "NO", "now()"],
+      ["last_test_at", "timestamp with time zone", "YES", null]
     ],
     "push_seen": [
-      ["user_id","uuid","NO",null],["kind","text","NO",null],["seen_at","timestamp with time zone","NO","now()"]
+      ["user_id", "uuid", "NO", null],
+      ["kind", "text", "NO", null],
+      ["seen_at", "timestamp with time zone", "NO", "now()"]
     ],
     "push_subscriptions": [
-      ["id","uuid","NO","gen_random_uuid()"],["user_id","uuid","NO",null],["endpoint","text","NO",null],
-      ["p256dh","text","NO",null],["auth","text","NO",null],
-      ["created_at","timestamp with time zone","NO","now()"]
+      ["id", "uuid", "NO", "gen_random_uuid()"],
+      ["user_id", "uuid", "NO", null],
+      ["endpoint", "text", "NO", null],
+      ["p256dh", "text", "NO", null],
+      ["auth", "text", "NO", null],
+      ["created_at", "timestamp with time zone", "NO", "now()"]
     ],
     "user_books": [
-      ["id","uuid","NO","gen_random_uuid()"],["user_id","uuid","NO",null],["book_id","uuid","NO",null],
-      ["is_finished","boolean","YES","false"],["last_read_page","integer","YES","0"],
-      ["started_at","date","YES",null],["created_at","timestamp with time zone","YES","timezone('utc'::text, now())"],
-      ["progress","integer","YES","0"],["finished_at","timestamp with time zone","YES",null]
+      ["id", "uuid", "NO", "gen_random_uuid()"],
+      ["user_id", "uuid", "NO", null],
+      ["book_id", "uuid", "NO", null],
+      ["is_finished", "boolean", "YES", "false"],
+      ["last_read_page", "integer", "YES", "0"],
+      ["started_at", "date", "YES", null],
+      ["created_at", "timestamp with time zone", "YES", "timezone('utc'::text, now())"],
+      ["progress", "integer", "YES", "0"],
+      ["finished_at", "timestamp with time zone", "YES", null]
     ]
   },
   "constraints": {
     "book_registration_requests": [
-      ["book_registration_requests_user_id_fkey","f","FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"],
-      ["book_registration_requests_pkey","p","PRIMARY KEY (user_id, request_id)"]
+      [
+        "book_registration_requests_user_id_fkey",
+        "f",
+        "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+      ],
+      ["book_registration_requests_pkey", "p", "PRIMARY KEY (user_id, request_id)"]
     ],
     "books": [
-      ["books_isbn_key","u","UNIQUE (isbn)"],
-      ["books_pkey","p","PRIMARY KEY (id)"]
+      ["books_isbn_key", "u", "UNIQUE (isbn)"],
+      ["books_pkey", "p", "PRIMARY KEY (id)"]
     ],
     "comments": [
-      ["comments_entry_id_fkey","f","FOREIGN KEY (entry_id) REFERENCES entries(id) ON DELETE CASCADE"],
-      ["comments_parent_id_fkey","f","FOREIGN KEY (parent_id) REFERENCES comments(id) ON DELETE CASCADE"],
-      ["comments_user_id_fkey","f","FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE"],
-      ["comments_pkey","p","PRIMARY KEY (id)"]
+      [
+        "comments_entry_id_fkey",
+        "f",
+        "FOREIGN KEY (entry_id) REFERENCES entries(id) ON DELETE CASCADE"
+      ],
+      [
+        "comments_parent_id_fkey",
+        "f",
+        "FOREIGN KEY (parent_id) REFERENCES comments(id) ON DELETE CASCADE"
+      ],
+      [
+        "comments_user_id_fkey",
+        "f",
+        "FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE"
+      ],
+      ["comments_pkey", "p", "PRIMARY KEY (id)"]
     ],
     "email_consent_events": [
-      ["email_consent_events_channel_check","c","CHECK ((channel = 'email'::text))"],
-      ["email_consent_events_purpose_check","c","CHECK ((purpose = 'service_news_events'::text))"],
-      ["email_consent_events_source_check","c","CHECK ((source = ANY (ARRAY['onboarding'::text, 'settings'::text, 'unsubscribe'::text, 'email_change'::text])))"],
-      ["email_consent_events_user_id_fkey","f","FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"],
-      ["email_consent_events_pkey","p","PRIMARY KEY (user_id, request_id)"]
+      ["email_consent_events_channel_check", "c", "CHECK ((channel = 'email'::text))"],
+      [
+        "email_consent_events_purpose_check",
+        "c",
+        "CHECK ((purpose = 'service_news_events'::text))"
+      ],
+      [
+        "email_consent_events_source_check",
+        "c",
+        "CHECK ((source = ANY (ARRAY['onboarding'::text, 'settings'::text, 'unsubscribe'::text, 'email_change'::text])))"
+      ],
+      [
+        "email_consent_events_user_id_fkey",
+        "f",
+        "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+      ],
+      ["email_consent_events_pkey", "p", "PRIMARY KEY (user_id, request_id)"]
     ],
     "email_deliveries": [
-      ["email_deliveries_status_check","c","CHECK ((status = ANY (ARRAY['sending'::text, 'unknown'::text, 'sent'::text])))"],
-      ["email_deliveries_user_id_fkey","f","FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"],
-      ["email_deliveries_pkey","p","PRIMARY KEY (id)"],
-      ["email_deliveries_token_hash_key","u","UNIQUE (token_hash)"]
+      [
+        "email_deliveries_status_check",
+        "c",
+        "CHECK ((status = ANY (ARRAY['sending'::text, 'unknown'::text, 'sent'::text])))"
+      ],
+      [
+        "email_deliveries_user_id_fkey",
+        "f",
+        "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+      ],
+      ["email_deliveries_pkey", "p", "PRIMARY KEY (id)"],
+      ["email_deliveries_token_hash_key", "u", "UNIQUE (token_hash)"]
     ],
     "email_preferences": [
-      ["email_preferences_user_id_fkey","f","FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"],
-      ["email_preferences_pkey","p","PRIMARY KEY (user_id)"]
+      [
+        "email_preferences_user_id_fkey",
+        "f",
+        "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+      ],
+      ["email_preferences_pkey", "p", "PRIMARY KEY (user_id)"]
     ],
     "entries": [
-      ["entries_content_check","c","CHECK (((quote IS NOT NULL) OR (note IS NOT NULL)))"],
-      ["entries_page_order_check","c","CHECK (((from_page IS NULL) OR (to_page IS NULL) OR (from_page <= to_page)))"],
-      ["fk_user_book_id","f","FOREIGN KEY (user_book_id) REFERENCES user_books(id) ON DELETE CASCADE"],
-      ["entries_pkey","p","PRIMARY KEY (id)"]
+      ["entries_content_check", "c", "CHECK (((quote IS NOT NULL) OR (note IS NOT NULL)))"],
+      [
+        "entries_page_order_check",
+        "c",
+        "CHECK (((from_page IS NULL) OR (to_page IS NULL) OR (from_page <= to_page)))"
+      ],
+      [
+        "fk_user_book_id",
+        "f",
+        "FOREIGN KEY (user_book_id) REFERENCES user_books(id) ON DELETE CASCADE"
+      ],
+      ["entries_pkey", "p", "PRIMARY KEY (id)"]
     ],
     "entry_reflections": [
-      ["entry_reflections_body_check","c","CHECK ((((char_length(btrim(body)) >= 1) AND (char_length(btrim(body)) <= 10000)) AND (body !~ '^[[:space:]]*$'::text)))"],
-      ["entry_reflections_entry_id_fkey","f","FOREIGN KEY (entry_id) REFERENCES entries(id) ON DELETE CASCADE"],
-      ["entry_reflections_user_id_fkey","f","FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"],
-      ["entry_reflections_pkey","p","PRIMARY KEY (id)"]
+      [
+        "entry_reflections_body_check",
+        "c",
+        "CHECK ((((char_length(btrim(body)) >= 1) AND (char_length(btrim(body)) <= 10000)) AND (body !~ '^[[:space:]]*$'::text)))"
+      ],
+      [
+        "entry_reflections_entry_id_fkey",
+        "f",
+        "FOREIGN KEY (entry_id) REFERENCES entries(id) ON DELETE CASCADE"
+      ],
+      [
+        "entry_reflections_user_id_fkey",
+        "f",
+        "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+      ],
+      ["entry_reflections_pkey", "p", "PRIMARY KEY (id)"]
     ],
     "feature_rollouts": [
-      ["feature_rollouts_percentage_check","c","CHECK (((percentage >= 0) AND (percentage <= 100)))"],
-      ["feature_rollouts_pkey","p","PRIMARY KEY (key)"]
+      [
+        "feature_rollouts_percentage_check",
+        "c",
+        "CHECK (((percentage >= 0) AND (percentage <= 100)))"
+      ],
+      ["feature_rollouts_pkey", "p", "PRIMARY KEY (key)"]
     ],
     "friends": [
-      ["friends_status_check","c","CHECK ((status = ANY (ARRAY['pending'::text, 'accepted'::text])))"],
-      ["friends_friend_id_fkey","f","FOREIGN KEY (friend_id) REFERENCES profiles(id) ON DELETE CASCADE"],
-      ["friends_user_id_fkey","f","FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE"],
-      ["friends_pkey","p","PRIMARY KEY (id)"]
+      [
+        "friends_status_check",
+        "c",
+        "CHECK ((status = ANY (ARRAY['pending'::text, 'accepted'::text])))"
+      ],
+      [
+        "friends_friend_id_fkey",
+        "f",
+        "FOREIGN KEY (friend_id) REFERENCES profiles(id) ON DELETE CASCADE"
+      ],
+      [
+        "friends_user_id_fkey",
+        "f",
+        "FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE"
+      ],
+      ["friends_pkey", "p", "PRIMARY KEY (id)"]
     ],
     "likes": [
-      ["fk_likes_entry_id","f","FOREIGN KEY (entry_id) REFERENCES entries(id) ON DELETE CASCADE"],
-      ["fk_likes_user_id","f","FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE"],
-      ["likes_pkey","p","PRIMARY KEY (id)"],
-      ["likes_user_entry_unique","u","UNIQUE (user_id, entry_id)"]
+      ["fk_likes_entry_id", "f", "FOREIGN KEY (entry_id) REFERENCES entries(id) ON DELETE CASCADE"],
+      ["fk_likes_user_id", "f", "FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE"],
+      ["likes_pkey", "p", "PRIMARY KEY (id)"],
+      ["likes_user_entry_unique", "u", "UNIQUE (user_id, entry_id)"]
     ],
     "notifications": [
-      ["notifications_type_check","c","CHECK ((type = ANY (ARRAY['friend_request'::text, 'friend_accept'::text, 'like'::text, 'comment'::text])))"],
-      ["notifications_actor_id_fkey","f","FOREIGN KEY (actor_id) REFERENCES profiles(id) ON DELETE CASCADE"],
-      ["notifications_comment_id_fkey","f","FOREIGN KEY (comment_id) REFERENCES comments(id) ON DELETE CASCADE"],
-      ["notifications_entry_id_fkey","f","FOREIGN KEY (entry_id) REFERENCES entries(id) ON DELETE CASCADE"],
-      ["notifications_friendship_id_fkey","f","FOREIGN KEY (friendship_id) REFERENCES friends(id) ON DELETE CASCADE"],
-      ["notifications_user_id_fkey","f","FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE"],
-      ["notifications_pkey","p","PRIMARY KEY (id)"]
+      [
+        "notifications_type_check",
+        "c",
+        "CHECK ((type = ANY (ARRAY['friend_request'::text, 'friend_accept'::text, 'like'::text, 'comment'::text])))"
+      ],
+      [
+        "notifications_actor_id_fkey",
+        "f",
+        "FOREIGN KEY (actor_id) REFERENCES profiles(id) ON DELETE CASCADE"
+      ],
+      [
+        "notifications_comment_id_fkey",
+        "f",
+        "FOREIGN KEY (comment_id) REFERENCES comments(id) ON DELETE CASCADE"
+      ],
+      [
+        "notifications_entry_id_fkey",
+        "f",
+        "FOREIGN KEY (entry_id) REFERENCES entries(id) ON DELETE CASCADE"
+      ],
+      [
+        "notifications_friendship_id_fkey",
+        "f",
+        "FOREIGN KEY (friendship_id) REFERENCES friends(id) ON DELETE CASCADE"
+      ],
+      [
+        "notifications_user_id_fkey",
+        "f",
+        "FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE"
+      ],
+      ["notifications_pkey", "p", "PRIMARY KEY (id)"]
     ],
     "profiles": [
-      ["profiles_avatar_owned_path","c","CHECK (((profile_image IS NULL) OR ((split_part(profile_image, '/'::text, 1) = (id)::text) AND (profile_image ~ '^[0-9a-fA-F-]{36}/[a-zA-Z0-9_-]+\\.(jpe?g|png|webp)$'::text))))"],
-      ["profiles_bookmark_user_book_id_fkey","f","FOREIGN KEY (bookmark_user_book_id) REFERENCES user_books(id) ON DELETE SET NULL"],
-      ["profiles_featured_entry_id_fkey","f","FOREIGN KEY (featured_entry_id) REFERENCES entries(id) ON DELETE SET NULL"],
-      ["profiles_id_fkey","f","FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE"],
-      ["profiles_pkey","p","PRIMARY KEY (id)"],
-      ["profiles_nickname_tag_key","u","UNIQUE (nickname, tag)"]
+      [
+        "profiles_avatar_owned_path",
+        "c",
+        "CHECK (((profile_image IS NULL) OR ((split_part(profile_image, '/'::text, 1) = (id)::text) AND (profile_image ~ '^[0-9a-fA-F-]{36}/[a-zA-Z0-9_-]+\\.(jpe?g|png|webp)$'::text))))"
+      ],
+      [
+        "profiles_bookmark_user_book_id_fkey",
+        "f",
+        "FOREIGN KEY (bookmark_user_book_id) REFERENCES user_books(id) ON DELETE SET NULL"
+      ],
+      [
+        "profiles_featured_entry_id_fkey",
+        "f",
+        "FOREIGN KEY (featured_entry_id) REFERENCES entries(id) ON DELETE SET NULL"
+      ],
+      ["profiles_id_fkey", "f", "FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE"],
+      ["profiles_pkey", "p", "PRIMARY KEY (id)"],
+      ["profiles_nickname_tag_key", "u", "UNIQUE (nickname, tag)"]
     ],
     "push_deliveries": [
-      ["push_deliveries_status_check","c","CHECK ((status = ANY (ARRAY['claimed'::text, 'sent'::text, 'failed'::text, 'cancelled'::text])))"],
-      ["push_deliveries_user_id_fkey","f","FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"],
-      ["push_deliveries_pkey","p","PRIMARY KEY (id)"]
+      [
+        "push_deliveries_status_check",
+        "c",
+        "CHECK ((status = ANY (ARRAY['claimed'::text, 'sent'::text, 'failed'::text, 'cancelled'::text])))"
+      ],
+      [
+        "push_deliveries_user_id_fkey",
+        "f",
+        "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+      ],
+      ["push_deliveries_pkey", "p", "PRIMARY KEY (id)"]
     ],
     "push_finished_receipts": [
-      ["push_finished_receipts_user_book_id_fkey","f","FOREIGN KEY (user_book_id) REFERENCES user_books(id) ON DELETE CASCADE"],
-      ["push_finished_receipts_user_id_fkey","f","FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"],
-      ["push_finished_receipts_pkey","p","PRIMARY KEY (user_id, user_book_id)"]
+      [
+        "push_finished_receipts_user_book_id_fkey",
+        "f",
+        "FOREIGN KEY (user_book_id) REFERENCES user_books(id) ON DELETE CASCADE"
+      ],
+      [
+        "push_finished_receipts_user_id_fkey",
+        "f",
+        "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+      ],
+      ["push_finished_receipts_pkey", "p", "PRIMARY KEY (user_id, user_book_id)"]
     ],
     "push_preferences": [
-      ["push_preferences_hour_check","c","CHECK (((hour >= 9) AND (hour <= 21)))"],
-      ["push_preferences_kinds_check","c","CHECK ((kinds <@ ARRAY['reminder'::text, 'finished'::text, 'weekly'::text, 'recall'::text, 'friends'::text]))"],
-      ["push_preferences_weekdays_check","c","CHECK ((((cardinality(weekdays) >= 1) AND (cardinality(weekdays) <= 7)) AND (weekdays <@ ARRAY[0, 1, 2, 3, 4, 5, 6])))"],
-      ["push_preferences_user_id_fkey","f","FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"],
-      ["push_preferences_pkey","p","PRIMARY KEY (user_id)"]
+      ["push_preferences_hour_check", "c", "CHECK (((hour >= 9) AND (hour <= 21)))"],
+      [
+        "push_preferences_kinds_check",
+        "c",
+        "CHECK ((kinds <@ ARRAY['reminder'::text, 'finished'::text, 'weekly'::text, 'recall'::text, 'friends'::text]))"
+      ],
+      [
+        "push_preferences_weekdays_check",
+        "c",
+        "CHECK ((((cardinality(weekdays) >= 1) AND (cardinality(weekdays) <= 7)) AND (weekdays <@ ARRAY[0, 1, 2, 3, 4, 5, 6])))"
+      ],
+      [
+        "push_preferences_user_id_fkey",
+        "f",
+        "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+      ],
+      ["push_preferences_pkey", "p", "PRIMARY KEY (user_id)"]
     ],
     "push_seen": [
-      ["push_seen_kind_check","c","CHECK ((kind = ANY (ARRAY['friends'::text, 'weekly'::text, 'recall'::text])))"],
-      ["push_seen_user_id_fkey","f","FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"],
-      ["push_seen_pkey","p","PRIMARY KEY (user_id, kind)"]
+      [
+        "push_seen_kind_check",
+        "c",
+        "CHECK ((kind = ANY (ARRAY['friends'::text, 'weekly'::text, 'recall'::text])))"
+      ],
+      [
+        "push_seen_user_id_fkey",
+        "f",
+        "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+      ],
+      ["push_seen_pkey", "p", "PRIMARY KEY (user_id, kind)"]
     ],
     "push_subscriptions": [
-      ["push_subscriptions_endpoint_check","c","CHECK ((length(endpoint) <= 2048))"],
-      ["push_subscriptions_user_id_fkey","f","FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"],
-      ["push_subscriptions_pkey","p","PRIMARY KEY (id)"],
-      ["push_subscriptions_endpoint_key","u","UNIQUE (endpoint)"]
+      ["push_subscriptions_endpoint_check", "c", "CHECK ((length(endpoint) <= 2048))"],
+      [
+        "push_subscriptions_user_id_fkey",
+        "f",
+        "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+      ],
+      ["push_subscriptions_pkey", "p", "PRIMARY KEY (id)"],
+      ["push_subscriptions_endpoint_key", "u", "UNIQUE (endpoint)"]
     ],
     "user_books": [
-      ["user_books_book_id_fkey","f","FOREIGN KEY (book_id) REFERENCES books(id) ON UPDATE CASCADE ON DELETE CASCADE"],
-      ["user_books_user_id_fkey","f","FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"],
-      ["user_books_pkey","p","PRIMARY KEY (id)"]
+      [
+        "user_books_book_id_fkey",
+        "f",
+        "FOREIGN KEY (book_id) REFERENCES books(id) ON UPDATE CASCADE ON DELETE CASCADE"
+      ],
+      [
+        "user_books_user_id_fkey",
+        "f",
+        "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+      ],
+      ["user_books_pkey", "p", "PRIMARY KEY (id)"]
     ]
   },
   "indexes": {
     "book_registration_requests": ["book_registration_requests_pkey"],
-    "books": ["books_isbn_key","books_pkey"],
-    "comments": ["comments_pkey","idx_comments_entry_id","idx_comments_parent_id"],
+    "books": ["books_isbn_key", "books_pkey"],
+    "comments": ["comments_pkey", "idx_comments_entry_id", "idx_comments_parent_id"],
     "email_consent_events": ["email_consent_events_pkey"],
-    "email_deliveries": ["email_deliveries_pkey","email_deliveries_token_hash_key"],
+    "email_deliveries": ["email_deliveries_pkey", "email_deliveries_token_hash_key"],
     "email_preferences": ["email_preferences_pkey"],
-    "entries": ["entries_book_created_idx","entries_book_date_idx","entries_pkey"],
-    "entry_reflections": ["entry_reflections_entry_time_idx","entry_reflections_pkey"],
+    "entries": ["entries_book_created_idx", "entries_book_date_idx", "entries_pkey"],
+    "entry_reflections": ["entry_reflections_entry_time_idx", "entry_reflections_pkey"],
     "feature_rollouts": ["feature_rollouts_pkey"],
-    "friends": ["friends_pkey","friends_recipient_status_idx","unique_friendship"],
-    "likes": ["idx_likes_entry_id","likes_pkey","likes_user_entry_unique"],
+    "friends": ["friends_pkey", "friends_recipient_status_idx", "unique_friendship"],
+    "likes": ["idx_likes_entry_id", "likes_pkey", "likes_user_entry_unique"],
     "notifications": [
-      "notifications_comment_id_unique","notifications_entry_actor_idx","notifications_friend_event_unique",
-      "notifications_friendship_id_idx","notifications_like_event_unique","notifications_pkey",
+      "notifications_comment_id_unique",
+      "notifications_entry_actor_idx",
+      "notifications_friend_event_unique",
+      "notifications_friendship_id_idx",
+      "notifications_like_event_unique",
+      "notifications_pkey",
       "notifications_user_created_idx"
     ],
     "profiles": [
-      "profiles_bookmark_user_book_id_idx","profiles_featured_entry_id_idx","profiles_nickname_tag_key","profiles_pkey"
+      "profiles_bookmark_user_book_id_idx",
+      "profiles_featured_entry_id_idx",
+      "profiles_nickname_tag_key",
+      "profiles_pkey"
     ],
-    "push_deliveries": ["push_deliveries_pkey","push_deliveries_user_time_idx"],
+    "push_deliveries": ["push_deliveries_pkey", "push_deliveries_user_time_idx"],
     "push_finished_receipts": ["push_finished_receipts_pkey"],
     "push_preferences": ["push_preferences_pkey"],
     "push_seen": ["push_seen_pkey"],
-    "push_subscriptions": ["push_subscriptions_endpoint_key","push_subscriptions_pkey","push_subscriptions_user_idx"],
-    "user_books": ["user_books_pkey","user_books_user_created_idx"]
+    "push_subscriptions": [
+      "push_subscriptions_endpoint_key",
+      "push_subscriptions_pkey",
+      "push_subscriptions_user_idx"
+    ],
+    "user_books": ["user_books_pkey", "user_books_user_created_idx"]
   },
   "rlsEnabled": [
-    "book_registration_requests","books","comments","email_consent_events","email_deliveries",
-    "email_preferences","entries","entry_reflections","feature_rollouts","friends","likes",
-    "notifications","profiles","push_deliveries","push_finished_receipts","push_preferences",
-    "push_seen","push_subscriptions","user_books"
+    "book_registration_requests",
+    "books",
+    "comments",
+    "email_consent_events",
+    "email_deliveries",
+    "email_preferences",
+    "entries",
+    "entry_reflections",
+    "feature_rollouts",
+    "friends",
+    "likes",
+    "notifications",
+    "profiles",
+    "push_deliveries",
+    "push_finished_receipts",
+    "push_preferences",
+    "push_seen",
+    "push_subscriptions",
+    "user_books"
   ],
   "coreGrants": {
-    "book_registration_requests": {"anon": [], "authenticated": ["insert","select"], "service_role": ["delete","insert","select","update"]},
-    "books": {"anon": [], "authenticated": ["delete","insert","select","update"], "service_role": ["delete","insert","select","update"]},
-    "comments": {"anon": [], "authenticated": ["delete","insert","select","update"], "service_role": ["delete","insert","select","update"]},
-    "email_consent_events": {"anon": [], "authenticated": ["select"], "service_role": ["delete","insert","select","update"]},
-    "email_deliveries": {"anon": [], "authenticated": [], "service_role": ["delete","insert","select","update"]},
-    "email_preferences": {"anon": [], "authenticated": ["select"], "service_role": ["delete","insert","select","update"]},
-    "entries": {"anon": [], "authenticated": ["delete","insert","select","update"], "service_role": ["delete","insert","select","update"]},
-    "entry_reflections": {"anon": [], "authenticated": ["delete","select"], "service_role": ["delete","insert","select","update"]},
-    "feature_rollouts": {"anon": [], "authenticated": [], "service_role": ["delete","insert","select","update"]},
-    "friends": {"anon": [], "authenticated": ["delete","insert","select"], "service_role": ["delete","insert","select","update"]},
-    "likes": {"anon": [], "authenticated": ["delete","insert","select","update"], "service_role": ["delete","insert","select","update"]},
-    "notifications": {"anon": [], "authenticated": ["delete","insert","select"], "service_role": ["delete","insert","select","update"]},
-    "profiles": {"anon": [], "authenticated": ["delete","insert","select","update"], "service_role": ["delete","insert","select","update"]},
-    "push_deliveries": {"anon": [], "authenticated": ["select"], "service_role": ["delete","insert","select","update"]},
-    "push_finished_receipts": {"anon": [], "authenticated": [], "service_role": ["delete","insert","select","update"]},
-    "push_preferences": {"anon": [], "authenticated": ["select"], "service_role": ["delete","insert","select","update"]},
-    "push_seen": {"anon": [], "authenticated": [], "service_role": ["delete","insert","select","update"]},
-    "push_subscriptions": {"anon": [], "authenticated": ["delete","select"], "service_role": ["delete","insert","select","update"]},
-    "user_books": {"anon": [], "authenticated": ["delete","insert","select","update"], "service_role": ["delete","insert","select","update"]}
+    "book_registration_requests": {
+      "anon": [],
+      "authenticated": ["insert", "select"],
+      "service_role": ["delete", "insert", "select", "update"]
+    },
+    "books": {
+      "anon": [],
+      "authenticated": ["delete", "insert", "select", "update"],
+      "service_role": ["delete", "insert", "select", "update"]
+    },
+    "comments": {
+      "anon": [],
+      "authenticated": ["delete", "insert", "select", "update"],
+      "service_role": ["delete", "insert", "select", "update"]
+    },
+    "email_consent_events": {
+      "anon": [],
+      "authenticated": ["select"],
+      "service_role": ["delete", "insert", "select", "update"]
+    },
+    "email_deliveries": {
+      "anon": [],
+      "authenticated": [],
+      "service_role": ["delete", "insert", "select", "update"]
+    },
+    "email_preferences": {
+      "anon": [],
+      "authenticated": ["select"],
+      "service_role": ["delete", "insert", "select", "update"]
+    },
+    "entries": {
+      "anon": [],
+      "authenticated": ["delete", "insert", "select", "update"],
+      "service_role": ["delete", "insert", "select", "update"]
+    },
+    "entry_reflections": {
+      "anon": [],
+      "authenticated": ["delete", "select"],
+      "service_role": ["delete", "insert", "select", "update"]
+    },
+    "feature_rollouts": {
+      "anon": [],
+      "authenticated": [],
+      "service_role": ["delete", "insert", "select", "update"]
+    },
+    "friends": {
+      "anon": [],
+      "authenticated": ["delete", "insert", "select"],
+      "service_role": ["delete", "insert", "select", "update"]
+    },
+    "likes": {
+      "anon": [],
+      "authenticated": ["delete", "insert", "select", "update"],
+      "service_role": ["delete", "insert", "select", "update"]
+    },
+    "notifications": {
+      "anon": [],
+      "authenticated": ["delete", "insert", "select"],
+      "service_role": ["delete", "insert", "select", "update"]
+    },
+    "profiles": {
+      "anon": [],
+      "authenticated": ["delete", "insert", "select", "update"],
+      "service_role": ["delete", "insert", "select", "update"]
+    },
+    "push_deliveries": {
+      "anon": [],
+      "authenticated": ["select"],
+      "service_role": ["delete", "insert", "select", "update"]
+    },
+    "push_finished_receipts": {
+      "anon": [],
+      "authenticated": [],
+      "service_role": ["delete", "insert", "select", "update"]
+    },
+    "push_preferences": {
+      "anon": [],
+      "authenticated": ["select"],
+      "service_role": ["delete", "insert", "select", "update"]
+    },
+    "push_seen": {
+      "anon": [],
+      "authenticated": [],
+      "service_role": ["delete", "insert", "select", "update"]
+    },
+    "push_subscriptions": {
+      "anon": [],
+      "authenticated": ["delete", "select"],
+      "service_role": ["delete", "insert", "select", "update"]
+    },
+    "user_books": {
+      "anon": [],
+      "authenticated": ["delete", "insert", "select", "update"],
+      "service_role": ["delete", "insert", "select", "update"]
+    }
   },
   "policies": [
-    ["book_registration_requests","book_registration_requests_insert_own","INSERT","{authenticated}"],
-    ["book_registration_requests","book_registration_requests_select_own","SELECT","{authenticated}"],
-    ["books","books_insert_authenticated","INSERT","{authenticated}"],
-    ["books","books_select_authenticated","SELECT","{authenticated}"],
-    ["comments","comments_delete_own","DELETE","{authenticated}"],
-    ["comments","comments_insert_own_on_visible_entry","INSERT","{authenticated}"],
-    ["comments","comments_select_visible_entry","SELECT","{authenticated}"],
-    ["email_consent_events","email_events_owner","SELECT","{authenticated}"],
-    ["email_preferences","email_preferences_owner","SELECT","{authenticated}"],
-    ["entries","entries_delete_own","DELETE","{authenticated}"],
-    ["entries","entries_insert_own","INSERT","{authenticated}"],
-    ["entries","entries_select_own_or_friend_public","SELECT","{authenticated}"],
-    ["entries","entries_update_own","UPDATE","{authenticated}"],
-    ["entry_reflections","reflections_delete","DELETE","{authenticated}"],
-    ["entry_reflections","reflections_insert","INSERT","{authenticated}"],
-    ["entry_reflections","reflections_read","SELECT","{authenticated}"],
-    ["entry_reflections","reflections_rollout_delete","DELETE","{authenticated}"],
-    ["entry_reflections","reflections_rollout_insert","INSERT","{authenticated}"],
-    ["entry_reflections","reflections_rollout_update","UPDATE","{authenticated}"],
-    ["entry_reflections","reflections_update","UPDATE","{authenticated}"],
-    ["friends","friends_delete_participant","DELETE","{authenticated}"],
-    ["friends","friends_insert_as_requester","INSERT","{authenticated}"],
-    ["friends","friends_select_participant","SELECT","{authenticated}"],
-    ["friends","friends_update_as_recipient","UPDATE","{authenticated}"],
-    ["likes","likes_delete_own","DELETE","{authenticated}"],
-    ["likes","likes_insert_own_on_visible_entry","INSERT","{authenticated}"],
-    ["likes","likes_select_visible_entry","SELECT","{authenticated}"],
-    ["notifications","notifications_delete_own","DELETE","{authenticated}"],
-    ["notifications","notifications_select_own","SELECT","{authenticated}"],
-    ["notifications","notifications_update_own","UPDATE","{authenticated}"],
-    ["profiles","profiles_insert_own","INSERT","{authenticated}"],
-    ["profiles","profiles_select_authenticated","SELECT","{authenticated}"],
-    ["profiles","profiles_update_own","UPDATE","{authenticated}"],
-    ["push_deliveries","own_deliveries","SELECT","{authenticated}"],
-    ["push_preferences","own_preferences","SELECT","{authenticated}"],
-    ["push_subscriptions","delete_subscriptions","DELETE","{authenticated}"],
-    ["push_subscriptions","own_subscriptions","SELECT","{authenticated}"],
-    ["user_books","user_books_delete_own","DELETE","{authenticated}"],
-    ["user_books","user_books_insert_own","INSERT","{authenticated}"],
-    ["user_books","user_books_select_own_or_friend","SELECT","{authenticated}"],
-    ["user_books","user_books_update_own","UPDATE","{authenticated}"]
+    [
+      "book_registration_requests",
+      "book_registration_requests_insert_own",
+      "INSERT",
+      "{authenticated}"
+    ],
+    [
+      "book_registration_requests",
+      "book_registration_requests_select_own",
+      "SELECT",
+      "{authenticated}"
+    ],
+    ["books", "books_insert_authenticated", "INSERT", "{authenticated}"],
+    ["books", "books_select_authenticated", "SELECT", "{authenticated}"],
+    ["comments", "comments_delete_own", "DELETE", "{authenticated}"],
+    ["comments", "comments_insert_own_on_visible_entry", "INSERT", "{authenticated}"],
+    ["comments", "comments_select_visible_entry", "SELECT", "{authenticated}"],
+    ["email_consent_events", "email_events_owner", "SELECT", "{authenticated}"],
+    ["email_preferences", "email_preferences_owner", "SELECT", "{authenticated}"],
+    ["entries", "entries_delete_own", "DELETE", "{authenticated}"],
+    ["entries", "entries_insert_own", "INSERT", "{authenticated}"],
+    ["entries", "entries_select_own_or_friend_public", "SELECT", "{authenticated}"],
+    ["entries", "entries_update_own", "UPDATE", "{authenticated}"],
+    ["entry_reflections", "reflections_delete", "DELETE", "{authenticated}"],
+    ["entry_reflections", "reflections_insert", "INSERT", "{authenticated}"],
+    ["entry_reflections", "reflections_read", "SELECT", "{authenticated}"],
+    ["entry_reflections", "reflections_rollout_delete", "DELETE", "{authenticated}"],
+    ["entry_reflections", "reflections_rollout_insert", "INSERT", "{authenticated}"],
+    ["entry_reflections", "reflections_rollout_update", "UPDATE", "{authenticated}"],
+    ["entry_reflections", "reflections_update", "UPDATE", "{authenticated}"],
+    ["friends", "friends_delete_participant", "DELETE", "{authenticated}"],
+    ["friends", "friends_insert_as_requester", "INSERT", "{authenticated}"],
+    ["friends", "friends_select_participant", "SELECT", "{authenticated}"],
+    ["friends", "friends_update_as_recipient", "UPDATE", "{authenticated}"],
+    ["likes", "likes_delete_own", "DELETE", "{authenticated}"],
+    ["likes", "likes_insert_own_on_visible_entry", "INSERT", "{authenticated}"],
+    ["likes", "likes_select_visible_entry", "SELECT", "{authenticated}"],
+    ["notifications", "notifications_delete_own", "DELETE", "{authenticated}"],
+    ["notifications", "notifications_select_own", "SELECT", "{authenticated}"],
+    ["notifications", "notifications_update_own", "UPDATE", "{authenticated}"],
+    ["profiles", "profiles_insert_own", "INSERT", "{authenticated}"],
+    ["profiles", "profiles_select_authenticated", "SELECT", "{authenticated}"],
+    ["profiles", "profiles_update_own", "UPDATE", "{authenticated}"],
+    ["push_deliveries", "own_deliveries", "SELECT", "{authenticated}"],
+    ["push_preferences", "own_preferences", "SELECT", "{authenticated}"],
+    ["push_subscriptions", "delete_subscriptions", "DELETE", "{authenticated}"],
+    ["push_subscriptions", "own_subscriptions", "SELECT", "{authenticated}"],
+    ["user_books", "user_books_delete_own", "DELETE", "{authenticated}"],
+    ["user_books", "user_books_insert_own", "INSERT", "{authenticated}"],
+    ["user_books", "user_books_select_own_or_friend", "SELECT", "{authenticated}"],
+    ["user_books", "user_books_update_own", "UPDATE", "{authenticated}"]
   ],
   "functions": [
-    ["authorize_push_delivery","p_id uuid"],
-    ["books_original_cover_url",""],
-    ["claim_marketing_email","p_user uuid, p_id uuid, p_content_hash text, p_token_hash text"],
-    ["claim_push_batch","p_limit integer"],
-    ["claim_push_test","p_user uuid, p_endpoint text"],
-    ["clear_private_entry_share",""],
-    ["enable_entry_share","p_entry_id uuid"],
-    ["entry_reflections_enabled",""],
-    ["get_book_reading_stats",""],
-    ["get_books_page",""],
-    ["get_dashboard_core","p_today date"],
-    ["get_entry_reflection_summaries","p_entry_ids uuid[]"],
-    ["get_featured_bookmark","p_user_book_id uuid, p_owner_id uuid, p_public_only boolean"],
-    ["get_monthly_recap","p_today date"],
-    ["get_profile_retrospect","p_user_id uuid, p_today date, p_public_only boolean"],
-    ["get_public_entry","p_entry_id uuid"],
-    ["get_reading_stats","p_user_id uuid"],
-    ["get_recall_entry","p_today date"],
-    ["get_social_feed","p_page integer, p_limit integer"],
-    ["guard_entry_reflection_update",""],
-    ["has_unread_notifications",""],
-    ["is_friend_with","p_user_id uuid"],
-    ["mark_push_seen","p_kind text, p_delivery uuid"],
-    ["mutate_entry_with_reflection_ack","p_entry_id uuid, p_patch jsonb, p_delete boolean, p_reflection_count integer"],
-    ["notify_entry_event","p_entry_id uuid, p_type text, p_comment_id uuid"],
-    ["notify_friend_event","p_recipient uuid, p_type text"],
-    ["push_candidates","p_user uuid, p_now timestamp with time zone"],
-    ["reading_rhythm","p_since timestamp with time zone"],
-    ["register_book_idempotently","p_request_id uuid, p_title text, p_author text, p_total_pages integer, p_isbn text, p_cover_url text"],
-    ["retract_like_notification","p_entry_id uuid"],
-    ["revoke_changed_email_consent",""],
-    ["save_email_consent","p_user uuid, p_enabled boolean, p_request uuid, p_expected integer, p_source text, p_copy text, p_email text, p_profile jsonb"],
-    ["save_push_preferences","p_enabled boolean, p_kinds text[], p_timezone text, p_hour integer, p_weekdays integer[]"],
-    ["save_push_subscription","p_endpoint text, p_p256dh text, p_auth text"],
-    ["search_excerpt","p_text text, p_query text"],
-    ["search_library","p_query text, p_kind text, p_book_id uuid, p_from date, p_to date, p_cursor jsonb"],
-    ["update_user_book_progress","p_book_id uuid, p_user_id uuid"],
-    ["withdraw_email_by_token","p_hash text"]
+    ["authorize_push_delivery", "p_id uuid"],
+    ["books_original_cover_url", ""],
+    ["claim_marketing_email", "p_user uuid, p_id uuid, p_content_hash text, p_token_hash text"],
+    ["claim_push_batch", "p_limit integer"],
+    ["claim_push_test", "p_user uuid, p_endpoint text"],
+    ["clear_private_entry_share", ""],
+    ["enable_entry_share", "p_entry_id uuid"],
+    ["entry_reflections_enabled", ""],
+    ["get_book_reading_stats", ""],
+    ["get_books_page", ""],
+    ["get_dashboard_core", "p_today date"],
+    ["get_entry_reflection_summaries", "p_entry_ids uuid[]"],
+    ["get_featured_bookmark", "p_user_book_id uuid, p_owner_id uuid, p_public_only boolean"],
+    ["get_monthly_recap", "p_today date"],
+    ["get_profile_retrospect", "p_user_id uuid, p_today date, p_public_only boolean"],
+    ["get_public_entry", "p_entry_id uuid"],
+    ["get_reading_stats", "p_user_id uuid"],
+    ["get_recall_entry", "p_today date"],
+    ["get_social_feed", "p_page integer, p_limit integer"],
+    ["guard_entry_reflection_update", ""],
+    ["has_unread_notifications", ""],
+    ["is_friend_with", "p_user_id uuid"],
+    ["mark_push_seen", "p_kind text, p_delivery uuid"],
+    [
+      "mutate_entry_with_reflection_ack",
+      "p_entry_id uuid, p_patch jsonb, p_delete boolean, p_reflection_count integer"
+    ],
+    ["notify_entry_event", "p_entry_id uuid, p_type text, p_comment_id uuid"],
+    ["notify_friend_event", "p_recipient uuid, p_type text"],
+    ["push_candidates", "p_user uuid, p_now timestamp with time zone"],
+    ["reading_rhythm", "p_since timestamp with time zone"],
+    [
+      "register_book_idempotently",
+      "p_request_id uuid, p_title text, p_author text, p_total_pages integer, p_isbn text, p_cover_url text"
+    ],
+    ["retract_like_notification", "p_entry_id uuid"],
+    ["revoke_changed_email_consent", ""],
+    [
+      "save_email_consent",
+      "p_user uuid, p_enabled boolean, p_request uuid, p_expected integer, p_source text, p_copy text, p_email text, p_profile jsonb"
+    ],
+    [
+      "save_push_preferences",
+      "p_enabled boolean, p_kinds text[], p_timezone text, p_hour integer, p_weekdays integer[]"
+    ],
+    ["save_push_subscription", "p_endpoint text, p_p256dh text, p_auth text"],
+    ["search_excerpt", "p_text text, p_query text"],
+    [
+      "search_library",
+      "p_query text, p_kind text, p_book_id uuid, p_from date, p_to date, p_cursor jsonb"
+    ],
+    ["update_user_book_progress", "p_book_id uuid, p_user_id uuid"],
+    ["withdraw_email_by_token", "p_hash text"]
   ],
   "excludedFunctions": {
     "rls_auto_enable": "Supabase 플랫폼이 붙이는 이벤트 트리거 함수(새 테이블에 RLS를 자동으로 켠다). 앱 마이그레이션이 만들지 않고, PGlite는 이벤트 트리거를 지원하지 않아 체인 테스트에서 제외한다."
