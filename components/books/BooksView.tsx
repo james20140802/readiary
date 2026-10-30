@@ -2,12 +2,13 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { Plus, Search } from 'lucide-react';
+import { FileText, Plus, Search } from 'lucide-react';
 import clsx from 'clsx';
 import type { MyBook } from '@/types/book';
 import type { BookReadingStat } from '@/lib/queries/fetchBookReadingStats';
 import { TopBarActions, useTopBar } from '@/components/shell/TopBarContext';
 import { DesktopLeaf, DesktopLeaves, Leaf, LeafSwitch, Leaves } from '@/components/shell/Leaves';
+import ExportRecordsSheet from '@/components/export/ExportRecordsSheet';
 import BookList from './BookList';
 import BookCover from './BookCover';
 import styles from './books.module.css';
@@ -422,10 +423,22 @@ function DesktopFinished({
 export default function BooksView({ books, stats, today }: Props) {
   useTopBar({ title: '책장' });
   const { reading, finished } = splitShelf(books, stats);
+  const [exportOpen, setExportOpen] = useState(false);
 
   return (
     <>
       <TopBarActions>
+        {books.length > 0 && (
+          <button
+            type="button"
+            aria-label="기록 꺼내기"
+            aria-haspopup="dialog"
+            onClick={() => setExportOpen(true)}
+            className={ICON}
+          >
+            <FileText size={23} strokeWidth={1.75} aria-hidden />
+          </button>
+        )}
         <Link href="/search" aria-label="책과 기록 찾기" className={ICON}>
           <Search size={23} strokeWidth={1.75} aria-hidden />
         </Link>
@@ -475,6 +488,12 @@ export default function BooksView({ books, stats, today }: Props) {
           </>
         )}
       </DesktopLeaves>
+
+      <ExportRecordsSheet
+        open={exportOpen}
+        onClose={() => setExportOpen(false)}
+        scope={{ kind: 'month' }}
+      />
     </>
   );
 }
