@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { BookOpen, Ellipsis, RotateCcw, Search, Trash2 } from 'lucide-react';
+import { BookOpen, Ellipsis, FileText, RotateCcw, Search, Trash2 } from 'lucide-react';
 import clsx from 'clsx';
+import ExportRecordsSheet from '@/components/export/ExportRecordsSheet';
 import Sheet from '@/components/ui/Sheet';
 import { useActionLock } from '@/hooks/useActionLock';
 import { apiFetch, SessionExpiredError } from '@/lib/api/fetch';
@@ -39,6 +40,7 @@ export default function BookActionsMenu({
   const [menuOpen, setMenuOpen] = useState(false);
   const [unfinishOpen, setUnfinishOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
   const [error, setError] = useState('');
   const action = useActionLock();
 
@@ -97,6 +99,17 @@ export default function BookActionsMenu({
               완독 취소
             </button>
           )}
+          <button
+            type="button"
+            className={ROW}
+            onClick={() => {
+              setMenuOpen(false);
+              setExportOpen(true);
+            }}
+          >
+            <FileText size={20} strokeWidth={1.75} className="text-ink-sub" aria-hidden />
+            기록 꺼내기
+          </button>
           <Link href="/search" className={ROW}>
             <Search size={20} strokeWidth={1.75} className="text-ink-sub" aria-hidden />
             책과 기록 찾기
@@ -114,6 +127,12 @@ export default function BookActionsMenu({
           </button>
         </div>
       </Sheet>
+
+      <ExportRecordsSheet
+        open={exportOpen}
+        onClose={() => setExportOpen(false)}
+        scope={{ kind: 'book', userBookId }}
+      />
 
       {onUnfinish && (
         <UnfinishBookSheet
