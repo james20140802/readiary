@@ -3,10 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import Button from '@/components/ui/Button';
-import Chip from '@/components/ui/Chip';
 import Sheet from '@/components/ui/Sheet';
+import MonthPicker from '@/components/export/MonthPicker';
 import { apiFetch, SessionExpiredError } from '@/lib/api/fetch';
 import { exportActions, type ExportAction } from '@/lib/export/exportActions';
+import type { EntryMonth } from '@/lib/export/monthPicker';
 
 export type ExportScope = { kind: 'book'; userBookId: string } | { kind: 'month' };
 
@@ -23,16 +24,6 @@ interface ExportText {
   fileName: string;
   entryCount: number;
 }
-
-interface EntryMonth {
-  month: string;
-  entryCount: number;
-}
-
-const monthLabel = (month: string) => {
-  const [y, m] = month.split('-').map(Number);
-  return `${y}년 ${m}월`;
-};
 
 async function getJson<T>(url: string): Promise<T> {
   const response = await apiFetch(url, { cache: 'no-store' });
@@ -179,23 +170,7 @@ function ExportBody({ scope }: { scope: ExportScope }) {
                 아직 남긴 기록이 없어요. 기록을 남기면 달마다 꺼낼 수 있어요.
               </p>
             ) : (
-              <div
-                role="group"
-                aria-label="꺼낼 달"
-                className="-mx-[22px] flex gap-2 overflow-x-auto px-[22px] pb-1 [scrollbar-width:none]"
-              >
-                {months.value.map((m) => (
-                  <Chip
-                    key={m.month}
-                    selected={m.month === month}
-                    aria-pressed={m.month === month}
-                    onClick={() => setMonth(m.month)}
-                    className="flex-none"
-                  >
-                    {monthLabel(m.month)}
-                  </Chip>
-                ))}
-              </div>
+              month && <MonthPicker months={months.value} value={month} onChange={setMonth} />
             ))}
         </div>
       )}
