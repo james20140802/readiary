@@ -159,8 +159,8 @@ function ExportBody({ scope }: { scope: ExportScope }) {
   return (
     <div>
       <p className="font-sans text-caption leading-[1.5] text-ink-sub">
-        {scope.kind === 'book' ? '이 책에' : '한 달 동안'} 남긴 문장과 생각을 AI나 메모 앱에 붙여
-        넣을 수 있는 글로 꺼내요. 비공개 기록도 포함돼요.
+        {scope.kind === 'book' ? '이 책에' : '한 달 동안'} 남긴 문장과 생각을 붙여 넣을 수 있는 글로
+        꺼내요. 비공개 기록도 포함돼요.
       </p>
 
       {scope.kind === 'month' && (
