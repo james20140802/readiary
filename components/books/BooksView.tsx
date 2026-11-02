@@ -245,11 +245,14 @@ function DesktopReading({
   reading,
   stats,
   today,
+  onExport,
 }: {
   books: MyBook[];
   reading: MyBook[];
   stats: Record<string, BookReadingStat> | null;
   today: string;
+  /** 데스크톱에는 상단 바가 없어 기록 꺼내기를 제목 옆에 둔다 */
+  onExport: () => void;
 }) {
   const [pickedId, setPickedId] = useState<string | null>(reading[0]?.id ?? null);
   const picked = reading.find((b) => b.id === pickedId) ?? reading[0];
@@ -265,7 +268,20 @@ function DesktopReading({
   const center = (pickedIndex + 0.5) / Math.max(1, shown.length);
   return (
     <>
-      <h1 className="font-sans text-page-title-lg text-ink">책장</h1>
+      <div className="flex items-center gap-5">
+        <h1 className="font-sans text-page-title-lg text-ink">책장</h1>
+        {books.length > 0 && (
+          <button
+            type="button"
+            aria-haspopup="dialog"
+            onClick={onExport}
+            className={clsx(BTN_LINE, SM, 'gap-1.5')}
+          >
+            <FileText size={18} strokeWidth={1.75} aria-hidden />
+            기록 꺼내기
+          </button>
+        )}
+      </div>
       {books.length === 0 ? (
         <EmptyShelf />
       ) : !picked ? (
@@ -475,7 +491,13 @@ export default function BooksView({ books, stats, today }: Props) {
       )}
       <DesktopLeaves>
         <DesktopLeaf id="reading">
-          <DesktopReading books={books} reading={reading} stats={stats} today={today} />
+          <DesktopReading
+            books={books}
+            reading={reading}
+            stats={stats}
+            today={today}
+            onExport={() => setExportOpen(true)}
+          />
         </DesktopLeaf>
         {books.length > 0 && (
           <>
