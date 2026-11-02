@@ -1,5 +1,5 @@
 {
-  "_captured": "2026-10-30, read-only pg_catalog/information_schema queries against project piqlggyuhhicnjywombg (production). See docs/operations/supabase-api-grants.md.",
+  "_captured": "2026-10-30 (functions re-checked 2026-11-02 after get_entry_months), read-only pg_catalog/information_schema queries against project piqlggyuhhicnjywombg (production). See docs/operations/supabase-api-grants.md.",
   "tables": [
     "book_registration_requests",
     "books",
@@ -685,6 +685,7 @@
     ["get_book_reading_stats", ""],
     ["get_books_page", ""],
     ["get_dashboard_core", "p_today date"],
+    ["get_entry_months", ""],
     ["get_entry_reflection_summaries", "p_entry_ids uuid[]"],
     ["get_featured_bookmark", "p_user_book_id uuid, p_owner_id uuid, p_public_only boolean"],
     ["get_monthly_recap", "p_today date"],
