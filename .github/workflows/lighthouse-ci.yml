@@ -33,6 +33,9 @@ jobs:
       - name: Verify email consent database contract
         run: node supabase/tests/run-email-consent-contract.mjs
 
+      - name: Verify entry months database contract
+        run: node supabase/tests/run-entry-months-contract.mjs
+
       - name: Lint
         run: npx eslint .
 
