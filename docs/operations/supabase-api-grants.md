@@ -48,8 +48,10 @@ PGLITE_MODULE=/tmp/readiary-grants-sql/node_modules/@electric-sql/pglite/dist/in
 체인 계약이 깨지지 않도록, 머지 전 마이그레이션의 결과를 픽스처에 미리 적는다. 픽스처에 있다고 프로덕션에 적용된 것은 아니다.
 
 - `20261106090000_monthly_excerpts.sql`(달의 발췌집 테이블 2개, 정책 3개, 함수 12개): 프로덕션 미적용. 이 부분은 조회 결과가 아니라 예상치다. 적용한 뒤 읽기 전용 조회로 대조하고 이 항목을 지운다.
-- `20261110090000_monthly_excerpts_friends.sql`(친구용 RPC 4개, 내부 함수 1개): 프로덕션 미적용. 위와 같이 예상치다.
-- `20261110100000_monthly_excerpt_reactions.sql`(좋아요·댓글 테이블 2개, 정책 6개, RPC 3개, `notifications`의 열 2개·인덱스 3개·넓힌 `type` 검사): 프로덕션 미적용. 위와 같이 예상치다.
+- `20261106100000_monthly_excerpt_candidate_preview.sql`(`get_monthly_excerpt_candidates`를 같은 서명으로 다시 만들어 응답 키 추가): 프로덕션 미적용. 위와 같이 예상치다.
+- `20261106110000_monthly_excerpts_friends.sql`(친구용 RPC 4개, 내부 함수 1개): 프로덕션 미적용. 위와 같이 예상치다.
+- `20261106120000_monthly_excerpt_reactions.sql`(좋아요·댓글 테이블 2개, 정책 6개, RPC 3개, `notifications`의 열 2개·인덱스 3개·넓힌 `type` 검사): 프로덕션 미적용. 위와 같이 예상치다.
+- `20261106130000_social_feed_items.sql`(피드 RPC `get_social_feed_items`, 정의자 함수 `friend_feed_monthly_excerpts`): 프로덕션 미적용. 위와 같이 예상치다.
 
 ### CI에서 자동으로 도는 DB 테스트
 

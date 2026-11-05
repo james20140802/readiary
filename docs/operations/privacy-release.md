@@ -60,7 +60,7 @@ PGLITE_MODULE=/tmp/readiary-pr91-sql/node_modules/@electric-sql/pglite/dist/inde
 
 ## 달의 발췌집 친구 공개 (Task 7, 2026-11-06)
 
-친구는 공개 기록으로 이루어진 문장만 읽고, 비공개 기록의 id, 개수, 순서 번호의 빈틈은 응답에 남지 않는다. `monthly_excerpts`와 `monthly_excerpt_items`의 RLS는 소유자 전용 그대로이고, 친구의 길은 `20261110090000_monthly_excerpts_friends.sql`의 정의자 RPC뿐이다. 기록을 복사하지 않고 가리키므로 비공개 전환과 삭제는 다음 읽기에 바로 반영된다.
+친구는 공개 기록으로 이루어진 문장만 읽고, 비공개 기록의 id, 개수, 순서 번호의 빈틈은 응답에 남지 않는다. `monthly_excerpts`와 `monthly_excerpt_items`의 RLS는 소유자 전용 그대로이고, 친구의 길은 `20261106110000_monthly_excerpts_friends.sql`의 정의자 RPC뿐이다. 기록을 복사하지 않고 가리키므로 비공개 전환과 삭제는 다음 읽기에 바로 반영된다.
 
 | 시나리오 | 내 화면 | 친구의 RPC 응답 | 친구 화면 | 근거 |
 | --- | --- | --- | --- | --- |
@@ -74,7 +74,7 @@ PGLITE_MODULE=/tmp/readiary-pr91-sql/node_modules/@electric-sql/pglite/dist/inde
 | anon | 해당 없음 | 실행 권한 없음(42501). `proacl`에 PUBLIC과 anon 항목 없음 | 로그인으로 이동 | 계약 테스트 |
 | 테이블 직접 조회(친구) | 해당 없음 | 0행 | 해당 없음 | 계약 테스트 |
 
-내부 함수 `monthly_excerpt_visible_items`는 친구 관계를 확인하지 않으므로 `public`, `anon`, `authenticated` 누구도 실행하지 못한다. 공개 RPC가 정의자 권한으로만 부른다. 계약 스텁(`supabase/tests/stubs.mjs`)은 Supabase의 기본 함수 권한(세 역할에 직접 부여)을 재현하므로 `revoke ... from public`만 있고 anon 회수가 빠지면 테스트가 실패한다. 친구 해제 등 재현은 `node supabase/tests/run-monthly-excerpts-contract.mjs supabase/tests/monthly_excerpts_friend_contract.sql`이다.
+내부 함수 `monthly_excerpt_visible_items`는 친구 관계를 확인하지 않으므로 `public`, `anon`, `authenticated` 누구도 실행하지 못한다. 공개 RPC가 정의자 권한으로만 부른다. 계약 스텁(`supabase/tests/lib/apply-migration-chain.mjs`)은 Supabase의 기본 함수 권한(세 역할에 직접 부여)을 재현하므로 `revoke ... from public`만 있고 anon 회수가 빠지면 테스트가 실패한다. 친구 해제 등 재현은 `node supabase/tests/run-monthly-excerpts-contract.mjs supabase/tests/monthly_excerpts_friend_contract.sql`이다.
 
 ### 캐시
 
@@ -94,7 +94,7 @@ PGLITE_MODULE=/tmp/readiary-pr91-sql/node_modules/@electric-sql/pglite/dist/inde
 
 ## 달의 발췌집 좋아요·댓글 (Task 8, 2026-11-06)
 
-반응은 한 권에 붙고, 읽기·남기기·지우기 모두 `can_view_monthly_excerpt` 한 곳에서 정한다(`20261110100000_monthly_excerpt_reactions.sql`). 나만 보기, 공개 문장 없음, 친구 해제는 같은 결과다. 친구에게는 0행과 같은 404이고, 소유자는 그대로 읽으며, 행은 남아 다시 보이면 돌아온다. 숨겨진 동안에는 자기 반응도 지우지 못한다. 권을 지우면 반응과 알림이 함께 사라진다. 계약 테스트: `supabase/tests/monthly_excerpts_reactions_contract.sql`.
+반응은 한 권에 붙고, 읽기·남기기·지우기 모두 `can_view_monthly_excerpt` 한 곳에서 정한다(`20261106120000_monthly_excerpt_reactions.sql`). 나만 보기, 공개 문장 없음, 친구 해제는 같은 결과다. 친구에게는 0행과 같은 404이고, 소유자는 그대로 읽으며, 행은 남아 다시 보이면 돌아온다. 숨겨진 동안에는 자기 반응도 지우지 못한다. 권을 지우면 반응과 알림이 함께 사라진다. 계약 테스트: `supabase/tests/monthly_excerpts_reactions_contract.sql`.
 
 - 옛 친구의 이름과 댓글은 소유자와 남은 친구에게 그대로 보인다. 프로필은 로그인한 사용자에게 열려 있고(`profiles_select_authenticated`), 좋아한 사람 명단은 친구가 아니면 링크를 걸지 않는다.
 - 숨겨진 동안이나 친구를 끊은 뒤에는 반응으로 알림을 만들지 못한다.
@@ -107,7 +107,7 @@ PGLITE_MODULE=/tmp/readiary-pr91-sql/node_modules/@electric-sql/pglite/dist/inde
 - 소식의 시각은 `first_shared_at`이다. 고치거나 공개를 껐다 켜도 자리가 그대로이고 1건이다.
 - 나만 보기, 공개 문장 없음, 친구 아님, 신청만 한 사이, 친구 해제는 피드에서 빠진다. 내 발췌집은 내 피드에 없다.
 - 표지, 표지의 책 이름, 문장 수, 책 수는 친구에게 보이는 문장 기준이다. 표지가 비공개로 바뀌면 다음 공개 문장이 표지가 된다.
-- 계약 테스트: `supabase/tests/monthly_excerpts_feed_contract.sql`. 달의 발췌집 계약 네 개는 `.github/workflows/lighthouse-ci.yml`에서 자격 증명 없이 메모리 DB로 돈다.
+- 계약 테스트: `supabase/tests/monthly_excerpts_feed_contract.sql`. 달의 발췌집 계약 네 개는 `npm run test:db`(`.github/workflows/db-contract.yml`)에서 자격 증명 없이 파일마다 새 메모리 DB로 돈다.
 - 캐시: 첫 쪽은 `/social` 문서·RSC 응답이라 `NetworkOnly`(`isPersonalizedSameOriginRequest`)이고, 다음 쪽은 서버 액션 POST다. 코드 읽기 결과이고 실기기 확인이 아니다.
 
 ### 프로덕션 적용 순서
@@ -116,9 +116,9 @@ PGLITE_MODULE=/tmp/readiary-pr91-sql/node_modules/@electric-sql/pglite/dist/inde
 
 1. `supabase/migrations/20261106090000_monthly_excerpts.sql`
 2. `supabase/migrations/20261106100000_monthly_excerpt_candidate_preview.sql`
-3. `supabase/migrations/20261110090000_monthly_excerpts_friends.sql`
-4. `supabase/migrations/20261110100000_monthly_excerpt_reactions.sql`
-5. `supabase/migrations/20261110110000_social_feed_items.sql`
+3. `supabase/migrations/20261106110000_monthly_excerpts_friends.sql`
+4. `supabase/migrations/20261106120000_monthly_excerpt_reactions.sql`
+5. `supabase/migrations/20261106130000_social_feed_items.sql`
 
 옛 `get_social_feed`는 새 코드 배포를 확인할 때까지 남긴다. 제거는 후속 작업이다.
 
