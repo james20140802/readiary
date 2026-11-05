@@ -43,6 +43,22 @@ PGLITE_MODULE=/tmp/readiary-grants-sql/node_modules/@electric-sql/pglite/dist/in
 - **함수 본문의 글자 단위 일치** — 이름과 인자 시그니처만 비교한다. `pg_get_functiondef`의 포매팅은 PG 버전마다 흔들린다.
 - **pg_cron/pg_net** — 저장소 마이그레이션은 `cron.schedule`을 호출하지 않는다(웹 푸시 발송은 운영 설정으로 예약한다 — 아래 이력 차이 참고). 확장 설치 여부는 보지 않는다.
 
+### CI에서 자동으로 도는 DB 테스트
+
+`main`으로 가는 PR과 `main` push마다 `.github/workflows/db-contract.yml`이 임시 DB에서 계약 테스트를 실행한다. 프로덕션에 접속하지 않으므로 시크릿을 주지 않는다. 로컬에서는 `npm run test:db`로 같은 PGlite 테스트를 돌린다.
+
+- `supabase/tests/run-*-contract.mjs`는 자동으로 포함된다. 새 테스트는 이름만 맞추면 된다.
+- `run-registration-contract.py`는 동시 요청을 검증하려고 CI가 띄운 Postgres 17 컨테이너에서 따로 실행한다.
+
+스키마를 바꾸는 마이그레이션 PR은 `prod-public-schema.json`을 같은 PR에서 갱신하고 `_captured`에 이유를 적는다. 갱신하지 않으면 체인 테스트가 실패한다.
+
+CI 통과만으로 확인되지 않는 것:
+
+- 마이그레이션을 프로덕션에 적용했는지. 코드를 배포하기 전에 따로 적용하고 확인한다.
+- 대시보드 등에서 프로덕션을 직접 바꾼 차이. 스냅샷은 사람이 갱신한 기록이다.
+- `entries`·`user_books`를 뺀 정책 내용의 변경. 체인 테스트는 정책의 이름·명령·역할만 비교한다. 새 파일까지 적용해 동작을 확인하는 테스트는 `run-entry-visibility-contract.mjs`와 체인뿐이고, 나머지 계약 테스트는 각자 정한 마이그레이션 파일만 적용한다.
+- 실제 데이터에서 생기는 문제와 프로덕션 장애.
+
 ### 프로덕션 이력 정리
 
 `supabase_migrations.schema_migrations`와 저장소 파일명을 2026-10-30에 읽기 전용으로 대조했고, 2026-11-05에 일부를 정리했다.
