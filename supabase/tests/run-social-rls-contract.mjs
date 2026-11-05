@@ -1,29 +1,25 @@
-// 메모리 안의 임시 Postgres만 사용한다. Supabase 접속 정보나 원격 연결을 쓰지 않는다.
 // 마이그레이션 전체를 적용한 뒤 댓글·좋아요·알림의 접근 규칙을 실제 역할로 확인한다.
 // 체인 테스트는 정책의 이름만 비교하므로, 새 마이그레이션이 정책 내용을 넓히는 일은 이 테스트가 잡는다.
 import assert from 'node:assert/strict';
 import { actAs } from './lib/act-as.mjs';
-import { applyMigrationChain } from './lib/apply-migration-chain.mjs';
+import {
+  DENIED,
+  FRIEND,
+  OWNER,
+  PENDING,
+  PRIVATE_ENTRY,
+  PUBLIC_ENTRY,
+  STRANGER,
+  runRlsContract,
+  uuid,
+} from './lib/rls-fixture.mjs';
 
-const { PGlite } = await import(process.env.PGLITE_MODULE ?? '@electric-sql/pglite');
-const db = new PGlite();
+const OWNER_NOTIFICATION = uuid(31);
+const FRIEND_NOTIFICATION = uuid(32);
 
-const OWNER = '00000000-0000-4000-8000-000000000001';
-const FRIEND = '00000000-0000-4000-8000-000000000002';
-const PENDING = '00000000-0000-4000-8000-000000000003';
-const STRANGER = '00000000-0000-4000-8000-000000000004';
-const BOOK = '00000000-0000-4000-8000-000000000011';
-const SHELF = '00000000-0000-4000-8000-000000000012';
-const PUBLIC_ENTRY = '00000000-0000-4000-8000-000000000021';
-const PRIVATE_ENTRY = '00000000-0000-4000-8000-000000000022';
-const OWNER_NOTIFICATION = '00000000-0000-4000-8000-000000000031';
-const FRIEND_NOTIFICATION = '00000000-0000-4000-8000-000000000032';
-const DENIED = { code: '42501' };
-
+let db;
 const as = (userId, run) => actAs(db, userId, run);
 
-// RLS에서 returning과 where는 SELECT 정책도 함께 적용한다. 거부를 확인하는 쿼리에 이것들을 붙이면
-// INSERT·UPDATE·DELETE 정책이 풀려도 SELECT 정책이 대신 막아 테스트가 통과하므로, 거부 확인에는 쓰지 않는다.
 const INSERT = {
   comments: `insert into public.comments (entry_id, user_id, content) values ($1, $2, 'hello')`,
   likes: `insert into public.likes (entry_id, user_id) values ($1, $2)`,
@@ -186,36 +182,12 @@ async function checkNotifications() {
   });
 }
 
-try {
-  await applyMigrationChain(db);
-
-  await db.exec(`
-    insert into auth.users (id) values ('${OWNER}'), ('${FRIEND}'), ('${PENDING}'), ('${STRANGER}');
-    insert into public.profiles (id, name, nickname, tag) values
-      ('${OWNER}', 'owner', 'contractowner', '0001'),
-      ('${FRIEND}', 'friend', 'contractfriend', '0002'),
-      ('${PENDING}', 'pending', 'contractpending', '0003'),
-      ('${STRANGER}', 'stranger', 'contractstranger', '0004');
-    insert into public.books (id, title) values ('${BOOK}', 'fixture');
-    insert into public.user_books (id, user_id, book_id) values ('${SHELF}', '${OWNER}', '${BOOK}');
-    insert into public.entries (id, user_book_id, date, quote, is_private) values
-      ('${PUBLIC_ENTRY}', '${SHELF}', '2026-11-05', 'public', false),
-      ('${PRIVATE_ENTRY}', '${SHELF}', '2026-11-05', 'private', true);
-    insert into public.friends (user_id, friend_id, status) values
-      ('${OWNER}', '${FRIEND}', 'accepted'),
-      ('${OWNER}', '${PENDING}', 'pending');
-  `);
-
-  await checkEntryReaction('comments');
-  await checkEntryReaction('likes');
-  await checkNotifications();
-
-  console.warn(
-    'PASS: comments, likes and notifications keep their access rules after the full chain'
-  );
-} catch (error) {
-  console.error(error.message, error.code ?? '');
-  process.exitCode = 1;
-} finally {
-  await db.close();
-}
+await runRlsContract(
+  'comments, likes and notifications keep their access rules after the full chain',
+  async (context) => {
+    db = context.db;
+    await checkEntryReaction('comments');
+    await checkEntryReaction('likes');
+    await checkNotifications();
+  }
+);

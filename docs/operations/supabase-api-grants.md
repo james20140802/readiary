@@ -50,7 +50,9 @@ PGLITE_MODULE=/tmp/readiary-grants-sql/node_modules/@electric-sql/pglite/dist/in
 - `supabase/tests/run-*-contract.mjs`는 자동으로 포함된다. 새 테스트는 이름만 맞추면 된다.
 - `run-registration-contract.py`는 동시 요청을 검증하려고 CI가 띄운 Postgres 17 컨테이너에서 따로 실행한다.
 
-정책 동작 테스트에서 거부를 확인하는 INSERT·UPDATE·DELETE에는 `returning`이나 `where`를 붙이지 않는다. 이것들이 있으면 SELECT 정책도 함께 적용되어, 확인하려는 정책이 풀려도 테스트가 통과할 수 있다.
+`run-*-rls-contract.mjs`와 `run-entry-visibility-contract.mjs`는 마이그레이션 전체를 적용한 뒤, 기록 주인·수락한 친구·수락 전 친구·모르는 사람·비로그인 사용자의 역할로 직접 쿼리해 `public` 테이블과 프로필 이미지 저장소의 접근 규칙을 확인한다. 정책을 추가하거나 바꾸는 PR은 이 테스트도 같은 PR에서 고친다.
+
+거부를 확인하는 INSERT·UPDATE·DELETE에는 `returning`이나 `where`를 붙이지 않는다. 이것들이 있으면 SELECT 정책도 함께 적용되어, 확인하려는 정책이 풀려도 테스트가 통과할 수 있다.
 
 스키마를 바꾸는 마이그레이션 PR은 `prod-public-schema.json`을 같은 PR에서 갱신하고 `_captured`에 이유를 적는다. 갱신하지 않으면 체인 테스트가 실패한다.
 
@@ -58,7 +60,9 @@ CI 통과만으로 확인되지 않는 것:
 
 - 마이그레이션을 프로덕션에 적용했는지. 코드를 배포하기 전에 따로 적용하고 확인한다.
 - 대시보드 등에서 프로덕션을 직접 바꾼 차이. 스냅샷은 사람이 갱신한 기록이다.
-- `entries`·`user_books`·`comments`·`likes`·`notifications`를 뺀 정책 내용의 변경. 체인 테스트는 정책의 이름·명령·역할만 비교한다. 새 파일까지 적용해 동작을 확인하는 테스트는 `run-entry-visibility-contract.mjs`, `run-social-rls-contract.mjs`와 체인뿐이고, 나머지 계약 테스트는 각자 정한 마이그레이션 파일만 적용한다.
+- 테스트에 적지 않은 규칙. 새 테이블이나 정책을 추가해도 동작 테스트는 자동으로 생기지 않는다. 체인 테스트는 정책의 이름·명령·역할만 비교한다.
+- 실제 Storage API의 동작. 저장소 테스트는 임시 DB의 스텁에서 DB 정책만 확인한다.
+- `service_role`로 처리하는 경로와 `security definer` 함수 안의 규칙. RLS를 거치지 않으므로 각 함수의 계약 테스트가 따로 다룬 범위만 확인된다.
 - 실제 데이터에서 생기는 문제와 프로덕션 장애.
 
 ### 프로덕션 이력 정리
