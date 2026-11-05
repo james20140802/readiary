@@ -1,15 +1,12 @@
 import { NextResponse } from 'next/server';
-import { excerptHeaders } from './errors';
+import { EXCERPT_NOT_FOUND, excerptHeaders } from './errors';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 type Supabase = Awaited<ReturnType<typeof createSupabaseServerClient>>;
 
 // 친구가 아니거나, 숨겨졌거나, 없는 권은 모두 같은 응답이다. 응답으로 권의 존재를 알아낼 수 없다.
 export const excerptUnavailable = () =>
-  NextResponse.json(
-    { error: '찾을 수 없는 발췌집이에요.' },
-    { status: 404, headers: excerptHeaders }
-  );
+  NextResponse.json({ error: EXCERPT_NOT_FOUND }, { status: 404, headers: excerptHeaders });
 
 export const reactionFailed = (code: string | undefined, error: string) => {
   // 로그에는 오류 코드만 남긴다. 댓글 본문은 남기지 않는다.

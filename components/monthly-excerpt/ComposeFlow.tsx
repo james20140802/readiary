@@ -10,7 +10,6 @@ import { useActionLock } from '@/hooks/useActionLock';
 import { apiFetch, SessionExpiredError } from '@/lib/api/fetch';
 import { reconcilePicks, togglePick } from '@/lib/monthly-excerpt/compose';
 import type { ComposePick } from '@/lib/monthly-excerpt/compose';
-import { MONTHLY_EXCERPT_SHARING } from '@/lib/monthly-excerpt/flags';
 import { shareImpact } from '@/lib/monthly-excerpt/model';
 import { shortMonthLabel } from '@/lib/monthly-excerpt/month';
 import type { MonthBook, MonthKey } from '@/lib/monthly-excerpt/types';
@@ -101,7 +100,6 @@ export default function ComposeFlow({
   }, [step]);
 
   const total = chips.books?.reduce((sum, b) => sum + b.quoteCount, 0) ?? null;
-  const needsShare = MONTHLY_EXCERPT_SHARING;
   // 공개 문장이 없어진 뒤에는 '친구에게 보여 주기'를 골랐던 것도 무효다
   const effectiveShare = share === 'friends' && shareImpact(picks).publicCount === 0 ? null : share;
 
@@ -122,8 +120,7 @@ export default function ComposeFlow({
         body: JSON.stringify({
           month,
           entryIds: picks.map((p) => p.entryId),
-          // 공개 기능이 닫혀 있는 동안은 늘 나만 보기로 엮는다
-          isShared: needsShare && effectiveShare === 'friends',
+          isShared: effectiveShare === 'friends',
         }),
       });
       if (res.ok) {
@@ -165,9 +162,7 @@ export default function ComposeFlow({
   }[step];
   const caption = {
     pick: '다시 읽고 싶은 문장만 골라 주세요',
-    order: MONTHLY_EXCERPT_SHARING
-      ? '친구에게 보이는 첫 문장이 피드의 표지가 돼요'
-      : '첫 문장이 표지가 돼요',
+    order: '친구에게 보이는 첫 문장이 피드의 표지가 돼요',
     preview: '묶음을 넘겨 보고, 한 페이지로도 펼쳐 보세요',
   }[step];
 
@@ -249,11 +244,11 @@ export default function ComposeFlow({
                 순서 정하기
               </button>
               <span className="flex items-center gap-3">
-                {needsShare && effectiveShare === null && (
+                {effectiveShare === null && (
                   <span className="font-sans text-fine text-ink-sub">공개 범위를 골라 주세요</span>
                 )}
                 <Button
-                  disabled={lock.busy || (needsShare && effectiveShare === null)}
+                  disabled={lock.busy || effectiveShare === null}
                   loading={lock.busy}
                   onClick={() => void save()}
                 >

@@ -17,7 +17,6 @@ vi.mock('@/lib/api/fetch', () => ({
   apiFetch: (...a: unknown[]) => apiFetch(...a),
   SessionExpiredError: class extends Error {},
 }));
-vi.mock('@/lib/monthly-excerpt/flags', () => ({ MONTHLY_EXCERPT_SHARING: true }));
 
 const { default: ComposeFlow } = await import('../ComposeFlow');
 

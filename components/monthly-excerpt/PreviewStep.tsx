@@ -1,10 +1,9 @@
 'use client';
 
 import { useMemo } from 'react';
-import { MONTHLY_EXCERPT_SHARING } from '@/lib/monthly-excerpt/flags';
 import { itemsFromPicks } from '@/lib/monthly-excerpt/compose';
 import type { ComposePick } from '@/lib/monthly-excerpt/compose';
-import { shareImpact } from '@/lib/monthly-excerpt/model';
+import { NO_PUBLIC_QUOTES, shareImpact } from '@/lib/monthly-excerpt/model';
 import type { MonthKey } from '@/lib/monthly-excerpt/types';
 import MonthlyExcerptReader from './MonthlyExcerptReader';
 
@@ -18,45 +17,39 @@ interface PreviewStepProps {
   disabled: boolean;
 }
 
-/** 3단계 — 내 화면 그대로 묶음과 펼친 페이지를 미리 보고, (공개 기능이 열렸다면) 공개 범위를 고른다 */
+/** 3단계 — 내 화면 그대로 묶음과 펼친 페이지를 미리 보고, 공개 범위를 고른다 */
 export default function PreviewStep({ month, picks, share, onShare, disabled }: PreviewStepProps) {
   const items = useMemo(() => itemsFromPicks(picks), [picks]);
   const impact = shareImpact(picks);
 
   return (
     <div>
-      {MONTHLY_EXCERPT_SHARING && (
-        <fieldset disabled={disabled} className="mb-4 border-b border-hairline pb-4">
-          <legend className="font-sans text-caption text-ink-sub">누구에게 보여 줄까요</legend>
-          <div role="radiogroup" className="mt-1">
-            <Radio
-              checked={share === 'friends'}
-              disabled={impact.publicCount === 0}
-              onSelect={() => onShare('friends')}
-              label="친구에게 보여 주기"
-              hint={
-                impact.publicCount === 0
-                  ? '친구에게 보일 문장이 없어요. 모두 비공개 기록이에요.'
-                  : undefined
-              }
-            />
-            <Radio
-              checked={share === 'private'}
-              onSelect={() => onShare('private')}
-              label="나만 보기"
-            />
-          </div>
-          <div aria-live="polite">
-            {share === 'friends' && impact.lines.length > 0 && (
-              <ul className="mt-2 font-sans text-body-sm text-ink-sub">
-                {impact.lines.map((line) => (
-                  <li key={line}>{line}</li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </fieldset>
-      )}
+      <fieldset disabled={disabled} className="mb-4 border-b border-hairline pb-4">
+        <legend className="font-sans text-caption text-ink-sub">누구에게 보여 줄까요</legend>
+        <div role="radiogroup" className="mt-1">
+          <Radio
+            checked={share === 'friends'}
+            disabled={impact.publicCount === 0}
+            onSelect={() => onShare('friends')}
+            label="친구에게 보여 주기"
+            hint={impact.publicCount === 0 ? NO_PUBLIC_QUOTES : undefined}
+          />
+          <Radio
+            checked={share === 'private'}
+            onSelect={() => onShare('private')}
+            label="나만 보기"
+          />
+        </div>
+        <div aria-live="polite">
+          {share === 'friends' && impact.lines.length > 0 && (
+            <ul className="mt-2 font-sans text-body-sm text-ink-sub">
+              {impact.lines.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </fieldset>
       {/* 펼친 페이지의 여백선이 position:fixed라 이 위쪽 조상에는 transform·filter를 두지 않는다 */}
       <MonthlyExcerptReader month={month} items={items} viewer="owner" preview />
     </div>

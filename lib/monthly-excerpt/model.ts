@@ -48,6 +48,8 @@ export function bookTallyForDisplay(
 }
 
 /** 친구에게 보여 줄 때 달라지는 점. noteCount는 공개 항목 중 생각이 있는 수만 센다. */
+export const NO_PUBLIC_QUOTES = '친구에게 보일 문장이 없어요.';
+
 export function shareImpact(picks: ExcerptPick[]): {
   privateCount: number;
   noteCount: number;

@@ -110,7 +110,7 @@ describe('POST /api/monthly-excerpts', () => {
   });
 
   it.each([
-    ['no_public_quotes', '친구에게 보일 문장이 없어요. 나만 보기로 엮어 주세요.'],
+    ['no_public_quotes', '친구에게 보일 문장이 없어요.'],
     ['month_not_finished', '아직 끝나지 않은 달이에요.'],
     ['no_entries', '문장을 하나 이상 골라 주세요.'],
   ])('maps %s to 422', async (code, message) => {
@@ -194,9 +194,7 @@ describe('PATCH /api/monthly-excerpts/[id]', () => {
     rpc.mockResolvedValue({ data: null, error: { message: 'no_public_quotes', code: 'P0001' } });
     const response = await PATCH(patch({ isShared: true }), ctx(id1));
     expect(response.status).toBe(422);
-    expect((await response.json()).error).toBe(
-      '친구에게 보일 문장이 없어요. 나만 보기로 엮어 주세요.'
-    );
+    expect((await response.json()).error).toBe('친구에게 보일 문장이 없어요.');
   });
 
   it('hides unknown errors', async () => {
