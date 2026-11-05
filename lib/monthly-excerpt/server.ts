@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import type {
+  Candidate,
   ExcerptMonthRow,
   ExcerptPrompt,
   MonthBook,
@@ -36,6 +37,37 @@ export async function fetchMonthBooks(month: MonthKey): Promise<MonthBook[]> {
     title: row.title,
     quoteCount: row.quote_count,
   }));
+}
+
+/** 한 쪽의 크기. /api/monthly-excerpts/candidates와 같다. */
+const CANDIDATE_PAGE_SIZE = 30;
+
+/**
+ * 엮기 화면이 처음 그릴 후보 — `전체` 기준 첫 쪽. 더 있는지는 다음 쪽의 첫 줄을 엿봐서 안다
+ * (RPC의 offset이 page * limit이라 limit+1로 부르면 쪽이 어긋난다). 불러오지 못하면 throw.
+ */
+export async function fetchFirstCandidates(
+  month: MonthKey
+): Promise<{ items: Candidate[]; hasMore: boolean }> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.rpc('get_monthly_excerpt_candidates', {
+    p_month: month,
+    p_page: 0,
+    p_limit: CANDIDATE_PAGE_SIZE,
+  });
+  if (error) fail('Monthly excerpt candidates unavailable', error);
+  const items = (data ?? []) as unknown as Candidate[];
+  let hasMore = false;
+  if (items.length === CANDIDATE_PAGE_SIZE) {
+    const peek = await supabase.rpc('get_monthly_excerpt_candidates', {
+      p_month: month,
+      p_page: CANDIDATE_PAGE_SIZE,
+      p_limit: 1,
+    });
+    if (peek.error) fail('Monthly excerpt candidates unavailable', peek.error);
+    hasMore = ((peek.data ?? []) as unknown[]).length > 0;
+  }
+  return { items, hasMore };
 }
 
 /** 모아 보기의 해 목록(최신 해 먼저). 불러오지 못하면 throw. */

@@ -28,12 +28,17 @@ export interface Candidate {
   entryId: string;
   date: string;
   quote: string;
+  /** 생각 본문. 공백뿐이면 null. 엮기 미리보기가 쓴다 */
+  note: string | null;
   hasNote: boolean;
   isPrivate: boolean;
   fromPage: number | null;
   toPage: number | null;
   userBookId: string;
+  /** books.id — 발췌집 항목의 book.id와 같은 값 */
+  bookId: string;
   bookTitle: string;
+  author: string | null;
 }
 
 /** 그달에 문장을 남긴 책 (get_monthly_excerpt_month_books) */

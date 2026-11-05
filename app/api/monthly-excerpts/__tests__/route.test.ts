@@ -3,6 +3,7 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { GET, POST } from '../route';
 import { DELETE, PATCH } from '../[id]/route';
 import { GET as GET_CANDIDATES } from '../candidates/route';
+import { GET as GET_BOOKS } from '../books/route';
 
 vi.mock('@/lib/supabase/server', () => ({ createSupabaseServerClient: vi.fn() }));
 vi.mock('@/lib/supabase/getServerUser', () => ({ getServerUser: () => getUser() }));
@@ -284,6 +285,40 @@ describe('GET /api/monthly-excerpts/candidates', () => {
     const body = await (await get('month=2026-10')).json();
     expect(body).toEqual({ items: [{ entryId: 'a' }], hasMore: false });
     expect(rpc).toHaveBeenCalledTimes(1);
+  });
+
+  it('hides RPC errors', async () => {
+    rpc.mockResolvedValue({ data: null, error: { message: 'boom', code: 'XX000' } });
+    const response = await get('month=2026-10');
+    expect(response.status).toBe(500);
+    expect(JSON.stringify(await response.json())).not.toContain('boom');
+  });
+});
+
+describe('GET /api/monthly-excerpts/books', () => {
+  const get = (qs: string) =>
+    GET_BOOKS(new Request(`http://localhost/api/monthly-excerpts/books?${qs}`));
+
+  it('requires a session', async () => {
+    getUser.mockResolvedValue({ data: { user: null }, error: null });
+    expect((await get('month=2026-10')).status).toBe(401);
+  });
+
+  it.each(['', 'month=2026-13', 'month=abc'])('rejects %s', async (qs) => {
+    expect((await get(qs)).status).toBe(400);
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it('maps the chip rows', async () => {
+    rpc.mockResolvedValue({
+      data: [{ user_book_id: id1, title: '아무튼, 메모', quote_count: 12 }],
+      error: null,
+    });
+    const response = await get('month=2026-10');
+    expect(rpc).toHaveBeenCalledWith('get_monthly_excerpt_month_books', { p_month: '2026-10' });
+    expect(await response.json()).toEqual({
+      books: [{ userBookId: id1, title: '아무튼, 메모', quoteCount: 12 }],
+    });
   });
 
   it('hides RPC errors', async () => {

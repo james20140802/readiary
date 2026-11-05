@@ -185,9 +185,16 @@ begin
   perform t.eq('candidates order', (select jsonb_agg(right(c ->> 'entryId', 3)) from jsonb_array_elements(v) c),
     '["102","103","101"]');
   perform t.eq('candidate shape', v -> 2, jsonb_build_object(
-    'entryId', '00000000-0000-4000-8000-000000000101', 'date', '2026-03-20', 'quote', '문장 일', 'hasNote', true,
-    'isPrivate', false, 'fromPage', 10, 'toPage', 12,
-    'userBookId', '00000000-0000-4000-8000-000000000011', 'bookTitle', '아무튼, 메모'));
+    'entryId', '00000000-0000-4000-8000-000000000101', 'date', '2026-03-20', 'quote', '문장 일',
+    'note', '생각 일', 'hasNote', true, 'isPrivate', false, 'fromPage', 10, 'toPage', 12,
+    'userBookId', '00000000-0000-4000-8000-000000000011', 'bookId', '00000000-0000-4000-8000-000000000010',
+    'bookTitle', '아무튼, 메모', 'author', '정혜윤'));
+  perform t.eq('candidate keeps null author and pages as null', v -> 0,
+    jsonb_build_object(
+      'entryId', '00000000-0000-4000-8000-000000000102', 'date', '2026-03-10', 'quote', '문장 이',
+      'note', '생각 이', 'hasNote', true, 'isPrivate', false, 'fromPage', null, 'toPage', null,
+      'userBookId', '00000000-0000-4000-8000-000000000021', 'bookId', '00000000-0000-4000-8000-000000000020',
+      'bookTitle', '두 번째 책', 'author', null));
   perform t.eq('private candidate is flagged', v -> 1 -> 'isPrivate', 'true');
 
   perform t.eq('filter by book',
