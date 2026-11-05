@@ -43,25 +43,15 @@ PGLITE_MODULE=/tmp/readiary-grants-sql/node_modules/@electric-sql/pglite/dist/in
 - **함수 본문의 글자 단위 일치** — 이름과 인자 시그니처만 비교한다. `pg_get_functiondef`의 포매팅은 PG 버전마다 흔들린다.
 - **pg_cron/pg_net** — 저장소 마이그레이션은 `cron.schedule`을 호출하지 않는다(웹 푸시 발송은 운영 설정으로 예약한다 — 아래 이력 차이 참고). 확장 설치 여부는 보지 않는다.
 
-### 프로덕션 이력 정리(실행하지 않음 — 사람이 결정할 일)
+### 프로덕션 이력 정리
 
-`supabase_migrations.schema_migrations`(읽기 전용 조회, 2026-10-30)와 저장소 파일명을 대조한 결과:
+`supabase_migrations.schema_migrations`와 저장소 파일명을 2026-10-30에 읽기 전용으로 대조했고, 2026-11-05에 일부를 정리했다.
 
-- `20260825000000_sentence_centric_foundation.sql`, `20260826000000_harden_entries_and_notifications.sql`, 그리고 새로 추가한 `20260824000000_core_schema_baseline.sql`은 이력 테이블에 없다(앞 둘은 SQL Editor로 수동 적용됐다고 알려져 있었다 — 이번 조회로 재확인. 기준 마이그레이션은 프로덕션에 애초에 적용하지 않는다).
-- `20260829000000_notification_rpcs.sql` 하나가 이력 테이블의 두 행(`20260830061953 notification_rpcs`, `20260830062042 notification_rpcs_revoke_anon`)에 대응한다 — 나중에 저장소로 회수하며 한 파일로 합쳤다.
-- 그 밖의 저장소 파일은 이력 테이블과 1:1 대응하지만 버전(타임스탬프)이 다르다(수동 적용 시각과 파일명이 다르다) — 예: `20260831000000_add_finished_at.sql` ↔ `20260830204724`, `20260912161000_monthly_quote_previews.sql` ↔ `20260914152441`.
-- **이력 테이블에만 있고 저장소에 없는 행**: `20260907162949 enable_push_cron_extensions`. 웹 푸시에 필요한 확장(추정: `pg_cron`·`pg_net`)을 대시보드에서 직접 켠 것으로 보이며, 저장소 마이그레이션에는 반영되지 않았다. 이 체인 테스트와 기준 마이그레이션은 이 간극을 다루지 않는다 — 확장 활성화는 운영 설정이라 별도 확인이 필요하다.
+**프로덕션에 `supabase db push`를 쓰지 않는다.** 아래 "남은 차이" 때문에 이력과 파일이 아직 일치하지 않는다. 번호가 다른 파일은 도구가 미적용으로 볼 수 있으므로, 마이그레이션은 SQL Editor나 MCP로 파일 하나씩 적용한다.
 
-CLI로 로컬 파일명과 이력을 맞추려면(저장소 마이그레이션의 실제 SQL은 전혀 다시 실행하지 않는다 — 이력 테이블 행만 바뀐다):
+#### 정리한 것 (2026-11-05)
 
-```sh
-# 새 기준 마이그레이션과 그 이전 2개를 "적용됨"으로만 기록한다(SQL 실행 없음)
-supabase migration repair 20260824000000 --status applied
-supabase migration repair 20260825000000 --status applied
-supabase migration repair 20260826000000 --status applied
-```
-
-또는 같은 일을 SQL로 직접(이력 테이블에만 기록, 프로덕션 DDL은 건드리지 않음):
+이력에 없던 파일 3개를 "적용됨"으로 기록했다. SQL Editor에서 아래 문장만 실행했고, 마이그레이션 내용은 다시 실행하지 않았다. 이력은 31행에서 34행이 됐다.
 
 ```sql
 insert into supabase_migrations.schema_migrations (version, name)
@@ -69,10 +59,21 @@ values
   ('20260824000000', 'core_schema_baseline'),
   ('20260825000000', 'sentence_centric_foundation'),
   ('20260826000000', 'harden_entries_and_notifications')
-on conflict (version) do nothing;
+on conflict (version) do nothing
+returning version, name;
 ```
 
-`20260829000000_notification_rpcs.sql`과 날짜가 다른 나머지 파일들은 실제 내용이 이미 적용돼 있고 이력 테이블에도 (다른 버전으로) 기록돼 있으므로, 버전 번호만 맞추려면 기존 행을 지우고 새 버전으로 다시 넣어야 한다 — 이미 있는 이력 행을 지우는 작업이라 이 문서는 그 SQL을 적지 않는다. 필요하면 사람이 대상 행을 확인하고 직접 결정한다. `enable_push_cron_extensions`도 마찬가지로, 대응하는 저장소 파일을 만들지 이력만 둘지는 운영 담당자가 정한다.
+- `20260825000000`·`20260826000000`은 SQL Editor로 수동 적용돼 있었다. 기록 전에 `notifications` 테이블, `entries.note`·`quote`, `entries_content_check`·`entries_page_order_check`, `notifications.read_at` 수정 권한이 있는지 확인했다.
+- `20260824000000_core_schema_baseline.sql`은 빈 DB를 만들 때만 쓰는 파일이라 프로덕션에서 실행한 적이 없고, 실행하면 안 된다. 이 파일의 `revoke all`은 7개 테이블의 권한을 지웠다가 다시 주는데, `friends`의 컬럼 단위 수정 권한(`status`, `accepted_at`)은 다시 주지 않는다. 기록은 이 파일이 미적용으로 잡히지 않게 하려는 것이다.
+- 기록 뒤 `friends` 수정 권한, `anon` 테이블 권한 0개, RLS가 꺼진 테이블 0개가 그대로인 것을 확인했다.
+
+#### 남은 차이 (사람이 결정할 일)
+
+- `20260829000000_notification_rpcs.sql` 하나가 이력의 두 행(`20260830061953 notification_rpcs`, `20260830062042 notification_rpcs_revoke_anon`)에 대응한다. 나중에 저장소로 회수하며 한 파일로 합쳤다.
+- 그 밖의 저장소 파일은 이력과 1:1로 대응하지만 버전이 다르다. 수동으로 적용한 시각이 파일명과 다르기 때문이다. 예: `20260831000000_add_finished_at.sql` ↔ `20260830204724`, `20260912161000_monthly_quote_previews.sql` ↔ `20260914152441`, `20261030120000_entry_months.sql` ↔ `20261102055759`.
+- **이력에만 있고 저장소에 없는 행**: `20260907162949 enable_push_cron_extensions`. 웹 푸시에 필요한 확장(추정: `pg_cron`·`pg_net`)을 대시보드에서 직접 켠 것으로 보이며, 저장소 마이그레이션에는 반영되지 않았다. 체인 테스트와 기준 마이그레이션은 이 간극을 다루지 않는다. 확장 활성화는 운영 설정이라 별도 확인이 필요하다.
+
+버전이 다른 파일들은 내용이 이미 적용돼 있고 이력에도 다른 번호로 기록돼 있다. 번호를 맞추려면 기존 행을 지우고 새 번호로 다시 넣어야 하므로, 이 문서는 그 SQL을 적지 않는다. 필요하면 사람이 대상 행을 확인하고 직접 결정한다. `enable_push_cron_extensions`도 저장소 파일을 만들지 이력만 둘지 운영 담당자가 정한다.
 
 ## 새 테이블 규칙
 
