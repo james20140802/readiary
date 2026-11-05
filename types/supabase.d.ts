@@ -578,6 +578,16 @@ export type Database = {
       };
       get_my_monthly_excerpt_year: { Args: { p_year: number }; Returns: Json };
       get_monthly_excerpt_prompt: { Args: { p_today: string }; Returns: Json };
+      can_view_monthly_excerpt: { Args: { p_id: string }; Returns: boolean };
+      get_friend_monthly_excerpt: { Args: { p_owner: string; p_month: string }; Returns: Json };
+      get_friend_monthly_excerpt_years: {
+        Args: { p_owner: string };
+        Returns: { year: number; excerpt_count: number }[];
+      };
+      get_friend_monthly_excerpt_year: {
+        Args: { p_owner: string; p_year: number };
+        Returns: Json;
+      };
       get_books_page: { Args: Record<string, never>; Returns: Json };
       get_profile_retrospect: {
         Args: { p_user_id: string; p_today: string; p_public_only?: boolean };

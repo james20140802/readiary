@@ -739,6 +739,7 @@
   "functions": [
     ["authorize_push_delivery", "p_id uuid"],
     ["books_original_cover_url", ""],
+    ["can_view_monthly_excerpt", "p_id uuid"],
     ["claim_marketing_email", "p_user uuid, p_id uuid, p_content_hash text, p_token_hash text"],
     ["claim_push_batch", "p_limit integer"],
     ["claim_push_test", "p_user uuid, p_endpoint text"],
@@ -755,6 +756,9 @@
       "get_monthly_excerpt_candidates",
       "p_month text, p_user_book_id uuid, p_page integer, p_limit integer"
     ],
+    ["get_friend_monthly_excerpt", "p_owner uuid, p_month text"],
+    ["get_friend_monthly_excerpt_year", "p_owner uuid, p_year integer"],
+    ["get_friend_monthly_excerpt_years", "p_owner uuid"],
     ["get_monthly_excerpt_month_books", "p_month text"],
     ["get_monthly_excerpt_prompt", "p_today date"],
     ["get_monthly_recap", "p_today date"],
@@ -774,6 +778,7 @@
     ["monthly_excerpt_kst_today", ""],
     ["monthly_excerpt_month_start", "p_month text"],
     ["monthly_excerpt_sync_entry", ""],
+    ["monthly_excerpt_visible_items", "p_id uuid"],
     [
       "mutate_entry_with_reflection_ack",
       "p_entry_id uuid, p_patch jsonb, p_delete boolean, p_reflection_count integer"

@@ -46,6 +46,9 @@ export const SUPABASE_STUBS_SQL = `
   grant usage on schema public, auth, storage to anon, authenticated;
   -- 2026-10-30 이후 기본값: public에 새로 만든 객체에 역할 권한을 자동으로 주지 않는다.
   alter default privileges in schema public revoke all on tables from anon, authenticated;
+  -- 함수의 기본값은 그대로다: Supabase는 public에 새로 만든 함수의 실행 권한을 세 역할에 직접 준다.
+  -- 그래서 revoke ... from public만으로는 anon이 남는다. 계약이 이 차이를 잡도록 똑같이 재현한다.
+  alter default privileges in schema public grant execute on functions to anon, authenticated, service_role;
 `;
 
 // 저장소 마이그레이션 전체를 파일명 순서로 적용하고, 적용한 파일 목록을 돌려준다.

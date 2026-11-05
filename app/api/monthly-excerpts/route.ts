@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { unauthorized } from '@/lib/api/auth';
 import { badRequest, excerptHeaders, rpcFailure } from '@/lib/monthly-excerpt/errors';
-import { isMonthKey } from '@/lib/monthly-excerpt/month';
+import { isMonthKey, parseYear } from '@/lib/monthly-excerpt/month';
 import { isUuid } from '@/lib/share/validation';
 import { getServerUser } from '@/lib/supabase/getServerUser';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
@@ -53,10 +53,8 @@ export async function GET(request: Request) {
   } = await getServerUser();
   if (authError || !user) return unauthorized(excerptHeaders);
 
-  const raw = new URL(request.url).searchParams.get('year') ?? '';
-  const year = /^\d{4}$/.test(raw) ? Number(raw) : NaN;
-  if (!Number.isInteger(year) || year < 1900 || year > 9999)
-    return badRequest('해를 확인해 주세요.');
+  const year = parseYear(new URL(request.url).searchParams.get('year'));
+  if (year === null) return badRequest('해를 확인해 주세요.');
 
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.rpc('get_my_monthly_excerpt_year', { p_year: year });

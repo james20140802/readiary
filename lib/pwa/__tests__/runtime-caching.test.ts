@@ -59,6 +59,10 @@ describe('isPersonalizedSameOriginRequest', () => {
     '/auth/callback?code=x',
     '/logout',
     '/invite/name-1234',
+    '/social/u/minji-0001/excerpts',
+    '/social/u/minji-0001/excerpts/2026-03',
+    '/api/monthly-excerpts?year=2026',
+    '/api/monthly-excerpts/friend?owner=x&year=2026',
   ])('fetch 로 받는 /api·/auth·확장자 없는 경로도 잡는다: %s', (path) => {
     expect(isPersonalizedSameOriginRequest(context(path))).toBe(true);
   });

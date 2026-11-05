@@ -48,6 +48,7 @@ PGLITE_MODULE=/tmp/readiary-grants-sql/node_modules/@electric-sql/pglite/dist/in
 체인 계약이 깨지지 않도록, 머지 전 마이그레이션의 결과를 픽스처에 미리 적는다. 픽스처에 있다고 프로덕션에 적용된 것은 아니다.
 
 - `20261106090000_monthly_excerpts.sql`(달의 발췌집 테이블 2개, 정책 3개, 함수 12개): 프로덕션 미적용. 이 부분은 조회 결과가 아니라 예상치다. 적용한 뒤 읽기 전용 조회로 대조하고 이 항목을 지운다.
+- `20261110090000_monthly_excerpts_friends.sql`(친구용 RPC 4개, 내부 함수 1개): 프로덕션 미적용. 위와 같이 예상치다.
 
 ### 프로덕션 이력 정리
 

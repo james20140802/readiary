@@ -122,4 +122,18 @@ describe('MonthlyExcerptOwnerView', () => {
       .querySelector('button.flex-1:last-child') as HTMLButtonElement;
     expect(confirm.disabled).toBe(true);
   });
+
+  it('공유 중인데 공개 문장이 없으면 지금은 나만 볼 수 있다고 알린다', () => {
+    flags.MONTHLY_EXCERPT_SHARING = true;
+    const notice = '친구에게 보일 문장이 없어 지금은 나만 볼 수 있어요';
+    show(excerpt({ isShared: true, items: [item(1, { isPrivate: true })] }));
+    expect(screen.getByText(notice)).toBeTruthy();
+    cleanup();
+    // 공개 문장이 있거나, 공유하지 않은 권에는 뜨지 않는다
+    show(excerpt({ isShared: true }));
+    expect(screen.queryByText(notice)).toBeNull();
+    cleanup();
+    show(excerpt({ isShared: false, items: [item(1, { isPrivate: true })] }));
+    expect(screen.queryByText(notice)).toBeNull();
+  });
 });

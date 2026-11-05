@@ -106,6 +106,11 @@ export default function MonthlyExcerptOwnerView({ excerpt }: { excerpt: MonthlyE
         viewer="owner"
         actions={
           <>
+            {MONTHLY_EXCERPT_SHARING && isShared && impact.publicCount === 0 && (
+              <p className="w-full text-balance break-keep font-sans text-body-sm text-ink-sub">
+                친구에게 보일 문장이 없어 지금은 나만 볼 수 있어요
+              </p>
+            )}
             {/* 상단 바는 모바일에만 있다. 넓은 화면에서도 내보낼 수 있게 책별 발췌집처럼 버튼을 함께 둔다 */}
             <Button size="sm" onClick={() => setExportOpen(true)}>
               이미지로 내보내기

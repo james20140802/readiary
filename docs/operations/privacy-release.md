@@ -57,3 +57,37 @@ PGLITE_MODULE=/tmp/readiary-pr91-sql/node_modules/@electric-sql/pglite/dist/inde
 ## 이메일 소식 선택 기능 (2026-11-03 수집 시작 예정)
 
 이메일 수신 동의는 필수 약관·Web Push와 분리한다. 적용할 신규 마이그레이션, 본인 읽기/서버 쓰기 권한, 수신거부 토큰 및 로그 제외, 탈퇴 시 CASCADE 삭제와 공급자 기록의 차이는 [이메일 소식 수신 동의 운영](email-marketing-consent.md)을 따른다. 운영 DB 적용과 방침 공고(2026-10-27)는 끝났고 수집은 2026-11-03에 열린다. 실발송은 별도 작업이다. 수집 중지 절차와 담당자는 같은 문서를 따른다.
+
+## 달의 발췌집 친구 공개 (Task 7, 2026-11-06)
+
+친구는 공개 기록으로 이루어진 문장만 읽고, 비공개 기록의 id, 개수, 순서 번호의 빈틈은 응답에 남지 않는다. `monthly_excerpts`와 `monthly_excerpt_items`의 RLS는 소유자 전용 그대로이고, 친구의 길은 `20261110090000_monthly_excerpts_friends.sql`의 정의자 RPC뿐이다. 기록을 복사하지 않고 가리키므로 비공개 전환과 삭제는 다음 읽기에 바로 반영된다.
+
+| 시나리오 | 내 화면 | 친구의 RPC 응답 | 친구 화면 | 근거 |
+| --- | --- | --- | --- | --- |
+| 순서 [비공개 p, 공개 a, 비공개 q, 공개 b] | 넷 다, 비공개 표시 | a, b만. `position` 1, 2, 표지 a, 수 2. p·q의 id·문장·책 없음, `isPrivate`·`firstSharedAt` 키 없음 | 표제지·책 목록·수 모두 a, b 기준 | 계약 테스트 |
+| 나만 보기 | 그대로 | `null`, 해 목록·달 목록에서 빠짐 | 404 | 계약 테스트, 페이지 테스트 |
+| 공개 문장을 모두 비공개로 전환 | 그대로, `친구에게 보일 문장이 없어 지금은 나만 볼 수 있어요` | `null`, 다시 공개하면 복귀 | 404, 서재에서 빠짐 | 계약 테스트, 화면 테스트 |
+| 일부만 비공개로 전환 | 그대로 | 번호를 다시 매기고 표지가 다음 공개 문장으로 옮겨 감 | 줄어든 내용 | 계약 테스트 |
+| 기록 삭제 | 빠짐 | 빠짐 | 빠짐 | 계약 테스트 |
+| 친구 해제, 신청만 한 사이, 친구 아님 | 그대로 | `null`·빈 목록·`false` | 404 | 계약 테스트, 페이지 테스트 |
+| 없는 달·없는 사람·잘못된 달·범위 밖의 해 | 해당 없음 | 위와 같은 값. 예외를 던지지 않아 존재 여부를 알아낼 수 없음 | 404 | 계약 테스트 |
+| anon | 해당 없음 | 실행 권한 없음(42501). `proacl`에 PUBLIC과 anon 항목 없음 | 로그인으로 이동 | 계약 테스트 |
+| 테이블 직접 조회(친구) | 해당 없음 | 0행 | 해당 없음 | 계약 테스트 |
+
+내부 함수 `monthly_excerpt_visible_items`는 친구 관계를 확인하지 않으므로 `public`, `anon`, `authenticated` 누구도 실행하지 못한다. 공개 RPC가 정의자 권한으로만 부른다. 계약 스텁(`supabase/tests/stubs.mjs`)은 Supabase의 기본 함수 권한(세 역할에 직접 부여)을 재현하므로 `revoke ... from public`만 있고 anon 회수가 빠지면 테스트가 실패한다. 친구 해제 등 재현은 `node supabase/tests/run-monthly-excerpts-contract.mjs supabase/tests/monthly_excerpts_friend_contract.sql`이다.
+
+### 캐시
+
+`next.config.ts` → `lib/pwa/runtime-caching.ts`를 코드로 읽은 결과다. 고칠 것이 없었다.
+
+- `/social/u/*` 화면: 문서 내비게이션과 RSC 요청(`RSC` 헤더, `?_rsc=`)은 첫 규칙 `isPersonalizedSameOriginRequest`에 걸려 `NetworkOnly`다. Cache Storage에 들어가지 않는다.
+- `/api/monthly-excerpts*`: `/api/`로 시작하므로 같은 규칙으로 `NetworkOnly`다. 응답 헤더도 `private, no-store, max-age=0`이다(`excerptHeaders`). 친구용 경로 `/api/monthly-excerpts/friend`를 포함한다.
+- Supabase 직접 요청: 둘째 규칙으로 `NetworkOnly`다. `start-url` 캐시는 꺼져 있다.
+- 위 경로가 첫 규칙에 걸리는지는 `lib/pwa/__tests__/runtime-caching.test.ts`에 추가했다. 세션 없는 `/api/monthly-excerpts/friend` 요청이 401과 `no-store`로 돌아오고, 세션 없는 `/social/u/.../excerpts*`가 로그인으로 이동하는 것은 자리표시자 환경의 개발 서버에서 확인했다.
+- 남는 차이: 이미 열어 둔 탭의 메모리에 있는 화면은 지워지지 않는다. Next 라우터 캐시(`staleTimes` 설정 없음)가 뒤로 가기 때 앞서 받은 RSC를 재사용할 수 있고, 브라우저의 bfcache도 같을 수 있다. 다음 새 내비게이션이나 새로 고침부터는 닫힌다. 기기 저장소에 남는 경로는 코드상 없다. 받은 사람이 찍어 둔 화면 같은 사본은 회수할 수 없다.
+
+### 미검증
+
+- 실제 Supabase에서 두 계정으로 비공개 전환·친구 해제 뒤 페이지 접근. 프로덕션 마이그레이션 미적용이고, 이번 검증은 PGlite 계약과 픽스처 화면이다.
+- 설치형 PWA와 iOS Safari 실기기의 서비스 워커 동작, 로그인 상태의 페이지 응답 헤더. 위 캐시 항목은 코드 읽기와 단위 테스트이며 실기기 확인이 아니다.
+- PGlite의 슈퍼유저 소유자와 달리 프로덕션의 함수 소유자는 `postgres`다. 적용 뒤 `has_function_privilege`로 anon·authenticated 권한을 다시 조회한다.
