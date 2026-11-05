@@ -294,10 +294,17 @@ function SlipBody({ isTop, children }: { isTop: boolean; children: ReactNode }) 
       setMore(el.scrollTop + el.clientHeight < el.scrollHeight - 1);
     };
     measure();
-    if (typeof ResizeObserver === 'undefined') return;
-    const observer = new ResizeObserver(measure);
-    observer.observe(el);
-    return () => observer.disconnect();
+    // 칸 크기는 그대로인 채 글자만 커지는 폰트 교체는 ResizeObserver가 알려 주지 않는다
+    let mounted = true;
+    void document.fonts?.ready.then(() => {
+      if (mounted) measure();
+    });
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure);
+    observer?.observe(el);
+    return () => {
+      mounted = false;
+      observer?.disconnect();
+    };
   }, []);
 
   return (
