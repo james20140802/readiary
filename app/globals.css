@@ -656,7 +656,8 @@ body {
     -webkit-backdrop-filter: blur(20px) saturate(1.6);
     backdrop-filter: blur(20px) saturate(1.6);
   }
-  .dseg-item[aria-current='true'] {
+  .dseg-item[aria-current='true'],
+  .dseg-item[aria-pressed='true'] {
     background: rgb(var(--sheet));
     color: rgb(var(--ink));
     box-shadow: 0 1px 3px rgb(0 0 0 / 0.12);
@@ -668,7 +669,8 @@ body {
   .dseg-item {
     color: #978e81;
   }
-  .dseg-item[aria-current='true'] {
+  .dseg-item[aria-current='true'],
+  .dseg-item[aria-pressed='true'] {
     background: rgb(255 255 255 / 0.14);
     color: #f6f0e6;
     box-shadow:
