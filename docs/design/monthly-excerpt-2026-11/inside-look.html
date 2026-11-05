@@ -1,0 +1,95 @@
+<style>
+.rd{--paper:#F4F0E8;--ink:#221E1A;--sub:#6B645A;--faint:#9E968A;--rule:#E0D9CC;--rule2:#CFC5B4;--accent:#2D5FB8;--sheet:#FBFAF6;--serif:"Maru Buri","MaruBuri","AppleMyungjo","Nanum Myeongjo",serif;--sans:"Pretendard",-apple-system,"Apple SD Gothic Neo",sans-serif}
+@media (prefers-color-scheme:dark){.rd{--paper:#1A1714;--ink:#ECE5DA;--sub:#B1A899;--faint:#8E8476;--rule:#2E2A25;--rule2:#4A4036;--accent:#85A9EC;--sheet:#26231F}}
+.rd{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:18px;margin:20px 0 8px}
+.rd figure{margin:0;min-width:0}
+.rd figcaption{font:600 14px/1.5 var(--sans);margin-bottom:8px}
+.rd figcaption small{display:block;font-weight:400;opacity:.72;font-size:13px}
+.rd .ph{background:var(--paper);color:var(--ink);border:1px solid var(--rule2);border-radius:14px;padding:16px 16px 20px;font-family:var(--sans);overflow:hidden}
+.rd .tp{text-align:center;padding:8px 0 14px}
+.rd .k{font:600 12px var(--sans);letter-spacing:.14em;color:var(--sub)}
+.rd .ttl{font:700 26px/1.35 var(--serif);margin-top:8px}
+.rd .tp p{font:400 15px/1.7 var(--serif);color:var(--sub);margin:10px 0 0;word-break:keep-all}
+.rd .books{list-style:none;margin:14px 0 0;padding:10px 0 0;border-top:1px solid var(--rule);text-align:left}
+.rd .books li{display:flex;justify-content:space-between;gap:10px;font:500 13px/1.9 var(--sans);color:var(--sub)}
+.rd .books li b{font:600 14px var(--serif);color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rd .pos{display:flex;justify-content:space-between;font:500 13px var(--sans);color:var(--sub);margin-bottom:8px}
+.rd .pos span:last-child{color:var(--accent);font-weight:600}
+.rd .pile{position:relative;margin:0 8px 16px 0}
+.rd .pile:before,.rd .pile:after{content:"";position:absolute;inset:0;background:var(--sheet);border:1px solid var(--rule2);border-radius:3px}
+.rd .pile:before{transform:translate(9px,9px) rotate(1.2deg)}
+.rd .pile:after{transform:translate(5px,5px) rotate(-.6deg)}
+.rd .slip{position:relative;z-index:1;background:var(--sheet);border:1px solid var(--rule2);border-radius:3px;padding:18px 18px 14px;box-shadow:0 8px 18px rgba(50,40,25,.08);aspect-ratio:4/5;max-height:300px;display:flex;flex-direction:column}
+.rd .from{font:600 13px var(--serif);color:var(--sub);padding-bottom:10px;margin-bottom:12px;border-bottom:1px solid var(--rule)}
+.rd .q{font:600 18px/1.65 var(--serif);word-break:keep-all}
+.rd .pg{display:flex;justify-content:space-between;gap:8px;margin-top:auto;font:500 12px var(--sans);color:var(--faint)}
+.rd .ch{font:700 15px var(--serif);border-top:1px solid var(--ink);padding-top:10px;margin:0 0 10px}
+.rd .ch small{display:block;font:500 12px var(--sans);color:var(--sub);margin-top:2px}
+</style>
+
+<h2>달의 발췌집 안쪽은 어떻게 보일까요?</h2>
+<p class="subtitle">세 안 모두 간지 묶음과 '한 줄로 펼치기'는 책별 발췌집과 같습니다. 문장은 예시입니다.</p>
+
+<div class="rd">
+  <figure>
+    <figcaption>A. 책별과 똑같이<small>제목만 달로 바뀌고, 어느 책인지는 장 아래 작게</small></figcaption>
+    <div class="ph">
+      <div class="tp">
+        <div class="k">달의 발췌집</div>
+        <div class="ttl">2026년 3월</div>
+        <p>네 권의 책에서<br>문장 열두 개를 골랐습니다.</p>
+      </div>
+      <div class="pos"><span>3 / 12</span><span>한 줄로 펼치기</span></div>
+      <div class="pile"><div class="slip">
+        <div class="q">사랑에 빠지는 일은 상대를 다 알기 전에 시작된다.</div>
+        <div class="pg"><span>왜 나는 너를 사랑하는가 · p.88</span><span>3월 14일</span></div>
+      </div></div>
+    </div>
+  </figure>
+
+  <figure>
+    <figcaption>B. 같은 틀 + 책 표시 (추천)<small>표제지에 이 달의 책, 장 맨 위에 책 이름. 내가 고른 순서 그대로</small></figcaption>
+    <div class="ph">
+      <div class="tp">
+        <div class="k">달의 발췌집</div>
+        <div class="ttl">2026년 3월</div>
+        <p>네 권의 책에서<br>문장 열두 개를 골랐습니다.</p>
+        <ul class="books">
+          <li><b>왜 나는 너를 사랑하는가</b><span>5</span></li>
+          <li><b>아무튼, 메모</b><span>4</span></li>
+          <li><b>외 2권</b><span>3</span></li>
+        </ul>
+      </div>
+      <div class="pos"><span>3 / 12</span><span>한 줄로 펼치기</span></div>
+      <div class="pile"><div class="slip">
+        <div class="from">왜 나는 너를 사랑하는가</div>
+        <div class="q">사랑에 빠지는 일은 상대를 다 알기 전에 시작된다.</div>
+        <div class="pg"><span>p.88</span><span>3월 14일</span></div>
+      </div></div>
+    </div>
+  </figure>
+
+  <figure>
+    <figcaption>C. 책마다 장을 나눠서<small>책별로 묶어 차례처럼 읽음. 순서를 자유롭게 섞기는 어려움</small></figcaption>
+    <div class="ph">
+      <div class="tp">
+        <div class="k">달의 발췌집</div>
+        <div class="ttl">2026년 3월</div>
+        <p>네 권의 책에서<br>문장 열두 개를 골랐습니다.</p>
+      </div>
+      <div class="ch">왜 나는 너를 사랑하는가<small>첫째 권 · 문장 5</small></div>
+      <div class="pos"><span>1 / 5</span><span>다음 책</span></div>
+      <div class="pile"><div class="slip">
+        <div class="q">사랑에 빠지는 일은 상대를 다 알기 전에 시작된다.</div>
+        <div class="pg"><span>p.88</span><span>3월 14일</span></div>
+      </div></div>
+    </div>
+  </figure>
+</div>
+
+<h3 style="margin-top:24px">어느 쪽이 마음에 드나요?</h3>
+<div class="options">
+  <div class="option" data-choice="same" onclick="toggleSelect(this)"><div class="letter">A</div><div class="content"><h3>책별과 똑같이</h3><p>가장 익숙하지만 어느 책의 문장인지 눈에 덜 들어옵니다.</p></div></div>
+  <div class="option" data-choice="same-frame-book-labels" onclick="toggleSelect(this)"><div class="letter">B</div><div class="content"><h3>같은 틀 + 책 표시 (추천)</h3><p>읽는 법은 그대로이고, 여러 책이 섞였다는 점과 내가 고른 순서가 드러납니다.</p></div></div>
+  <div class="option" data-choice="chapters" onclick="toggleSelect(this)"><div class="letter">C</div><div class="content"><h3>책마다 장을 나눠서</h3><p>책별 구분은 뚜렷하지만 한 달의 흐름보다 책 목록처럼 읽힙니다.</p></div></div>
+</div>
