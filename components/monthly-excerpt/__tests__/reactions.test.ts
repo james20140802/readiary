@@ -156,6 +156,24 @@ describe('기록의 좋아요·댓글은 예전 그대로다', () => {
     expect(apiFetch).toHaveBeenCalledWith('/api/likes?entry_id=e1');
   });
 
+  it('좋아한 사람을 못 불러오면 빈 명단 대신 실패와 다시 시도를 보인다', async () => {
+    apiFetch.mockResolvedValueOnce(new Response('{}', { status: 500 }));
+    render(
+      h(LikersBottomSheet, {
+        target: { kind: 'entry', entryId: 'e1' },
+        isOpen: true,
+        onClose: () => {},
+      })
+    );
+    expect(await screen.findByText('좋아한 사람을 불러오지 못했어요.')).toBeTruthy();
+    expect(screen.queryByText('아직 이 기록을 좋아한 사람이 없어요')).toBeNull();
+
+    apiFetch.mockResolvedValueOnce(ok([]));
+    fireEvent.click(screen.getByRole('button', { name: '다시 시도' }));
+    expect(await screen.findByText('아직 이 기록을 좋아한 사람이 없어요')).toBeTruthy();
+    expect(screen.queryByText('좋아한 사람을 불러오지 못했어요.')).toBeNull();
+  });
+
   it('댓글 시트: 읽기·지우기 주소와 작성 본문', async () => {
     apiFetch.mockImplementation(async (url: string, init?: { method?: string; body?: string }) => {
       if (init?.method === 'POST')
