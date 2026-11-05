@@ -24,12 +24,38 @@ export default function PickStep({ list, chips, picks, onToggle, pickedView }: P
   const checked = new Set(picks.map((p) => p.entryId));
   const total = chips.books?.reduce((sum, b) => sum + b.quoteCount, 0) ?? null;
 
+  // 고른 문장 보기에서 해제하면 그 줄이 사라진다. 초점이 body로 떨어지지 않게 다음 줄(없으면 목록)로 옮긴다.
+  const pickedList = useRef<HTMLUListElement>(null);
+  const allList = useRef<HTMLDivElement>(null);
+  const removedAt = useRef<number | null>(null);
+  useLayoutEffect(() => {
+    const index = removedAt.current;
+    if (index === null) return;
+    removedAt.current = null;
+    if (pickedView) {
+      const boxes =
+        pickedList.current?.querySelectorAll<HTMLInputElement>('input[type="checkbox"]');
+      boxes?.[Math.min(index, boxes.length - 1)]?.focus();
+    } else {
+      // 마지막 줄까지 해제하면 ComposeFlow가 전체 문장 보기로 되돌린다
+      allList.current?.focus();
+    }
+  }, [picks, pickedView]);
+
   if (pickedView) {
     return (
       <div>
-        <ul>
-          {picks.map((p) => (
-            <QuoteRow key={p.entryId} row={p} checked onToggle={() => onToggle(p)} />
+        <ul ref={pickedList}>
+          {picks.map((p, i) => (
+            <QuoteRow
+              key={p.entryId}
+              row={p}
+              checked
+              onToggle={() => {
+                removedAt.current = i;
+                onToggle(p);
+              }}
+            />
           ))}
         </ul>
       </div>
@@ -80,7 +106,14 @@ export default function PickStep({ list, chips, picks, onToggle, pickedView }: P
         )}
       </div>
 
-      <div className="mt-2" aria-busy={list.status === 'loading'}>
+      <div
+        ref={allList}
+        tabIndex={-1}
+        role="group"
+        aria-label="문장 목록"
+        className="mt-2 outline-none"
+        aria-busy={list.status === 'loading'}
+      >
         {list.status === 'loading' && <ListSkeleton />}
         {list.status === 'error' && (
           <div role="alert" className="border-t border-hairline py-6 text-center">
