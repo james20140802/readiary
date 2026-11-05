@@ -25,3 +25,9 @@ export function dayLabel(date: string): string {
   const [, m, d] = date.slice(0, 10).split('-').map(Number);
   return m && d ? `${m}월 ${d}일` : date;
 }
+
+/** 오늘 화면의 엮기 안내는 달이 바뀐 뒤 1~7일(KST)에만 낸다. todayKst는 'YYYY-MM-DD'. */
+export function isPromptWindow(todayKst: string): boolean {
+  const day = Number(todayKst.slice(8, 10));
+  return day >= 1 && day <= 7;
+}

@@ -6,6 +6,7 @@ import {
   bookTallyForDisplay,
   coverItem,
   shareImpact,
+  shelfExcerptLine,
   titlePageSentence,
 } from '../model';
 
@@ -116,5 +117,26 @@ describe('coverItem', () => {
   it('보일 항목이 없으면 null', () => {
     expect(coverItem([privateItem], 'friend')).toBeNull();
     expect(coverItem([], 'owner')).toBeNull();
+  });
+});
+
+describe('shelfExcerptLine — 책장의 한 줄', () => {
+  it('엮은 권수와 엮을 달이 있는지를 해 목록에서 센다', () => {
+    expect(
+      shelfExcerptLine([
+        { year: 2026, excerptCount: 2, hasUnmade: false },
+        { year: 2025, excerptCount: 9, hasUnmade: false },
+      ])
+    ).toEqual({ count: 11, hasUnmade: false });
+  });
+  it('엮은 것이 없고 엮을 달도 없으면 줄을 두지 않는다', () => {
+    expect(shelfExcerptLine([])).toBeNull();
+    expect(shelfExcerptLine([{ year: 2026, excerptCount: 0, hasUnmade: false }])).toBeNull();
+  });
+  it('엮은 것이 없어도 엮을 달이 있으면 줄을 둔다', () => {
+    expect(shelfExcerptLine([{ year: 2026, excerptCount: 0, hasUnmade: true }])).toEqual({
+      count: 0,
+      hasUnmade: true,
+    });
   });
 });

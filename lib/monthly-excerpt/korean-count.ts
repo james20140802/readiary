@@ -9,3 +9,11 @@ export function koreanCount(n: number): string {
   const unit = n % 10;
   return `${tens > 0 ? TENS[tens - 1] : ''}${unit > 0 ? UNITS[unit - 1] : ''}`;
 }
+
+/** '네 권의 책에서 문장 서른여덟 개를 남겼어요.' */
+export function promptSummary(bookCount: number, quoteCount: number): string {
+  // 우리말 셈은 99까지 — 그 너머는 숫자라 단위를 붙여 쓴다
+  const counted = (n: number, unit: string) =>
+    n >= 1 && n < 100 ? `${koreanCount(n)} ${unit}` : `${n}${unit}`;
+  return `${counted(bookCount, '권')}의 책에서 문장 ${counted(quoteCount, '개')}를 남겼어요.`;
+}

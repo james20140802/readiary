@@ -1,6 +1,6 @@
 import type { ExcerptPick } from './compose';
 import { koreanCount } from './korean-count';
-import type { ExcerptItem } from './types';
+import type { ExcerptItem, YearRow } from './types';
 
 /** 우리말 셈 + 단위. 100부터는 숫자에 단위를 붙여 쓴다. */
 function counted(n: number, unit: string): string {
@@ -60,4 +60,19 @@ export function shareImpact(picks: ExcerptPick[]): {
 export function coverItem(items: ExcerptItem[], viewer: 'owner' | 'friend'): ExcerptItem | null {
   if (viewer === 'owner') return items[0] ?? null;
   return items.find((i) => !i.isPrivate) ?? null;
+}
+
+/**
+ * 책장의 '달의 발췌집 N권 · 모두 보기' 한 줄에 쓸 값. 엮은 것이 없고 엮을 달도 없으면 줄을 두지 않는다(null).
+ * 해 목록 하나로 권수와 엮을 달을 함께 얻는다.
+ */
+export interface ShelfExcerptLine {
+  count: number;
+  hasUnmade: boolean;
+}
+
+export function shelfExcerptLine(years: YearRow[]): ShelfExcerptLine | null {
+  const count = years.reduce((sum, y) => sum + y.excerptCount, 0);
+  const hasUnmade = years.some((y) => y.hasUnmade);
+  return count === 0 && !hasUnmade ? null : { count, hasUnmade };
 }

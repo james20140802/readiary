@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { Suspense, use, useState } from 'react';
 import { FileText, Plus, Search } from 'lucide-react';
 import clsx from 'clsx';
 import type { MyBook } from '@/types/book';
@@ -9,6 +9,7 @@ import type { BookReadingStat } from '@/lib/queries/fetchBookReadingStats';
 import { TopBarActions, useTopBar } from '@/components/shell/TopBarContext';
 import { DesktopLeaf, DesktopLeaves, Leaf, LeafSwitch, Leaves } from '@/components/shell/Leaves';
 import ExportRecordsSheet from '@/components/export/ExportRecordsSheet';
+import type { ShelfExcerptLine } from '@/lib/monthly-excerpt/model';
 import BookList from './BookList';
 import BookCover from './BookCover';
 import styles from './books.module.css';
@@ -21,6 +22,8 @@ interface Props {
   stats: Record<string, BookReadingStat> | null;
   /** 'YYYY-MM-DD' 사용자 시간대의 오늘 — '오늘 남김' 같은 표기에 쓴다 */
   today: string;
+  /** 달의 발췌집 한 줄 — 따로 늦게 올 수 있다. 없거나 실패(null)면 줄을 그리지 않는다 */
+  excerptLine?: Promise<ShelfExcerptLine | null>;
 }
 
 const ICON = 'grid h-11 w-11 place-items-center rounded-full text-ink';
@@ -167,17 +170,52 @@ function ReadingLeafBody({
   );
 }
 
+/* ── 달의 발췌집 한 줄 — '다 읽은 책' 위에서 모아 보기로 ── */
+
+function ExcerptLineBody({ line }: { line: Promise<ShelfExcerptLine | null> }) {
+  const value = use(line);
+  if (!value) return null;
+  return (
+    <div className="mb-6 flex items-center justify-between gap-3 border-b border-hairline pb-1">
+      <p className="min-w-0 font-serif text-[18px] font-semibold text-ink">
+        달의 발췌집
+        {value.count > 0 && (
+          <span className="ml-2 font-sans text-caption text-ink-sub">{value.count}권</span>
+        )}
+      </p>
+      <Link
+        href="/excerpts"
+        className="inline-flex min-h-11 shrink-0 items-center font-sans text-button-sm text-accent focus-visible:rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+      >
+        모두 보기
+      </Link>
+    </div>
+  );
+}
+
+function ExcerptLine({ line }: { line?: Promise<ShelfExcerptLine | null> }) {
+  if (!line) return null;
+  return (
+    <Suspense fallback={null}>
+      <ExcerptLineBody line={line} />
+    </Suspense>
+  );
+}
+
 /* ── 다 읽은 책 ── */
 
 function FinishedRows({
   finished,
   stats,
+  excerptLine,
 }: {
   finished: MyBook[];
   stats: Record<string, BookReadingStat> | null;
+  excerptLine?: Promise<ShelfExcerptLine | null>;
 }) {
   return (
     <>
+      <ExcerptLine line={excerptLine} />
       <h2 className="font-serif text-section-title text-ink">다 읽은 책</h2>
       {finished.length === 0 ? (
         <p className="mt-3 font-serif text-note text-ink-sub">
@@ -372,12 +410,15 @@ function DesktopReading({
 function DesktopFinished({
   finished,
   stats,
+  excerptLine,
 }: {
   finished: MyBook[];
   stats: Record<string, BookReadingStat> | null;
+  excerptLine?: Promise<ShelfExcerptLine | null>;
 }) {
   return (
     <>
+      <ExcerptLine line={excerptLine} />
       <div className="flex items-baseline gap-3.5">
         <h2 className="font-serif text-[32px] font-bold leading-[1.3] tracking-[-0.01em] text-ink">
           다 읽은 책
@@ -436,7 +477,7 @@ function DesktopFinished({
  * 책장 — 시안 books.html. 모바일은 읽는 중 → 서가 → 다 읽은 책 세 장을 한 장씩 넘기고,
  * 데스크톱은 같은 세 장을 한 화면씩 끊고 오른쪽 위 전환 버튼으로도 옮겨 간다.
  */
-export default function BooksView({ books, stats, today }: Props) {
+export default function BooksView({ books, stats, today, excerptLine }: Props) {
   useTopBar({ title: '책장' });
   const { reading, finished } = splitShelf(books, stats);
   const [exportOpen, setExportOpen] = useState(false);
@@ -473,7 +514,7 @@ export default function BooksView({ books, stats, today }: Props) {
               <BookList books={books} stats={stats} />
             </Leaf>
             <Leaf title="다 읽은 책" vellum free>
-              <FinishedRows finished={finished} stats={stats} />
+              <FinishedRows finished={finished} stats={stats} excerptLine={excerptLine} />
             </Leaf>
           </>
         )}
@@ -505,7 +546,7 @@ export default function BooksView({ books, stats, today }: Props) {
               <BookList books={books} stats={stats} size="desktop" />
             </DesktopLeaf>
             <DesktopLeaf id="done">
-              <DesktopFinished finished={finished} stats={stats} />
+              <DesktopFinished finished={finished} stats={stats} excerptLine={excerptLine} />
             </DesktopLeaf>
           </>
         )}
