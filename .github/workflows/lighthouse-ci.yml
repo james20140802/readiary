@@ -36,6 +36,18 @@ jobs:
       - name: Verify entry months database contract
         run: node supabase/tests/run-entry-months-contract.mjs
 
+      - name: Verify monthly excerpt owner contract
+        run: node supabase/tests/run-monthly-excerpts-contract.mjs supabase/tests/monthly_excerpts_owner_contract.sql
+
+      - name: Verify monthly excerpt friend contract
+        run: node supabase/tests/run-monthly-excerpts-contract.mjs supabase/tests/monthly_excerpts_friend_contract.sql
+
+      - name: Verify monthly excerpt reactions contract
+        run: node supabase/tests/run-monthly-excerpts-contract.mjs supabase/tests/monthly_excerpts_reactions_contract.sql
+
+      - name: Verify monthly excerpt feed contract
+        run: node supabase/tests/run-monthly-excerpts-contract.mjs supabase/tests/monthly_excerpts_feed_contract.sql
+
       - name: Lint
         run: npx eslint .
 

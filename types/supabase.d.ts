@@ -703,6 +703,7 @@ export type Database = {
       get_reading_stats: { Args: { p_user_id: string }; Returns: Json };
       get_book_reading_stats: { Args: Record<string, never>; Returns: Json };
       get_social_feed: { Args: { p_page?: number; p_limit?: number }; Returns: Json };
+      get_social_feed_items: { Args: { p_page?: number; p_limit?: number }; Returns: Json };
       get_monthly_recap: { Args: { p_today: string }; Returns: Json };
       get_recall_entry: { Args: { p_today: string }; Returns: Json };
       enable_entry_share: {

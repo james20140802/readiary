@@ -61,6 +61,25 @@ const saveButton = () => screen.getByRole('button', { name: '엮기' }) as HTMLB
 beforeEach(() => vi.clearAllMocks());
 afterEach(cleanup);
 
+describe('ComposeFlow 순서 안내', () => {
+  it('비공개 문장은 표지가 되지 않으니 친구에게 보이는 첫 문장이라고 말한다', () => {
+    render(
+      h(
+        TopBarProvider,
+        null,
+        h(ComposeFlow, {
+          month: '2026-03',
+          books: [],
+          firstPage: { items: [], hasMore: false },
+          initialPicks: [pick('a')],
+        })
+      )
+    );
+    fireEvent.click(screen.getByRole('button', { name: '순서 정하기' }));
+    expect(screen.getByText('친구에게 보이는 첫 문장이 피드의 표지가 돼요')).toBeTruthy();
+  });
+});
+
 describe('ComposeFlow 공개 범위의 시작 값', () => {
   it('공개 중인 권을 고치면 다시 묻지 않고 친구 공개로 시작해 그대로 저장한다', async () => {
     apiFetch.mockResolvedValue(new Response(JSON.stringify({ id: 'x' })));

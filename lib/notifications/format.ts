@@ -12,6 +12,8 @@ const MESSAGES: Record<NotificationType, (nickname: string) => string> = {
 };
 
 export function buildNotificationMessage(type: NotificationType, nickname: string): string {
+  // 코드보다 데이터가 앞설 수 있다(새 종류가 쌓인 뒤 옛 코드로 되돌린 경우). 알림 목록 전체가 깨지지 않게 한다
+  if (!Object.hasOwn(MESSAGES, type)) return `${nickname}님의 새 소식이 있어요`;
   return MESSAGES[type](nickname);
 }
 

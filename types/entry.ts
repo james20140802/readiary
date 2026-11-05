@@ -23,6 +23,30 @@ export type DetailSocialFeedEntry = {
   initialCommentCount: number;
 };
 
+/** 친구 피드의 한 항목: 기록 하나 */
+export type SocialFeedEntryItem = DetailSocialFeedEntry & { kind: 'entry' };
+
+/** 친구 피드의 한 항목: 처음 공개한 때 한 번 뜨는 달의 발췌집. 표지와 수는 친구에게 보이는 문장 기준이다 */
+export type SocialFeedExcerptItem = {
+  kind: 'monthly_excerpt';
+  id: string;
+  /** 'YYYY-MM' */
+  month: string;
+  /** 처음 공개한 시각 */
+  sharedAt: string;
+  profile: Profile;
+  coverQuote: string;
+  /** 표지 문장의 출처 */
+  coverBookTitle: string;
+  quoteCount: number;
+  bookCount: number;
+  initialLiked: boolean;
+  initialLikeCount: number;
+  initialCommentCount: number;
+};
+
+export type SocialFeedItem = SocialFeedEntryItem | SocialFeedExcerptItem;
+
 export type RawDetailEntry = {
   id: string;
   note: string | null;

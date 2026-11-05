@@ -161,7 +161,9 @@ export default function ComposeFlow({
   }[step];
   const caption = {
     pick: '다시 읽고 싶은 문장만 골라 주세요',
-    order: MONTHLY_EXCERPT_SHARING ? '첫 문장이 친구 피드의 표지가 돼요' : '첫 문장이 표지가 돼요',
+    order: MONTHLY_EXCERPT_SHARING
+      ? '친구에게 보이는 첫 문장이 피드의 표지가 돼요'
+      : '첫 문장이 표지가 돼요',
     preview: '묶음을 넘겨 보고, 한 페이지로도 펼쳐 보세요',
   }[step];
 

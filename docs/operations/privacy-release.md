@@ -99,3 +99,59 @@ PGLITE_MODULE=/tmp/readiary-pr91-sql/node_modules/@electric-sql/pglite/dist/inde
 - 옛 친구의 이름과 댓글은 소유자와 남은 친구에게 그대로 보인다. 프로필은 로그인한 사용자에게 열려 있고(`profiles_select_authenticated`), 좋아한 사람 명단은 친구가 아니면 링크를 걸지 않는다.
 - 숨겨진 동안이나 친구를 끊은 뒤에는 반응으로 알림을 만들지 못한다.
 - API 응답은 `no-store`이고 `/api/`는 서비스 워커에서 NetworkOnly다. 프로덕션 적용과 실제 두 계정 확인은 아직 하지 않았다.
+
+## 달의 발췌집 피드와 프로덕션 적용 (Task 9, 2026-11-06)
+
+친구 피드는 `get_social_feed_items`로 읽는다. 기록은 호출자 권한으로 읽어 기존 RLS를 그대로 타고, 발췌집은 정의자 함수 `friend_feed_monthly_excerpts`로 읽는다. 이 함수는 보는 사람을 인자로 받지 않고 `auth.uid()`로만 정한다. 호출자 권한 RPC가 불러야 하므로 `authenticated`에 실행 권한이 있지만, 직접 불러도 그 사람이 피드에서 받는 카드와 같은 내용만 나온다. `monthly_excerpt_visible_items`는 여전히 아무도 직접 부르지 못한다.
+
+- 소식의 시각은 `first_shared_at`이다. 고치거나 공개를 껐다 켜도 자리가 그대로이고 1건이다.
+- 나만 보기, 공개 문장 없음, 친구 아님, 신청만 한 사이, 친구 해제는 피드에서 빠진다. 내 발췌집은 내 피드에 없다.
+- 표지, 표지의 책 이름, 문장 수, 책 수는 친구에게 보이는 문장 기준이다. 표지가 비공개로 바뀌면 다음 공개 문장이 표지가 된다.
+- 계약 테스트: `supabase/tests/monthly_excerpts_feed_contract.sql`. 달의 발췌집 계약 네 개는 `.github/workflows/lighthouse-ci.yml`에서 자격 증명 없이 메모리 DB로 돈다.
+- 캐시: 첫 쪽은 `/social` 문서·RSC 응답이라 `NetworkOnly`(`isPersonalizedSameOriginRequest`)이고, 다음 쪽은 서버 액션 POST다. 코드 읽기 결과이고 실기기 확인이 아니다.
+
+### 프로덕션 적용 순서
+
+아직 적용하지 않았다. 모두 추가 전용이라 옛 코드가 돌아가는 동안 먼저 적용해도 안전하다. **코드 배포 전에** 아래 순서로 적용한다. 새 코드는 첫 쪽부터 `get_social_feed_items`를 부르므로, 마이그레이션이 없으면 소셜 화면이 오류가 된다.
+
+1. `supabase/migrations/20261106090000_monthly_excerpts.sql`
+2. `supabase/migrations/20261106100000_monthly_excerpt_candidate_preview.sql`
+3. `supabase/migrations/20261110090000_monthly_excerpts_friends.sql`
+4. `supabase/migrations/20261110100000_monthly_excerpt_reactions.sql`
+5. `supabase/migrations/20261110110000_social_feed_items.sql`
+
+옛 `get_social_feed`는 새 코드 배포를 확인할 때까지 남긴다. 제거는 후속 작업이다.
+
+### 적용 뒤 확인 (할 일, 아직 하지 않음)
+
+권한부터 읽기 전용으로 조회한다. 프로덕션 함수 소유자는 `postgres`이므로 PGlite 결과를 그대로 믿지 않는다.
+
+```sql
+select p.proname, p.prosecdef,
+  has_function_privilege('anon', p.oid, 'execute') as anon,
+  has_function_privilege('authenticated', p.oid, 'execute') as authenticated
+from pg_proc p
+where p.pronamespace = 'public'::regnamespace
+  and p.proname in ('get_social_feed_items', 'friend_feed_monthly_excerpts', 'monthly_excerpt_visible_items');
+```
+
+`anon`은 모두 `false`다. `authenticated`는 `monthly_excerpt_visible_items`만 `false`다. `prosecdef`는 `friend_feed_monthly_excerpts`만 `true`다.
+
+두 계정(A: 쓰는 사람, B: 수락된 친구)과 친구가 아닌 계정 C로 실제 화면에서 확인한다. 데이터는 읽기와 쓰기를 모두 테스트 계정의 것으로만 한다.
+
+- [ ] A가 공개로 엮으면 B의 `/social`에 1건 뜨고, 시각 순서대로 기록과 섞인다. C에게는 없다.
+- [ ] A가 문장을 고치거나 공개를 껐다 켜도 B의 피드에서 1건이고 자리가 같다.
+- [ ] A가 나만 보기로 돌리면 B의 피드와 서재에서 빠진다. 친구를 끊어도 빠진다.
+- [ ] 표지 문장을 비공개로 바꾸면 표지가 다음 공개 문장으로 바뀌고 수가 줄어든다. 응답에 비공개 문장이 없다.
+- [ ] B가 카드에서 좋아요·댓글을 남기면 A에게 알림이 오고, 카드와 책 화면의 수가 같다.
+- [ ] 스크롤로 다음 쪽을 불러와도 항목이 겹치거나 빠지지 않는다.
+
+### 코드를 되돌릴 때
+
+마이그레이션은 되돌리지 않는다. 옛 코드는 새 객체를 쓰지 않으므로 그대로 돈다. 다만 새 코드 배포 뒤 쌓인 `excerpt_like`·`excerpt_comment` 알림이 문제가 된다. 옛 코드의 `buildNotificationMessage`는 모르는 종류에서 예외를 던져 **알림 화면 전체가 오류**가 된다. 이번 변경으로 현재 코드는 중립 문구를 내지만, 이전에 배포된 코드에는 이 처리가 없다.
+
+옛 코드로 되돌렸다면 백업 여부를 먼저 정한 뒤 아래로 복구한다. 지운 알림은 되살릴 수 없고, 좋아요·댓글 자체는 남는다.
+
+```sql
+delete from public.notifications where type in ('excerpt_like','excerpt_comment');
+```

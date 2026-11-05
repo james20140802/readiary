@@ -20,6 +20,18 @@ describe('buildNotificationMessage', () => {
   });
 });
 
+describe('buildNotificationMessage의 대체 문구', () => {
+  it('모르는 타입이어도 던지지 않고 중립 문구를 낸다', () => {
+    // 롤백한 옛 코드가 새 종류를 만나는 경우처럼, 코드보다 데이터가 앞선 상황이다
+    const unknown = 'someday_type' as unknown as Parameters<typeof buildNotificationMessage>[0];
+    expect(buildNotificationMessage(unknown, '상추')).toBe('상추님의 새 소식이 있어요');
+  });
+  it('Object.prototype의 이름도 모르는 타입으로 다룬다', () => {
+    const proto = 'constructor' as unknown as Parameters<typeof buildNotificationMessage>[0];
+    expect(buildNotificationMessage(proto, '상추')).toBe('상추님의 새 소식이 있어요');
+  });
+});
+
 describe('formatRelativeTime', () => {
   const now = new Date('2026-08-29T12:00:00+09:00');
 
