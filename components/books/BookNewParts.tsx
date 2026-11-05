@@ -3,6 +3,7 @@
 import { forwardRef, useId } from 'react';
 import { Search } from 'lucide-react';
 import clsx from 'clsx';
+import { DESK_SWITCH_CLASS } from '@/components/shell/Leaves';
 import BookCover from './BookCover';
 import styles from './books.module.css';
 
@@ -46,11 +47,7 @@ export function NewBookTabs({
           {buttons(styles.segItem)}
         </div>
       </div>
-      <div
-        role="group"
-        aria-label="등록 방법"
-        className="dseg bar-material fixed right-8 top-6 z-30 hidden h-10 grid-flow-col rounded-xl p-[3px] lg:grid"
-      >
+      <div role="group" aria-label="등록 방법" className={DESK_SWITCH_CLASS}>
         {buttons(
           'dseg-item flex items-center rounded-[9px] px-4 text-[14px] font-semibold text-ink-sub focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent'
         )}
@@ -171,7 +168,7 @@ export const ChosenBook = forwardRef<
       ref={ref}
       aria-label="고른 책"
       tabIndex={-1}
-      className="vellum mt-[22px] grid grid-cols-[110px_1fr] items-start gap-5 rounded-[3px] p-[22px] outline-none lg:sticky lg:top-[76px] lg:mt-0"
+      className="vellum mt-[22px] grid grid-cols-[110px_1fr] items-start gap-5 rounded-[3px] p-[22px] outline-none lg:sticky lg:top-24 lg:mt-0"
     >
       <BookCover
         title={title}
