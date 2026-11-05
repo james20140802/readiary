@@ -1,5 +1,5 @@
 -- 친구 피드에 뜨는 달의 발췌집 계약. 메모리 안의 격리된 DB에서만 실행하고, 실패는 raise exception으로 알린다.
--- 역할: A(…001)·B(…002)는 글쓴이, C(…003)는 A·B의 수락된 친구, D(…004)는 친구가 아니고, E(…005)는 A에게 신청만 했다.
+-- 역할: A(…001)·B(…002)는 글쓴이, C(…003)는 A·B의 수락된 친구, D(…004)는 친구가 아니고, E(…005)는 A에게 신청만 했고, G(…007)는 A의 신청을 받기만 했다.
 
 -- ── 테스트 도구 ──────────────────────────────────────────────
 create schema t;
@@ -73,7 +73,8 @@ insert into auth.users(id) values
   ('00000000-0000-4000-8000-000000000002'),
   ('00000000-0000-4000-8000-000000000003'),
   ('00000000-0000-4000-8000-000000000004'),
-  ('00000000-0000-4000-8000-000000000005');
+  ('00000000-0000-4000-8000-000000000005'),
+  ('00000000-0000-4000-8000-000000000007');
 insert into public.profiles(id, name, nickname, tag) select id, 'Test', id::text, '0001' from auth.users;
 insert into public.books(id, title, author) values
   ('00000000-0000-4000-8000-000000000010', '공개 책', '지은이'),
@@ -88,7 +89,8 @@ insert into public.friends(user_id, friend_id, status, accepted_at) values
   ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000003', 'accepted', now()),
   ('00000000-0000-4000-8000-000000000003', '00000000-0000-4000-8000-000000000002', 'accepted', now());
 insert into public.friends(user_id, friend_id, status) values
-  ('00000000-0000-4000-8000-000000000005', '00000000-0000-4000-8000-000000000001', 'pending');
+  ('00000000-0000-4000-8000-000000000005', '00000000-0000-4000-8000-000000000001', 'pending'),
+  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000007', 'pending');
 
 insert into public.entries(id, user_book_id, date, quote, note, is_private, created_at) values
   -- A의 3월: 순서가 [비공개 p, 공개 a, 비공개 q, 공개 b, 공개 c]가 된다. p·q는 다른 책.
@@ -275,38 +277,94 @@ reset role;
 delete from public.entries where id::text like '00000000-0000-4000-8001-%';
 
 -- ── 같은 시각: id로 갈라 경계에서 흔들리지 않는다 ──────────
-update public.monthly_excerpts set first_shared_at = '2026-04-08 10:00+09'
-  where user_id = '00000000-0000-4000-8000-000000000001' and month = '2026-02-01';
+-- 행이 적으면 정렬이 우연히 맞으므로 흩어진 id의 기록 30건과 발췌집 3권을 한 시각에 모은다.
+-- 종류와 상관없이 id 내림차순이어야 쪽을 나눠 읽어도 겹치거나 빠지지 않는다.
+insert into public.entries(id, user_book_id, date, quote, is_private, created_at)
+select md5('tie' || n)::uuid,
+  case when n % 2 = 0 then '00000000-0000-4000-8000-000000000011'::uuid
+       else '00000000-0000-4000-8000-000000000021'::uuid end,
+  '2026-04-08', '같은 시각 ' || n, false, '2026-04-08 10:00+09'
+from generate_series(1, 30) n;
 update public.entries set created_at = '2026-04-08 10:00+09'
   where id = '00000000-0000-4000-8000-000000000203';
+update public.monthly_excerpts set first_shared_at = '2026-04-08 10:00+09'
+  where (user_id, month) in (
+    ('00000000-0000-4000-8000-000000000001'::uuid, '2026-03-01'::date),
+    ('00000000-0000-4000-8000-000000000001'::uuid, '2026-02-01'::date),
+    ('00000000-0000-4000-8000-000000000002'::uuid, '2026-03-01'::date)
+  );
+
+-- 지금 역할이 limit 단위로 끝까지 읽은 id 목록.
+create function t.walk_ids(p_limit int) returns jsonb language plpgsql as $$
+declare
+  v_page int := 0;
+  v_rows jsonb;
+  v_all jsonb := '[]'::jsonb;
+begin
+  loop
+    v_rows := public.get_social_feed_items(v_page, p_limit);
+    exit when jsonb_array_length(v_rows) = 0;
+    v_all := v_all || (
+      select jsonb_agg(coalesce(i.v -> 'entry' -> 'id', i.v -> 'id') order by i.n)
+      from jsonb_array_elements(v_rows) with ordinality as i(v, n)
+    );
+    v_page := v_page + 1;
+    if v_page > 60 then raise exception 'walk did not end'; end if;
+  end loop;
+  return v_all;
+end;
+$$;
+
 set role authenticated;
 do $$
 declare
-  v_full jsonb;
+  a uuid := '00000000-0000-4000-8000-000000000001';
+  b uuid := '00000000-0000-4000-8000-000000000002';
+  v_want jsonb;
+  v_got jsonb;
   v_size int;
 begin
   perform t.as_user('00000000-0000-4000-8000-000000000003');
-  v_full := t.walk(50);
-  perform t.eq('ties keep every item', to_jsonb(jsonb_array_length(v_full)), '12');
-  -- 같은 시각의 세 항목(기록 둘, 발췌집 하나)은 종류와 상관없이 id 내림차순이다.
-  perform t.eq('ties ordered by id desc',
-    (select jsonb_agg(coalesce(i.v -> 'entry' ->> 'id', i.v ->> 'id') order by i.n)
-     from jsonb_array_elements(public.get_social_feed_items(0, 50)) with ordinality as i(v, n)
-     where coalesce(i.v -> 'entry' ->> 'created_at', i.v ->> 'sharedAt')::timestamptz = '2026-04-08 10:00+09'),
-    (select jsonb_agg(u.id order by u.id::uuid desc) from (values
-      ('00000000-0000-4000-8000-000000000202'),
-      ('00000000-0000-4000-8000-000000000203'),
-      (t.excerpt_id('00000000-0000-4000-8000-000000000001', '2026-02-01')::text)
-    ) as u(id)));
-  foreach v_size in array array[1, 2, 3, 4] loop
-    perform t.eq('tie walk ' || v_size, t.walk(v_size), v_full);
+  -- 앞: 사월 십일. 가운데: 같은 시각 35건을 id 내림차순으로. 뒤: 시각이 다른 지난 기록.
+  v_want := '["00000000-0000-4000-8000-000000000201"]'::jsonb
+    || (
+      select jsonb_agg(u.id order by u.id desc)
+      from (
+        select md5('tie' || n)::uuid as id from generate_series(1, 30) n
+        union all select '00000000-0000-4000-8000-000000000202'::uuid
+        union all select '00000000-0000-4000-8000-000000000203'::uuid
+        union all select t.excerpt_id(a, '2026-03-01')
+        union all select t.excerpt_id(a, '2026-02-01')
+        union all select t.excerpt_id(b, '2026-03-01')
+      ) u
+    )
+    || '["00000000-0000-4000-8000-000000000105",
+         "00000000-0000-4000-8000-000000000104",
+         "00000000-0000-4000-8000-000000000102",
+         "00000000-0000-4000-8000-000000000109",
+         "00000000-0000-4000-8000-000000000106",
+         "00000000-0000-4000-8000-000000000107"]'::jsonb;
+  perform t.eq('tie fixture size', to_jsonb(jsonb_array_length(v_want)), '42');
+
+  foreach v_size in array array[1, 2, 3, 5, 7] loop
+    v_got := t.walk_ids(v_size);
+    perform t.eq('tie walk has no duplicates ' || v_size,
+      to_jsonb((select count(distinct e) from jsonb_array_elements(v_got) e)),
+      to_jsonb(jsonb_array_length(v_got)));
+    perform t.eq('tie walk ' || v_size, v_got, v_want);
   end loop;
 end $$;
 reset role;
-update public.monthly_excerpts set first_shared_at = '2026-04-07 10:00+09'
-  where user_id = '00000000-0000-4000-8000-000000000001' and month = '2026-02-01';
+
+delete from public.entries where id in (select md5('tie' || n)::uuid from generate_series(1, 30) n);
 update public.entries set created_at = '2026-04-06 10:00+09'
   where id = '00000000-0000-4000-8000-000000000203';
+update public.monthly_excerpts set first_shared_at = '2026-04-09 10:00+09'
+  where user_id = '00000000-0000-4000-8000-000000000001' and month = '2026-03-01';
+update public.monthly_excerpts set first_shared_at = '2026-04-07 10:00+09'
+  where user_id = '00000000-0000-4000-8000-000000000001' and month = '2026-02-01';
+update public.monthly_excerpts set first_shared_at = '2026-04-05 10:00+09'
+  where user_id = '00000000-0000-4000-8000-000000000002' and month = '2026-03-01';
 
 -- ── 고치고 다시 공개해도 1건, 위치 그대로 ──────────────────
 set role authenticated;
@@ -409,6 +467,7 @@ declare
   a uuid := '00000000-0000-4000-8000-000000000001';
   d uuid := '00000000-0000-4000-8000-000000000004';
   e uuid := '00000000-0000-4000-8000-000000000005';
+  g uuid := '00000000-0000-4000-8000-000000000007';
 begin
   -- 친구 아님, 신청만 한 사이: 피드도 도우미도 비었다.
   perform t.as_user(d);
@@ -417,6 +476,10 @@ begin
   perform t.as_user(e);
   perform t.eq('pending feed empty', public.get_social_feed_items(0, 50), '[]');
   perform t.eq('pending helper empty', to_jsonb((select count(*) from public.friend_feed_monthly_excerpts(50))), '0');
+  -- 반대 방향: 주인이 신청하고 아직 수락하지 않은 사람에게도 보이지 않는다.
+  perform t.as_user(g);
+  perform t.eq('owner-requested pending feed empty', public.get_social_feed_items(0, 50), '[]');
+  perform t.eq('owner-requested pending helper empty', to_jsonb((select count(*) from public.friend_feed_monthly_excerpts(50))), '0');
 
   -- 내 발췌집은 내 피드에 없다(내 기록도 없다). A의 친구 C는 쓴 것이 없어 비었다.
   perform t.as_user(a);
