@@ -14,7 +14,7 @@ import { TopBar } from '@/components/shell/TopBar';
 import { TabBar } from '@/components/shell/TabBar';
 import { Sidebar } from '@/components/shell/Sidebar';
 import { useTopAfterTabNavigation } from '@/components/shell/tabScroll';
-import { frameFor, ruledFor, showsNav, type Frame } from '@/lib/shell/routes';
+import { frameFor, isWidePlain, ruledFor, showsNav, type Frame } from '@/lib/shell/routes';
 
 interface AppShellProps {
   /** 서버(루트 레이아웃)가 쿠키로 판정한 초기 로그인 여부 — 첫 페인트부터 맞는 GNB를 그린다 */
@@ -90,7 +90,11 @@ export default function AppShell({ initialLoggedIn, initialUnread, children }: A
           <div
             className={clsx(
               'mx-auto w-full',
-              frame === 'feed' ? 'lg:max-w-[1400px]' : 'lg:max-w-[860px]'
+              frame === 'feed'
+                ? 'lg:max-w-[1400px]'
+                : isWidePlain(pathname)
+                  ? 'lg:max-w-[1040px]'
+                  : 'lg:max-w-[860px]'
             )}
           >
             {children}

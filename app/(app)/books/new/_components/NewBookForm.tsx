@@ -81,7 +81,7 @@ export default function NewBookForm({ onBusyChange }: { onBusyChange?: (busy: bo
   const message = error || creation.error;
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-[560px]" aria-label="직접 적어 꽂기">
+    <form onSubmit={handleSubmit} aria-label="직접 적어 꽂기">
       <LineField
         label="제목"
         placeholder="책 제목"
