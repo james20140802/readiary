@@ -4,7 +4,6 @@ import type { ExcerptPick } from '../compose';
 import {
   bookTally,
   bookTallyForDisplay,
-  coverItem,
   shareImpact,
   shelfExcerptLine,
   titlePageSentence,
@@ -100,23 +99,6 @@ describe('shareImpact', () => {
   });
   it('모두 공개이고 생각이 없으면 안내가 없다', () => {
     expect(shareImpact([p('1'), p('2')]).lines).toEqual([]);
-  });
-});
-
-describe('coverItem', () => {
-  const privateItem = item('1', '가', { isPrivate: true });
-  const publicItem = item('1', '가');
-  it('주인은 첫 항목, 친구는 첫 공개 항목', () => {
-    expect(coverItem([privateItem, publicItem], 'friend')).toBe(publicItem);
-    expect(coverItem([privateItem, publicItem], 'owner')).toBe(privateItem);
-  });
-  it('isPrivate가 없으면 공개로 본다', () => {
-    const noFlag = { ...publicItem, isPrivate: undefined };
-    expect(coverItem([noFlag], 'friend')).toBe(noFlag);
-  });
-  it('보일 항목이 없으면 null', () => {
-    expect(coverItem([privateItem], 'friend')).toBeNull();
-    expect(coverItem([], 'owner')).toBeNull();
   });
 });
 
