@@ -132,16 +132,6 @@ export async function fetchMyExcerptMonths(): Promise<Set<MonthKey>> {
   return new Set((data ?? []).map((row) => row.month.slice(0, 7)));
 }
 
-/** 내가 엮은 발췌집 수(head count). 불러오지 못하면 throw. */
-export async function fetchMyExcerptCount(): Promise<number> {
-  const supabase = await createSupabaseServerClient();
-  const { count, error } = await supabase
-    .from('monthly_excerpts')
-    .select('id', { count: 'exact', head: true });
-  if (error) fail('Monthly excerpt count unavailable', error);
-  return count ?? 0;
-}
-
 /** 서재의 '달마다 엮은 발췌집'에 놓는 수 */
 const RECENT_EXCERPTS = 5;
 

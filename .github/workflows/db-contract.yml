@@ -1,0 +1,48 @@
+name: DB Contract
+
+# 임시 DB에서만 돈다. 프로덕션에 접속하지 않으므로 시크릿을 주지 않는다.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    name: Verify DB contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify contracts on in-memory Postgres
+        run: npm run test:db
+
+      # 동시 요청 검증에는 PGlite가 아닌 실제 Postgres가 필요하다. 프로덕션과 같은 메이저 버전을 쓴다.
+      - name: Start throwaway Postgres
+        run: |
+          docker run -d --name readiary-registration-contract \
+            -e POSTGRES_HOST_AUTH_METHOD=trust postgres:17-alpine
+          for _ in $(seq 1 30); do
+            docker exec readiary-registration-contract pg_isready -U postgres -h 127.0.0.1 && exit 0
+            sleep 1
+          done
+          docker logs readiary-registration-contract
+          exit 1
+
+      - name: Verify book registration contract
+        run: python3 supabase/tests/run-registration-contract.py readiary-registration-contract

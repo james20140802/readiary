@@ -7,6 +7,7 @@ import { getServerUser } from '@/lib/supabase/getServerUser';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import type { ExcerptMonthRow } from '@/lib/monthly-excerpt/types';
 
+/** 제품 상한이 아니라 요청 크기를 묶는 안전선이다(설계 문서 1. 고르기). */
 const MAX_ENTRIES = 500;
 
 /** 엮기·다시 엮기. 고른 순서가 곧 순서 번호다. */
@@ -26,9 +27,11 @@ export async function POST(request: Request) {
     return badRequest('달을 확인해 주세요.');
   }
   const { entryIds } = body;
+  if (Array.isArray(entryIds) && entryIds.length > MAX_ENTRIES) {
+    return badRequest(`한 번에 고를 수 있는 문장은 ${MAX_ENTRIES}개까지예요.`);
+  }
   if (
     !Array.isArray(entryIds) ||
-    entryIds.length > MAX_ENTRIES ||
     !entryIds.every((id): id is string => typeof id === 'string' && isUuid(id))
   ) {
     return badRequest('고른 문장을 확인해 주세요.');

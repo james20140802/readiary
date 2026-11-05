@@ -5,8 +5,9 @@ export function isFinishedMonth(month: MonthKey, todayKst: string): boolean {
   return month < todayKst.slice(0, 7);
 }
 
+/** SQL의 monthly_excerpt_month_start와 같은 규칙: 해의 첫 자리는 0이 아니다. */
 export function isMonthKey(s: string): boolean {
-  return /^\d{4}-(0[1-9]|1[0-2])$/.test(s);
+  return /^[1-9]\d{3}-(0[1-9]|1[0-2])$/.test(s);
 }
 
 /** 쿼리의 해. 네 자리이고 1900 이상일 때만 숫자로, 아니면 null. */

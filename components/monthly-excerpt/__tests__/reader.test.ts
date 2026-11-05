@@ -19,6 +19,24 @@ const read = (props: Partial<Parameters<typeof MonthlyExcerptReader>[0]> = {}) =
   );
 
 describe('MonthlyExcerptReader', () => {
+  it('폰트 교체로 넘치게 되면 다시 재서 키보드로 스크롤할 수 있게 한다', async () => {
+    let fontsReady = () => {};
+    const ready = new Promise<void>((resolve) => (fontsReady = resolve));
+    Object.defineProperty(document, 'fonts', { configurable: true, value: { ready } });
+    const scrollHeight = vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockReturnValue(0);
+    try {
+      read({ items: [item(1)] });
+      expect(screen.queryAllByRole('group', { name: '문장 전체, 위아래로 스크롤' })).toEqual([]);
+      scrollHeight.mockReturnValue(500);
+      fontsReady();
+      const bodies = await screen.findAllByRole('group', { name: '문장 전체, 위아래로 스크롤' });
+      expect(bodies.some((el) => el.tabIndex === 0)).toBe(true);
+    } finally {
+      scrollHeight.mockRestore();
+      Reflect.deleteProperty(document, 'fonts');
+    }
+  });
+
   it('표제지: 달, 문장, 책별 수, 많으면 외 N권', () => {
     const books = ['가', '나', '다', '라'].map((t, i) => ({ id: t, title: t, author: null, i }));
     read({

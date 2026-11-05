@@ -146,9 +146,13 @@ function YearBody({
 }
 
 function yearSummary(row: YearRow, open: boolean, viewer: Viewer): string {
-  const made = row.excerptCount > 0 ? `${row.excerptCount}권` : null;
-  const unmade = viewer === 'owner' && row.hasUnmade ? '엮을 달이 있어요' : null;
-  const parts = [made ?? unmade ?? '쉬어 간 해'];
+  // 해 목록에는 엮은 달이 있거나(친구·내 화면) 엮을 달이 있는(내 화면) 해만 온다
+  const parts =
+    row.excerptCount > 0
+      ? [`${row.excerptCount}권`]
+      : viewer === 'owner' && row.hasUnmade
+        ? ['엮을 달이 있어요']
+        : [];
   if (!open) parts.push('펼치기');
   return parts.join(' · ');
 }

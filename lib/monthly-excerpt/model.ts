@@ -63,12 +63,6 @@ export function shareImpact(picks: ExcerptPick[]): {
   return { privateCount, noteCount, publicCount: pub.length, lines };
 }
 
-/** 표지 문장. 친구에게는 공개 항목만 — isPrivate가 없으면 공개로 본다. */
-export function coverItem(items: ExcerptItem[], viewer: 'owner' | 'friend'): ExcerptItem | null {
-  if (viewer === 'owner') return items[0] ?? null;
-  return items.find((i) => !i.isPrivate) ?? null;
-}
-
 /**
  * 책장의 '달의 발췌집 N권 · 모두 보기' 한 줄에 쓸 값. 엮은 것이 없고 엮을 달도 없으면 줄을 두지 않는다(null).
  * 해 목록 하나로 권수와 엮을 달을 함께 얻는다.

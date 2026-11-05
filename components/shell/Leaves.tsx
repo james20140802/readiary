@@ -137,6 +137,10 @@ export function DesktopLeaf({ id, children }: { id: string; children: React.Reac
   );
 }
 
+/** 넓은 화면의 오른쪽 위 전환 버튼 — 큰 제목과 같은 줄에 앉도록 위에서 44px. 책 등록 탭도 같은 자리를 쓴다 */
+export const DESK_SWITCH_CLASS =
+  'dseg bar-material fixed right-8 top-11 z-30 hidden h-10 grid-flow-col rounded-xl p-[3px] lg:grid';
+
 export function LeafSwitch({
   label,
   items,
@@ -174,10 +178,7 @@ export function LeafSwitch({
   }, [ids]);
 
   return (
-    <nav
-      aria-label={label}
-      className="dseg bar-material fixed right-8 top-6 z-30 hidden h-10 grid-flow-col rounded-xl p-[3px] lg:grid"
-    >
+    <nav aria-label={label} className={DESK_SWITCH_CLASS}>
       {items.map((it) => (
         <a
           key={it.id}

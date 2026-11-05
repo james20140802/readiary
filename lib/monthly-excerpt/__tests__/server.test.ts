@@ -7,7 +7,6 @@ import {
   fetchFriendExcerptYears,
   fetchFriendMonthlyExcerpt,
   fetchFriendRecentExcerpts,
-  fetchMyExcerptCount,
   fetchMyExcerptMonths,
   fetchMyExcerptYears,
   fetchMyMonthlyExcerpt,
@@ -53,12 +52,6 @@ describe('monthly excerpt server fetchers', () => {
   it('turns month dates into keys', async () => {
     select.mockResolvedValue({ data: [{ month: '2026-03-01' }], error: null });
     expect(await fetchMyExcerptMonths()).toEqual(new Set(['2026-03']));
-  });
-
-  it('reads the head count', async () => {
-    select.mockResolvedValue({ count: 4, error: null });
-    expect(await fetchMyExcerptCount()).toBe(4);
-    expect(select).toHaveBeenCalledWith('id', { count: 'exact', head: true });
   });
 
   it('asks the friend RPC by owner and tells no excerpt from a failure', async () => {

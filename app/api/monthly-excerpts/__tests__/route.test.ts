@@ -43,6 +43,13 @@ beforeEach(() => {
 });
 
 describe('POST /api/monthly-excerpts', () => {
+  it('500개를 넘게 고르면 독자에게 상한을 알린다', async () => {
+    const response = await POST(json({ ...valid, entryIds: Array(501).fill(id1) }));
+    expect(response.status).toBe(400);
+    expect((await response.json()).error).toBe('한 번에 고를 수 있는 문장은 500개까지예요.');
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
   it('requires a session', async () => {
     getUser.mockResolvedValue({ data: { user: null }, error: null });
     const response = await POST(json(valid));
@@ -54,7 +61,6 @@ describe('POST /api/monthly-excerpts', () => {
     ['bad month', { ...valid, month: '2026-13' }],
     ['month not string', { ...valid, month: 202610 }],
     ['entryIds not array', { ...valid, entryIds: 'x' }],
-    ['too many entryIds', { ...valid, entryIds: Array(501).fill(id1) }],
     ['non-uuid entryId', { ...valid, entryIds: [id1, 'nope'] }],
     ['isShared not boolean', { ...valid, isShared: 'yes' }],
   ])('rejects %s', async (_name, body) => {

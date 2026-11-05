@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { frameFor, ruledFor, showsNav, tabFor } from '../routes';
+import { frameFor, isWidePlain, ruledFor, showsNav, tabFor } from '../routes';
 
 describe('frameFor', () => {
   it.each([
@@ -24,6 +24,14 @@ describe('frameFor', () => {
     ['/excerpts/2026-03', 'plain'],
     ['/excerpts/2026-03/compose', 'plain'],
   ])('%s의 틀은 %s', (p, f) => expect(frameFor(p)).toBe(f));
+});
+
+describe('isWidePlain', () => {
+  it('책 등록만 넓은 plain 폭을 쓴다', () => {
+    expect(isWidePlain('/books/new')).toBe(true);
+    expect(isWidePlain('/books')).toBe(false);
+    expect(isWidePlain('/settings')).toBe(false);
+  });
 });
 
 describe('ruledFor', () => {
