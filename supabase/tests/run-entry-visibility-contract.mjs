@@ -2,6 +2,7 @@
 // 마이그레이션 전체를 적용한 뒤 기록 공개 범위를 실제 역할로 조회해 확인한다.
 // 체인 테스트는 정책의 이름만 비교하므로, 새 마이그레이션이 정책 내용을 넓히는 일은 이 테스트가 잡는다.
 import assert from 'node:assert/strict';
+import { actAs } from './lib/act-as.mjs';
 import { applyMigrationChain } from './lib/apply-migration-chain.mjs';
 
 const { PGlite } = await import(process.env.PGLITE_MODULE ?? '@electric-sql/pglite');
@@ -16,17 +17,7 @@ const SHELF = '00000000-0000-4000-8000-000000000012';
 const PUBLIC_ENTRY = '00000000-0000-4000-8000-000000000021';
 const PRIVATE_ENTRY = '00000000-0000-4000-8000-000000000022';
 
-async function as(userId, run) {
-  const role = userId ? 'authenticated' : 'anon';
-  const claims = JSON.stringify(userId ? { role, sub: userId } : { role });
-  await db.query(`select set_config('request.jwt.claims', $1, false)`, [claims]);
-  await db.exec(`set role ${role}`);
-  try {
-    return await run();
-  } finally {
-    await db.exec('reset role');
-  }
-}
+const as = (userId, run) => actAs(db, userId, run);
 
 const visibleEntries = async (userId) =>
   as(userId, async () => {
