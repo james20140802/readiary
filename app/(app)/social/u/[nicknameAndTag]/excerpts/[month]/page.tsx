@@ -1,8 +1,13 @@
 import { notFound, redirect } from 'next/navigation';
+import MonthlyExcerptReactions from '@/components/monthly-excerpt/MonthlyExcerptReactions';
 import MonthlyExcerptReader from '@/components/monthly-excerpt/MonthlyExcerptReader';
 import SocialTopBar from '@/components/social/SocialTopBar';
 import { isMonthKey } from '@/lib/monthly-excerpt/month';
-import { fetchExcerptOwner, fetchFriendMonthlyExcerpt } from '@/lib/monthly-excerpt/server';
+import {
+  fetchExcerptOwner,
+  fetchFriendMonthlyExcerpt,
+  fetchMonthlyExcerptReactions,
+} from '@/lib/monthly-excerpt/server';
 import { parseNicknameAndTagSlug } from '@/lib/social/invite';
 import { getServerUser } from '@/lib/supabase/getServerUser';
 
@@ -32,6 +37,8 @@ export default async function FriendExcerptPage({ params }: Props) {
   const excerpt = await fetchFriendMonthlyExcerpt(owner.id, month);
   if (!excerpt) notFound();
 
+  const reactions = await fetchMonthlyExcerptReactions(excerpt.id);
+
   return (
     <>
       <SocialTopBar
@@ -43,6 +50,14 @@ export default async function FriendExcerptPage({ params }: Props) {
         items={excerpt.items}
         viewer="friend"
         ownerName={owner.name}
+        reactions={
+          <MonthlyExcerptReactions
+            excerptId={excerpt.id}
+            month={excerpt.month}
+            currentUserId={user.id}
+            initial={reactions}
+          />
+        }
       />
     </>
   );

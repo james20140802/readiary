@@ -31,6 +31,13 @@ export interface FriendMonthlyExcerpt {
   items: Omit<ExcerptItem, 'isPrivate'>[];
 }
 
+/** 읽는 화면의 첫 좋아요·댓글 수 (get_monthly_excerpt_reactions) */
+export interface MonthlyExcerptReactionCounts {
+  likeCount: number;
+  commentCount: number;
+  liked: boolean;
+}
+
 /** 달의 발췌집 주소의 주인 */
 export interface ExcerptOwner {
   id: string;

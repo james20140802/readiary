@@ -232,7 +232,7 @@ export default function EntryCard({
       )}
 
       <CommentBottomSheet
-        entryId={id}
+        target={{ kind: 'entry', entryId: id }}
         currentUserId={userId}
         isOpen={isCommentOpen}
         onClose={() => setIsCommentOpen(false)}

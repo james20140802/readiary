@@ -195,6 +195,79 @@ export type Database = {
           },
         ];
       };
+      monthly_excerpt_likes: {
+        Row: { user_id: string; excerpt_id: string; created_at: string };
+        Insert: { user_id: string; excerpt_id: string; created_at?: string };
+        Update: { user_id?: string; excerpt_id?: string; created_at?: string };
+        Relationships: [
+          {
+            foreignKeyName: 'monthly_excerpt_likes_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'monthly_excerpt_likes_excerpt_id_fkey';
+            columns: ['excerpt_id'];
+            isOneToOne: false;
+            referencedRelation: 'monthly_excerpts';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      monthly_excerpt_comments: {
+        Row: {
+          id: string;
+          excerpt_id: string;
+          user_id: string;
+          content: string;
+          parent_id: string | null;
+          client_comment_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          excerpt_id: string;
+          user_id: string;
+          content: string;
+          parent_id?: string | null;
+          client_comment_id?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          excerpt_id?: string;
+          user_id?: string;
+          content?: string;
+          parent_id?: string | null;
+          client_comment_id?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'monthly_excerpt_comments_excerpt_id_fkey';
+            columns: ['excerpt_id'];
+            isOneToOne: false;
+            referencedRelation: 'monthly_excerpts';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'monthly_excerpt_comments_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'monthly_excerpt_comments_parent_id_excerpt_id_fkey';
+            columns: ['parent_id', 'excerpt_id'];
+            isOneToOne: false;
+            referencedRelation: 'monthly_excerpt_comments';
+            referencedColumns: ['id', 'excerpt_id'];
+          },
+        ];
+      };
       entry_reflections: {
         Row: {
           id: string;
@@ -347,6 +420,8 @@ export type Database = {
           entry_id: string | null;
           friendship_id: string | null;
           id: string;
+          monthly_excerpt_comment_id: string | null;
+          monthly_excerpt_id: string | null;
           read_at: string | null;
           type: string;
           user_id: string;
@@ -358,6 +433,8 @@ export type Database = {
           entry_id?: string | null;
           friendship_id?: string | null;
           id?: string;
+          monthly_excerpt_comment_id?: string | null;
+          monthly_excerpt_id?: string | null;
           read_at?: string | null;
           type: string;
           user_id: string;
@@ -369,6 +446,8 @@ export type Database = {
           entry_id?: string | null;
           friendship_id?: string | null;
           id?: string;
+          monthly_excerpt_comment_id?: string | null;
+          monthly_excerpt_id?: string | null;
           read_at?: string | null;
           type?: string;
           user_id?: string;
@@ -407,6 +486,20 @@ export type Database = {
             columns: ['friendship_id'];
             isOneToOne: false;
             referencedRelation: 'friends';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'notifications_monthly_excerpt_id_fkey';
+            columns: ['monthly_excerpt_id'];
+            isOneToOne: false;
+            referencedRelation: 'monthly_excerpts';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'notifications_monthly_excerpt_comment_id_fkey';
+            columns: ['monthly_excerpt_comment_id'];
+            isOneToOne: false;
+            referencedRelation: 'monthly_excerpt_comments';
             referencedColumns: ['id'];
           },
         ];
@@ -588,6 +681,15 @@ export type Database = {
         Args: { p_owner: string; p_year: number };
         Returns: Json;
       };
+      notify_monthly_excerpt_event: {
+        Args: { p_excerpt_id: string; p_type: string; p_comment_id?: string };
+        Returns: undefined;
+      };
+      retract_monthly_excerpt_like_notification: {
+        Args: { p_excerpt_id: string };
+        Returns: undefined;
+      };
+      get_monthly_excerpt_reactions: { Args: { p_id: string }; Returns: Json };
       get_books_page: { Args: Record<string, never>; Returns: Json };
       get_profile_retrospect: {
         Args: { p_user_id: string; p_today: string; p_public_only?: boolean };

@@ -7,6 +7,8 @@ const MESSAGES: Record<NotificationType, (nickname: string) => string> = {
   friend_accept: (n) => `${n}님이 친구 신청을 수락했어요`,
   like: (n) => `${n}님이 내 문장을 좋아해요`,
   comment: (n) => `${n}님이 내 기록에 댓글을 남겼어요`,
+  excerpt_like: (n) => `${n}님이 달의 발췌집을 좋아해요`,
+  excerpt_comment: (n) => `${n}님이 달의 발췌집에 댓글을 남겼어요`,
 };
 
 export function buildNotificationMessage(type: NotificationType, nickname: string): string {

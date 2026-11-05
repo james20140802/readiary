@@ -5,6 +5,7 @@ const fetchExcerptOwner = vi.fn();
 const fetchFriendMonthlyExcerpt = vi.fn();
 const fetchFriendExcerptYears = vi.fn();
 const fetchFriendExcerptYear = vi.fn();
+const fetchMonthlyExcerptReactions = vi.fn();
 const isFriendWith = vi.fn();
 const notFound = vi.fn(() => {
   throw new Error('NOT_FOUND');
@@ -21,11 +22,13 @@ vi.mock('@/lib/monthly-excerpt/server', () => ({
   fetchFriendMonthlyExcerpt,
   fetchFriendExcerptYears,
   fetchFriendExcerptYear,
+  fetchMonthlyExcerptReactions,
 }));
 vi.mock('@/components/monthly-excerpt/MonthlyExcerptReader', () => ({ default: () => null }));
 vi.mock('@/components/monthly-excerpt/MonthlyExcerptArchive', () => ({
   FriendMonthlyExcerptArchive: () => null,
 }));
+vi.mock('@/components/monthly-excerpt/MonthlyExcerptReactions', () => ({ default: () => null }));
 vi.mock('@/components/social/SocialTopBar', () => ({ default: () => null }));
 
 const { default: ReaderPage } = await import('../[month]/page');
@@ -95,6 +98,25 @@ describe('친구의 달의 발췌집 읽기', () => {
       viewer: 'friend',
       ownerName: '민지',
     });
+  });
+
+  it('책 아래에 그 권의 반응을 그린다. 수를 못 불러와도 읽기는 막지 않는다', async () => {
+    const counts = { likeCount: 3, commentCount: 1, liked: true };
+    fetchFriendMonthlyExcerpt.mockResolvedValue({ id: 'x', month: '2026-03', items: [] });
+    fetchMonthlyExcerptReactions.mockResolvedValue(counts);
+    const { default: Reader } = await import('@/components/monthly-excerpt/MonthlyExcerptReader');
+    const props = propsOf(await read('2026-03'), Reader);
+    expect(fetchMonthlyExcerptReactions).toHaveBeenCalledWith('x');
+    expect((props.reactions as { props: unknown }).props).toMatchObject({
+      excerptId: 'x',
+      month: '2026-03',
+      currentUserId: 'me',
+      initial: counts,
+    });
+
+    fetchMonthlyExcerptReactions.mockResolvedValue(null);
+    const failed = propsOf(await read('2026-03'), Reader);
+    expect((failed.reactions as { props: { initial: unknown } }).props.initial).toBeNull();
   });
 });
 

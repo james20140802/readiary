@@ -12,8 +12,9 @@ import { useActionLock } from '@/hooks/useActionLock';
 import { apiFetch, SessionExpiredError } from '@/lib/api/fetch';
 import { MONTHLY_EXCERPT_SHARING } from '@/lib/monthly-excerpt/flags';
 import { shareImpact } from '@/lib/monthly-excerpt/model';
-import type { MonthlyExcerpt } from '@/lib/monthly-excerpt/types';
+import type { MonthlyExcerpt, MonthlyExcerptReactionCounts } from '@/lib/monthly-excerpt/types';
 import MonthlyExcerptExport from './MonthlyExcerptExport';
+import MonthlyExcerptReactions from './MonthlyExcerptReactions';
 import MonthlyExcerptReader from './MonthlyExcerptReader';
 
 const ICON_BUTTON = 'relative grid h-11 w-11 place-items-center rounded-full text-ink';
@@ -25,7 +26,16 @@ async function failureMessage(res: Response, fallback: string): Promise<string> 
 }
 
 /** 내 달의 발췌집 — 읽기 화면에 상단 바와 소유자 동작(내보내기·고치기·공개 전환·지우기)을 얹는다 */
-export default function MonthlyExcerptOwnerView({ excerpt }: { excerpt: MonthlyExcerpt }) {
+export default function MonthlyExcerptOwnerView({
+  excerpt,
+  reactions,
+  currentUserId,
+}: {
+  excerpt: MonthlyExcerpt;
+  /** 반응의 첫 수. 읽지 못했으면 null, 자리용 화면처럼 그리지 않을 때는 생략한다 */
+  reactions?: MonthlyExcerptReactionCounts | null;
+  currentUserId?: string;
+}) {
   const { id, month, items, isShared } = excerpt;
   useTopBar({ title: '달의 발췌집', back: { href: '/excerpts', label: '모아 보기' } });
   const router = useRouter();
@@ -104,6 +114,17 @@ export default function MonthlyExcerptOwnerView({ excerpt }: { excerpt: MonthlyE
         month={month}
         items={items}
         viewer="owner"
+        reactions={
+          MONTHLY_EXCERPT_SHARING && reactions !== undefined ? (
+            <MonthlyExcerptReactions
+              excerptId={id}
+              month={month}
+              currentUserId={currentUserId}
+              initial={reactions}
+              hidden={!isShared || impact.publicCount === 0}
+            />
+          ) : null
+        }
         actions={
           <>
             {MONTHLY_EXCERPT_SHARING && isShared && impact.publicCount === 0 && (

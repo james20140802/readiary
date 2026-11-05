@@ -185,12 +185,12 @@ export default function FeedPost({ item, userId, now, index }: Props) {
       </Sheet>
 
       <LikersBottomSheet
-        entryId={entry.id}
+        target={{ kind: 'entry', entryId: entry.id }}
         isOpen={likersOpen}
         onClose={() => setLikersOpen(false)}
       />
       <CommentBottomSheet
-        entryId={entry.id}
+        target={{ kind: 'entry', entryId: entry.id }}
         currentUserId={userId}
         isOpen={commentsOpen}
         onClose={() => setCommentsOpen(false)}

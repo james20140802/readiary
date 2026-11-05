@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { notifyEntryEvent, notifyFriendEvent } from '../notify';
+import {
+  notifyEntryEvent,
+  notifyFriendEvent,
+  notifyMonthlyExcerptEvent,
+  retractMonthlyExcerptLikeNotification,
+} from '../notify';
 
 type Rpc = { rpc: ReturnType<typeof vi.fn> };
 
@@ -50,5 +55,40 @@ describe('notifyFriendEvent', () => {
       p_recipient: 'user-2',
       p_type: 'friend_request',
     });
+  });
+});
+
+describe('달의 발췌집 알림', () => {
+  it('댓글은 댓글 id를 넘기고 좋아요는 키를 보내지 않는다', async () => {
+    const supabase = buildSupabase();
+    await notifyMonthlyExcerptEvent(supabase, 'x1', 'excerpt_comment', 'c1');
+    expect(supabase.rpc).toHaveBeenLastCalledWith('notify_monthly_excerpt_event', {
+      p_excerpt_id: 'x1',
+      p_type: 'excerpt_comment',
+      p_comment_id: 'c1',
+    });
+    await notifyMonthlyExcerptEvent(supabase, 'x1', 'excerpt_like');
+    expect(supabase.rpc).toHaveBeenLastCalledWith('notify_monthly_excerpt_event', {
+      p_excerpt_id: 'x1',
+      p_type: 'excerpt_like',
+    });
+  });
+
+  it('회수는 권 id로 부른다', async () => {
+    const supabase = buildSupabase();
+    await retractMonthlyExcerptLikeNotification(supabase, 'x1');
+    expect(supabase.rpc).toHaveBeenCalledWith('retract_monthly_excerpt_like_notification', {
+      p_excerpt_id: 'x1',
+    });
+  });
+
+  it('RPC 오류는 로그만 남기고 던지지 않는다 — 반응은 이미 저장됐다', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const supabase = buildSupabase({ message: 'boom' });
+    await expect(
+      notifyMonthlyExcerptEvent(supabase, 'x1', 'excerpt_like')
+    ).resolves.toBeUndefined();
+    await expect(retractMonthlyExcerptLikeNotification(supabase, 'x1')).resolves.toBeUndefined();
+    expect(error).toHaveBeenCalledTimes(2);
   });
 });

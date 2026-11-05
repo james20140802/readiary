@@ -8,6 +8,7 @@ import type {
   MonthBook,
   MonthKey,
   MonthlyExcerpt,
+  MonthlyExcerptReactionCounts,
   YearRow,
 } from './types';
 
@@ -25,6 +26,22 @@ export async function fetchMyMonthlyExcerpt(month: MonthKey): Promise<MonthlyExc
   const { data, error } = await supabase.rpc('get_my_monthly_excerpt', { p_month: month });
   if (error) fail('Monthly excerpt unavailable', error);
   return (data as unknown as MonthlyExcerpt | null) ?? null;
+}
+
+/**
+ * 한 권의 첫 좋아요·댓글 수. 볼 수 없으면 null이다.
+ * 곁다리라 실패해도 읽기를 막지 않도록 null로 삼킨다. 화면은 null이면 수를 그리지 않고 알린다.
+ */
+export async function fetchMonthlyExcerptReactions(
+  excerptId: string
+): Promise<MonthlyExcerptReactionCounts | null> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.rpc('get_monthly_excerpt_reactions', { p_id: excerptId });
+  if (error) {
+    console.error('Monthly excerpt reactions unavailable:', error.code);
+    return null;
+  }
+  return (data as unknown as MonthlyExcerptReactionCounts | null) ?? null;
 }
 
 /** 그달에 문장을 남긴 책(책 칩). 불러오지 못하면 throw. */

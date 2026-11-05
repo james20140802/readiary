@@ -1,6 +1,7 @@
 'use client';
 
 import { apiFetch } from '@/lib/api/fetch';
+import { likersUrl, type CommentTarget } from '@/lib/comments/target';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Sheet from '@/components/ui/Sheet';
@@ -16,21 +17,22 @@ interface Liker {
 }
 
 interface Props {
-  entryId: string;
+  target: CommentTarget;
   isOpen: boolean;
   onClose: () => void;
 }
 
 /** 좋아한 사람 — 간지 시트. 이름을 누르면 그 사람의 서재로 간다 */
-export default function LikersBottomSheet({ entryId, isOpen, onClose }: Props) {
+export default function LikersBottomSheet({ target, isOpen, onClose }: Props) {
   // null = 아직 한 번도 못 불러옴(로딩). 다시 열면 이전 명단을 보여주며 조용히 갱신한다
   const [likers, setLikers] = useState<Liker[] | null>(null);
   const isLoading = likers === null;
+  const url = likersUrl(target);
 
   useEffect(() => {
     if (!isOpen) return;
     let cancelled = false;
-    apiFetch(`/api/likes?entry_id=${entryId}`)
+    apiFetch(url)
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
         if (!cancelled) setLikers(Array.isArray(data) ? data : []);
@@ -41,7 +43,7 @@ export default function LikersBottomSheet({ entryId, isOpen, onClose }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [entryId, isOpen]);
+  }, [url, isOpen]);
 
   const likerRows = likers ?? [];
 
@@ -57,7 +59,9 @@ export default function LikersBottomSheet({ entryId, isOpen, onClose }: Props) {
         </p>
       ) : likerRows.length === 0 ? (
         <p className="py-8 text-center font-sans text-caption text-ink-sub">
-          아직 이 기록을 좋아한 사람이 없어요
+          {target.kind === 'entry'
+            ? '아직 이 기록을 좋아한 사람이 없어요'
+            : '아직 이 발췌집을 좋아한 사람이 없어요'}
         </p>
       ) : (
         <ul>

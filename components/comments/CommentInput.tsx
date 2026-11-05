@@ -1,36 +1,47 @@
 'use client';
 import { SessionExpiredError } from '@/lib/api/fetch';
+import {
+  commentPayload,
+  commentScope,
+  commentsUrl,
+  type CommentTarget,
+} from '@/lib/comments/target';
 
 import { useState, useRef, useEffect } from 'react';
 import { useActionLock } from '@/hooks/useActionLock';
 import { useCreationSubmission } from '@/hooks/useCreationSubmission';
 import { Comment } from '@/types/comments';
 
-interface CommentInputProps {
+// 기록은 entryId로(CommentSection), 그 밖에는 target으로 넘긴다
+type CommentInputProps = (
+  | { entryId: string; target?: never }
+  | { target: CommentTarget; entryId?: never }
+) & {
   onCommentSubmit: (comment: Comment) => void;
-  entryId: string;
   disabled?: boolean;
   onBusyChange?: (busy: boolean) => void;
   replyingTo?: Comment | null;
   onCancelReply?: () => void;
-}
+};
 
 export default function CommentInput({
   onCommentSubmit,
   replyingTo,
   onCancelReply,
   entryId,
+  target,
   disabled = false,
   onBusyChange,
 }: CommentInputProps) {
+  const resolved: CommentTarget = target ?? { kind: 'entry', entryId };
   const [content, setContent] = useState('');
   const action = useActionLock();
   const isSubmitting = action.busy;
   const creation = useCreationSubmission<{
-    entryId: string;
+    entryId?: string;
     content: string;
     parentId: string | null;
-  }>(`comment:${entryId}`, '/api/comments', 'client_comment_id');
+  }>(commentScope(resolved), commentsUrl(resolved), 'client_comment_id');
   const cancelReply = useRef(onCancelReply);
   const replyAccount = useRef<string | null>(null);
   useEffect(() => {
@@ -61,7 +72,9 @@ export default function CommentInput({
     onBusyChange?.(true);
     let leaving = false;
     try {
-      const result = await creation.submit({ entryId, content, parentId: replyingTo?.id ?? null });
+      const result = await creation.submit(
+        commentPayload(resolved, content, replyingTo?.id ?? null)
+      );
       if (!result) return;
       onCommentSubmit(result as unknown as Comment);
       setContent(''); // 성공 시 입력창 비우기

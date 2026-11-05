@@ -13,6 +13,14 @@ function resolveActor(actor: ActorProfile | ActorProfile[] | null): ActorProfile
   return Array.isArray(actor) ? (actor[0] ?? null) : actor;
 }
 
+/** 권의 달(그달 1일) → 'YYYY-MM'. 권을 찾지 못하면 null */
+function resolveExcerptMonth(
+  excerpt: { month: string } | { month: string }[] | null | undefined
+): string | null {
+  const row = Array.isArray(excerpt) ? excerpt[0] : excerpt;
+  return row?.month ? row.month.slice(0, 7) : null;
+}
+
 export interface FetchNotificationsResult {
   items: NotificationItem[];
   /** true면 조회 자체가 실패한 것 — UI는 "알림 없음"이 아니라 에러 문구를 보여줘야 한다 */
@@ -29,7 +37,7 @@ export async function fetchNotifications(): Promise<FetchNotificationsResult> {
   const { data, error } = await supabase
     .from('notifications')
     .select(
-      'id, type, created_at, read_at, entry_id, actor:profiles!notifications_actor_id_fkey(nickname, profile_image)'
+      'id, type, created_at, read_at, entry_id, monthly_excerpt:monthly_excerpts!notifications_monthly_excerpt_id_fkey(month), actor:profiles!notifications_actor_id_fkey(nickname, profile_image)'
     )
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
@@ -45,6 +53,7 @@ export async function fetchNotifications(): Promise<FetchNotificationsResult> {
       createdAt: row.created_at,
       readAt: row.read_at,
       entryId: row.entry_id,
+      monthlyExcerptMonth: resolveExcerptMonth(row.monthly_excerpt),
       actorNickname: actor?.nickname ?? '알 수 없음',
       // DB에는 스토리지 경로가 저장됨 — next/image가 파싱 가능한 공개 URL로 변환
       actorProfileImage: getImageUrl(actor?.profile_image ?? null),

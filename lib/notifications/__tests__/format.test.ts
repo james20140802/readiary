@@ -11,6 +11,12 @@ describe('buildNotificationMessage', () => {
     );
     expect(buildNotificationMessage('like', '상추')).toBe('상추님이 내 문장을 좋아해요');
     expect(buildNotificationMessage('comment', '상추')).toBe('상추님이 내 기록에 댓글을 남겼어요');
+    expect(buildNotificationMessage('excerpt_like', '민지')).toBe(
+      '민지님이 달의 발췌집을 좋아해요'
+    );
+    expect(buildNotificationMessage('excerpt_comment', '민지')).toBe(
+      '민지님이 달의 발췌집에 댓글을 남겼어요'
+    );
   });
 });
 

@@ -91,3 +91,11 @@ PGLITE_MODULE=/tmp/readiary-pr91-sql/node_modules/@electric-sql/pglite/dist/inde
 - 실제 Supabase에서 두 계정으로 비공개 전환·친구 해제 뒤 페이지 접근. 프로덕션 마이그레이션 미적용이고, 이번 검증은 PGlite 계약과 픽스처 화면이다.
 - 설치형 PWA와 iOS Safari 실기기의 서비스 워커 동작, 로그인 상태의 페이지 응답 헤더. 위 캐시 항목은 코드 읽기와 단위 테스트이며 실기기 확인이 아니다.
 - PGlite의 슈퍼유저 소유자와 달리 프로덕션의 함수 소유자는 `postgres`다. 적용 뒤 `has_function_privilege`로 anon·authenticated 권한을 다시 조회한다.
+
+## 달의 발췌집 좋아요·댓글 (Task 8, 2026-11-06)
+
+반응은 한 권에 붙고, 읽기·남기기·지우기 모두 `can_view_monthly_excerpt` 한 곳에서 정한다(`20261110100000_monthly_excerpt_reactions.sql`). 나만 보기, 공개 문장 없음, 친구 해제는 같은 결과다. 친구에게는 0행과 같은 404이고, 소유자는 그대로 읽으며, 행은 남아 다시 보이면 돌아온다. 숨겨진 동안에는 자기 반응도 지우지 못한다. 권을 지우면 반응과 알림이 함께 사라진다. 계약 테스트: `supabase/tests/monthly_excerpts_reactions_contract.sql`.
+
+- 옛 친구의 이름과 댓글은 소유자와 남은 친구에게 그대로 보인다. 프로필은 로그인한 사용자에게 열려 있고(`profiles_select_authenticated`), 좋아한 사람 명단은 친구가 아니면 링크를 걸지 않는다.
+- 숨겨진 동안이나 친구를 끊은 뒤에는 반응으로 알림을 만들지 못한다.
+- API 응답은 `no-store`이고 `/api/`는 서비스 워커에서 NetworkOnly다. 프로덕션 적용과 실제 두 계정 확인은 아직 하지 않았다.
