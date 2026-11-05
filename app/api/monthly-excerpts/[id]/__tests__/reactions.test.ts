@@ -134,6 +134,7 @@ describe('POST /api/monthly-excerpts/[id]/likes', () => {
   it('좋아요가 있으면 지우고 알림을 거둔다', async () => {
     const { calls, client } = fake({
       'monthly_excerpt_likes.select': { data: { user_id: 'me' } },
+      'monthly_excerpt_likes.delete': { data: [{ user_id: 'me' }] },
     });
     const res = await POST_LIKE(req(), ctx());
     expect(await res.json()).toEqual({ message: 'unliked', liked: false });
@@ -142,6 +143,17 @@ describe('POST /api/monthly-excerpts/[id]/likes', () => {
     expect(filter(del, 'excerpt_id')).toBe(excerptId);
     expect(retractMonthlyExcerptLikeNotification).toHaveBeenCalledWith(client, excerptId);
     expect(notifyMonthlyExcerptEvent).not.toHaveBeenCalled();
+  });
+
+  it('지워진 행이 없으면 성공으로 답하지 않고 알림도 건드리지 않는다', async () => {
+    fake({
+      'monthly_excerpt_likes.select': { data: { user_id: 'me' } },
+      'monthly_excerpt_likes.delete': { data: [] },
+    });
+    const res = await POST_LIKE(req(), ctx());
+    expect(res.status).toBe(404);
+    expect((await res.json()).error).toBe('찾을 수 없는 발췌집이에요.');
+    expect(retractMonthlyExcerptLikeNotification).not.toHaveBeenCalled();
   });
 
   it('동시에 두 번 눌러 이미 있으면 좋아요 상태로 답한다', async () => {

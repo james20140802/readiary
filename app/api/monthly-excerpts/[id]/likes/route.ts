@@ -107,12 +107,15 @@ export async function POST(_request: Request, { params }: Context) {
   if (readError) return reactionFailed(readError.code, FAILED);
 
   if (existing) {
-    const { error } = await supabase
+    const { data: removed, error } = await supabase
       .from('monthly_excerpt_likes')
       .delete()
       .eq('user_id', user.id)
-      .eq('excerpt_id', excerptId);
+      .eq('excerpt_id', excerptId)
+      .select('user_id');
     if (error) return reactionFailed(error.code, FAILED);
+    // 확인 직후 숨겨지면 지워진 행이 없다. 성공으로 답하면 화면과 어긋난다(댓글 DELETE와 같다).
+    if (!removed || removed.length === 0) return excerptUnavailable();
     await retractMonthlyExcerptLikeNotification(supabase, excerptId);
     return NextResponse.json({ message: 'unliked', liked: false }, { headers: excerptHeaders });
   }
