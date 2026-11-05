@@ -25,6 +25,9 @@ describe('라벨과 달 키', () => {
     expect(isMonthKey('2026-03')).toBe(true);
     expect(isMonthKey('2026-13')).toBe(false);
     expect(isMonthKey('2026-00')).toBe(false);
+    // SQL 규칙과 같다: 첫 자리가 0인 해는 API에서 먼저 막는다
+    expect(isMonthKey('0999-03')).toBe(false);
+    expect(isMonthKey('1000-03')).toBe(true);
     expect(isMonthKey('2026-3')).toBe(false);
     expect(isMonthKey('2026-03-01')).toBe(false);
   });
