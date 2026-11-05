@@ -25,9 +25,9 @@
 
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
-import { applyAllMigrations, loadPGlite, SUPABASE_STUBS_SQL } from './stubs.mjs';
+import { applyMigrationChain } from './lib/apply-migration-chain.mjs';
 
-const PGlite = await loadPGlite();
+const { PGlite } = await import(process.env.PGLITE_MODULE ?? '@electric-sql/pglite');
 const db = new PGlite();
 const root = new URL('../', import.meta.url);
 
@@ -58,11 +58,8 @@ try {
     await readFile(new URL('tests/fixtures/prod-public-schema.json', root), 'utf8')
   );
 
-  // 1) Supabase가 제공하는 것만 최소로 스텁한다(stubs.mjs).
-  await db.exec(SUPABASE_STUBS_SQL);
-
-  // 2) 저장소 마이그레이션 전체를 파일명 순서로 적용한다.
-  const files = await applyAllMigrations(db);
+  // 1)·2) Supabase 스텁을 만들고 저장소 마이그레이션 전체를 파일명 순서로 적용한다.
+  const files = await applyMigrationChain(db);
 
   const problems = [];
 
