@@ -80,6 +80,7 @@ export default function MonthlyExcerptOwnerView({ excerpt }: { excerpt: MonthlyE
       toast.success('달의 발췌집을 지웠어요.');
       setDeleteOpen(false);
       router.replace('/excerpts');
+      router.refresh();
     } catch (error) {
       if (!(error instanceof SessionExpiredError)) toast.error(fallback);
     } finally {

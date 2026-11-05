@@ -75,7 +75,7 @@ export default function ComposeFlow({ month, books, firstPage, initialPicks }: C
     !saved &&
     (picks.length !== initialPicks.length ||
       picks.some((p, i) => p.entryId !== initialPicks[i].entryId));
-  const guard = useLeaveGuard(dirty);
+  const guard = useLeaveGuard(dirty, editing ? `/excerpts/${month}` : '/excerpts');
 
   // 단계가 바뀌면 키보드·낭독기 초점을 새 단계의 제목으로 옮긴다
   const heading = useRef<HTMLHeadingElement>(null);
@@ -117,10 +117,14 @@ export default function ComposeFlow({ month, books, firstPage, initialPicks }: C
       });
       if (res.ok) {
         done = true;
+        // 보초 항목을 먼저 걷어야 replace가 엮던 화면의 항목을 바꾼다 — 뒤로 가도 엮던 화면이 남지 않는다
+        await guard.release();
         setSaved(true);
         toast.success('달의 발췌집을 엮었어요.');
         lock.navigate(`/excerpts/${month}`);
         router.replace(`/excerpts/${month}`);
+        // 모아 보기의 달 줄이 옛 상태로 남지 않게 한다
+        router.refresh();
         return;
       }
       const body = (await res.json().catch(() => null)) as SaveFailure | null;
@@ -256,7 +260,7 @@ export default function ComposeFlow({ month, books, firstPage, initialPicks }: C
           <Button variant="secondary" className="flex-1" onClick={guard.stay}>
             계속 고르기
           </Button>
-          <Button variant="danger" className="flex-1" onClick={guard.leave}>
+          <Button variant="danger" className="flex-1" onClick={() => void guard.leave()}>
             나가기
           </Button>
         </div>
