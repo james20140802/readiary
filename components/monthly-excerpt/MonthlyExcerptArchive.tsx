@@ -255,7 +255,6 @@ export default function MonthlyExcerptArchive({
                   <button
                     type="button"
                     aria-expanded={isOpen}
-                    aria-controls={bodyId}
                     onClick={() => toggle(row.year)}
                     className={clsx(
                       'flex min-h-12 w-full items-center justify-between gap-3 py-2 text-left',

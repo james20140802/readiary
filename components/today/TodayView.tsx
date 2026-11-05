@@ -93,8 +93,9 @@ export default function TodayView(p: TodayViewProps) {
           <div className={s.leafBody}>
             <TodayDate todayKst={p.todayKst} weeklyCount={p.weeklyCount} desk={desk === true} />
             <PolicyNotice />
-            {p.excerptPrompt && <MonthPrompt prompt={p.excerptPrompt} />}
             {p.composer}
+            {/* 작성기 아래에 둬서 늦게 나타나도 쓰는 자리를 밀지 않는다 */}
+            {p.excerptPrompt && <MonthPrompt prompt={p.excerptPrompt} />}
             <div className="lg:hidden">
               <Suspense fallback={null}>
                 <Recall recall={p.recall} todayKst={p.todayKst} markSeen={markSeen} />

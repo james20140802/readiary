@@ -20,7 +20,7 @@ function Slip({ prompt }: { prompt: ExcerptPrompt }) {
   if (!visible) return null;
 
   return (
-    <aside aria-label="달의 발췌집 안내" className="vellum-slip mt-5">
+    <aside aria-label="달의 발췌집 안내" className="vellum-slip my-5">
       <p className="break-keep font-serif text-[20px] font-semibold leading-snug text-ink">
         {shortMonthLabel(prompt.month)}을 엮어 볼까요?
       </p>

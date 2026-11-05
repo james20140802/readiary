@@ -139,12 +139,13 @@ describe('MonthlyExcerptArchive', () => {
     expect(screen.getByText('문장 4개')).toBeTruthy();
   });
 
-  it('해 단추는 진짜 button이라 키보드 초점을 받고, 본문과 aria-controls로 이어진다', () => {
+  it('해 단추는 진짜 button이라 키보드 초점을 받고, aria-controls를 두지 않는다', () => {
     show();
     const button = screen.getByRole('button', { name: /2026년/ });
     button.focus();
     expect(document.activeElement).toBe(button);
     expect(button.tagName).toBe('BUTTON');
-    expect(document.getElementById(button.getAttribute('aria-controls') ?? '')).toBeTruthy();
+    // 접힌 동안 없는 요소를 가리키지 않는다
+    expect(button.hasAttribute('aria-controls')).toBe(false);
   });
 });
