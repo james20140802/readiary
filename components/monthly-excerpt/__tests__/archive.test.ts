@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { createElement as h } from 'react';
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TopBarProvider } from '@/components/shell/TopBarContext';
 import type { ExcerptMonthRow, YearRow } from '@/lib/monthly-excerpt/types';
