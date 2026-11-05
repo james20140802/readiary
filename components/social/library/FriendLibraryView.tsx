@@ -333,7 +333,7 @@ export default function FriendLibraryView({
             </p>
           ) : monthlyExcerpts.length === 0 ? (
             <p className="border-t border-hairline py-6 font-sans text-body-sm text-ink-sub">
-              아직 친구에게 보여 준 달이 없어요.
+              {isOwn ? '아직 엮은 달이 없어요' : '아직 친구에게 보여 준 달이 없어요.'}
             </p>
           ) : (
             <ul>

@@ -75,6 +75,13 @@ describe('서재의 달마다 엮은 발췌집', () => {
     expect(list.queryByRole('link')).toBeNull();
   });
 
+  it('내 주소에서는 비어 있어도 친구 쪽 문구를 쓰지 않는다', () => {
+    show({ isOwn: true });
+    const list = within(section());
+    expect(list.getByText('아직 엮은 달이 없어요')).toBeTruthy();
+    expect(list.queryByText('아직 친구에게 보여 준 달이 없어요.')).toBeNull();
+  });
+
   it('불러오지 못한 것을 비어 있다고 말하지 않는다', () => {
     show({ monthlyExcerptsError: true });
     const list = within(section());
