@@ -572,7 +572,8 @@ export default function MeView(props: MeViewProps) {
               <CoverBook name={name} quote={coverQuote} year={year} count={entries} />
               {pickCover}
             </div>
-            <div className="pt-[30px]">
+            {/* 오른쪽 위 전환 버튼(위 44px, 높이 40px) 아래에서 이름이 시작한다 */}
+            <div className="pt-[54px]">
               <Who name={name} bio={bio} />
               <div className="mt-[34px]">
                 <Colophon name={name} publishedDate={publishedDate} stats={stats} />

@@ -40,6 +40,11 @@ export function frameFor(pathname: string): Frame {
   return 'plain';
 }
 
+/** plain 틀의 기본 860px로는 좁은 화면 — 찾기와 고른 책을 나란히 놓는 책 등록은 시안대로 1040px까지 펼친다 */
+export function isWidePlain(pathname: string): boolean {
+  return pathname === '/books/new';
+}
+
 /** 틀마다 깔 괘선 — 랜딩은 자체 종이를 쓰므로 없다 */
 export function ruledFor(frame: Frame): 'margin' | 'plain' | null {
   if (frame === 'leaves' || frame === 'feed') return 'margin';

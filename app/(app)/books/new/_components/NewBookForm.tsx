@@ -81,7 +81,7 @@ export default function NewBookForm({ onBusyChange }: { onBusyChange?: (busy: bo
   const message = error || creation.error;
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-[560px]" aria-label="직접 적어 꽂기">
+    <form onSubmit={handleSubmit} className="mx-auto max-w-[560px]" aria-label="직접 적어 꽂기">
       <LineField
         label="제목"
         placeholder="책 제목"
@@ -115,7 +115,7 @@ export default function NewBookForm({ onBusyChange }: { onBusyChange?: (busy: bo
       <button
         type="submit"
         disabled={loading || !creation.ready}
-        className={`${BTN_INK} mt-7 w-full lg:w-auto`}
+        className={`${BTN_INK} mt-7 w-full`}
       >
         {loading ? '꽂는 중…' : creation.snapshot ? '저장 확인·재시도' : '책장에 꽂기'}
       </button>
