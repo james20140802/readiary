@@ -19,3 +19,9 @@ export function monthLabel(month: MonthKey): string {
 export function shortMonthLabel(month: MonthKey): string {
   return `${Number(month.split('-')[1])}월`;
 }
+
+/** '2026-03-14' → '3월 14일'. 달의 발췌집은 달이 표제에 있어 해를 다시 적지 않는다. */
+export function dayLabel(date: string): string {
+  const [, m, d] = date.slice(0, 10).split('-').map(Number);
+  return m && d ? `${m}월 ${d}일` : date;
+}

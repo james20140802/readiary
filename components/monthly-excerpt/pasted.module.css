@@ -1,0 +1,64 @@
+/* 달의 발췌집 펼친 페이지 — 일기장 한 장에 문장 조각을 오려 붙인 모습 */
+
+/* 틀(frameFor)은 plain 그대로 두고, 이 화면에서만 여백선을 긋는다. 위치는 간지 틀의 여백선과 같다(globals.css .diary-ruled) */
+.page {
+  position: relative;
+  padding-left: 36px;
+}
+.page::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 51px;
+  width: 1px;
+  background: rgb(var(--margin));
+  pointer-events: none;
+}
+@media (min-width: 1024px) {
+  .page {
+    padding-left: 0;
+  }
+  .page::before {
+    left: calc(var(--app-side) + 31px);
+  }
+}
+
+/* WebKit 규칙: 기울인 조각이 레이아웃 상자 밖으로 삐져나오면 화면을 떠날 때 유령 선으로 남는다(PR #83).
+   그래서 기울이지 않는 넓힌 상자가 조각을 감싸, 삐져나온 부분까지 상자 안에 들게 한다. 잘라내지는 않는다. */
+.slipBox {
+  margin-inline: -16px;
+  padding-inline: 16px;
+  padding-block: 6px;
+  animation: paste-in 280ms var(--ease-out) both;
+  animation-delay: var(--paste-delay, 0ms);
+}
+
+/* 기울임은 재질의 일부라 동작 줄이기와 무관하게 둔다 */
+.slip {
+  transform: rotate(var(--paste-tilt, 0deg));
+}
+
+.rebound {
+  animation: paste-fade 220ms ease both;
+}
+
+@keyframes paste-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@keyframes paste-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* 동작 줄이기: 전환 애니메이션만 끈다 */
+@media (prefers-reduced-motion: reduce) {
+  .slipBox,
+  .rebound {
+    animation: none;
+  }
+}

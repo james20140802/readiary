@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isFinishedMonth, isMonthKey, monthLabel, shortMonthLabel } from '../month';
+import { dayLabel, isFinishedMonth, isMonthKey, monthLabel, shortMonthLabel } from '../month';
 
 describe('isFinishedMonth', () => {
   it('KST 오늘이 속한 달은 아직 끝나지 않았다', () => {
@@ -27,5 +27,15 @@ describe('라벨과 달 키', () => {
     expect(isMonthKey('2026-00')).toBe(false);
     expect(isMonthKey('2026-3')).toBe(false);
     expect(isMonthKey('2026-03-01')).toBe(false);
+  });
+});
+
+describe('dayLabel', () => {
+  it('달과 날만 적고 앞의 0을 뺀다', () => {
+    expect(dayLabel('2026-03-04')).toBe('3월 4일');
+    expect(dayLabel('2025-12-31')).toBe('12월 31일');
+  });
+  it('읽지 못하는 값은 그대로 둔다', () => {
+    expect(dayLabel('없음')).toBe('없음');
   });
 });
