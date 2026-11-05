@@ -38,6 +38,9 @@ export async function applyMigrationChain(db) {
     grant usage on schema public, auth, storage to anon, authenticated;
     -- 2026-10-30 이후 기본값: public에 새로 만든 객체에 역할 권한을 자동으로 주지 않는다.
     alter default privileges in schema public revoke all on tables from anon, authenticated;
+    -- Supabase 기본값: public에 새로 만든 함수는 세 역할이 실행할 수 있다(테이블과 달리 그대로다).
+    -- 이걸 모델링해야 마이그레이션이 anon 회수를 빠뜨렸을 때 계약 테스트가 실패한다.
+    alter default privileges in schema public grant execute on functions to anon, authenticated, service_role;
   `);
 
   // 2) 저장소 마이그레이션 전체를 파일명 순서로 적용한다.
