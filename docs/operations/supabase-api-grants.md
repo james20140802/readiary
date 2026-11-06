@@ -43,6 +43,12 @@ PGLITE_MODULE=/tmp/readiary-grants-sql/node_modules/@electric-sql/pglite/dist/in
 - **함수 본문의 글자 단위 일치** — 이름과 인자 시그니처만 비교한다. `pg_get_functiondef`의 포매팅은 PG 버전마다 흔들린다.
 - **pg_cron/pg_net** — 저장소 마이그레이션은 `cron.schedule`을 호출하지 않는다(웹 푸시 발송은 운영 설정으로 예약한다 — 아래 이력 차이 참고). 확장 설치 여부는 보지 않는다.
 
+#### 픽스처의 예상치: 아직 프로덕션에 없는 것
+
+체인 계약이 깨지지 않도록, 머지 전 마이그레이션의 결과를 픽스처에 미리 적는다. 픽스처에 있다고 프로덕션에 적용된 것은 아니다.
+
+- `20261106090000_monthly_excerpts.sql`(달의 발췌집 테이블 2개, 정책 3개, 함수 12개): 프로덕션 미적용. 이 부분은 조회 결과가 아니라 예상치다. 적용한 뒤 읽기 전용 조회로 대조하고 이 항목을 지운다.
+
 ### CI에서 자동으로 도는 DB 테스트
 
 `main`으로 가는 PR과 `main` push마다 `.github/workflows/db-contract.yml`이 임시 DB에서 계약 테스트를 실행한다. 프로덕션에 접속하지 않으므로 시크릿을 주지 않는다. 로컬에서는 `npm run test:db`로 같은 PGlite 테스트를 돌린다.

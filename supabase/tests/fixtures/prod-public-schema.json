@@ -1,5 +1,5 @@
 {
-  "_captured": "2026-10-30 (functions re-checked 2026-11-02 after get_entry_months), read-only pg_catalog/information_schema queries against project piqlggyuhhicnjywombg (production). See docs/operations/supabase-api-grants.md.",
+  "_captured": "2026-10-30 (functions re-checked 2026-11-02 after get_entry_months), read-only pg_catalog/information_schema queries against project piqlggyuhhicnjywombg (production). See docs/operations/supabase-api-grants.md. Plus 20261106090000_monthly_excerpts.sql as expected values: not applied to production yet (see the doc).",
   "tables": [
     "book_registration_requests",
     "books",
@@ -12,6 +12,8 @@
     "feature_rollouts",
     "friends",
     "likes",
+    "monthly_excerpt_items",
+    "monthly_excerpts",
     "notifications",
     "profiles",
     "push_deliveries",
@@ -122,6 +124,20 @@
       ["user_id", "uuid", "NO", null],
       ["entry_id", "uuid", "NO", null],
       ["created_at", "timestamp with time zone", "YES", "timezone('utc'::text, now())"]
+    ],
+    "monthly_excerpt_items": [
+      ["excerpt_id", "uuid", "NO", null],
+      ["entry_id", "uuid", "NO", null],
+      ["position", "integer", "NO", null]
+    ],
+    "monthly_excerpts": [
+      ["id", "uuid", "NO", "gen_random_uuid()"],
+      ["user_id", "uuid", "NO", null],
+      ["month", "date", "NO", null],
+      ["is_shared", "boolean", "NO", "false"],
+      ["first_shared_at", "timestamp with time zone", "YES", null],
+      ["created_at", "timestamp with time zone", "NO", "now()"],
+      ["updated_at", "timestamp with time zone", "NO", "now()"]
     ],
     "notifications": [
       ["id", "uuid", "NO", "gen_random_uuid()"],
@@ -329,6 +345,32 @@
       ["likes_pkey", "p", "PRIMARY KEY (id)"],
       ["likes_user_entry_unique", "u", "UNIQUE (user_id, entry_id)"]
     ],
+    "monthly_excerpt_items": [
+      ["monthly_excerpt_items_position_check", "c", "CHECK ((\"position\" >= 1))"],
+      [
+        "monthly_excerpt_items_entry_id_fkey",
+        "f",
+        "FOREIGN KEY (entry_id) REFERENCES entries(id) ON DELETE CASCADE"
+      ],
+      [
+        "monthly_excerpt_items_excerpt_id_fkey",
+        "f",
+        "FOREIGN KEY (excerpt_id) REFERENCES monthly_excerpts(id) ON DELETE CASCADE"
+      ],
+      ["monthly_excerpt_items_pkey", "p", "PRIMARY KEY (excerpt_id, entry_id)"],
+      ["monthly_excerpt_items_drop_empty", "t", "TRIGGER DEFERRABLE INITIALLY DEFERRED"],
+      ["monthly_excerpt_items_excerpt_id_position_key", "u", "UNIQUE (excerpt_id, \"position\")"]
+    ],
+    "monthly_excerpts": [
+      ["monthly_excerpts_month_check", "c", "CHECK ((EXTRACT(day FROM month) = (1)::numeric))"],
+      [
+        "monthly_excerpts_user_id_fkey",
+        "f",
+        "FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE"
+      ],
+      ["monthly_excerpts_pkey", "p", "PRIMARY KEY (id)"],
+      ["monthly_excerpts_user_id_month_key", "u", "UNIQUE (user_id, month)"]
+    ],
     "notifications": [
       [
         "notifications_type_check",
@@ -476,6 +518,12 @@
     "feature_rollouts": ["feature_rollouts_pkey"],
     "friends": ["friends_pkey", "friends_recipient_status_idx", "unique_friendship"],
     "likes": ["idx_likes_entry_id", "likes_pkey", "likes_user_entry_unique"],
+    "monthly_excerpt_items": [
+      "monthly_excerpt_items_entry_id_idx",
+      "monthly_excerpt_items_excerpt_id_position_key",
+      "monthly_excerpt_items_pkey"
+    ],
+    "monthly_excerpts": ["monthly_excerpts_pkey", "monthly_excerpts_user_id_month_key"],
     "notifications": [
       "notifications_comment_id_unique",
       "notifications_entry_actor_idx",
@@ -514,6 +562,8 @@
     "feature_rollouts",
     "friends",
     "likes",
+    "monthly_excerpt_items",
+    "monthly_excerpts",
     "notifications",
     "profiles",
     "push_deliveries",
@@ -577,6 +627,16 @@
     "likes": {
       "anon": [],
       "authenticated": ["delete", "insert", "select", "update"],
+      "service_role": ["delete", "insert", "select", "update"]
+    },
+    "monthly_excerpt_items": {
+      "anon": [],
+      "authenticated": ["select"],
+      "service_role": ["delete", "insert", "select", "update"]
+    },
+    "monthly_excerpts": {
+      "anon": [],
+      "authenticated": ["delete", "select"],
       "service_role": ["delete", "insert", "select", "update"]
     },
     "notifications": {
@@ -658,6 +718,9 @@
     ["likes", "likes_delete_own", "DELETE", "{authenticated}"],
     ["likes", "likes_insert_own_on_visible_entry", "INSERT", "{authenticated}"],
     ["likes", "likes_select_visible_entry", "SELECT", "{authenticated}"],
+    ["monthly_excerpt_items", "monthly_excerpt_items_select_own", "SELECT", "{authenticated}"],
+    ["monthly_excerpts", "monthly_excerpts_delete_own", "DELETE", "{authenticated}"],
+    ["monthly_excerpts", "monthly_excerpts_select_own", "SELECT", "{authenticated}"],
     ["notifications", "notifications_delete_own", "DELETE", "{authenticated}"],
     ["notifications", "notifications_select_own", "SELECT", "{authenticated}"],
     ["notifications", "notifications_update_own", "UPDATE", "{authenticated}"],
@@ -688,7 +751,16 @@
     ["get_entry_months", ""],
     ["get_entry_reflection_summaries", "p_entry_ids uuid[]"],
     ["get_featured_bookmark", "p_user_book_id uuid, p_owner_id uuid, p_public_only boolean"],
+    [
+      "get_monthly_excerpt_candidates",
+      "p_month text, p_user_book_id uuid, p_page integer, p_limit integer"
+    ],
+    ["get_monthly_excerpt_month_books", "p_month text"],
+    ["get_monthly_excerpt_prompt", "p_today date"],
     ["get_monthly_recap", "p_today date"],
+    ["get_my_monthly_excerpt", "p_month text"],
+    ["get_my_monthly_excerpt_year", "p_year integer"],
+    ["get_my_monthly_excerpt_years", ""],
     ["get_profile_retrospect", "p_user_id uuid, p_today date, p_public_only boolean"],
     ["get_public_entry", "p_entry_id uuid"],
     ["get_reading_stats", "p_user_id uuid"],
@@ -698,6 +770,10 @@
     ["has_unread_notifications", ""],
     ["is_friend_with", "p_user_id uuid"],
     ["mark_push_seen", "p_kind text, p_delivery uuid"],
+    ["monthly_excerpt_drop_if_empty", ""],
+    ["monthly_excerpt_kst_today", ""],
+    ["monthly_excerpt_month_start", "p_month text"],
+    ["monthly_excerpt_sync_entry", ""],
     [
       "mutate_entry_with_reflection_ack",
       "p_entry_id uuid, p_patch jsonb, p_delete boolean, p_reflection_count integer"
@@ -716,6 +792,7 @@
       "save_email_consent",
       "p_user uuid, p_enabled boolean, p_request uuid, p_expected integer, p_source text, p_copy text, p_email text, p_profile jsonb"
     ],
+    ["save_monthly_excerpt", "p_month text, p_entry_ids uuid[], p_is_shared boolean"],
     [
       "save_push_preferences",
       "p_enabled boolean, p_kinds text[], p_timezone text, p_hour integer, p_weekdays integer[]"
@@ -726,6 +803,7 @@
       "search_library",
       "p_query text, p_kind text, p_book_id uuid, p_from date, p_to date, p_cursor jsonb"
     ],
+    ["set_monthly_excerpt_shared", "p_id uuid, p_is_shared boolean"],
     ["update_user_book_progress", "p_book_id uuid, p_user_id uuid"],
     ["withdraw_email_by_token", "p_hash text"]
   ],

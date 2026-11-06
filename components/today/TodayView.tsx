@@ -4,6 +4,8 @@ import { Suspense, use, useSyncExternalStore } from 'react';
 import clsx from 'clsx';
 import { Leaf, Leaves } from '@/components/shell/Leaves';
 import { useReflectionFeature } from '@/components/features/ReflectionFeatureProvider';
+import MonthPrompt from '@/components/monthly-excerpt/MonthPrompt';
+import type { ExcerptPrompt } from '@/lib/monthly-excerpt/types';
 import type { RecentEntry } from '@/lib/dashboard/fetchRecentEntries';
 import type { RecallEntry } from '@/lib/recall/fetchRecallEntry';
 import type { MyBook } from '@/types/book';
@@ -25,6 +27,8 @@ export interface TodayViewProps {
   recentEntries: RecentEntry[];
   /** 회상은 따로 늦게 올 수 있다 — 도착하면 간지가 나타난다 */
   recall: Promise<RecallEntry | null>;
+  /** 지난달을 엮어 보자는 안내 — 따로 늦게 올 수 있고, 없거나 실패하면 그리지 않는다 */
+  excerptPrompt?: Promise<ExcerptPrompt | null>;
   /** 화면 폭이 바뀌어도 같은 작성기 인스턴스를 유지한다 */
   composer: React.ReactNode;
   /** 견본에서는 회상 알림 읽음 처리를 끈다 */
@@ -90,6 +94,8 @@ export default function TodayView(p: TodayViewProps) {
             <TodayDate todayKst={p.todayKst} weeklyCount={p.weeklyCount} desk={desk === true} />
             <PolicyNotice />
             {p.composer}
+            {/* 작성기 아래에 둬서 늦게 나타나도 쓰는 자리를 밀지 않는다 */}
+            {p.excerptPrompt && <MonthPrompt prompt={p.excerptPrompt} />}
             <div className="lg:hidden">
               <Suspense fallback={null}>
                 <Recall recall={p.recall} todayKst={p.todayKst} markSeen={markSeen} />

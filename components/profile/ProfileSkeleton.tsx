@@ -72,8 +72,12 @@ export const PROFILE_SKELETON_PROPS: MeViewProps = {
         quotes: [],
         quotePreviews: [{ entryId: `skeleton-m${i}`, quote: filler(26) }],
       };
-    })
+    }),
+    today,
+    // 실제 화면은 줄마다 행동 칸이 생기므로 자리에도 같은 칸을 둔다
+    new Set()
   ),
+  todayKst: today,
   monthsError: false,
   bookmark: {
     userBookId: 'skeleton-bm',

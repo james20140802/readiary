@@ -10,6 +10,7 @@ import { getUserStats } from '@/lib/stats/getUserStats';
 import { PROFILE_SHELF_LIMIT, toShelfBook } from '@/lib/books/shelfBook';
 import { buildInviteSlug } from '@/lib/social/invite';
 import { todayKST } from '@/lib/dates';
+import { fetchMyExcerptMonths } from '@/lib/monthly-excerpt/server';
 import MeView from '@/components/profile/MeView';
 import { diaryShelf, formatPublishedDate, monthRows } from '@/components/profile/meModel';
 
@@ -22,6 +23,9 @@ export default async function ProfilePage() {
   if (!user || userError) {
     return <p className="mt-10 text-center text-danger">로그인이 필요합니다.</p>;
   }
+
+  // 엮은 달은 기다리지 않는다 — 도착하면 달 목록에 엮기·펼치기가 붙고, 실패하면 그 행동만 빠진다
+  const excerptMonths = fetchMyExcerptMonths().catch(() => null);
 
   const [{ profile, userBooks }, stats, retrospect, readingStats, rhythm] = await Promise.all([
     fetchProfileData(user.id),
@@ -61,7 +65,9 @@ export default async function ProfilePage() {
       shelfBooks={shelfBooks}
       shelfTotal={userBooks.length}
       diary={diaryShelf(profile.created_at, today)}
-      months={monthRows(retrospect?.monthly ?? [])}
+      months={monthRows(retrospect?.monthly ?? [], today)}
+      todayKst={today}
+      excerptMonths={excerptMonths}
       monthsError={!retrospect}
       bookmark={bookmark}
       canBookmark={userBooks.some((ub) => ub.is_finished)}

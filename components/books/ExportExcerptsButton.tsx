@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import Seal from '@/components/ui/Seal';
 import Button from '@/components/ui/Button';
 import Sheet from '@/components/ui/Sheet';
-import ExcerptBooklet, { ExcerptBookletProps, koreanCount } from './ExcerptBooklet';
+import ExcerptBooklet, { ExcerptBookletProps, MonthlyBooks, koreanCount } from './ExcerptBooklet';
 import { LIGHT_PALETTE } from '@/lib/share/palette';
 import { formatReadingPeriod } from '@/lib/dates';
 
@@ -65,15 +65,18 @@ interface ExportExcerptsButtonProps extends ExcerptBookletProps {
   onOpenChange?: (open: boolean) => void;
   /** 기본 여는 버튼을 그리지 않는다 */
   hideTrigger?: boolean;
+  /** 고르기 단계에서 내보내기 전에 알릴 말(비공개 문장 포함 등) */
+  notice?: string;
 }
 
 export default function ExportExcerptsButton({
   open,
   onOpenChange,
   hideTrigger = false,
+  notice,
   ...props
 }: ExportExcerptsButtonProps) {
-  const { bookTitle, author, quotes, entryDates } = props;
+  const { bookTitle, author, quotes, entryDates, monthly } = props;
   const exportAction = useActionLock();
   const longRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -220,7 +223,10 @@ export default function ExportExcerptsButton({
     try {
       if (typeof navigator.share === 'function' && navigator.canShare?.({ files })) {
         try {
-          await navigator.share({ files, title: `발췌집 — ${bookTitle}` });
+          await navigator.share({
+            files,
+            title: monthly ? `달의 발췌집 — ${monthly.label}` : `발췌집 — ${bookTitle}`,
+          });
         } catch (error) {
           if ((error as DOMException)?.name !== 'AbortError') {
             console.error('발췌집 공유 실패:', error);
@@ -254,6 +260,9 @@ export default function ExportExcerptsButton({
       )}
 
       <Sheet open={stage !== null} onClose={close} title="이미지로 내보내기">
+        {stage === 'choose' && notice && (
+          <p className="mt-1 font-sans text-caption text-ink-sub">{notice}</p>
+        )}
         {stage === 'choose' && (
           <div className="mt-3 grid grid-cols-2 gap-3">
             <button
@@ -373,9 +382,9 @@ export default function ExportExcerptsButton({
           >
             <div className="h-full w-full border border-hairline p-1.5">
               <div className="flex h-full w-full flex-col items-center justify-center border border-hairline px-8 text-center">
-                <Seal>발췌집</Seal>
+                <Seal>{monthly ? '달의 발췌집' : '발췌집'}</Seal>
                 <h2 className="mt-5 font-serif text-[24px] font-bold leading-snug text-ink">
-                  {bookTitle}
+                  {monthly ? monthly.label : bookTitle}
                 </h2>
                 {author && (
                   <p className="mt-3 font-serif text-[15px] font-normal leading-[1.75] text-ink-sub">
@@ -387,6 +396,7 @@ export default function ExportExcerptsButton({
                     {readingPeriod}
                   </p>
                 )}
+                {monthly && <MonthlyBooks books={monthly.books} />}
               </div>
             </div>
           </div>
@@ -415,7 +425,7 @@ export default function ExportExcerptsButton({
                 </div>
                 <div className="text-center">
                   <p className="truncate font-serif text-[13px] font-normal leading-5 text-ink-sub">
-                    『{bookTitle}』{author ? ` — ${author}` : ''}
+                    『{q.bookTitle ?? bookTitle}』{author ? ` — ${author}` : ''}
                   </p>
                   <p className="mt-2 whitespace-nowrap font-sans text-seal uppercase text-ink-faint">
                     READIARY
@@ -434,7 +444,8 @@ export default function ExportExcerptsButton({
           >
             <div className="flex h-full w-full flex-col items-center justify-center px-10 text-center">
               <p className="font-serif text-[15px] font-normal leading-[1.75] text-ink">
-                『{bookTitle}』{author ? ` — ${author}` : ''}
+                {monthly ? `달의 발췌집 — ${monthly.label}` : <>『{bookTitle}』</>}
+                {author ? ` — ${author}` : ''}
               </p>
               <p className="mt-3 font-serif text-[15px] font-normal leading-[1.75] text-ink-sub">
                 {koreanCount(quotes.length)} 문장을 옮겨 적다

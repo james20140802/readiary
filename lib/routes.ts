@@ -13,6 +13,7 @@ export const APP_ROUTE_PREFIXES = [
   '/search',
   '/notifications',
   '/pilsa',
+  '/excerpts',
 ] as const;
 
 /** `/books`와 `/books/…`는 앱 화면, `/bookstore` 같은 우연한 접두사는 아니다 */

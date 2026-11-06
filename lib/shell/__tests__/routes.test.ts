@@ -20,6 +20,9 @@ describe('frameFor', () => {
     ['/entryish/abc', 'plain'],
     ['/social/u/a/entry/abc', 'leaves'],
     ['/sharing', 'plain'],
+    ['/excerpts', 'plain'],
+    ['/excerpts/2026-03', 'plain'],
+    ['/excerpts/2026-03/compose', 'plain'],
   ])('%s의 틀은 %s', (p, f) => expect(frameFor(p)).toBe(f));
 });
 
@@ -55,6 +58,10 @@ describe('tabFor', () => {
     ['/notifications/inbox', 'bell'],
     ['/profile', 'me'],
     ['/settings', 'me'],
+    ['/excerpts', 'me'],
+    ['/excerpts/2026-03', 'me'],
+    ['/excerpts/2026-03/compose', 'me'],
+    ['/excerptsish', null],
     ['/search', 'search'],
     ['/bookstore', null],
     ['/', null],

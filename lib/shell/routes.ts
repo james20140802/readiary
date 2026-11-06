@@ -74,7 +74,12 @@ export function tabFor(pathname: string): TabKey | null {
     return 'today';
   if (matches(pathname, '/books')) return 'books';
   if (matches(pathname, '/social')) return 'social';
-  if (matches(pathname, '/profile') || matches(pathname, '/settings')) return 'me';
+  if (
+    matches(pathname, '/profile') ||
+    matches(pathname, '/settings') ||
+    matches(pathname, '/excerpts')
+  )
+    return 'me';
   if (matches(pathname, '/search')) return 'search';
   return null;
 }
