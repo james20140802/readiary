@@ -152,6 +152,26 @@ describe('MonthlyExcerptReader', () => {
     error.mockRestore();
   });
 
+  it('긴 문장은 작게 쓰고, 생각이 붙으면 함께 세어 줄인다', () => {
+    read({
+      items: [
+        item(1, { quote: '짧은 문장' }),
+        item(2, { quote: '가'.repeat(200) }),
+        item(3, { quote: '나'.repeat(60), note: '다'.repeat(60) }),
+      ],
+    });
+    // 모바일 크기만 본다(lg: 접두어가 붙은 넓은 화면 크기는 빼고)
+    const size = (text: string) =>
+      screen
+        .getByText(text)
+        .className.split(' ')
+        .find((c) => /^text-\[\d+px\]$/.test(c));
+    expect(size('짧은 문장')).toBe('text-[22px]');
+    expect(size('가'.repeat(200))).toBe('text-[15px]');
+    // 문장만 보면 가장 큰 단계지만 생각까지 세면 두 단계 작아진다
+    expect(size('나'.repeat(60))).toBe('text-[17px]');
+  });
+
   it('항목이 없어도 깨지지 않는다', () => {
     read({ items: [] });
     expect(screen.getByText('담긴 문장이 없어요.')).toBeTruthy();

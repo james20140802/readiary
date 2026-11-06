@@ -3,6 +3,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { ReactNode, RefObject } from 'react';
 import Pile from '@/components/ui/Pile';
+import { quoteTier } from '@/components/entry/quoteTier';
+import type { QuoteTier } from '@/components/entry/quoteTier';
 import { formatPages } from '@/lib/entries/pages';
 import { bookTallyForDisplay, titlePageSentence } from '@/lib/monthly-excerpt/model';
 import { dayLabel, monthLabel } from '@/lib/monthly-excerpt/month';
@@ -229,9 +231,20 @@ function Colophon({ label, count }: { label: string; count: number }) {
 }
 
 // 간지 한 장의 안쪽 여백(.vellum-slip 16/18px)을 책별 발췌집과 같게 바꾸고 4:5 칸으로 고정한다.
-// 책별과 달리 칸이 늘지 않는다. 생각까지 붙으면 묶음이 들쭉날쭉해져서, 넘치는 내용은 장 안에서 스크롤한다.
+// 책별과 달리 칸이 늘지 않는다. 생각까지 붙으면 묶음이 들쭉날쭉해져서, 긴 글은 SLIP_TEXT로 줄이고 그래도 넘치면 장 안에서 스크롤한다.
 const SLIP_BOX =
   '-mx-[18px] -mb-[18px] -mt-4 flex aspect-[4/5] flex-col overflow-hidden px-6 pb-5 pt-[22px] lg:aspect-auto lg:h-[480px]';
+
+/**
+ * 긴 글은 작게 써서 4:5 칸 안에 담는다(책별 발췌집과 같은 단계). 생각도 칸을 나눠 쓰므로 함께 센다.
+ * 그래도 넘치면 장 안에서 스크롤한다.
+ */
+const SLIP_TEXT: Record<QuoteTier, { quote: string; note: string }> = {
+  lg: { quote: 'text-[22px] font-semibold leading-[1.65] lg:text-[24px]', note: 'text-[17px]' },
+  md: { quote: 'text-[19px] font-semibold leading-[1.65] lg:text-[21px]', note: 'text-[17px]' },
+  sm: { quote: 'text-[17px] font-semibold leading-[1.65] lg:text-[19px]', note: 'text-[16px]' },
+  xs: { quote: 'text-[15px] font-normal leading-[1.7] lg:text-[17px]', note: 'text-[15px]' },
+};
 
 /** 간지 한 장 — 위에 책 이름, 가운데 문장과 생각, 아래에 쪽과 날짜 */
 function PileSlip({
@@ -244,6 +257,7 @@ function PileSlip({
   showPrivate: boolean;
 }) {
   const pages = formatPages(item.fromPage, item.toPage);
+  const text = SLIP_TEXT[quoteTier(item.note ? `${item.quote}\n${item.note}` : item.quote)];
   return (
     <div className={SLIP_BOX}>
       <div className="flex flex-none items-baseline justify-between gap-3 border-b border-hairline pb-2.5">
@@ -259,12 +273,12 @@ function PileSlip({
       <SlipBody isTop={isTop}>
         <p
           data-skeleton
-          className="whitespace-pre-wrap font-serif text-[22px] [overflow-wrap:anywhere] font-semibold leading-[1.65] tracking-[-0.01em] text-ink lg:text-[24px]"
+          className={`whitespace-pre-wrap font-serif [overflow-wrap:anywhere] tracking-[-0.01em] text-ink ${text.quote}`}
         >
           {item.quote}
         </p>
         {item.note && (
-          <ExcerptNote note={item.note} className="mt-3.5 text-[17px] leading-[1.65]" />
+          <ExcerptNote note={item.note} className={`mt-3.5 leading-[1.65] ${text.note}`} />
         )}
       </SlipBody>
       <div className="flex flex-none justify-between gap-3 pt-2.5 font-sans text-[13px] font-medium text-ink-faint">
