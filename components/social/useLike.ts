@@ -1,8 +1,8 @@
 'use client';
 
 import { apiFetch } from '@/lib/api/fetch';
-import { reactionKey, rememberLike, resolveLike } from '@/lib/comments/reactionMemory';
 import { likePayload, likesUrl, type CommentTarget } from '@/lib/comments/target';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 export interface LikeState {
@@ -23,13 +23,9 @@ export function useLike(
   initialLiked: boolean,
   initialLikeCount: number
 ): LikeState {
-  const key = reactionKey(target);
-  // 뒤로 가기로 예전 화면 데이터가 돌아와도 이 탭에서 바꾼 좋아요를 잃지 않는다
-  const [start] = useState(() =>
-    resolveLike(key, { liked: initialLiked, likeCount: initialLikeCount })
-  );
-  const [isLiked, setIsLiked] = useState(start.liked);
-  const [likeCount, setLikeCount] = useState(start.likeCount);
+  const router = useRouter();
+  const [isLiked, setIsLiked] = useState(initialLiked);
+  const [likeCount, setLikeCount] = useState(initialLikeCount);
   const [isLoading, setIsLoading] = useState(false);
 
   const resolved: CommentTarget =
@@ -62,7 +58,8 @@ export function useLike(
       const count = liked === prevLiked ? prevCount : prevLiked ? prevCount - 1 : prevCount + 1;
       setIsLiked(liked);
       setLikeCount(count);
-      rememberLike(key, { liked: prevLiked, likeCount: prevCount }, { liked, likeCount: count });
+      // 뒤로 가기는 라우터가 기억해 둔 화면 데이터를 다시 쓴다. 버려 두어야 피드가 예전 좋아요로 그려지지 않는다
+      router.refresh();
     } catch (error) {
       // [Step 3] 에러 발생 시 롤백
       console.error('Like failed:', error);

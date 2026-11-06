@@ -7,10 +7,13 @@ import LikersBottomSheet from '@/components/social/LikersBottomSheet';
 import SocialActionBar from '@/components/social/SocialActionBar';
 import MonthlyExcerptReactions from '../MonthlyExcerptReactions';
 import MonthlyExcerptReader from '../MonthlyExcerptReader';
-import { resetReactionMemory } from '@/lib/comments/reactionMemory';
 import { item, stubBrowser } from './fixtures';
 
 const apiFetch = vi.fn();
+const refresh = vi.fn();
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ refresh, push: vi.fn(), replace: vi.fn(), back: vi.fn(), prefetch: vi.fn() }),
+}));
 vi.mock('@/lib/api/fetch', () => ({
   apiFetch: (...args: unknown[]) => apiFetch(...args),
   SessionExpiredError: class extends Error {},
@@ -41,7 +44,7 @@ const comment = (over: object = {}) => ({
 beforeEach(() => {
   apiFetch.mockReset();
   sessionStorage.clear();
-  resetReactionMemory();
+  refresh.mockReset();
 });
 afterEach(cleanup);
 
@@ -134,59 +137,32 @@ describe('MonthlyExcerptReactions', () => {
   });
 });
 
-describe('뒤로 가기로 예전 화면 데이터가 돌아와도', () => {
-  it('발췌집에서 누른 좋아요가 피드의 같은 권에 남는다', async () => {
+describe('뒤로 가기로 예전 화면 데이터가 돌아오지 않게', () => {
+  it('좋아요가 저장되면 라우터가 기억해 둔 화면을 버린다', async () => {
     apiFetch.mockResolvedValue(ok({ liked: true }));
-    const page = reactions();
-    fireEvent.click(screen.getByRole('button', { name: '좋아요 2개' }));
-    await waitFor(() => expect(apiFetch).toHaveBeenCalledOnce());
-    expect(await screen.findByRole('button', { name: '좋아요 3개' })).toBeTruthy();
-    page.unmount();
-
-    // 피드는 누르기 전에 읽은 값(2개, 안 누름)을 그대로 들고 돌아온다
-    render(
-      h(SocialActionBar, {
-        target: { kind: 'monthly_excerpt', excerptId: 'x1' },
-        initialLikeCount: 2,
-        initialLiked: false,
-      })
-    );
-    const button = screen.getByRole('button', { name: '좋아요 3개' });
-    expect(button.getAttribute('aria-pressed')).toBe('true');
-  });
-
-  it('서버에서 새로 읽은 값이면 그 값을 믿는다', async () => {
-    apiFetch.mockResolvedValue(ok({ liked: true }));
-    const page = reactions();
-    fireEvent.click(screen.getByRole('button', { name: '좋아요 2개' }));
-    await waitFor(() => expect(apiFetch).toHaveBeenCalledOnce());
-    await screen.findByRole('button', { name: '좋아요 3개' });
-    page.unmount();
-
-    // 그 사이 다른 친구도 눌러 서버는 4개
-    reactions({ initial: { likeCount: 4, commentCount: 1, liked: true } });
-    expect(screen.getByRole('button', { name: '좋아요 4개' })).toBeTruthy();
-  });
-
-  it('눌렀다 다시 끄면 처음 값으로 돌아온다', async () => {
-    apiFetch.mockResolvedValueOnce(ok({ liked: true })).mockResolvedValueOnce(ok({ liked: false }));
-    const page = reactions();
-    fireEvent.click(screen.getByRole('button', { name: '좋아요 2개' }));
-    await screen.findByRole('button', { name: '좋아요 3개' });
-    await waitFor(() => expect(apiFetch).toHaveBeenCalledOnce());
-    await waitFor(() =>
-      expect(screen.getByRole('button', { name: '좋아요 3개' }).className).not.toMatch(
-        /cursor-progress/
-      )
-    );
-    fireEvent.click(screen.getByRole('button', { name: '좋아요 3개' }));
-    await screen.findByRole('button', { name: '좋아요 2개' });
-    await waitFor(() => expect(apiFetch).toHaveBeenCalledTimes(2));
-    page.unmount();
-
     reactions();
-    const button = screen.getByRole('button', { name: '좋아요 2개' });
-    expect(button.getAttribute('aria-pressed')).toBe('false');
+    fireEvent.click(screen.getByRole('button', { name: '좋아요 2개' }));
+    await screen.findByRole('button', { name: '좋아요 3개' });
+    await waitFor(() => expect(refresh).toHaveBeenCalledOnce());
+  });
+
+  it('좋아요가 실패하면 되돌리고 화면은 그대로 둔다', async () => {
+    apiFetch.mockResolvedValue({ ok: false, status: 500, json: async () => ({}) });
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    reactions();
+    fireEvent.click(screen.getByRole('button', { name: '좋아요 2개' }));
+    await waitFor(() => expect(apiFetch).toHaveBeenCalledOnce());
+    await screen.findByRole('button', { name: '좋아요 2개' });
+    expect(refresh).not.toHaveBeenCalled();
+  });
+
+  it('댓글 수가 바뀔 때만 화면을 버린다', async () => {
+    apiFetch.mockResolvedValue(ok([comment()]));
+    reactions();
+    fireEvent.click(screen.getByRole('button', { name: /댓글/ }));
+    await screen.findByText('좋은 달이네요');
+    // 읽어 온 수(1)가 처음 수와 같으면 버리지 않는다
+    expect(refresh).not.toHaveBeenCalled();
   });
 });
 

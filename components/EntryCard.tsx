@@ -58,7 +58,7 @@ export default function EntryCard({
   first = false,
 }: EntryCardProps) {
   const [isCommentOpen, setIsCommentOpen] = useState(false);
-  const [commentCount, setCommentCount] = useCommentCount(id, initialCommentCount);
+  const [commentCount, setCommentCount] = useCommentCount(initialCommentCount);
   const [isLiked, setIsLiked] = useState(initialLiked);
   const [likeCount, setLikeCount] = useState(initialLikeCount);
   const [isLikeLoading, setIsLikeLoading] = useState(false);

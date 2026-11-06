@@ -39,7 +39,7 @@ export default function FeedPost({ item, userId, now, index }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [likersOpen, setLikersOpen] = useState(false);
-  const [commentCount, setCommentCount] = useCommentCount(entry.id, initialCommentCount);
+  const [commentCount, setCommentCount] = useCommentCount(initialCommentCount);
 
   const slug = `${profile.nickname}-${profile.tag}`;
   const libraryHref = `/social/u/${slug}`;

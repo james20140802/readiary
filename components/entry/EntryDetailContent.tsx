@@ -58,7 +58,7 @@ export default function EntryDetailContent({
   const [deleteReady, setDeleteReady] = useState<number | null>(null);
   const [deleteCheck, setDeleteCheck] = useState(0);
   const [deleteError, setDeleteError] = useState('');
-  const [commentCount, setCommentCount] = useCommentCount(entry.id, initialCommentCount);
+  const [commentCount, setCommentCount] = useCommentCount(initialCommentCount);
 
   const scrollToComments = () => {
     document.getElementById('entry-comments')?.scrollIntoView({ behavior: 'smooth' });

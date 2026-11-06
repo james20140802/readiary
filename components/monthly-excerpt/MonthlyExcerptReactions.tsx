@@ -52,7 +52,7 @@ function ReactionBar({
     [excerptId]
   );
   const like = useLike(target, initial.liked, initial.likeCount);
-  const [commentCount, setCommentCount] = useCommentCount(target, initial.commentCount);
+  const [commentCount, setCommentCount] = useCommentCount(initial.commentCount);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [likersOpen, setLikersOpen] = useState(false);
 

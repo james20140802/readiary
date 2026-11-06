@@ -11,6 +11,9 @@ vi.mock('@/lib/api/fetch', () => ({
   apiFetch: (...args: unknown[]) => apiFetch(...args),
   SessionExpiredError: class extends Error {},
 }));
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ refresh: vi.fn(), push: vi.fn(), replace: vi.fn(), prefetch: vi.fn() }),
+}));
 vi.mock('next/link', () => ({
   default: ({ href, children, ...rest }: { href: string; children: unknown }) =>
     h('a', { href, ...rest }, children as never),
