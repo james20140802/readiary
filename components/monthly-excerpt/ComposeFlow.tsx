@@ -39,6 +39,10 @@ const STEP_NO: Record<Step, string> = {
   preview: '3/3 미리보기',
 };
 
+/** 떠 있는 바 왼쪽의 되돌아가기·보기 전환 — 밑줄 링크 대신 바 안의 글자 버튼으로 눌림 영역을 둔다 */
+const BAR_TEXT_BUTTON =
+  'min-h-11 shrink-0 rounded-full px-3 font-sans text-button-sm font-semibold text-accent transition-[background-color,transform] duration-150 hover:bg-ink/5 active:scale-[0.97] disabled:text-ink-faint motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent';
+
 /** 저장 실패 응답. 문구가 없는 오류(500 등)는 화면의 fallback을 쓴다 */
 interface SaveFailure {
   code?: string;
@@ -159,7 +163,7 @@ export default function ComposeFlow({ month, books, firstPage, initialPicks }: C
   }[step];
 
   return (
-    <div className={`mx-auto w-full pb-20 ${wide ? 'max-w-[960px]' : 'max-w-[640px]'}`}>
+    <div className={`mx-auto w-full pb-28 lg:pb-32 ${wide ? 'max-w-[960px]' : 'max-w-[640px]'}`}>
       <div className="flex items-baseline justify-between gap-3 font-sans text-caption">
         <span className="font-semibold text-ink">{label} 엮기</span>
         <span className="text-ink-sub">{STEP_NO[step]}</span>
@@ -193,21 +197,27 @@ export default function ComposeFlow({ month, books, firstPage, initialPicks }: C
         />
       )}
 
-      <div className="fixed inset-x-0 bottom-[var(--app-mobile-nav-height)] z-20 border-t border-hairline-strong bg-paper px-6 lg:bottom-0 lg:left-[var(--app-side)] lg:pl-20 lg:pr-14">
+      {/* 탭 바와 같은 재질로 떠 있는 행동 바. 모바일은 탭 바 바로 위, 넓은 화면은 본문 칸 아래에 뜬다 */}
+      <div className="pointer-events-none fixed inset-x-4 bottom-[calc(var(--app-mobile-nav-height)+8px)] z-20 lg:bottom-6 lg:left-[var(--app-side)] lg:right-0 lg:pl-20 lg:pr-14">
         <div
-          className={`mx-auto flex min-h-16 w-full items-center justify-between gap-3 py-2 ${wide ? 'max-w-[960px]' : 'max-w-[640px]'}`}
+          className={`bar-material tabbar-glass pointer-events-auto mx-auto flex min-h-[60px] w-full items-center justify-between gap-2 rounded-[32px] py-1.5 pl-2 pr-1.5 ${wide ? 'max-w-[960px]' : 'max-w-[640px]'}`}
         >
           {step === 'pick' && (
             <>
-              <button
-                type="button"
-                aria-pressed={pickedView}
-                disabled={picks.length === 0}
-                onClick={() => setPickedView((v) => !v)}
-                className="min-h-11 font-sans text-button-sm text-accent underline underline-offset-[3px] disabled:text-ink-faint disabled:no-underline"
-              >
-                {pickedView ? '전체 문장 보기' : `고른 문장 ${picks.length}`}
-              </button>
+              {picks.length === 0 ? (
+                <span className="px-3 font-sans text-button-sm text-ink-sub">
+                  문장을 골라 주세요
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  aria-pressed={pickedView}
+                  onClick={() => setPickedView((v) => !v)}
+                  className={BAR_TEXT_BUTTON}
+                >
+                  {pickedView ? '전체 문장 보기' : `고른 문장 ${picks.length}`}
+                </button>
+              )}
               <Button disabled={picks.length === 0} onClick={() => setStep('order')}>
                 순서 정하기
               </Button>
@@ -215,11 +225,7 @@ export default function ComposeFlow({ month, books, firstPage, initialPicks }: C
           )}
           {step === 'order' && (
             <>
-              <button
-                type="button"
-                onClick={() => setStep('pick')}
-                className="min-h-11 font-sans text-button-sm text-accent underline underline-offset-[3px]"
-              >
+              <button type="button" onClick={() => setStep('pick')} className={BAR_TEXT_BUTTON}>
                 문장 다시 고르기
               </button>
               <Button onClick={() => setStep('preview')}>미리보기</Button>
@@ -231,13 +237,15 @@ export default function ComposeFlow({ month, books, firstPage, initialPicks }: C
                 type="button"
                 disabled={lock.busy}
                 onClick={() => setStep('order')}
-                className="min-h-11 font-sans text-button-sm text-accent underline underline-offset-[3px] disabled:text-ink-faint"
+                className={BAR_TEXT_BUTTON}
               >
                 순서 정하기
               </button>
-              <span className="flex items-center gap-3">
+              <span className="flex min-w-0 items-center gap-2">
                 {needsShare && effectiveShare === null && (
-                  <span className="font-sans text-fine text-ink-sub">공개 범위를 골라 주세요</span>
+                  <span className="min-w-0 text-right font-sans text-fine leading-tight text-ink-sub">
+                    공개 범위를 골라 주세요
+                  </span>
                 )}
                 <Button
                   disabled={lock.busy || (needsShare && effectiveShare === null)}
