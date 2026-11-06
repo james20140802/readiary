@@ -88,6 +88,28 @@ describe('Pile', () => {
     expect(screen.getByRole('group').style.getPropertyValue('--pile-inset')).toBe('30px');
   });
 
+  it('sizeToTop이면 아래 장만 맨 위 장 크기로 잘려 깔린다', () => {
+    render(
+      React.createElement(Pile<string>, {
+        items,
+        getKey: (s) => s,
+        label: '발췌집',
+        renderSlip: (s) => s,
+        sizeToTop: true,
+      })
+    );
+    const slip = (s: string) => screen.getByText(s).closest('.pile-slip')!;
+    expect(slip('가').classList.contains('pile-slip-under')).toBe(false);
+    for (const s of ['나', '다', '라', '마'])
+      expect(slip(s).classList.contains('pile-slip-under')).toBe(true);
+    expect(screen.getByRole('group').classList.contains('relative')).toBe(true);
+  });
+
+  it('기본 묶음은 가장 높은 장에 맞추므로 아래 장을 자르지 않는다', () => {
+    renderPile();
+    expect(document.querySelector('.pile-slip-under')).toBeNull();
+  });
+
   it('맨 위 장만 초점을 받는다', () => {
     renderPile();
     expect(screen.getByText('가').closest('[inert]')).toBeNull();

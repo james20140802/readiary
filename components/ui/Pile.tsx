@@ -42,6 +42,8 @@ interface PileProps<T> {
   renderHeader?: (h: PileHeaderProps) => ReactNode;
   /** 간지가 묶음 폭보다 좁은 만큼(px) — 비켜 쌓인 장이 들어갈 자리. 시안: 기록 30, 토론 40, 발췌집 50, 기본 52 */
   slipInset?: number;
+  /** true면 묶음 높이를 맨 위 장에 맞추고 아래 장들은 그 크기로 잘라 깐다. 기본은 가장 긴 장에 맞춘다 */
+  sizeToTop?: boolean;
   className?: string;
 }
 
@@ -63,6 +65,7 @@ export default function Pile<T>({
   getName,
   renderHeader,
   slipInset = 52,
+  sizeToTop = false,
   className,
 }: PileProps<T>) {
   const keys = items.map(getKey);
@@ -93,6 +96,9 @@ export default function Pile<T>({
   effOrder.forEach((k, i) => placementByKey.set(k, placements[i]));
 
   const els = useRef(new Map<string, HTMLElement>());
+  const groupRef = useRef<HTMLDivElement>(null);
+  // 맨 위 장이 바뀌기 직전의 묶음 높이 — 새 높이로 부드럽게 옮겨 간다
+  const prevHeight = useRef<number | null>(null);
   const busy = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const anim = useRef<Animation | null>(null);
@@ -129,6 +135,20 @@ export default function Pile<T>({
       ?.animate([{ opacity: 0.4 }, { opacity: 1 }], { duration: REDUCED_MS, easing: 'ease' });
   }, [order]);
 
+  // 묶음 높이가 맨 위 장을 따를 때, 장이 바뀌면 높이를 이어서 바꿔 아래 내용이 튀지 않게 한다.
+  useLayoutEffect(() => {
+    const from = prevHeight.current;
+    prevHeight.current = null;
+    const g = groupRef.current;
+    if (!sizeToTop || from === null || !g || typeof g.animate !== 'function') return;
+    const to = g.getBoundingClientRect().height;
+    if (Math.abs(to - from) < 1) return;
+    g.animate([{ height: `${from}px` }, { height: `${to}px` }], {
+      duration: prefersReducedMotion() ? REDUCED_MS : SETTLE_MS,
+      easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+    });
+  }, [order, sizeToTop]);
+
   useEffect(
     () => () => {
       if (timer.current) clearTimeout(timer.current);
@@ -152,7 +172,12 @@ export default function Pile<T>({
     const newOrder = [topKey, ...ord.slice(0, -1)];
     const newPoses = { ...ps, [topKey]: newPose };
 
+    const recordHeight = () => {
+      if (groupRef.current) prevHeight.current = groupRef.current.getBoundingClientRect().height;
+    };
+
     if (prefersReducedMotion()) {
+      recordHeight();
       fadeKey.current = newOrder[newOrder.length - 1];
       setPoses(newPoses);
       setOrder(newOrder);
@@ -163,6 +188,7 @@ export default function Pile<T>({
     const below = els.current.get(ord[count - 2]);
     const from = pbk.get(topKey);
     if (!el || !below || !from) {
+      recordHeight();
       setPoses(newPoses);
       setOrder(newOrder);
       return;
@@ -187,6 +213,7 @@ export default function Pile<T>({
       rest.forEach((r) => {
         if (r) r.style.transitionDuration = `${SETTLE_MS}ms`;
       });
+      recordHeight();
       setPoses(newPoses);
       setOrder(newOrder);
     }, FLIP_MS * FLIP_TURN);
@@ -309,9 +336,10 @@ export default function Pile<T>({
     <div className={className}>
       {header}
       <div
+        ref={groupRef}
         role="group"
         aria-label={label}
-        className="grid"
+        className={sizeToTop ? 'relative grid' : 'grid'}
         style={
           { marginBottom: pileMarginBottom(n), '--pile-inset': `${slipInset}px` } as CSSProperties
         }
@@ -326,7 +354,11 @@ export default function Pile<T>({
                 if (node) els.current.set(key, node);
                 else els.current.delete(key);
               }}
-              className="vellum-slip pile-slip"
+              className={
+                sizeToTop && !p.top
+                  ? 'vellum-slip pile-slip pile-slip-under'
+                  : 'vellum-slip pile-slip'
+              }
               style={{
                 transform: slipTransform(p),
                 zIndex: p.z,

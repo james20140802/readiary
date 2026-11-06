@@ -176,7 +176,7 @@ function ExcerptSlip({ quote, today }: { quote: Quote; today: string }) {
 }
 
 // 간지 한 장의 안쪽 여백(.vellum-slip 16/18px)을 시안 .xc(26/24/20px)로 바꾸고 4:5 비율을 준다.
-// 묶음의 장들은 한 칸에 겹쳐 가장 높은 장에 맞춰지므로, 긴 문장은 QUOTE_TEXT로 줄여 묶음 전체가 늘지 않게 한다.
+// 묶음 높이는 맨 위 장을 따르므로(sizeToTop) 짧은 문장의 장은 4:5 그대로, 긴 문장은 QUOTE_TEXT로 줄여 한 장이 지나치게 길지 않게 한다.
 const SLIP_BOX =
   '-mx-[18px] -mb-[18px] -mt-4 flex aspect-[4/5] flex-col px-6 pb-5 pt-[26px] lg:aspect-auto lg:min-h-[440px]';
 
@@ -229,6 +229,7 @@ function ExcerptPile({ quotes, today }: { quotes: Quote[]; today: string }) {
       label="옮겨 적은 문장 묶음. 맨 위 간지를 옆으로 밀면 다음 문장이 나와요"
       nextLabel="다음 장"
       slipInset={50}
+      sizeToTop
       className="lg:max-w-[500px]"
       renderHeader={({ position, next, canNext, nextLabel }) => (
         <div className="mb-2 mt-2 flex items-center justify-between gap-2">
