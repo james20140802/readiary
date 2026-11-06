@@ -37,11 +37,25 @@ describe('좋아요', () => {
     expect(resolveLike('k', fresh)).toEqual(fresh);
   });
 
-  it('이어서 바꾸면 처음 상태를 기준으로 남긴다', () => {
+  it('눌렀다 끄면 처음 상태로 돌아온다', () => {
     rememberLike('k', off, on);
     rememberLike('k', on, off);
     expect(resolveLike('k', off)).toEqual(off);
-    expect(resolveLike('k', on)).toEqual(on);
+  });
+
+  it('두 번 바꾸는 사이에 읽은 화면도 지금 값으로 맞춘다', () => {
+    // 발췌집에서 누르고(off→on), 피드를 새로 읽고(on), 발췌집에서 끈 뒤(on→off) 피드로 돌아온다
+    rememberLike('k', off, on);
+    rememberLike('k', on, off);
+    expect(resolveLike('k', on)).toEqual(off);
+  });
+
+  it('새로 읽은 값에서 다시 바꿔도 그 전의 예전 값을 잊지 않는다', () => {
+    rememberLike('k', off, on);
+    const fresh = { liked: true, likeCount: 5 };
+    rememberLike('k', fresh, { liked: false, likeCount: 4 });
+    expect(resolveLike('k', off)).toEqual({ liked: false, likeCount: 4 });
+    expect(resolveLike('k', fresh)).toEqual({ liked: false, likeCount: 4 });
   });
 });
 
@@ -50,6 +64,13 @@ describe('댓글 수', () => {
     rememberCommentCount('k', 1, 2);
     expect(resolveCommentCount('k', 1)).toBe(2);
     expect(resolveCommentCount('k', 4)).toBe(4);
+  });
+
+  it('두 번 바뀌는 사이에 읽은 수도 지금 수로 맞춘다', () => {
+    rememberCommentCount('k', 1, 2);
+    rememberCommentCount('k', 2, 1);
+    expect(resolveCommentCount('k', 2)).toBe(1);
+    expect(resolveCommentCount('k', 1)).toBe(1);
   });
 
   it('같은 수는 기억하지 않는다', () => {
