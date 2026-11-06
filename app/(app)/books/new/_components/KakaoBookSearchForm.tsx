@@ -161,7 +161,14 @@ export default function KakaoBookSearchForm({
   const frozen = !!creation.snapshot;
 
   return (
-    <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start lg:gap-14">
+    // 고른 책이 있을 때만 오른쪽 칸을 연다 — 비어 있는 칸이 검색창 폭을 깎지 않게. 아이패드 폭에서는 380px 고정이면 왼쪽이 너무 좁아 반씩 나눈다
+    <div
+      className={
+        selectedBook
+          ? 'lg:grid lg:grid-cols-2 lg:items-start lg:gap-8 xl:grid-cols-[minmax(0,1fr)_380px] xl:gap-14'
+          : undefined
+      }
+    >
       <section aria-label="책 찾기">
         {creation.error && (
           <p role="alert" className="mt-4 font-sans text-caption text-danger">

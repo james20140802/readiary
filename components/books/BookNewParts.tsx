@@ -3,6 +3,7 @@
 import { forwardRef, useId } from 'react';
 import { Search } from 'lucide-react';
 import clsx from 'clsx';
+import { DESK_SWITCH_CLASS } from '@/components/shell/Leaves';
 import BookCover from './BookCover';
 import styles from './books.module.css';
 
@@ -10,6 +11,12 @@ import styles from './books.module.css';
 
 export type NewBookTab = 'search' | 'manual';
 
+const NEW_BOOK_TABS = [
+  ['search', '찾아서 꽂기'],
+  ['manual', '직접 적기'],
+] as const;
+
+/** 등록 방법 전환 — 모바일은 제목 아래 한 줄, lg부터는 책장처럼 오른쪽 위에 떠 있다(.dseg) */
 export function NewBookTabs({
   value,
   onChange,
@@ -19,26 +26,33 @@ export function NewBookTabs({
   onChange: (v: NewBookTab) => void;
   disabled?: boolean;
 }) {
+  const buttons = (itemClass: string) =>
+    NEW_BOOK_TABS.map(([v, label]) => (
+      <button
+        key={v}
+        type="button"
+        aria-pressed={value === v}
+        disabled={disabled}
+        onClick={() => onChange(v)}
+        className={itemClass}
+      >
+        {label}
+      </button>
+    ));
   return (
-    <div role="group" aria-label="등록 방법" className={clsx(styles.seg, 'mt-4 max-w-[360px]')}>
-      {(
-        [
-          ['search', '찾아서 꽂기'],
-          ['manual', '직접 적기'],
-        ] as const
-      ).map(([v, label]) => (
-        <button
-          key={v}
-          type="button"
-          aria-pressed={value === v}
-          disabled={disabled}
-          onClick={() => onChange(v)}
-          className={styles.segItem}
-        >
-          {label}
-        </button>
-      ))}
-    </div>
+    <>
+      {/* .seg의 display가 lg:hidden을 이기므로 숨김은 바깥 상자가 맡는다 */}
+      <div className="lg:hidden">
+        <div role="group" aria-label="등록 방법" className={clsx(styles.seg, 'mt-4 max-w-[360px]')}>
+          {buttons(styles.segItem)}
+        </div>
+      </div>
+      <div role="group" aria-label="등록 방법" className={DESK_SWITCH_CLASS}>
+        {buttons(
+          'dseg-item flex items-center rounded-[9px] px-4 text-[14px] font-semibold text-ink-sub focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent'
+        )}
+      </div>
+    </>
   );
 }
 
@@ -154,7 +168,7 @@ export const ChosenBook = forwardRef<
       ref={ref}
       aria-label="고른 책"
       tabIndex={-1}
-      className="vellum mt-[22px] grid grid-cols-[110px_1fr] items-start gap-5 rounded-[3px] p-[22px] outline-none lg:sticky lg:top-11 lg:mt-0"
+      className="vellum mt-[22px] grid grid-cols-[110px_1fr] items-start gap-5 rounded-[3px] p-[22px] outline-none lg:sticky lg:top-24 lg:mt-0"
     >
       <BookCover
         title={title}
