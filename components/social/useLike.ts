@@ -1,6 +1,7 @@
 'use client';
 
 import { apiFetch } from '@/lib/api/fetch';
+import { reactionKey, rememberLike, resolveLike } from '@/lib/comments/reactionMemory';
 import { likePayload, likesUrl, type CommentTarget } from '@/lib/comments/target';
 import { useState } from 'react';
 
@@ -22,8 +23,13 @@ export function useLike(
   initialLiked: boolean,
   initialLikeCount: number
 ): LikeState {
-  const [isLiked, setIsLiked] = useState(initialLiked);
-  const [likeCount, setLikeCount] = useState(initialLikeCount);
+  const key = reactionKey(target);
+  // 뒤로 가기로 예전 화면 데이터가 돌아와도 이 탭에서 바꾼 좋아요를 잃지 않는다
+  const [start] = useState(() =>
+    resolveLike(key, { liked: initialLiked, likeCount: initialLikeCount })
+  );
+  const [isLiked, setIsLiked] = useState(start.liked);
+  const [likeCount, setLikeCount] = useState(start.likeCount);
   const [isLoading, setIsLoading] = useState(false);
 
   const resolved: CommentTarget =
@@ -51,7 +57,12 @@ export function useLike(
       if (!response.ok) throw new Error('Network response was not ok');
 
       const result = await response.json();
-      setIsLiked(result.liked);
+      const liked = Boolean(result.liked);
+      // 서버가 낙관적 결과와 다르게 답하면(이미 눌려 있던 경우 등) 수는 그대로다
+      const count = liked === prevLiked ? prevCount : prevLiked ? prevCount - 1 : prevCount + 1;
+      setIsLiked(liked);
+      setLikeCount(count);
+      rememberLike(key, { liked: prevLiked, likeCount: prevCount }, { liked, likeCount: count });
     } catch (error) {
       // [Step 3] 에러 발생 시 롤백
       console.error('Like failed:', error);

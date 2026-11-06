@@ -1,5 +1,6 @@
 'use client';
 
+import { useCommentCount } from '@/components/social/useCommentCount';
 import { useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { MoreHorizontal } from 'lucide-react';
@@ -38,7 +39,7 @@ export default function FeedPost({ item, userId, now, index }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [likersOpen, setLikersOpen] = useState(false);
-  const [commentCount, setCommentCount] = useState(initialCommentCount);
+  const [commentCount, setCommentCount] = useCommentCount(entry.id, initialCommentCount);
 
   const slug = `${profile.nickname}-${profile.tag}`;
   const libraryHref = `/social/u/${slug}`;

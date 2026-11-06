@@ -6,6 +6,7 @@ import EntryDeleteWarning from '@/components/reflections/EntryDeleteWarning';
 import { useActionLock } from '@/hooks/useActionLock';
 import { apiFetch } from '@/lib/api/fetch';
 import { useState } from 'react';
+import { useCommentCount } from '@/components/social/useCommentCount';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Pencil, Share, Trash2 } from 'lucide-react';
@@ -57,7 +58,7 @@ export default function EntryDetailContent({
   const [deleteReady, setDeleteReady] = useState<number | null>(null);
   const [deleteCheck, setDeleteCheck] = useState(0);
   const [deleteError, setDeleteError] = useState('');
-  const [commentCount, setCommentCount] = useState(initialCommentCount);
+  const [commentCount, setCommentCount] = useCommentCount(entry.id, initialCommentCount);
 
   const scrollToComments = () => {
     document.getElementById('entry-comments')?.scrollIntoView({ behavior: 'smooth' });

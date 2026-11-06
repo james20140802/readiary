@@ -1,5 +1,6 @@
 'use client';
 
+import { useCommentCount } from '@/components/social/useCommentCount';
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import clsx from 'clsx';
@@ -30,7 +31,7 @@ const FOCUS =
 export default function MonthlyExcerptFeedCard({ item, userId, now, className }: Props) {
   const { id, month, sharedAt, profile, coverQuote, coverBookTitle, quoteCount, bookCount } = item;
   const target = useMemo<CommentTarget>(() => ({ kind: 'monthly_excerpt', excerptId: id }), [id]);
-  const [commentCount, setCommentCount] = useState(item.initialCommentCount);
+  const [commentCount, setCommentCount] = useCommentCount(target, item.initialCommentCount);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [likersOpen, setLikersOpen] = useState(false);
 

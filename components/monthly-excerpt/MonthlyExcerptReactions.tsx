@@ -1,5 +1,6 @@
 'use client';
 
+import { useCommentCount } from '@/components/social/useCommentCount';
 import { useMemo, useState } from 'react';
 import CommentBottomSheet from '@/components/comments/CommentBottomSheet';
 import LikersBottomSheet from '@/components/social/LikersBottomSheet';
@@ -51,7 +52,7 @@ function ReactionBar({
     [excerptId]
   );
   const like = useLike(target, initial.liked, initial.likeCount);
-  const [commentCount, setCommentCount] = useState(initial.commentCount);
+  const [commentCount, setCommentCount] = useCommentCount(target, initial.commentCount);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [likersOpen, setLikersOpen] = useState(false);
 
