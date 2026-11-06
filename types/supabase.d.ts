@@ -136,6 +136,65 @@ export type Database = {
           },
         ];
       };
+      monthly_excerpts: {
+        Row: {
+          id: string;
+          user_id: string;
+          month: string;
+          is_shared: boolean;
+          first_shared_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          month: string;
+          is_shared?: boolean;
+          first_shared_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          month?: string;
+          is_shared?: boolean;
+          first_shared_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'monthly_excerpts_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      monthly_excerpt_items: {
+        Row: { excerpt_id: string; entry_id: string; position: number };
+        Insert: { excerpt_id: string; entry_id: string; position: number };
+        Update: { excerpt_id?: string; entry_id?: string; position?: number };
+        Relationships: [
+          {
+            foreignKeyName: 'monthly_excerpt_items_excerpt_id_fkey';
+            columns: ['excerpt_id'];
+            isOneToOne: false;
+            referencedRelation: 'monthly_excerpts';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'monthly_excerpt_items_entry_id_fkey';
+            columns: ['entry_id'];
+            isOneToOne: false;
+            referencedRelation: 'entries';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       entry_reflections: {
         Row: {
           id: string;
@@ -496,6 +555,29 @@ export type Database = {
         Args: Record<string, never>;
         Returns: { month: string; entry_count: number }[];
       };
+      save_monthly_excerpt: {
+        Args: { p_month: string; p_entry_ids: string[]; p_is_shared: boolean };
+        Returns: string;
+      };
+      set_monthly_excerpt_shared: {
+        Args: { p_id: string; p_is_shared: boolean };
+        Returns: undefined;
+      };
+      get_my_monthly_excerpt: { Args: { p_month: string }; Returns: Json };
+      get_monthly_excerpt_candidates: {
+        Args: { p_month: string; p_user_book_id?: string; p_page?: number; p_limit?: number };
+        Returns: Json;
+      };
+      get_monthly_excerpt_month_books: {
+        Args: { p_month: string };
+        Returns: { user_book_id: string; title: string; quote_count: number }[];
+      };
+      get_my_monthly_excerpt_years: {
+        Args: Record<string, never>;
+        Returns: { year: number; excerpt_count: number; has_unmade: boolean }[];
+      };
+      get_my_monthly_excerpt_year: { Args: { p_year: number }; Returns: Json };
+      get_monthly_excerpt_prompt: { Args: { p_today: string }; Returns: Json };
       get_books_page: { Args: Record<string, never>; Returns: Json };
       get_profile_retrospect: {
         Args: { p_user_id: string; p_today: string; p_public_only?: boolean };

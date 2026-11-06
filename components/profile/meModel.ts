@@ -1,4 +1,5 @@
 import { formatInTimeZone } from 'date-fns-tz';
+import { isFinishedMonth } from '@/lib/monthly-excerpt/month';
 import type { MonthlySummary } from '@/lib/profile/monthlySummary';
 
 const KST = 'Asia/Seoul';
@@ -62,14 +63,46 @@ export function formatPublishedDate(iso: string | null | undefined): string | nu
   return formatInTimeZone(d, KST, 'yyyy년 M월 d일');
 }
 
+/** 달의 발췌집 상태 — made: 펼치기, unmade: 엮기, none: 행동 없음(진행 중인 달·문장 없는 달·조회 실패) */
+export type ExcerptState = 'made' | 'unmade' | 'none';
+
 export interface MonthRow {
   key: string;
+  /** 'YYYY-MM' — 달의 발췌집 주소와 같은 키 */
+  monthKey: string;
   /** '10월' */
   month: string;
   count: number;
   /** 그달 가장 최근에 남긴 문장 — 생각만 남긴 달은 null */
   quote: string | null;
   entryId: string | null;
+  excerpt: ExcerptState;
+}
+
+/** '2026년 3월' → '2026-03'. 읽지 못하면 빈 문자열(어떤 달과도 같지 않다) */
+function labelToMonthKey(label: string): string {
+  const m = /^(\d{4})년\s*(\d{1,2})월$/.exec(label.trim());
+  return m ? `${m[1]}-${m[2].padStart(2, '0')}` : '';
+}
+
+/**
+ * 줄마다 엮기·펼치기를 정한다. made가 null·undefined면 엮은 달을 모르는 것이라 행동을 두지 않는다
+ * (모르는데 '엮기'를 보이면 이미 엮은 달을 다시 엮게 된다).
+ * 끝난 달만 대상이다 — 진행 중인 달과 문장 없는 달에는 행동이 없다.
+ */
+export function withExcerptState(
+  rows: MonthRow[],
+  todayKst: string,
+  made: ReadonlySet<string> | null | undefined
+): MonthRow[] {
+  return rows.map((row) => {
+    let excerpt: ExcerptState = 'none';
+    if (made && row.monthKey && isFinishedMonth(row.monthKey, todayKst)) {
+      if (made.has(row.monthKey)) excerpt = 'made';
+      else if (row.quote !== null) excerpt = 'unmade';
+    }
+    return { ...row, excerpt };
+  });
 }
 
 /**
@@ -77,18 +110,24 @@ export interface MonthRow {
  * 사이에 빈 달은 '쉬어 간 달'로 두고, 기록을 시작하기 전의 빈 달(목록 끝)은 뺀다.
  * 달마다 대표 문장(이어 남긴 생각이 가장 많은 문장, 설계 4.3)은 DB 집계가 생기면 바꾼다.
  */
-export function monthRows(monthly: MonthlySummary[]): MonthRow[] {
+export function monthRows(
+  monthly: MonthlySummary[],
+  todayKst: string,
+  made?: ReadonlySet<string> | null
+): MonthRow[] {
   const rows = monthly.map((m): MonthRow => {
     const preview = m.quotePreviews?.[0];
     return {
       key: m.label,
+      monthKey: labelToMonthKey(m.label),
       month: m.label.replace(/^\d+년\s*/, ''),
       count: m.count,
       quote: preview?.quote ?? m.quotes[0] ?? null,
       entryId: preview?.entryId ?? null,
+      excerpt: 'none',
     };
   });
   let end = rows.length;
   while (end > 0 && rows[end - 1].count === 0) end -= 1;
-  return rows.slice(0, end);
+  return withExcerptState(rows.slice(0, end), todayKst, made);
 }

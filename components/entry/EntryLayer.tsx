@@ -10,6 +10,7 @@ import { Leaf, Leaves } from '@/components/shell/Leaves';
 import { TopBarActions, useTopBar } from '@/components/shell/TopBarContext';
 import { frameFor } from '@/lib/shell/routes';
 import { todayKST } from '@/lib/dates';
+import { formatPages } from '@/lib/entries/pages';
 import type { Entry } from '@/types/entry';
 import type { Book } from '@/types/book';
 import { dateParts, monthDay, shortDate } from './dates';
@@ -33,12 +34,6 @@ export interface EntryLayerProps {
   onMore?: () => void;
   /** 견본에서 날짜를 고정할 때 */
   today?: string;
-}
-
-export function formatPages(fromPage?: number | null, toPage?: number | null) {
-  if (fromPage != null && toPage != null && fromPage !== toPage) return `p.${fromPage}–${toPage}`;
-  const page = fromPage ?? toPage;
-  return page != null ? `p.${page}` : null;
 }
 
 const ICON_BUTTON = 'relative grid h-11 w-11 place-items-center rounded-full text-ink';

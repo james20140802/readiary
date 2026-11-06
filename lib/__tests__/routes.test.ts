@@ -34,6 +34,7 @@ describe('app routes', () => {
       [
         '/books',
         '/entry',
+        '/excerpts',
         '/notifications',
         '/pilsa',
         '/profile',
