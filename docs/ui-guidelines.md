@@ -95,7 +95,7 @@
 | `bare` | 인증 절차·공개 링크·약관(`/login`, `/signup`, `/onboarding`, `/auth`, `/reset-password`, `/update-password`, `/share`, `/invite`, `/privacy`, `/terms`, `/email`) | 괘선만 |
 | `leaves` | 오늘·나(`LEAVES_ROUTES`), 책장·책 한 권(`LEAVES_EXACT`), 기록 한 장 | 괘선 + 여백선 |
 | `feed` | 소셜 피드용으로 예약한 틀. 아직 쓰는 경로가 없다 | 괘선 + 여백선 |
-| `plain` | 그 밖의 모든 화면 | 괘선만. 단 `MARGIN_PLAIN`(달의 발췌집 모아 보기·한 권, 친구의 것 포함. 엮기 제외)은 괘선 + 여백선 |
+| `plain` | 그 밖의 모든 화면 | 괘선만. 단 다시 읽는 화면 `MARGIN_PLAIN`(달의 발췌집 모아 보기·한 권과 친구의 것, 책별 발췌집, 친구의 서재·책장·책 한 권)은 괘선 + 여백선. 엮기·기록 남기기 같은 도구 화면은 들지 않는다 |
 
 ## 표면 규칙 (Surfaces)
 
