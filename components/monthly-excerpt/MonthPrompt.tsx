@@ -8,7 +8,7 @@ import { shortMonthLabel } from '@/lib/monthly-excerpt/month';
 import { dismissPrompt, isPromptDismissed } from '@/lib/monthly-excerpt/promptDismiss';
 import type { ExcerptPrompt } from '@/lib/monthly-excerpt/types';
 
-function Slip({ prompt }: { prompt: ExcerptPrompt }) {
+function Slip({ prompt, className }: { prompt: ExcerptPrompt; className?: string }) {
   // 서버 렌더와 어긋나지 않게 첫 그림에서는 비워 두고, 브라우저에서 닫은 기억을 본 뒤 나타난다
   const [visible, setVisible] = useState(false);
   useEffect(() => {
@@ -20,7 +20,11 @@ function Slip({ prompt }: { prompt: ExcerptPrompt }) {
   if (!visible) return null;
 
   return (
-    <aside aria-label="달의 발췌집 안내" className="vellum-slip my-5">
+    <aside
+      aria-label="달의 발췌집 안내"
+      data-month-prompt
+      className={`vellum-slip ${className ?? 'my-5'}`}
+    >
       <p className="break-keep font-serif text-[20px] font-semibold leading-snug text-ink">
         {shortMonthLabel(prompt.month)}을 엮어 볼까요?
       </p>
@@ -46,19 +50,32 @@ function Slip({ prompt }: { prompt: ExcerptPrompt }) {
   );
 }
 
-function Resolved({ prompt }: { prompt: Promise<ExcerptPrompt | null> }) {
+function Resolved({
+  prompt,
+  className,
+}: {
+  prompt: Promise<ExcerptPrompt | null>;
+  className?: string;
+}) {
   const value = use(prompt);
-  return value ? <Slip prompt={value} /> : null;
+  return value ? <Slip prompt={value} className={className} /> : null;
 }
 
 /**
  * 오늘 화면의 조용한 안내 — 지난달을 엮어 볼까요. 회상처럼 따로 늦게 올 수 있어, 도착하면 나타나고
  * 조회가 실패했거나 안내할 달이 없으면 아무것도 그리지 않는다.
+ * 자리(여백·위치)는 놓는 화면이 className으로 정한다. 주지 않으면 흐름 안에 위아래 여백을 두고 놓인다.
  */
-export default function MonthPrompt({ prompt }: { prompt: Promise<ExcerptPrompt | null> }) {
+export default function MonthPrompt({
+  prompt,
+  className,
+}: {
+  prompt: Promise<ExcerptPrompt | null>;
+  className?: string;
+}) {
   return (
     <Suspense fallback={null}>
-      <Resolved prompt={prompt} />
+      <Resolved prompt={prompt} className={className} />
     </Suspense>
   );
 }
