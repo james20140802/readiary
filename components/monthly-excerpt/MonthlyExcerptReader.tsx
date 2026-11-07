@@ -225,8 +225,11 @@ function TitlePage({
         </ul>
       )}
       {actions && (
-        // 책 목록과 같은 폭·가장자리에 놓되, 펼친 넓은 페이지에서도 500px을 넘지 않는다. 동작의 배치는 놓는 화면이 정한다
-        <div className="mx-auto mt-[22px] max-w-[500px] text-left lg:mx-0">{actions}</div>
+        // 모바일은 책 목록·간지 묶음과 같은 500px 칸, 넓은 화면은 놓인 칸(왼쪽 표제지·펼친 페이지) 전체 폭.
+        // 넓은 화면에서 폭을 따로 묶으면 오른쪽에 끝선이 하나 더 생겨 한쪽으로 쏠려 보인다. 배치는 놓는 화면이 정한다
+        <div className="mx-auto mt-[22px] max-w-[500px] text-left lg:mx-0 lg:max-w-none">
+          {actions}
+        </div>
       )}
     </div>
   );
