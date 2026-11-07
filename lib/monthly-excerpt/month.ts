@@ -10,6 +10,13 @@ export function isMonthKey(s: string): boolean {
   return /^[1-9]\d{3}-(0[1-9]|1[0-2])$/.test(s);
 }
 
+/** 쿼리의 해. 네 자리이고 1900 이상일 때만 숫자로, 아니면 null. */
+export function parseYear(raw: string | null): number | null {
+  if (!raw || !/^\d{4}$/.test(raw)) return null;
+  const year = Number(raw);
+  return year >= 1900 ? year : null;
+}
+
 /** '2026-03' → '2026년 3월' */
 export function monthLabel(month: MonthKey): string {
   const [y, m] = month.split('-');

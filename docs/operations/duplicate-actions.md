@@ -23,6 +23,7 @@
 | --- | --- | --- |
 | POST /api/entries/new | client_entry_id | 같은 entries 기본키의 기존 ID 반환 |
 | POST /api/comments | client_comment_id | 본인·기록·답글 대상·내용이 같은 기존 댓글 반환 |
+| POST /api/monthly-excerpts/[id]/comments | client_comment_id | 본인·권·답글 대상·내용이 같은 기존 댓글 반환 |
 | POST /api/books/new | client_request_id | 같은 사용자·ID·제출의 book_id와 user_book_id 반환 |
 
 기록과 댓글은 기존 UUID 기본키로 중복을 제한한다. 댓글 재시도는 알림을 다시

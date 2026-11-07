@@ -26,6 +26,31 @@ export async function retractLikeNotification(supabase: Supabase, entryId: strin
   if (error) console.error('retract_like_notification 실패:', error.message);
 }
 
+/** 달의 발췌집 좋아요·댓글 알림. 수신자와 볼 수 있는지는 RPC가 정한다. 실패해도 반응은 이미 저장됐다. */
+export async function notifyMonthlyExcerptEvent(
+  supabase: Supabase,
+  excerptId: string,
+  type: 'excerpt_like' | 'excerpt_comment',
+  commentId?: string
+): Promise<void> {
+  const { error } = await supabase.rpc('notify_monthly_excerpt_event', {
+    p_excerpt_id: excerptId,
+    p_type: type,
+    ...(commentId ? { p_comment_id: commentId } : {}),
+  });
+  if (error) console.error('notify_monthly_excerpt_event 실패:', error.message);
+}
+
+export async function retractMonthlyExcerptLikeNotification(
+  supabase: Supabase,
+  excerptId: string
+): Promise<void> {
+  const { error } = await supabase.rpc('retract_monthly_excerpt_like_notification', {
+    p_excerpt_id: excerptId,
+  });
+  if (error) console.error('retract_monthly_excerpt_like_notification 실패:', error.message);
+}
+
 /** 친구 요청·수락 알림. RPC가 friends 행을 검증하고 그 행에 알림을 매단다(행이 지워지면 알림도 사라진다). */
 export async function notifyFriendEvent(
   supabase: Supabase,

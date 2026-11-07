@@ -37,9 +37,9 @@
 
 ```
 supabase/migrations/20261106090000_monthly_excerpts.sql            Task 1 테이블·RPC·트리거
-supabase/migrations/20261110090000_monthly_excerpts_friends.sql    Task 7 친구 읽기
-supabase/migrations/20261110100000_monthly_excerpt_reactions.sql   Task 8 반응·알림
-supabase/migrations/20261110110000_social_feed_items.sql           Task 9 피드
+supabase/migrations/20261106110000_monthly_excerpts_friends.sql    Task 7 친구 읽기
+supabase/migrations/20261106120000_monthly_excerpt_reactions.sql   Task 8 반응·알림
+supabase/migrations/20261106130000_social_feed_items.sql           Task 9 피드
 supabase/tests/run-monthly-excerpts-contract.mjs                   계약 테스트 실행기
 supabase/tests/monthly_excerpts_*_contract.sql                     계약 테스트
 lib/monthly-excerpt/month.ts                                       달 계산·라벨
@@ -231,7 +231,7 @@ expect(bookTallyForDisplay(fourBooks, 2).at(-1)).toEqual({ title: '외 2권', co
 ### Task 7: 친구 읽기
 
 **Files:**
-- Create: `supabase/migrations/20261110090000_monthly_excerpts_friends.sql`, `supabase/tests/monthly_excerpts_friend_contract.sql`, `app/(app)/social/u/[nicknameAndTag]/excerpts/page.tsx`, `app/(app)/social/u/[nicknameAndTag]/excerpts/[month]/page.tsx`
+- Create: `supabase/migrations/20261106110000_monthly_excerpts_friends.sql`, `supabase/tests/monthly_excerpts_friend_contract.sql`, `app/(app)/social/u/[nicknameAndTag]/excerpts/page.tsx`, `app/(app)/social/u/[nicknameAndTag]/excerpts/[month]/page.tsx`
 - Modify: `lib/monthly-excerpt/server.ts`, `components/social/library/FriendLibraryView.tsx`, 라이브러리 page, `types/supabase.d.ts`, `supabase/tests/fixtures/prod-public-schema.json`, `docs/operations/privacy-release.md`
 
 **Interfaces:**
@@ -258,7 +258,7 @@ expect(bookTallyForDisplay(fourBooks, 2).at(-1)).toEqual({ title: '외 2권', co
 ### Task 8: 좋아요·댓글·알림
 
 **Files:**
-- Create: `supabase/migrations/20261110100000_monthly_excerpt_reactions.sql`, `supabase/tests/monthly_excerpts_reactions_contract.sql`, `app/api/monthly-excerpts/[id]/likes/route.ts`, `app/api/monthly-excerpts/[id]/comments/route.ts`, `lib/comments/target.ts`
+- Create: `supabase/migrations/20261106120000_monthly_excerpt_reactions.sql`, `supabase/tests/monthly_excerpts_reactions_contract.sql`, `app/api/monthly-excerpts/[id]/likes/route.ts`, `app/api/monthly-excerpts/[id]/comments/route.ts`, `lib/comments/target.ts`
 - Modify: `components/comments/CommentBottomSheet.tsx`, `components/comments/CommentInput.tsx`, `components/social/useLike.ts`, `components/social/LikersBottomSheet.tsx`, `lib/notifications/{types,format}.ts`, `app/(app)/social/_components/NotificationList.tsx`, notifications 조회, `MonthlyExcerptReader`
 
 **Interfaces:**
@@ -278,7 +278,7 @@ expect(bookTallyForDisplay(fourBooks, 2).at(-1)).toEqual({ title: '외 2권', co
 ### Task 9: 피드
 
 **Files:**
-- Create: `supabase/migrations/20261110110000_social_feed_items.sql`, `supabase/tests/monthly_excerpts_feed_contract.sql`, `components/monthly-excerpt/MonthlyExcerptFeedCard.tsx`
+- Create: `supabase/migrations/20261106130000_social_feed_items.sql`, `supabase/tests/monthly_excerpts_feed_contract.sql`, `components/monthly-excerpt/MonthlyExcerptFeedCard.tsx`
 - Modify: `lib/queries/fetchSocialFeedEntries.ts`, `components/social/feed/SocialFeedView.tsx`, `types/entry.ts`, `docs/ui-guidelines.md`, `DESIGN.md`, `AGENTS.md`(주요 공간 표에 달의 발췌집)
 
 **Interfaces:**

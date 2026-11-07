@@ -8,6 +8,8 @@ import { useTopBar } from '@/components/shell/TopBarContext';
 import BookThumb from '@/components/social/BookThumb';
 import RemoveFriendButton from '@/components/social/RemoveFriendButton';
 import { coverTier } from '@/components/profile/coverTier';
+import { monthLabel } from '@/lib/monthly-excerpt/month';
+import type { MonthKey } from '@/lib/monthly-excerpt/types';
 
 export interface LibraryCurrentBook {
   title: string;
@@ -32,6 +34,13 @@ export interface LibraryExcerpt {
   href: string;
 }
 
+export interface LibraryMonthlyExcerpt {
+  month: MonthKey;
+  coverQuote: string | null;
+  quoteCount: number;
+  href: string;
+}
+
 export interface FriendLibraryViewProps {
   profile: Profile;
   isOwn: boolean;
@@ -45,6 +54,12 @@ export interface FriendLibraryViewProps {
   excerpts: LibraryExcerpt[];
   /** 회고 집계를 못 불러왔을 때 — 발췌집 자리에 안내를 둔다 */
   retrospectError?: boolean;
+  /** 최근 달의 발췌집. 친구에게는 공개된 권만 온다 */
+  monthlyExcerpts: LibraryMonthlyExcerpt[];
+  /** 달의 발췌집 모아 보기 주소 */
+  monthlyExcerptsHref: string;
+  /** 달의 발췌집을 못 불러왔을 때 — 비어 있다고 말하지 않고 그 자리에 안내를 둔다 */
+  monthlyExcerptsError?: boolean;
 }
 
 /** 긴 대표 문장은 작게 — 표지 안에 끝까지 들어가게('나' 화면 표지와 같은 기준) */
@@ -82,6 +97,9 @@ export default function FriendLibraryView({
   shelfHref,
   excerpts,
   retrospectError,
+  monthlyExcerpts,
+  monthlyExcerptsHref,
+  monthlyExcerptsError,
 }: FriendLibraryViewProps) {
   useTopBar({
     title: `${profile.name}의 서재`,
@@ -289,6 +307,68 @@ export default function FriendLibraryView({
                   </Link>
                 </li>
               ))}
+            </ul>
+          )}
+        </section>
+
+        <section aria-labelledby="lib-monthly-excerpts" className="mt-[34px]">
+          <div className="flex items-baseline justify-between">
+            <SectionLabel id="lib-monthly-excerpts">달마다 엮은 발췌집</SectionLabel>
+            {!monthlyExcerptsError && monthlyExcerpts.length > 0 && (
+              <Link
+                href={monthlyExcerptsHref}
+                aria-label="달의 발췌집 모두 보기"
+                className={clsx(
+                  'inline-flex min-h-11 items-center font-sans text-[15px] font-semibold text-ink',
+                  FOCUS
+                )}
+              >
+                모두 보기
+              </Link>
+            )}
+          </div>
+          {monthlyExcerptsError ? (
+            <p className="border-t border-hairline py-6 font-sans text-body-sm text-ink-sub">
+              달의 발췌집을 불러오지 못했어요. 잠시 뒤 다시 열어 주세요.
+            </p>
+          ) : monthlyExcerpts.length === 0 ? (
+            <p className="border-t border-hairline py-6 font-sans text-body-sm text-ink-sub">
+              {isOwn ? '아직 엮은 달이 없어요' : '아직 친구에게 보여 준 달이 없어요.'}
+            </p>
+          ) : (
+            <ul>
+              {monthlyExcerpts.map((row) => {
+                const label = monthLabel(row.month);
+                return (
+                  <li key={row.month} className="border-t border-hairline">
+                    <Link
+                      href={row.href}
+                      className={clsx(
+                        'grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3.5 py-3',
+                        FOCUS
+                      )}
+                    >
+                      <span className="min-w-0">
+                        <span
+                          data-skeleton
+                          className="block font-sans text-[15px] font-medium text-ink-sub"
+                        >
+                          {label} · 문장 {row.quoteCount}
+                        </span>
+                        <span
+                          data-skeleton
+                          className="mt-0.5 line-clamp-2 font-serif text-[17px] font-semibold leading-normal text-ink"
+                        >
+                          {row.coverQuote}
+                        </span>
+                      </span>
+                      <span className="font-sans text-[15px] font-semibold text-accent">
+                        펼치기
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </section>

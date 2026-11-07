@@ -1,5 +1,6 @@
 'use client';
 
+import { useCommentCount } from '@/components/social/useCommentCount';
 import { useState } from 'react';
 import Link from 'next/link';
 import { MoreHorizontal } from 'lucide-react';
@@ -49,7 +50,7 @@ export default function FeedPost({ item, userId, now, index }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [likersOpen, setLikersOpen] = useState(false);
-  const [commentCount, setCommentCount] = useState(initialCommentCount);
+  const [commentCount, setCommentCount] = useCommentCount(initialCommentCount);
 
   const slug = `${profile.nickname}-${profile.tag}`;
   const libraryHref = `/social/u/${slug}`;
@@ -200,12 +201,12 @@ export default function FeedPost({ item, userId, now, index }: Props) {
       </Sheet>
 
       <LikersBottomSheet
-        entryId={entry.id}
+        target={{ kind: 'entry', entryId: entry.id }}
         isOpen={likersOpen}
         onClose={() => setLikersOpen(false)}
       />
       <CommentBottomSheet
-        entryId={entry.id}
+        target={{ kind: 'entry', entryId: entry.id }}
         currentUserId={userId}
         isOpen={commentsOpen}
         onClose={() => setCommentsOpen(false)}

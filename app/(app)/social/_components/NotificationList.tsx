@@ -144,6 +144,9 @@ function PushRow({ d, now }: { d: Delivery; now: Date }) {
 function SocialRow({ n, now }: { n: NotificationItem; now: Date }) {
   const isUnread = n.readAt === null;
   const hasMissingEntry = (n.type === 'like' || n.type === 'comment') && !n.entryId;
+  const isExcerptReaction = n.type === 'excerpt_like' || n.type === 'excerpt_comment';
+  // 권을 지우면 알림도 함께 사라지므로 드물다. 그래도 기록과 같이 링크 없이 이유를 말한다.
+  const hasMissingExcerpt = isExcerptReaction && !n.monthlyExcerptMonth;
   const message = buildNotificationMessage(n.type, n.actorNickname);
   const name = message.startsWith(n.actorNickname) ? n.actorNickname : '';
 
@@ -165,6 +168,9 @@ function SocialRow({ n, now }: { n: NotificationItem; now: Date }) {
         {hasMissingEntry && (
           <p className="mt-0.5 font-sans text-[14px] text-ink-sub">연결된 기록을 열 수 없어요</p>
         )}
+        {hasMissingExcerpt && (
+          <p className="mt-0.5 font-sans text-[14px] text-ink-sub">연결된 발췌집을 열 수 없어요</p>
+        )}
         <time
           dateTime={n.createdAt}
           data-skeleton
@@ -176,10 +182,13 @@ function SocialRow({ n, now }: { n: NotificationItem; now: Date }) {
     </>
   );
 
-  // 좋아요·댓글은 해당 기록으로(연결 정보가 없으면 링크 없음), 친구 알림은
-  // 친구 페이지로 (수락됨 → 친구 목록, 새 요청 → 받은 요청 탭)
-  const href =
-    n.type === 'like' || n.type === 'comment'
+  // 좋아요·댓글은 해당 기록으로, 달의 발췌집 반응은 내 그달 발췌집으로(연결 정보가 없으면 링크 없음),
+  // 친구 알림은 친구 페이지로 (수락됨 → 친구 목록, 새 요청 → 받은 요청 탭)
+  const href = isExcerptReaction
+    ? n.monthlyExcerptMonth
+      ? `/excerpts/${n.monthlyExcerptMonth}`
+      : null
+    : n.type === 'like' || n.type === 'comment'
       ? n.entryId
         ? `/entry/${n.entryId}`
         : null

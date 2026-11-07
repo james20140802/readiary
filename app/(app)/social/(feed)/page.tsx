@@ -2,7 +2,7 @@ import PushSeen from '@/components/PushSeen';
 import { getServerUser } from '@/lib/supabase/getServerUser';
 // app/(app)/social/(feed)/page.tsx
 import { redirect } from 'next/navigation';
-import { fetchDetailSocialFeedEntries } from '@/lib/queries/fetchSocialFeedEntries';
+import { fetchSocialFeedItems } from '@/lib/queries/fetchSocialFeedEntries';
 import { fetchFriendList, fetchReceivedFriendRequests } from '@/lib/friends/fetchFriendList';
 import { FEED_PAGINATION_LIMIT } from '@/constants/social';
 import SocialFeedView from '@/components/social/feed/SocialFeedView';
@@ -22,7 +22,7 @@ export default async function SocialPage({ searchParams }: SocialPageProps) {
   if (!user) return null;
 
   const [feed, acceptedFriends, pendingFriends] = await Promise.all([
-    fetchDetailSocialFeedEntries(0, FEED_PAGINATION_LIMIT),
+    fetchSocialFeedItems(0, FEED_PAGINATION_LIMIT),
     fetchFriendList(),
     fetchReceivedFriendRequests(),
   ]);
@@ -37,7 +37,7 @@ export default async function SocialPage({ searchParams }: SocialPageProps) {
         pendingFriends={pendingFriends ?? []}
         friendCount={acceptedFriends?.length ?? 0}
         pageSize={FEED_PAGINATION_LIMIT}
-        loadPage={fetchDetailSocialFeedEntries}
+        loadPage={fetchSocialFeedItems}
       />
     </>
   );

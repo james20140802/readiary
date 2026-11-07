@@ -10,10 +10,10 @@ import Sheet from '@/components/ui/Sheet';
 import { TopBarActions, useTopBar } from '@/components/shell/TopBarContext';
 import { useActionLock } from '@/hooks/useActionLock';
 import { apiFetch, SessionExpiredError } from '@/lib/api/fetch';
-import { MONTHLY_EXCERPT_SHARING } from '@/lib/monthly-excerpt/flags';
-import { shareImpact } from '@/lib/monthly-excerpt/model';
-import type { MonthlyExcerpt } from '@/lib/monthly-excerpt/types';
+import { NO_PUBLIC_QUOTES, shareImpact } from '@/lib/monthly-excerpt/model';
+import type { MonthlyExcerpt, MonthlyExcerptReactionCounts } from '@/lib/monthly-excerpt/types';
 import MonthlyExcerptExport from './MonthlyExcerptExport';
+import MonthlyExcerptReactions from './MonthlyExcerptReactions';
 import MonthlyExcerptReader from './MonthlyExcerptReader';
 
 const ICON_BUTTON = 'relative grid h-11 w-11 place-items-center rounded-full text-ink';
@@ -25,7 +25,16 @@ async function failureMessage(res: Response, fallback: string): Promise<string> 
 }
 
 /** 내 달의 발췌집 — 읽기 화면에 상단 바와 소유자 동작(내보내기·고치기·공개 전환·지우기)을 얹는다 */
-export default function MonthlyExcerptOwnerView({ excerpt }: { excerpt: MonthlyExcerpt }) {
+export default function MonthlyExcerptOwnerView({
+  excerpt,
+  reactions,
+  currentUserId,
+}: {
+  excerpt: MonthlyExcerpt;
+  /** 반응의 첫 수. 읽지 못했으면 null, 자리용 화면처럼 그리지 않을 때는 생략한다 */
+  reactions?: MonthlyExcerptReactionCounts | null;
+  currentUserId?: string;
+}) {
   const { id, month, items, isShared } = excerpt;
   useTopBar({ title: '달의 발췌집', back: { href: '/excerpts', label: '모아 보기' } });
   const router = useRouter();
@@ -105,8 +114,24 @@ export default function MonthlyExcerptOwnerView({ excerpt }: { excerpt: MonthlyE
         month={month}
         items={items}
         viewer="owner"
+        reactions={
+          reactions !== undefined ? (
+            <MonthlyExcerptReactions
+              excerptId={id}
+              month={month}
+              currentUserId={currentUserId}
+              initial={reactions}
+              hidden={!isShared || impact.publicCount === 0}
+            />
+          ) : null
+        }
         actions={
           <>
+            {isShared && impact.publicCount === 0 && (
+              <p className="w-full text-balance break-keep font-sans text-body-sm text-ink-sub">
+                {NO_PUBLIC_QUOTES}
+              </p>
+            )}
             {/* 상단 바는 모바일에만 있다. 넓은 화면에서도 내보낼 수 있게 책별 발췌집처럼 버튼을 함께 둔다 */}
             <Button size="sm" onClick={() => setExportOpen(true)}>
               이미지로 내보내기
@@ -114,16 +139,14 @@ export default function MonthlyExcerptOwnerView({ excerpt }: { excerpt: MonthlyE
             <Button asChild size="sm" variant="secondary">
               <Link href={`/excerpts/${month}/compose`}>고치기</Link>
             </Button>
-            {MONTHLY_EXCERPT_SHARING && (
-              <Button
-                size="sm"
-                variant="secondary"
-                disabled={lock.busy}
-                onClick={() => (isShared ? void setShared(false) : setShareOpen(true))}
-              >
-                {isShared ? '나만 보기' : '친구에게 보여 주기'}
-              </Button>
-            )}
+            <Button
+              size="sm"
+              variant="secondary"
+              disabled={lock.busy}
+              onClick={() => (isShared ? void setShared(false) : setShareOpen(true))}
+            >
+              {isShared ? '나만 보기' : '친구에게 보여 주기'}
+            </Button>
             <Button size="sm" variant="ghost" onClick={() => setDeleteOpen(true)}>
               지우기
             </Button>
@@ -161,42 +184,40 @@ export default function MonthlyExcerptOwnerView({ excerpt }: { excerpt: MonthlyE
         </div>
       </Sheet>
 
-      {MONTHLY_EXCERPT_SHARING && (
-        <Sheet
-          open={shareOpen}
-          onClose={() => !lock.isLocked() && setShareOpen(false)}
-          title="친구에게 보여 줄까요?"
-        >
-          {impact.publicCount === 0 ? (
-            <p className="font-sans text-body text-ink-sub">친구에게 보일 문장이 없어요.</p>
-          ) : (
-            impact.lines.length > 0 && (
-              <ul className="font-sans text-body text-ink-sub">
-                {impact.lines.map((line) => (
-                  <li key={line}>{line}</li>
-                ))}
-              </ul>
-            )
-          )}
-          <div className="mt-[18px] flex gap-2">
-            <Button
-              variant="secondary"
-              className="flex-1"
-              disabled={lock.busy}
-              onClick={() => setShareOpen(false)}
-            >
-              다음에
-            </Button>
-            <Button
-              className="flex-1"
-              disabled={lock.busy || impact.publicCount === 0}
-              onClick={() => setShared(true)}
-            >
-              친구에게 보여 주기
-            </Button>
-          </div>
-        </Sheet>
-      )}
+      <Sheet
+        open={shareOpen}
+        onClose={() => !lock.isLocked() && setShareOpen(false)}
+        title="친구에게 보여 줄까요?"
+      >
+        {impact.publicCount === 0 ? (
+          <p className="font-sans text-body text-ink-sub">{NO_PUBLIC_QUOTES}</p>
+        ) : (
+          impact.lines.length > 0 && (
+            <ul className="font-sans text-body text-ink-sub">
+              {impact.lines.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          )
+        )}
+        <div className="mt-[18px] flex gap-2">
+          <Button
+            variant="secondary"
+            className="flex-1"
+            disabled={lock.busy}
+            onClick={() => setShareOpen(false)}
+          >
+            다음에
+          </Button>
+          <Button
+            className="flex-1"
+            disabled={lock.busy || impact.publicCount === 0}
+            onClick={() => setShared(true)}
+          >
+            친구에게 보여 주기
+          </Button>
+        </div>
+      </Sheet>
     </>
   );
 }

@@ -1,5 +1,6 @@
 'use client';
 
+import { useCommentCount } from '@/components/social/useCommentCount';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import clsx from 'clsx';
@@ -57,7 +58,7 @@ export default function EntryCard({
   first = false,
 }: EntryCardProps) {
   const [isCommentOpen, setIsCommentOpen] = useState(false);
-  const [commentCount, setCommentCount] = useState(initialCommentCount);
+  const [commentCount, setCommentCount] = useCommentCount(initialCommentCount);
   const [isLiked, setIsLiked] = useState(initialLiked);
   const [likeCount, setLikeCount] = useState(initialLikeCount);
   const [isLikeLoading, setIsLikeLoading] = useState(false);
@@ -232,7 +233,7 @@ export default function EntryCard({
       )}
 
       <CommentBottomSheet
-        entryId={id}
+        target={{ kind: 'entry', entryId: id }}
         currentUserId={userId}
         isOpen={isCommentOpen}
         onClose={() => setIsCommentOpen(false)}

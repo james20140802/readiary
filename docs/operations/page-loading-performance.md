@@ -16,7 +16,7 @@ Deploy the application after this migration. All nine RPCs are read-only,
 | --- | --- | --- |
 | Dashboard core | Books, unused today entry, weekly entries, unused all-date streak, latest book, profile name, 50 recent entries, plus one request per missing book text | One `get_dashboard_core` RPC; six recent entries, seven activity flags, weekly count, reading books and their latest texts |
 | Recall | Earliest date, anniversary candidates or count/offset fallback, then book lookup | One `get_recall_entry` RPC, one selected entry |
-| Social feed | Two friendship lists, friend books, entries with all like/comment identifiers, profiles | One paginated `get_social_feed` RPC, counts and current-user like status |
+| Social feed | Two friendship lists, friend books, entries with all like/comment identifiers, profiles | One paginated `get_social_feed_items` RPC (entries and monthly excerpts merged by time), counts and current-user like status. The old `get_social_feed` stays until the rollout is confirmed |
 | Reading stats | Books then source entries; susceptible to the API row cap | One `get_reading_stats` RPC, four counts, no source rows |
 | Book shelf | Books and all entry dates for stats | One `get_books_page` RPC, books and per-book summaries |
 | Monthly recap | All previous-month entries | One `get_monthly_recap` RPC only on the first day of the month |

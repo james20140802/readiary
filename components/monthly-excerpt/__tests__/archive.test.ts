@@ -16,7 +16,7 @@ vi.mock('@/lib/api/fetch', () => ({
   SessionExpiredError: class extends Error {},
 }));
 
-const { default: Archive } = await import('../MonthlyExcerptArchive');
+const { default: Archive, FriendMonthlyExcerptArchive } = await import('../MonthlyExcerptArchive');
 
 const years: YearRow[] = [
   { year: 2026, excerptCount: 2, hasUnmade: true },
@@ -147,5 +147,43 @@ describe('MonthlyExcerptArchive', () => {
     expect(button.tagName).toBe('BUTTON');
     // 접힌 동안 없는 요소를 가리키지 않는다
     expect(button.hasAttribute('aria-controls')).toBe(false);
+  });
+});
+
+describe('FriendMonthlyExcerptArchive', () => {
+  const owner = '10000000-0000-4000-8000-000000000001';
+  const showFriend = () =>
+    render(
+      h(
+        TopBarProvider,
+        null,
+        h(FriendMonthlyExcerptArchive, {
+          ownerId: owner,
+          ownerName: '민지',
+          slug: 'minji-0001',
+          years: [
+            { year: 2026, excerptCount: 1, hasUnmade: false },
+            { year: 2025, excerptCount: 1, hasUnmade: false },
+          ],
+          firstYearMonths: [row('2026-03')],
+        })
+      )
+    );
+
+  it('펼치기는 친구 주소로 가고 엮기 동작은 없다', () => {
+    showFriend();
+    expect(screen.getByRole('heading', { level: 1, name: '민지의 달의 발췌집' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: '2026년 3월 펼치기' }).getAttribute('href')).toBe(
+      '/social/u/minji-0001/excerpts/2026-03'
+    );
+    expect(screen.queryByRole('link', { name: /엮기/ })).toBeNull();
+  });
+
+  it('접힌 해는 친구용 API로 가져온다', async () => {
+    apiFetch.mockResolvedValue(json({ months: [row('2025-12')] }));
+    showFriend();
+    fireEvent.click(screen.getByRole('button', { name: /2025년/ }));
+    expect(await screen.findByRole('link', { name: '2025년 12월 펼치기' })).toBeTruthy();
+    expect(apiFetch).toHaveBeenCalledWith(`/api/monthly-excerpts/friend?owner=${owner}&year=2025`);
   });
 });

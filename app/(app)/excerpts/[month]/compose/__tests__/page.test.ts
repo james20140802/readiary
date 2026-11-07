@@ -54,6 +54,8 @@ describe('달의 발췌집 엮기 페이지', () => {
       firstPage: page,
       initialPicks: [],
     });
+    // 처음 엮을 때는 공개 범위를 미리 정하지 않는다
+    expect((await propsOf('2026-03')).initialIsShared).toBeUndefined();
   });
 
   it('칩이나 후보가 실패해도 화면은 그리고 그 부분만 null로 넘긴다', async () => {
@@ -93,5 +95,17 @@ describe('달의 발췌집 엮기 페이지', () => {
     expect(props.initialPicks).toEqual([
       expect.objectContaining({ entryId: 'e1', hasNote: true, isPrivate: true, bookId: 'b1' }),
     ]);
+    expect(props.initialIsShared).toBe(false);
+  });
+
+  it('공개 중인 발췌집을 고치면 지금의 공개 범위를 넘긴다', async () => {
+    fetchMyMonthlyExcerpt.mockResolvedValue({
+      id: 'x',
+      month: '2026-03',
+      isShared: true,
+      firstSharedAt: '2026-04-01T00:00:00Z',
+      items: [],
+    });
+    expect((await propsOf('2026-03')).initialIsShared).toBe(true);
   });
 });

@@ -1,6 +1,8 @@
 'use client';
 
 import { apiFetch } from '@/lib/api/fetch';
+import { likePayload, likesUrl, type CommentTarget } from '@/lib/comments/target';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 export interface LikeState {
@@ -14,15 +16,20 @@ export interface LikeState {
  * 좋아요 낙관적 토글 상태.
  * 액션 바가 한 기록의 여러 면(엽서 앞·뒷면)에 놓일 때
  * 부모에서 한 번 만들어 내려주면 상태가 공유된다.
+ * 문자열은 기록 id다(기존 호출). 달의 발췌집은 CommentTarget으로 넘긴다.
  */
 export function useLike(
-  entryId: string,
+  target: CommentTarget | string,
   initialLiked: boolean,
   initialLikeCount: number
 ): LikeState {
+  const router = useRouter();
   const [isLiked, setIsLiked] = useState(initialLiked);
   const [likeCount, setLikeCount] = useState(initialLikeCount);
   const [isLoading, setIsLoading] = useState(false);
+
+  const resolved: CommentTarget =
+    typeof target === 'string' ? { kind: 'entry', entryId: target } : target;
 
   const toggle = async () => {
     if (isLoading) return; // 연속 클릭 방지
@@ -37,16 +44,22 @@ export function useLike(
     setIsLoading(true);
 
     try {
-      const response = await apiFetch('/api/likes', {
+      const response = await apiFetch(likesUrl(resolved), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ entryId }),
+        body: JSON.stringify(likePayload(resolved)),
       });
 
       if (!response.ok) throw new Error('Network response was not ok');
 
       const result = await response.json();
-      setIsLiked(result.liked);
+      const liked = Boolean(result.liked);
+      // 서버가 낙관적 결과와 다르게 답하면(이미 눌려 있던 경우 등) 수는 그대로다
+      const count = liked === prevLiked ? prevCount : prevLiked ? prevCount - 1 : prevCount + 1;
+      setIsLiked(liked);
+      setLikeCount(count);
+      // 뒤로 가기는 라우터가 기억해 둔 화면 데이터를 다시 쓴다. 버려 두어야 피드가 예전 좋아요로 그려지지 않는다
+      router.refresh();
     } catch (error) {
       // [Step 3] 에러 발생 시 롤백
       console.error('Like failed:', error);

@@ -1,7 +1,8 @@
 import { notFound, redirect } from 'next/navigation';
 import MonthlyExcerptOwnerView from '@/components/monthly-excerpt/MonthlyExcerptOwnerView';
 import { isMonthKey } from '@/lib/monthly-excerpt/month';
-import { fetchMyMonthlyExcerpt } from '@/lib/monthly-excerpt/server';
+import { fetchMonthlyExcerptReactions, fetchMyMonthlyExcerpt } from '@/lib/monthly-excerpt/server';
+import { getServerUser } from '@/lib/supabase/getServerUser';
 
 interface Props {
   params: Promise<{ month: string }>;
@@ -15,5 +16,16 @@ export default async function MonthlyExcerptPage({ params }: Props) {
   const excerpt = await fetchMyMonthlyExcerpt(month);
   if (!excerpt) redirect(`/excerpts/${month}/compose`);
 
-  return <MonthlyExcerptOwnerView excerpt={excerpt} />;
+  const [reactions, auth] = await Promise.all([
+    fetchMonthlyExcerptReactions(excerpt.id),
+    getServerUser(),
+  ]);
+
+  return (
+    <MonthlyExcerptOwnerView
+      excerpt={excerpt}
+      reactions={reactions}
+      currentUserId={auth.data.user?.id}
+    />
+  );
 }

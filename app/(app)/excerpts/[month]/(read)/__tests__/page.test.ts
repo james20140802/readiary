@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const fetchMyMonthlyExcerpt = vi.fn();
+const fetchMonthlyExcerptReactions = vi.fn();
+const getUser = vi.fn();
 const notFound = vi.fn(() => {
   throw new Error('NOT_FOUND');
 });
@@ -9,13 +11,20 @@ const redirect = vi.fn((to: string) => {
 });
 
 vi.mock('next/navigation', () => ({ notFound, redirect }));
-vi.mock('@/lib/monthly-excerpt/server', () => ({ fetchMyMonthlyExcerpt }));
+vi.mock('@/lib/monthly-excerpt/server', () => ({
+  fetchMyMonthlyExcerpt,
+  fetchMonthlyExcerptReactions,
+}));
+vi.mock('@/lib/supabase/getServerUser', () => ({ getServerUser: () => getUser() }));
 vi.mock('@/components/monthly-excerpt/MonthlyExcerptOwnerView', () => ({ default: () => null }));
 
 const { default: Page } = await import('../page');
 const open = (month: string) => Page({ params: Promise.resolve({ month }) });
 
-beforeEach(() => vi.clearAllMocks());
+beforeEach(() => {
+  vi.clearAllMocks();
+  getUser.mockResolvedValue({ data: { user: { id: 'me' } }, error: null });
+});
 
 describe('달의 발췌집 읽기 페이지', () => {
   it.each(['2026-13', '2026-3', 'abc', '2026-03-01'])(
@@ -39,5 +48,18 @@ describe('달의 발췌집 읽기 페이지', () => {
     fetchMyMonthlyExcerpt.mockResolvedValue(excerpt);
     const el = await open('2026-03');
     expect(el.props.excerpt).toBe(excerpt);
+  });
+  it('반응의 첫 수와 내 id를 넘긴다. 수를 못 불러와도 읽기는 막지 않는다', async () => {
+    const excerpt = { id: 'x', month: '2026-03', isShared: true, firstSharedAt: null, items: [] };
+    const counts = { likeCount: 1, commentCount: 0, liked: false };
+    fetchMyMonthlyExcerpt.mockResolvedValue(excerpt);
+    fetchMonthlyExcerptReactions.mockResolvedValue(counts);
+    const el = await open('2026-03');
+    expect(fetchMonthlyExcerptReactions).toHaveBeenCalledWith('x');
+    expect(el.props.reactions).toBe(counts);
+    expect(el.props.currentUserId).toBe('me');
+
+    fetchMonthlyExcerptReactions.mockResolvedValue(null);
+    expect((await open('2026-03')).props.reactions).toBeNull();
   });
 });
