@@ -77,7 +77,7 @@ describe('MonthlyExcerptOwnerView', () => {
   it('공개 전 안내를 보이고 PATCH한다', async () => {
     apiFetch.mockResolvedValue(new Response(JSON.stringify({ ok: true })));
     show();
-    fireEvent.click(screen.getByRole('button', { name: '친구에게 보여 주기' }));
+    fireEvent.click(screen.getByRole('button', { name: '나만 보기' }));
     expect(apiFetch).not.toHaveBeenCalled();
     expect(screen.getByText('생각 1개도 함께 보여요')).toBeTruthy();
     expect(screen.getByText('문장 1개는 친구에게 보이지 않아요')).toBeTruthy();
@@ -94,7 +94,7 @@ describe('MonthlyExcerptOwnerView', () => {
   it('공개 중이면 나만 보기는 안내 없이 바로 바꾼다', async () => {
     apiFetch.mockResolvedValue(new Response(JSON.stringify({ ok: true })));
     show(excerpt({ isShared: true }));
-    fireEvent.click(screen.getByRole('button', { name: '나만 보기' }));
+    fireEvent.click(screen.getByRole('button', { name: '친구에게 보임' }));
     await waitFor(() => expect(refresh).toHaveBeenCalled());
     expect(JSON.parse((apiFetch.mock.calls[0][1] as RequestInit).body as string)).toEqual({
       isShared: false,
@@ -103,7 +103,7 @@ describe('MonthlyExcerptOwnerView', () => {
 
   it('보일 문장이 없으면 공개 버튼이 막힌다', () => {
     show(excerpt({ items: [item(1, { isPrivate: true })] }));
-    fireEvent.click(screen.getByRole('button', { name: '친구에게 보여 주기' }));
+    fireEvent.click(screen.getByRole('button', { name: '나만 보기' }));
     expect(screen.getByText('친구에게 보일 문장이 없어요.')).toBeTruthy();
     const confirm = screen
       .getByRole('dialog')
