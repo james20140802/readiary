@@ -1,30 +1,7 @@
 /* 달의 발췌집 펼친 페이지 — 일기장 한 장에 문장 조각을 오려 붙인 모습 */
 
-/* 틀(frameFor)은 plain 그대로 두고, 달의 발췌집을 읽는 화면에서만 여백선을 긋는다.
-   묶음과 펼친 페이지가 같은 선 위에 있어, 펼치거나 묶어도 선이 생겼다 사라지지 않는다.
-   위치는 간지 틀의 여백선과 같다(globals.css .diary-ruled).
-   여백선은 바탕의 무늬일 뿐이다. 모바일에서도 종이는 여백선을 피해 오른쪽으로 비키지 않고 화면 폭 가운데에 놓인다 */
-.ruled {
-  position: relative;
-  /* 여백선을 이 화면의 맨 아래 층에 둔다. 없으면 위치 지정된 선이 버튼·글자 위로 그려진다 */
-  isolation: isolate;
-}
-.ruled::before {
-  content: '';
-  position: fixed;
-  z-index: -1;
-  top: 0;
-  bottom: 0;
-  left: 51px;
-  width: 1px;
-  background: rgb(var(--margin));
-  pointer-events: none;
-}
-@media (min-width: 1024px) {
-  .ruled::before {
-    left: calc(var(--app-side) + 31px);
-  }
-}
+/* 여백선은 이 화면이 그리지 않는다. 읽기 화면의 바탕(RuledPaper)이 깐다(lib/shell/routes.ts MARGIN_PLAIN).
+   여백선은 바탕의 무늬일 뿐이라, 모바일에서도 종이는 여백선을 피해 비키지 않고 화면 폭 가운데에 놓인다 */
 
 /* WebKit 규칙: 기울인 조각이 레이아웃 상자 밖으로 삐져나오면 화면을 떠날 때 유령 선으로 남는다(PR #83).
    그래서 기울이지 않는 넓힌 상자가 조각을 감싸, 삐져나온 부분까지 상자 안에 들게 한다. 잘라내지는 않는다. */

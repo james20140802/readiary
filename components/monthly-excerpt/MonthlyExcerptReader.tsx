@@ -78,12 +78,12 @@ export default function MonthlyExcerptReader({
 
   if (items.length === 0) {
     return (
-      <div className={styles.ruled}>
+      <>
         <TitlePage label={label} />
         {slot}
         <p className="mt-8 text-center font-serif text-note text-ink-sub">담긴 문장이 없어요.</p>
         {reactionSlot}
-      </div>
+      </>
     );
   }
 
@@ -152,7 +152,7 @@ export default function MonthlyExcerptReader({
   );
 
   return (
-    <div className={styles.ruled}>
+    <>
       {body}
       {reactionSlot && (
         <div className={unfolded ? '' : GRID}>
@@ -164,7 +164,7 @@ export default function MonthlyExcerptReader({
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
 

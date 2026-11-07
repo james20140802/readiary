@@ -64,7 +64,7 @@ export default function AppShell({ initialLoggedIn, initialUnread, children }: A
 
   const frame = frameFor(pathname);
   const nav = showsNav(frame, loggedIn);
-  const ruled = ruledFor(frame);
+  const ruled = ruledFor(frame, pathname);
   // 뱃지 조회는 셸에서 한 번만 — 모바일 상단 바·데스크톱 사이드바가 같은 값을 나눠 쓴다
   const hasUnread = useUnreadNotifications(nav, initialUnread);
   useTopAfterTabNavigation();

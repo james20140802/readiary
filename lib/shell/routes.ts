@@ -25,6 +25,16 @@ export const LEAVES_ROUTES: readonly string[] = ['/profile', '/today'];
  */
 export const LEAVES_EXACT: readonly RegExp[] = [/^\/books$/, /^\/books\/(?!new$)[^/]+$/];
 
+/**
+ * 틀은 plain(860px 본문)이지만 바탕에 여백선까지 까는 화면 — 다시 읽는 기록이라 일기장 한 장처럼 보인다.
+ * 달의 발췌집: 내 모아 보기·한 권, 친구의 모아 보기·한 권. 엮기(/compose)는 도구 화면이라 들지 않는다.
+ */
+export const MARGIN_PLAIN: readonly RegExp[] = [
+  /^\/excerpts$/,
+  /^\/excerpts\/[^/]+$/,
+  /^\/social\/u\/[^/]+\/excerpts(?:\/[^/]+)?$/,
+];
+
 /** 같은 경로이거나 `접두사/…`일 때만 맞는다 (`/sharing`은 `/share`가 아니다) */
 function matches(pathname: string, prefix: string): boolean {
   return pathname === prefix || pathname.startsWith(`${prefix}/`);
@@ -45,10 +55,11 @@ export function isWidePlain(pathname: string): boolean {
   return pathname === '/books/new';
 }
 
-/** 틀마다 깔 괘선 — 랜딩은 자체 종이를 쓰므로 없다 */
-export function ruledFor(frame: Frame): 'margin' | 'plain' | null {
+/** 틀마다 깔 괘선 — 랜딩은 자체 종이를 쓰므로 없다. plain 틀도 MARGIN_PLAIN 화면은 여백선까지 깐다 */
+export function ruledFor(frame: Frame, pathname = ''): 'margin' | 'plain' | null {
   if (frame === 'leaves' || frame === 'feed') return 'margin';
   if (frame === 'landing') return null;
+  if (frame === 'plain' && MARGIN_PLAIN.some((re) => re.test(pathname))) return 'margin';
   return 'plain';
 }
 

@@ -42,6 +42,20 @@ describe('ruledFor', () => {
     expect(ruledFor('bare')).toBe('plain');
     expect(ruledFor('landing')).toBeNull();
   });
+
+  it('달의 발췌집 읽기 화면은 plain 틀에도 여백선을 깐다(엮기는 도구 화면이라 빼고)', () => {
+    for (const path of [
+      '/excerpts',
+      '/excerpts/2026-10',
+      '/social/u/mock-0001/excerpts',
+      '/social/u/mock-0001/excerpts/2026-10',
+    ]) {
+      expect(ruledFor(frameFor(path), path)).toBe('margin');
+    }
+    for (const path of ['/excerpts/2026-10/compose', '/search', '/books/b1/excerpts', '/social']) {
+      expect(ruledFor(frameFor(path), path)).toBe('plain');
+    }
+  });
 });
 
 describe('tabFor', () => {
