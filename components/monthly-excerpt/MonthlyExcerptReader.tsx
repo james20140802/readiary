@@ -95,7 +95,7 @@ export default function MonthlyExcerptReader({
     <PastedPage
       items={items}
       showPrivate={showPrivate}
-      header={<TitlePage label={label} sentence={sentence} actions={slot} align="left" />}
+      header={<TitlePage label={label} sentence={sentence} actions={slot} />}
       toggle={toggleButton(toggleRef)}
       footer={
         <>
@@ -157,8 +157,8 @@ export default function MonthlyExcerptReader({
       {reactionSlot && (
         <div className={unfolded ? '' : GRID}>
           <div
-            // 판권과 같은 왼쪽 선에 맞춘다. 펼친 페이지에서는 여백선 안쪽이다(.page의 왼쪽 여백)
-            className={unfolded ? 'mx-auto w-full pl-9 lg:max-w-[640px] lg:pl-0' : 'lg:col-start-2'}
+            // 판권과 같은 왼쪽 선에 맞춘다(펼친 페이지는 .page와 같은 폭)
+            className={unfolded ? 'mx-auto w-full lg:max-w-[640px]' : 'lg:col-start-2'}
           >
             {reactionSlot}
           </div>
@@ -173,17 +173,15 @@ function TitlePage({
   sentence,
   books,
   actions,
-  align = 'center',
 }: {
   label: string;
   sentence?: string;
   books?: { title: string; count: number }[];
   actions?: ReactNode;
-  align?: 'center' | 'left';
 }) {
-  const center = align === 'center';
+  // 모바일은 가운데, 넓은 화면은 왼쪽. 묶음과 펼친 페이지가 같은 표제지를 쓴다
   return (
-    <div className={`pb-2.5 pt-[30px] ${center ? 'text-center lg:text-left' : 'text-left'}`}>
+    <div className="pb-2.5 pt-[30px] text-center lg:text-left">
       <div className="font-sans text-[13px] font-semibold tracking-[0.16em] text-ink-sub">
         달의 발췌집
       </div>
@@ -227,11 +225,8 @@ function TitlePage({
         </ul>
       )}
       {actions && (
-        <div
-          className={`mt-[22px] flex flex-wrap gap-2 ${center ? 'justify-center lg:justify-start' : ''}`}
-        >
-          {actions}
-        </div>
+        // 책 목록과 같은 폭·가장자리에 놓되, 펼친 넓은 페이지에서도 500px을 넘지 않는다. 동작의 배치는 놓는 화면이 정한다
+        <div className="mx-auto mt-[22px] max-w-[500px] text-left lg:mx-0">{actions}</div>
       )}
     </div>
   );

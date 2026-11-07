@@ -1,9 +1,9 @@
 /* 달의 발췌집 펼친 페이지 — 일기장 한 장에 문장 조각을 오려 붙인 모습 */
 
-/* 틀(frameFor)은 plain 그대로 두고, 이 화면에서만 여백선을 긋는다. 위치는 간지 틀의 여백선과 같다(globals.css .diary-ruled) */
+/* 틀(frameFor)은 plain 그대로 두고, 이 화면에서만 여백선을 긋는다. 위치는 간지 틀의 여백선과 같다(globals.css .diary-ruled)
+   여백선은 바탕의 무늬일 뿐이다. 모바일에서도 종이는 여백선을 피해 오른쪽으로 비키지 않고 화면 폭 가운데에 놓인다 */
 .page {
   position: relative;
-  padding-left: 36px;
 }
 .page::before {
   content: '';
@@ -16,9 +16,6 @@
   pointer-events: none;
 }
 @media (min-width: 1024px) {
-  .page {
-    padding-left: 0;
-  }
   .page::before {
     left: calc(var(--app-side) + 31px);
   }
