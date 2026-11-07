@@ -1,19 +1,22 @@
 'use client';
 
 import { useCommentCount } from '@/components/social/useCommentCount';
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { MoreHorizontal } from 'lucide-react';
 import clsx from 'clsx';
 import type { DetailSocialFeedEntry } from '@/types/entry';
 import ReflectionPreview from '@/components/reflections/ReflectionPreview';
 import CommentBottomSheet from '@/components/comments/CommentBottomSheet';
+import LineClamp from '@/components/ui/LineClamp';
 import Sheet from '@/components/ui/Sheet';
 import SocialActionBar from '@/components/social/SocialActionBar';
 import LikersBottomSheet from '@/components/social/LikersBottomSheet';
 import BookThumb from '@/components/social/BookThumb';
 import SheetRow from '@/components/social/SheetRow';
 import { dayLabel, pageLabel } from '@/components/social/feedFormat';
+import { quoteTier } from '@/components/entry/quoteTier';
+import type { QuoteTier } from '@/components/entry/quoteTier';
 import styles from './feed.module.css';
 
 interface Props {
@@ -28,6 +31,14 @@ interface Props {
 /** 링크·버튼에 공통으로 거는 초점 표시 */
 const FOCUS =
   'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent';
+
+/** 긴 문장은 작게 쓰고 줄을 더 줘서, 어느 단계든 모바일에서 300px 안팎에서 접힌다 */
+const QUOTE_TEXT: Record<QuoteTier, { lines: number; className: string }> = {
+  lg: { lines: 8, className: 'text-[24px] font-semibold leading-[1.6] lg:text-[28px]' },
+  md: { lines: 8, className: 'text-[21px] font-semibold leading-[1.6] lg:text-[24px]' },
+  sm: { lines: 10, className: 'text-[18px] font-semibold leading-[1.65] lg:text-[21px]' },
+  xs: { lines: 12, className: 'text-[16px] font-normal leading-[1.7] lg:text-[18px]' },
+};
 
 /**
  * 친구의 문장 한 편 — 문장이 실린 간지, 그 아래에 살짝 비껴 깔린 생각 간지.
@@ -53,6 +64,7 @@ export default function FeedPost({ item, userId, now, index }: Props) {
   const hasQuote = Boolean(entry.quote?.trim());
   const hasNote = Boolean(entry.note?.trim());
   const tilt = index % 2 === 0 ? -0.4 : 0.4;
+  const quoteText = QUOTE_TEXT[quoteTier(entry.quote ?? '')];
 
   return (
     <article
@@ -113,19 +125,22 @@ export default function FeedPost({ item, userId, now, index }: Props) {
         </div>
 
         {hasQuote ? (
-          <Clamp
-            lines={8}
-            className="mt-4 whitespace-pre-wrap font-serif text-[24px] font-semibold leading-[1.6] tracking-[-0.01em] text-ink lg:text-[28px]"
+          <LineClamp
+            lines={quoteText.lines}
+            className={clsx(
+              'mt-4 whitespace-pre-wrap font-serif tracking-[-0.01em] text-ink',
+              quoteText.className
+            )}
           >
             {entry.quote}
-          </Clamp>
+          </LineClamp>
         ) : (
-          <Clamp
+          <LineClamp
             lines={8}
             className="mt-[14px] whitespace-pre-wrap font-serif text-[20px] leading-[1.65] text-ink"
           >
             {entry.note}
-          </Clamp>
+          </LineClamp>
         )}
 
         <div className="mt-2.5">
@@ -151,12 +166,12 @@ export default function FeedPost({ item, userId, now, index }: Props) {
           <p className="font-sans text-[13px] font-semibold text-ink-sub">
             <span data-skeleton>{profile.name}</span>의 생각
           </p>
-          <Clamp
+          <LineClamp
             lines={6}
             className="mt-1 whitespace-pre-wrap font-serif text-[18px] leading-[1.6] text-ink"
           >
             {entry.note}
-          </Clamp>
+          </LineClamp>
         </div>
       )}
 
@@ -199,66 +214,5 @@ export default function FeedPost({ item, userId, now, index }: Props) {
         context={`${(entry.quote ?? entry.note ?? '').trim()} — ${profile.name}`}
       />
     </article>
-  );
-}
-
-/**
- * 긴 글은 정해진 줄 수에서 접고 "더 보기"로 펼친다. 실제로 잘렸을 때만 버튼을 보인다.
- * 피드는 글마다 멈추는 흐름이라, 한 편이 화면을 몇 장씩 차지하지 않게 한다.
- */
-function Clamp({
-  lines,
-  className,
-  children,
-}: {
-  lines: number;
-  className: string;
-  children: React.ReactNode;
-}) {
-  const ref = useRef<HTMLParagraphElement>(null);
-  const [expanded, setExpanded] = useState(false);
-  const [clamped, setClamped] = useState(false);
-
-  useLayoutEffect(() => {
-    const el = ref.current;
-    if (!el || expanded) return;
-    const measure = () => setClamped(el.scrollHeight > el.clientHeight + 1);
-    measure();
-    if (typeof ResizeObserver === 'undefined') return;
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [expanded, children]);
-
-  return (
-    <>
-      <p
-        ref={ref}
-        data-skeleton
-        className={className}
-        style={
-          expanded
-            ? undefined
-            : {
-                display: '-webkit-box',
-                WebkitBoxOrient: 'vertical',
-                WebkitLineClamp: lines,
-                overflow: 'hidden',
-              }
-        }
-      >
-        {children}
-      </p>
-      {(clamped || expanded) && (
-        <button
-          type="button"
-          onClick={() => setExpanded((v) => !v)}
-          aria-expanded={expanded}
-          className={clsx('mt-1 min-h-11 font-sans text-[15px] font-semibold text-accent', FOCUS)}
-        >
-          {expanded ? '접기' : '더 보기'}
-        </button>
-      )}
-    </>
   );
 }

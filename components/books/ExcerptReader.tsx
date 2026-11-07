@@ -3,11 +3,15 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Share } from 'lucide-react';
+import clsx from 'clsx';
 import Button from '@/components/ui/Button';
+import LineClamp from '@/components/ui/LineClamp';
 import Pile from '@/components/ui/Pile';
 import { TopBarActions, useTopBar } from '@/components/shell/TopBarContext';
 import { formatReadingPeriod, todayKST } from '@/lib/dates';
 import { monthDay, spanSentence } from '@/components/entry/dates';
+import { quoteTier } from '@/components/entry/quoteTier';
+import type { QuoteTier } from '@/components/entry/quoteTier';
 import ExportExcerptsButton from './ExportExcerptsButton';
 
 type Quote = { id: string; date: string; quote: string };
@@ -140,16 +144,28 @@ export default function ExcerptReader({
 
 const LINK = 'min-h-10 font-sans text-[15px] font-semibold';
 
+/** 긴 문장은 작게 쓰고 줄을 더 줘서, 어느 단계든 글 높이가 모바일 360px·데스크톱 410px 안팎에서 접힌다 */
+const QUOTE_TEXT: Record<QuoteTier, { lines: number; className: string }> = {
+  lg: { lines: 10, className: 'text-[22px] font-semibold leading-[1.65] lg:text-[24px]' },
+  md: { lines: 12, className: 'text-[19px] font-semibold leading-[1.65] lg:text-[21px]' },
+  sm: { lines: 13, className: 'text-[17px] font-semibold leading-[1.65] lg:text-[19px]' },
+  xs: { lines: 14, className: 'text-[15px] font-normal leading-[1.7] lg:text-[17px]' },
+};
+
 /** 옮겨 적은 문장 한 장 — 아래에 옮겨 적은 날 */
 function ExcerptSlip({ quote, today }: { quote: Quote; today: string }) {
+  const text = QUOTE_TEXT[quoteTier(quote.quote)];
   return (
     <>
-      <p
-        data-skeleton
-        className="whitespace-pre-wrap break-words font-serif text-[22px] font-semibold leading-[1.65] tracking-[-0.01em] text-ink lg:text-[24px]"
+      <LineClamp
+        lines={text.lines}
+        className={clsx(
+          'shrink-0 whitespace-pre-wrap break-words font-serif tracking-[-0.01em] text-ink',
+          text.className
+        )}
       >
         {quote.quote}
-      </p>
+      </LineClamp>
       <div className="mt-auto flex justify-end pt-3.5 font-mono text-[13px] font-medium text-ink-faint">
         <time data-skeleton dateTime={quote.date}>
           {monthDay(quote.date, today)}
@@ -160,7 +176,7 @@ function ExcerptSlip({ quote, today }: { quote: Quote; today: string }) {
 }
 
 // 간지 한 장의 안쪽 여백(.vellum-slip 16/18px)을 시안 .xc(26/24/20px)로 바꾸고 4:5 비율을 준다.
-// 비율은 최소 높이로만 작동해 긴 문장은 장이 늘어난다.
+// 묶음 높이는 맨 위 장을 따르므로(sizeToTop) 짧은 문장의 장은 4:5 그대로, 긴 문장은 QUOTE_TEXT로 줄여 한 장이 지나치게 길지 않게 한다.
 const SLIP_BOX =
   '-mx-[18px] -mb-[18px] -mt-4 flex aspect-[4/5] flex-col px-6 pb-5 pt-[26px] lg:aspect-auto lg:min-h-[440px]';
 
@@ -213,6 +229,7 @@ function ExcerptPile({ quotes, today }: { quotes: Quote[]; today: string }) {
       label="옮겨 적은 문장 묶음. 맨 위 간지를 옆으로 밀면 다음 문장이 나와요"
       nextLabel="다음 장"
       slipInset={50}
+      sizeToTop
       className="lg:max-w-[500px]"
       renderHeader={({ position, next, canNext, nextLabel }) => (
         <div className="mb-2 mt-2 flex items-center justify-between gap-2">
@@ -233,9 +250,10 @@ function ExcerptPile({ quotes, today }: { quotes: Quote[]; today: string }) {
           </span>
         </div>
       )}
-      renderSlip={(q) => (
+      renderSlip={(q, { isTop }) => (
         <div className={SLIP_BOX}>
-          <ExcerptSlip quote={q} today={today} />
+          {/* 펼쳐 읽은 장을 넘기면 다시 접어 묶음이 원래 높이로 돌아오게 한다 */}
+          <ExcerptSlip key={isTop ? 'top' : 'under'} quote={q} today={today} />
         </div>
       )}
     />
