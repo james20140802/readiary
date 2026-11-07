@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Share } from 'lucide-react';
+import clsx from 'clsx';
+import { Lock, LockOpen, Share } from 'lucide-react';
 import { toast } from 'sonner';
 import Button from '@/components/ui/Button';
 import Sheet from '@/components/ui/Sheet';
@@ -126,31 +127,53 @@ export default function MonthlyExcerptOwnerView({
           ) : null
         }
         actions={
-          <>
+          // 두 줄: 위는 이 권으로 하는 일(내보내기·고치기), 아래는 권의 상태(공개 범위)와 지우기.
+          // 표제지의 책 목록과 같은 폭에 맞춰, 묶음·펼침·넓은 화면 어디서도 같은 모양으로 놓인다
+          <div className="w-full">
+            {/* 상단 바는 모바일에만 있다. 넓은 화면에서도 내보낼 수 있게 책별 발췌집처럼 버튼을 함께 둔다 */}
+            <div className="flex gap-2">
+              <Button size="sm" className="flex-1" onClick={() => setExportOpen(true)}>
+                이미지로 내보내기
+              </Button>
+              <Button asChild size="sm" variant="secondary" className="flex-1">
+                <Link href={`/excerpts/${month}/compose`}>고치기</Link>
+              </Button>
+            </div>
+            <div className="mt-1.5 flex items-center justify-between gap-3">
+              {/* 기록 쓰기의 공개 표시와 같은 모양 — 지금 상태를 보이고, 누르면 바꾼다 */}
+              <button
+                type="button"
+                aria-pressed={!isShared}
+                disabled={lock.busy}
+                onClick={() => (isShared ? void setShared(false) : setShareOpen(true))}
+                className={clsx(
+                  '-ml-0.5 inline-flex h-10 items-center gap-1.5 whitespace-nowrap pr-2 font-sans text-[14px]',
+                  'focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-60',
+                  isShared ? 'font-medium text-ink-sub' : 'font-semibold text-ink'
+                )}
+              >
+                {isShared ? (
+                  <LockOpen size={17} strokeWidth={1.75} aria-hidden />
+                ) : (
+                  <Lock size={17} strokeWidth={1.75} aria-hidden />
+                )}
+                {isShared ? '친구에게 보임' : '나만 보기'}
+              </button>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="-mr-4"
+                onClick={() => setDeleteOpen(true)}
+              >
+                지우기
+              </Button>
+            </div>
             {isShared && impact.publicCount === 0 && (
-              <p className="w-full text-balance break-keep font-sans text-body-sm text-ink-sub">
+              <p className="mt-1 text-balance break-keep font-sans text-body-sm text-ink-sub">
                 {NO_PUBLIC_QUOTES}
               </p>
             )}
-            {/* 상단 바는 모바일에만 있다. 넓은 화면에서도 내보낼 수 있게 책별 발췌집처럼 버튼을 함께 둔다 */}
-            <Button size="sm" onClick={() => setExportOpen(true)}>
-              이미지로 내보내기
-            </Button>
-            <Button asChild size="sm" variant="secondary">
-              <Link href={`/excerpts/${month}/compose`}>고치기</Link>
-            </Button>
-            <Button
-              size="sm"
-              variant="secondary"
-              disabled={lock.busy}
-              onClick={() => (isShared ? void setShared(false) : setShareOpen(true))}
-            >
-              {isShared ? '나만 보기' : '친구에게 보여 주기'}
-            </Button>
-            <Button size="sm" variant="ghost" onClick={() => setDeleteOpen(true)}>
-              지우기
-            </Button>
-          </>
+          </div>
         }
       />
 

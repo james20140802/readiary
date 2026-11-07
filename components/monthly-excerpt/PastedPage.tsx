@@ -41,7 +41,7 @@ export default function PastedPage({
   footer,
 }: PastedPageProps) {
   return (
-    <div className={`${styles.page} mx-auto w-full lg:max-w-[640px]`}>
+    <div className="mx-auto w-full lg:max-w-[640px]">
       {header}
       <div className="mt-2 flex justify-end">{toggle}</div>
       <ol aria-label="오려 붙인 문장" className="mt-1 flex flex-col gap-2">

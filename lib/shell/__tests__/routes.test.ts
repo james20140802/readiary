@@ -42,6 +42,34 @@ describe('ruledFor', () => {
     expect(ruledFor('bare')).toBe('plain');
     expect(ruledFor('landing')).toBeNull();
   });
+
+  it('다시 읽는 화면은 plain 틀에도 여백선을 깐다(엮기·기록 남기기 같은 도구 화면은 빼고)', () => {
+    for (const path of [
+      '/excerpts',
+      '/excerpts/2026-10',
+      '/social/u/mock-0001/excerpts',
+      '/social/u/mock-0001/excerpts/2026-10',
+      '/books/b1/excerpts',
+      '/social/u/mock-0001',
+      '/social/u/mock-0001/books',
+      '/social/u/mock-0001/books/b1',
+    ]) {
+      expect(frameFor(path)).toBe('plain');
+      expect(ruledFor(frameFor(path), path)).toBe('margin');
+    }
+    for (const path of [
+      '/excerpts/2026-10/compose',
+      '/books/b1/entry/new',
+      '/books/new',
+      '/search',
+      '/social',
+      '/social/friends',
+      '/social/notifications',
+      '/notifications/inbox',
+    ]) {
+      expect(ruledFor(frameFor(path), path)).toBe('plain');
+    }
+  });
 });
 
 describe('tabFor', () => {

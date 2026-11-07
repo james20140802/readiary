@@ -94,8 +94,11 @@ export default function TodayView(p: TodayViewProps) {
             <TodayDate todayKst={p.todayKst} weeklyCount={p.weeklyCount} desk={desk === true} />
             <PolicyNotice />
             {p.composer}
-            {/* 작성기 아래에 둬서 늦게 나타나도 쓰는 자리를 밀지 않는다 */}
-            {p.excerptPrompt && <MonthPrompt prompt={p.excerptPrompt} />}
+            {/* 넓은 화면: 작성기 아래에 둬서 늦게 나타나도 쓰는 자리를 밀지 않는다.
+                모바일: 회상 간지 자리(탭 바 위)에 대신 놓인다. 흐름에 두면 겹친 회상 간지에 가려진다 */}
+            {p.excerptPrompt && (
+              <MonthPrompt prompt={p.excerptPrompt} className={clsx(s.promptSlot, 'lg:my-5')} />
+            )}
             <div className="lg:hidden">
               <Suspense fallback={null}>
                 <Recall recall={p.recall} todayKst={p.todayKst} markSeen={markSeen} />

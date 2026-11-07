@@ -121,6 +121,35 @@
 .leafBody:has([data-expanded='true']) .recallMobile {
   display: none;
 }
+/* ── 지난달 엮기 안내: 모바일에서는 회상 간지 자리를 잠시 빌린다 ──
+   달이 바뀐 뒤 며칠만 뜨는 안내라, 그동안은 회상 간지 대신 이 간지가 쓰기 아래에 겹친다.
+   '다음에'로 닫거나 엮으면 안내가 사라지고 회상 간지가 돌아온다. */
+@media (max-width: 1023px) {
+  .promptSlot {
+    position: absolute;
+    left: -6px;
+    right: -14px;
+    bottom: calc(var(--app-tabbar-h) + 28px + var(--app-safe-bottom));
+    padding: 20px 24px 16px;
+  }
+  .leafBody:has([data-month-prompt]) .recallMobile,
+  .leafBody:has([data-expanded='true']) .promptSlot {
+    display: none;
+  }
+}
+@media (max-width: 1023px) and (max-height: 780px) {
+  .promptSlot {
+    bottom: calc(var(--app-tabbar-h) + 16px + var(--app-safe-bottom));
+  }
+}
+/* 아주 낮은 화면은 회상 간지를 숨기므로(아래), 안내는 덮일 것 없이 쓰기 아래 흐름에 놓인다 */
+@media (max-width: 1023px) and (max-height: 620px) {
+  .promptSlot {
+    position: static;
+    margin-block: 20px;
+  }
+}
+
 /* 낮은 화면: 간지를 줄여 쓰기 줄과 겹치지 않게 */
 .recallQuote {
   display: -webkit-box;
