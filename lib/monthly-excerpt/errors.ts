@@ -1,11 +1,14 @@
 import { NextResponse } from 'next/server';
+import { NO_PUBLIC_QUOTES } from './model';
 
 export const excerptHeaders = { 'Cache-Control': 'private, no-store, max-age=0' };
+
+export const EXCERPT_NOT_FOUND = '찾을 수 없는 발췌집이에요.';
 
 /** RPC가 던지는 예외 이름 → 응답 문구. 여기 없는 오류는 내부 사정이라 문구를 돌려주지 않는다. */
 const MESSAGES: Record<string, string> = {
   stale_entries: '고르는 사이 바뀐 기록이 있어요. 다시 불러올게요.',
-  no_public_quotes: '친구에게 보일 문장이 없어요. 나만 보기로 엮어 주세요.',
+  no_public_quotes: NO_PUBLIC_QUOTES,
   month_not_finished: '아직 끝나지 않은 달이에요.',
   no_entries: '문장을 하나 이상 골라 주세요.',
 };
@@ -37,7 +40,7 @@ export function rpcFailure(error: RpcError, fallback: string) {
   if (name === 'invalid_month') return badRequest('달을 확인해 주세요.');
   if (name === 'not_found') {
     return NextResponse.json(
-      { error: '찾을 수 없는 발췌집이에요.' },
+      { error: EXCERPT_NOT_FOUND },
       { status: 404, headers: excerptHeaders }
     );
   }

@@ -20,9 +20,12 @@ export interface MonthlyExcerptReaderProps {
   preview?: boolean;
   /** 표제지 아래 동작 자리 */
   actions?: ReactNode;
+  /** 책 아래 좋아요·댓글 자리. 미리보기에는 없다 */
+  reactions?: ReactNode;
 }
 
 const LINK = 'min-h-10 font-sans text-[15px] font-semibold';
+const GRID = 'lg:grid lg:grid-cols-[minmax(0,.8fr)_minmax(0,1.2fr)] lg:items-start lg:gap-[72px]';
 
 /**
  * 달의 발췌집을 읽는 화면. 평소에는 간지 묶음을 넘겨 읽고(시안 inside-look B),
@@ -36,6 +39,7 @@ export default function MonthlyExcerptReader({
   ownerName,
   preview = false,
   actions,
+  reactions,
 }: MonthlyExcerptReaderProps) {
   const [unfolded, setUnfolded] = useState(false);
   // 처음 그릴 때는 움직이지 않고, 펼쳤다가 다시 묶을 때만 부드럽게 바꾼다
@@ -52,6 +56,7 @@ export default function MonthlyExcerptReader({
   const label = monthLabel(month);
   const showPrivate = viewer === 'owner';
   const slot = preview ? null : actions;
+  const reactionSlot = preview ? null : reactions;
 
   const toggleButton = (ref?: RefObject<HTMLButtonElement | null>) => (
     <button
@@ -75,6 +80,7 @@ export default function MonthlyExcerptReader({
         <TitlePage label={label} />
         {slot}
         <p className="mt-8 text-center font-serif text-note text-ink-sub">담긴 문장이 없어요.</p>
+        {reactionSlot}
       </>
     );
   }
@@ -82,27 +88,22 @@ export default function MonthlyExcerptReader({
   const sentence = titlePageSentence(items, ownerName);
   const colophon = <Colophon label={label} count={items.length} />;
 
-  if (unfolded) {
-    return (
-      <PastedPage
-        items={items}
-        showPrivate={showPrivate}
-        header={<TitlePage label={label} sentence={sentence} actions={slot} align="left" />}
-        toggle={toggleButton(toggleRef)}
-        footer={
-          <>
-            <div className="mt-3 flex justify-end">{toggleButton()}</div>
-            {colophon}
-          </>
-        }
-      />
-    );
-  }
-
-  return (
-    <div
-      className={`lg:grid lg:grid-cols-[minmax(0,.8fr)_minmax(0,1.2fr)] lg:items-start lg:gap-[72px] ${rebound ? styles.rebound : ''}`}
-    >
+  // 반응은 펼침과 묶음 바깥의 같은 자리에 둔다. 다시 그려지면 방금 누른 좋아요와 열린 시트를 잃는다.
+  const body = unfolded ? (
+    <PastedPage
+      items={items}
+      showPrivate={showPrivate}
+      header={<TitlePage label={label} sentence={sentence} actions={slot} align="left" />}
+      toggle={toggleButton(toggleRef)}
+      footer={
+        <>
+          <div className="mt-3 flex justify-end">{toggleButton()}</div>
+          {colophon}
+        </>
+      }
+    />
+  ) : (
+    <div className={`${GRID} ${rebound ? styles.rebound : ''}`}>
       <div className="lg:sticky lg:top-11">
         <TitlePage
           label={label}
@@ -146,6 +147,22 @@ export default function MonthlyExcerptReader({
         {colophon}
       </div>
     </div>
+  );
+
+  return (
+    <>
+      {body}
+      {reactionSlot && (
+        <div className={unfolded ? '' : GRID}>
+          <div
+            // 판권과 같은 왼쪽 선에 맞춘다. 펼친 페이지에서는 여백선 안쪽이다(.page의 왼쪽 여백)
+            className={unfolded ? 'mx-auto w-full pl-9 lg:max-w-[640px] lg:pl-0' : 'lg:col-start-2'}
+          >
+            {reactionSlot}
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 

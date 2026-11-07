@@ -70,9 +70,33 @@ describe('fetchNotifications', () => {
         createdAt: '2026-01-01T00:00:00Z',
         readAt: null,
         entryId: 'e1',
+        monthlyExcerptMonth: null,
         actorNickname: '상추',
         actorProfileImage: null,
       },
     ]);
+  });
+
+  it('달의 발췌집 알림은 권의 달을 YYYY-MM으로 준다. 권이 없으면 null이다', async () => {
+    authGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    const row = {
+      type: 'excerpt_like',
+      created_at: '2026-04-02T00:00:00Z',
+      read_at: null,
+      entry_id: null,
+      actor: { nickname: '민지', profile_image: null },
+    };
+    runQuery.mockResolvedValue({
+      data: [
+        { ...row, id: 'n1', monthly_excerpt: { month: '2026-03-01' } },
+        { ...row, id: 'n2', monthly_excerpt: [{ month: '2026-02-01' }] },
+        { ...row, id: 'n3', monthly_excerpt: null },
+      ],
+      error: null,
+    });
+
+    const result = await fetchNotifications();
+
+    expect(result.items.map((n) => n.monthlyExcerptMonth)).toEqual(['2026-03', '2026-02', null]);
   });
 });

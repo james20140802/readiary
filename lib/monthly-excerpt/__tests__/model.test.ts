@@ -43,6 +43,18 @@ describe('titlePageSentence', () => {
       '민지가 네 권의 책에서 문장 열두 개를 골랐습니다.'
     );
   });
+  it.each([
+    ['민지', '민지가'],
+    ['민준', '민준이'],
+    ['하늘', '하늘이'],
+    ['Ann', 'Ann가'],
+    ['책벌레7', '책벌레7가'],
+    ['🌿', '🌿가'],
+  ])('주인 이름의 받침에 맞춰 조사를 고른다: %s', (name, subject) => {
+    expect(titlePageSentence(oneBookOne, name)).toBe(
+      `${subject} 한 권의 책에서 문장 한 개를 골랐습니다.`
+    );
+  });
   it('100부터는 숫자 그대로', () => {
     expect(titlePageSentence(many('1', '가', 120))).toBe('한 권의 책에서 문장 120개를 골랐습니다.');
   });

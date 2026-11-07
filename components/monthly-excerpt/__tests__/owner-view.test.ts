@@ -12,7 +12,6 @@ const replace = vi.fn();
 const refresh = vi.fn();
 const apiFetch = vi.fn();
 const toastError = vi.fn();
-const flags = vi.hoisted(() => ({ MONTHLY_EXCERPT_SHARING: false }));
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ replace, refresh }) }));
 vi.mock('next/link', () => ({
@@ -24,7 +23,6 @@ vi.mock('@/lib/api/fetch', () => ({
   apiFetch: (...a: unknown[]) => apiFetch(...a),
   SessionExpiredError: class extends Error {},
 }));
-vi.mock('@/lib/monthly-excerpt/flags', () => flags);
 
 const { default: OwnerView } = await import('../MonthlyExcerptOwnerView');
 
@@ -40,7 +38,6 @@ const show = (e = excerpt()) => render(h(TopBarProvider, null, h(OwnerView, { ex
 
 beforeEach(() => {
   vi.clearAllMocks();
-  flags.MONTHLY_EXCERPT_SHARING = false;
 });
 afterEach(cleanup);
 
@@ -50,12 +47,6 @@ describe('MonthlyExcerptOwnerView', () => {
     expect(screen.getByRole('link', { name: '고치기' }).getAttribute('href')).toBe(
       '/excerpts/2026-03/compose'
     );
-  });
-
-  it('스위치가 꺼져 있으면 공개 전환이 없다', () => {
-    show();
-    expect(screen.queryByRole('button', { name: '친구에게 보여 주기' })).toBeNull();
-    expect(screen.queryByRole('button', { name: '나만 보기' })).toBeNull();
   });
 
   it('지우기: 확인 문구 뒤 DELETE, 성공하면 모아 보기로', async () => {
@@ -83,8 +74,7 @@ describe('MonthlyExcerptOwnerView', () => {
     expect(replace).not.toHaveBeenCalled();
   });
 
-  it('스위치를 켜면 공개 전 안내를 보이고 PATCH한다', async () => {
-    flags.MONTHLY_EXCERPT_SHARING = true;
+  it('공개 전 안내를 보이고 PATCH한다', async () => {
     apiFetch.mockResolvedValue(new Response(JSON.stringify({ ok: true })));
     show();
     fireEvent.click(screen.getByRole('button', { name: '친구에게 보여 주기' }));
@@ -102,7 +92,6 @@ describe('MonthlyExcerptOwnerView', () => {
   });
 
   it('공개 중이면 나만 보기는 안내 없이 바로 바꾼다', async () => {
-    flags.MONTHLY_EXCERPT_SHARING = true;
     apiFetch.mockResolvedValue(new Response(JSON.stringify({ ok: true })));
     show(excerpt({ isShared: true }));
     fireEvent.click(screen.getByRole('button', { name: '나만 보기' }));
@@ -113,7 +102,6 @@ describe('MonthlyExcerptOwnerView', () => {
   });
 
   it('보일 문장이 없으면 공개 버튼이 막힌다', () => {
-    flags.MONTHLY_EXCERPT_SHARING = true;
     show(excerpt({ items: [item(1, { isPrivate: true })] }));
     fireEvent.click(screen.getByRole('button', { name: '친구에게 보여 주기' }));
     expect(screen.getByText('친구에게 보일 문장이 없어요.')).toBeTruthy();
@@ -121,5 +109,18 @@ describe('MonthlyExcerptOwnerView', () => {
       .getByRole('dialog')
       .querySelector('button.flex-1:last-child') as HTMLButtonElement;
     expect(confirm.disabled).toBe(true);
+  });
+
+  it('공유 중인데 공개 문장이 없으면 지금은 나만 볼 수 있다고 알린다', () => {
+    const notice = '친구에게 보일 문장이 없어요.';
+    show(excerpt({ isShared: true, items: [item(1, { isPrivate: true })] }));
+    expect(screen.getByText(notice)).toBeTruthy();
+    cleanup();
+    // 공개 문장이 있거나, 공유하지 않은 권에는 뜨지 않는다
+    show(excerpt({ isShared: true }));
+    expect(screen.queryByText(notice)).toBeNull();
+    cleanup();
+    show(excerpt({ isShared: false, items: [item(1, { isPrivate: true })] }));
+    expect(screen.queryByText(notice)).toBeNull();
   });
 });

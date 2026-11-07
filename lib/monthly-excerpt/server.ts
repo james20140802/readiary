@@ -2,10 +2,13 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
 import type {
   Candidate,
   ExcerptMonthRow,
+  ExcerptOwner,
   ExcerptPrompt,
+  FriendMonthlyExcerpt,
   MonthBook,
   MonthKey,
   MonthlyExcerpt,
+  MonthlyExcerptReactionCounts,
   YearRow,
 } from './types';
 
@@ -23,6 +26,22 @@ export async function fetchMyMonthlyExcerpt(month: MonthKey): Promise<MonthlyExc
   const { data, error } = await supabase.rpc('get_my_monthly_excerpt', { p_month: month });
   if (error) fail('Monthly excerpt unavailable', error);
   return (data as unknown as MonthlyExcerpt | null) ?? null;
+}
+
+/**
+ * 한 권의 첫 좋아요·댓글 수. 볼 수 없으면 null이다.
+ * 곁다리라 실패해도 읽기를 막지 않도록 null로 삼킨다. 화면은 null이면 수를 그리지 않고 알린다.
+ */
+export async function fetchMonthlyExcerptReactions(
+  excerptId: string
+): Promise<MonthlyExcerptReactionCounts | null> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.rpc('get_monthly_excerpt_reactions', { p_id: excerptId });
+  if (error) {
+    console.error('Monthly excerpt reactions unavailable:', error.code);
+    return null;
+  }
+  return (data as unknown as MonthlyExcerptReactionCounts | null) ?? null;
 }
 
 /** 그달에 문장을 남긴 책(책 칩). 불러오지 못하면 throw. */
@@ -111,4 +130,95 @@ export async function fetchMyExcerptMonths(): Promise<Set<MonthKey>> {
   if (error) fail('Monthly excerpt months unavailable', error);
   // month는 date('YYYY-MM-01')라 앞 7자가 달 키다.
   return new Set((data ?? []).map((row) => row.month.slice(0, 7)));
+}
+
+/** 서재의 '달마다 엮은 발췌집'에 놓는 수 */
+const RECENT_EXCERPTS = 5;
+
+/** 주소의 닉네임과 태그로 찾은 주인. 없으면 null, 불러오지 못하면 throw. */
+export async function fetchExcerptOwner(
+  nickname: string,
+  tag: string
+): Promise<ExcerptOwner | null> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, name')
+    .eq('nickname', nickname)
+    .eq('tag', tag)
+    .maybeSingle();
+  if (error) fail('Monthly excerpt owner unavailable', error);
+  return data ? { id: data.id, name: data.name ?? '' } : null;
+}
+
+/**
+ * 친구가 읽는 한 권. 친구가 아니거나 볼 수 없으면 RPC가 null을 준다(이유를 구별하지 않는다).
+ * 불러오지 못하면 throw.
+ */
+export async function fetchFriendMonthlyExcerpt(
+  ownerId: string,
+  month: MonthKey
+): Promise<FriendMonthlyExcerpt | null> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.rpc('get_friend_monthly_excerpt', {
+    p_owner: ownerId,
+    p_month: month,
+  });
+  if (error) fail('Friend monthly excerpt unavailable', error);
+  return (data as unknown as FriendMonthlyExcerpt | null) ?? null;
+}
+
+/** 친구의 해 목록(최신 해 먼저). 친구에게는 엮지 않은 달이 없다. 불러오지 못하면 throw. */
+export async function fetchFriendExcerptYears(ownerId: string): Promise<YearRow[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.rpc('get_friend_monthly_excerpt_years', {
+    p_owner: ownerId,
+  });
+  if (error) fail('Friend monthly excerpt years unavailable', error);
+  return (data ?? []).map((row) => ({
+    year: row.year,
+    excerptCount: row.excerpt_count,
+    hasUnmade: false,
+  }));
+}
+
+/** 친구의 한 해(최신 달 먼저). 수와 표지는 친구에게 보이는 문장 기준이다. 불러오지 못하면 throw. */
+export async function fetchFriendExcerptYear(
+  ownerId: string,
+  year: number
+): Promise<ExcerptMonthRow[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.rpc('get_friend_monthly_excerpt_year', {
+    p_owner: ownerId,
+    p_year: year,
+  });
+  if (error) fail('Friend monthly excerpt year unavailable', error);
+  const rows = (data ?? []) as unknown as Omit<ExcerptMonthRow, 'isShared'>[];
+  // 친구에게 내려오는 달은 모두 공개 중이다. 응답에는 없지만 모아 보기와 같은 모양으로 맞춘다.
+  return rows.map((row) => ({ ...row, isShared: true }));
+}
+
+/** 친구의 최근 발췌집. 해를 최신부터 읽다가 수가 차면 멈춘다. 불러오지 못하면 throw. */
+export async function fetchFriendRecentExcerpts(
+  ownerId: string,
+  limit = RECENT_EXCERPTS
+): Promise<ExcerptMonthRow[]> {
+  const rows: ExcerptMonthRow[] = [];
+  for (const { year } of await fetchFriendExcerptYears(ownerId)) {
+    rows.push(...(await fetchFriendExcerptYear(ownerId, year)));
+    if (rows.length >= limit) break;
+  }
+  return rows.slice(0, limit);
+}
+
+/** 자기 소셜 주소의 서재에 놓을 내 최근 발췌집. 엮지 않은 달은 뺀다. 불러오지 못하면 throw. */
+export async function fetchMyRecentExcerpts(limit = RECENT_EXCERPTS): Promise<ExcerptMonthRow[]> {
+  const rows: ExcerptMonthRow[] = [];
+  for (const { year, excerptCount } of await fetchMyExcerptYears()) {
+    if (excerptCount === 0) continue;
+    const months = await fetchMyExcerptYear(year);
+    rows.push(...months.filter((m) => m.excerptId !== null));
+    if (rows.length >= limit) break;
+  }
+  return rows.slice(0, limit);
 }

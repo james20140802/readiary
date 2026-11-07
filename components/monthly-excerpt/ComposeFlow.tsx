@@ -10,7 +10,6 @@ import { useActionLock } from '@/hooks/useActionLock';
 import { apiFetch, SessionExpiredError } from '@/lib/api/fetch';
 import { reconcilePicks, togglePick } from '@/lib/monthly-excerpt/compose';
 import type { ComposePick } from '@/lib/monthly-excerpt/compose';
-import { MONTHLY_EXCERPT_SHARING } from '@/lib/monthly-excerpt/flags';
 import { shareImpact } from '@/lib/monthly-excerpt/model';
 import { shortMonthLabel } from '@/lib/monthly-excerpt/month';
 import type { MonthBook, MonthKey } from '@/lib/monthly-excerpt/types';
@@ -31,6 +30,8 @@ interface ComposeFlowProps {
   firstPage: CandidatePage | null;
   /** 이미 엮은 발췌집이 있으면 그 문장들 (고치기) */
   initialPicks: ComposePick[];
+  /** 이미 엮은 권의 지금 공개 범위. 처음 엮을 때는 없다 */
+  initialIsShared?: boolean;
 }
 
 const STEP_NO: Record<Step, string> = {
@@ -55,7 +56,13 @@ interface SaveFailure {
  * 단계를 오가도 고른 문장·순서·후보 목록 상태를 잃지 않도록 상태는 여기서 쥔다.
  * 단계 전환에 transform을 쓰지 않는다 — 미리보기의 펼친 페이지가 position:fixed 여백선을 쓰기 때문이다.
  */
-export default function ComposeFlow({ month, books, firstPage, initialPicks }: ComposeFlowProps) {
+export default function ComposeFlow({
+  month,
+  books,
+  firstPage,
+  initialPicks,
+  initialIsShared,
+}: ComposeFlowProps) {
   const label = shortMonthLabel(month);
   const editing = initialPicks.length > 0;
   useTopBar({
@@ -69,7 +76,10 @@ export default function ComposeFlow({ month, books, firstPage, initialPicks }: C
   const [picks, setPicks] = useState<ComposePick[]>(initialPicks);
   // 고치기는 이미 고른 문장을 먼저 보여 준다
   const [pickedView, setPickedView] = useState(initialPicks.length > 0);
-  const [share, setShare] = useState<ShareChoice | null>(null);
+  // 고치기는 지금의 공개 범위에서 시작한다. 처음 엮을 때는 기본값 없이 직접 고르게 한다
+  const [share, setShare] = useState<ShareChoice | null>(
+    initialIsShared === undefined ? null : initialIsShared ? 'friends' : 'private'
+  );
   const [saved, setSaved] = useState(false);
   const list = useCandidates(month, firstPage);
   const chips = useMonthBooks(month, books);
@@ -94,7 +104,6 @@ export default function ComposeFlow({ month, books, firstPage, initialPicks }: C
   }, [step]);
 
   const total = chips.books?.reduce((sum, b) => sum + b.quoteCount, 0) ?? null;
-  const needsShare = MONTHLY_EXCERPT_SHARING;
   // 공개 문장이 없어진 뒤에는 '친구에게 보여 주기'를 골랐던 것도 무효다
   const effectiveShare = share === 'friends' && shareImpact(picks).publicCount === 0 ? null : share;
 
@@ -115,8 +124,7 @@ export default function ComposeFlow({ month, books, firstPage, initialPicks }: C
         body: JSON.stringify({
           month,
           entryIds: picks.map((p) => p.entryId),
-          // 공개 기능이 닫혀 있는 동안은 늘 나만 보기로 엮는다
-          isShared: needsShare && effectiveShare === 'friends',
+          isShared: effectiveShare === 'friends',
         }),
       });
       if (res.ok) {
@@ -158,7 +166,7 @@ export default function ComposeFlow({ month, books, firstPage, initialPicks }: C
   }[step];
   const caption = {
     pick: '다시 읽고 싶은 문장만 골라 주세요',
-    order: MONTHLY_EXCERPT_SHARING ? '첫 문장이 친구 피드의 표지가 돼요' : '첫 문장이 표지가 돼요',
+    order: '친구에게 보이는 첫 문장이 피드의 표지가 돼요',
     preview: '묶음을 넘겨 보고, 한 페이지로도 펼쳐 보세요',
   }[step];
 
@@ -242,13 +250,13 @@ export default function ComposeFlow({ month, books, firstPage, initialPicks }: C
                 순서 정하기
               </button>
               <span className="flex min-w-0 items-center gap-2">
-                {needsShare && effectiveShare === null && (
+                {effectiveShare === null && (
                   <span className="min-w-0 text-right font-sans text-fine leading-tight text-ink-sub">
                     공개 범위를 골라 주세요
                   </span>
                 )}
                 <Button
-                  disabled={lock.busy || (needsShare && effectiveShare === null)}
+                  disabled={lock.busy || effectiveShare === null}
                   loading={lock.busy}
                   onClick={() => void save()}
                 >

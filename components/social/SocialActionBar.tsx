@@ -2,10 +2,14 @@
 
 import { useState } from 'react';
 import { Heart, MessageCircle } from 'lucide-react';
+import type { CommentTarget } from '@/lib/comments/target';
 import { LikeState, useLike } from './useLike';
 
-interface SocialActionBarProps {
-  entryId: string;
+// 기록은 entryId로, 달의 발췌집은 target으로 넘긴다
+type SocialActionBarProps = (
+  | { entryId: string; target?: never }
+  | { target: CommentTarget; entryId?: never }
+) & {
   initialLikeCount: number;
   initialLiked: boolean;
   commentCount?: number;
@@ -17,7 +21,7 @@ interface SocialActionBarProps {
   border?: boolean;
   /** 같은 기록의 좋아요를 다른 곳과 함께 쓸 때 부모의 상태를 받는다 */
   like?: LikeState;
-}
+};
 
 // 시안 .acts: 높이 44 알약, 15px 글자, 20px 아이콘, 보조 잉크색
 const ACT =
@@ -32,6 +36,7 @@ export function formatCount(count: number) {
 
 export default function SocialActionBar({
   entryId,
+  target,
   initialLikeCount,
   initialLiked,
   commentCount = 0,
@@ -41,7 +46,7 @@ export default function SocialActionBar({
   border = true,
   like,
 }: SocialActionBarProps) {
-  const internalLike = useLike(entryId, initialLiked, initialLikeCount);
+  const internalLike = useLike(target ?? entryId, initialLiked, initialLikeCount);
   const { isLiked, likeCount, isLoading, toggle } = like ?? internalLike;
 
   // 이 버튼으로 방금 좋아요를 켰는지 — 그때만 하트가 부푼다(globals.css .heart-pop)

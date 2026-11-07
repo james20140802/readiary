@@ -4,6 +4,7 @@ import { GET, POST } from '../route';
 import { DELETE, PATCH } from '../[id]/route';
 import { GET as GET_CANDIDATES } from '../candidates/route';
 import { GET as GET_BOOKS } from '../books/route';
+import { GET as GET_FRIEND } from '../friend/route';
 
 vi.mock('@/lib/supabase/server', () => ({ createSupabaseServerClient: vi.fn() }));
 vi.mock('@/lib/supabase/getServerUser', () => ({ getServerUser: () => getUser() }));
@@ -109,7 +110,7 @@ describe('POST /api/monthly-excerpts', () => {
   });
 
   it.each([
-    ['no_public_quotes', '친구에게 보일 문장이 없어요. 나만 보기로 엮어 주세요.'],
+    ['no_public_quotes', '친구에게 보일 문장이 없어요.'],
     ['month_not_finished', '아직 끝나지 않은 달이에요.'],
     ['no_entries', '문장을 하나 이상 골라 주세요.'],
   ])('maps %s to 422', async (code, message) => {
@@ -193,9 +194,7 @@ describe('PATCH /api/monthly-excerpts/[id]', () => {
     rpc.mockResolvedValue({ data: null, error: { message: 'no_public_quotes', code: 'P0001' } });
     const response = await PATCH(patch({ isShared: true }), ctx(id1));
     expect(response.status).toBe(422);
-    expect((await response.json()).error).toBe(
-      '친구에게 보일 문장이 없어요. 나만 보기로 엮어 주세요.'
-    );
+    expect((await response.json()).error).toBe('친구에게 보일 문장이 없어요.');
   });
 
   it('hides unknown errors', async () => {
@@ -332,5 +331,54 @@ describe('GET /api/monthly-excerpts/books', () => {
     const response = await get('month=2026-10');
     expect(response.status).toBe(500);
     expect(JSON.stringify(await response.json())).not.toContain('boom');
+  });
+});
+
+describe('GET /api/monthly-excerpts/friend', () => {
+  const get = (qs: string) => GET_FRIEND(new Request(`http://localhost/x?${qs}`));
+
+  it('requires a session', async () => {
+    getUser.mockResolvedValue({ data: { user: null }, error: null });
+    expect((await get(`owner=${id1}&year=2025`)).status).toBe(401);
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it.each(['', `owner=${id1}`, 'year=2025', `owner=nope&year=2025`, `owner=${id1}&year=1899`])(
+    'rejects %s',
+    async (qs) => {
+      expect((await get(qs)).status).toBe(400);
+      expect(rpc).not.toHaveBeenCalled();
+    }
+  );
+
+  it('asks the friend RPC, adds no viewer, and never lets a cache keep the answer', async () => {
+    rpc.mockResolvedValue({
+      data: [{ month: '2025-12', quoteCount: 2, excerptId: 'x', coverQuote: '표지' }],
+      error: null,
+    });
+    const response = await get(`owner=${id1}&year=2025`);
+    expect(response.status).toBe(200);
+    expect(rpc).toHaveBeenCalledWith('get_friend_monthly_excerpt_year', {
+      p_owner: id1,
+      p_year: 2025,
+    });
+    expect(response.headers.get('Cache-Control')).toContain('no-store');
+    expect((await response.json()).months).toEqual([
+      { month: '2025-12', quoteCount: 2, excerptId: 'x', coverQuote: '표지', isShared: true },
+    ]);
+  });
+
+  it('answers the same empty list for a non-friend (the RPC gives [])', async () => {
+    rpc.mockResolvedValue({ data: [], error: null });
+    const response = await get(`owner=${id1}&year=2025`);
+    expect(response.status).toBe(200);
+    expect((await response.json()).months).toEqual([]);
+  });
+
+  it('does not expose internal errors', async () => {
+    rpc.mockResolvedValue({ data: null, error: { code: 'XX000', message: 'secret' } });
+    const response = await get(`owner=${id1}&year=2025`);
+    expect(response.status).toBe(500);
+    expect(JSON.stringify(await response.json())).not.toContain('secret');
   });
 });

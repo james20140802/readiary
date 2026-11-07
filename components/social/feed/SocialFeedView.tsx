@@ -5,19 +5,20 @@ import Link from 'next/link';
 import { UserPlus } from 'lucide-react';
 import { useInView } from 'react-intersection-observer';
 import clsx from 'clsx';
-import type { DetailSocialFeedEntry } from '@/types/entry';
+import type { SocialFeedEntryItem, SocialFeedItem } from '@/types/entry';
 import type { Friend } from '@/types/friends';
 import Button from '@/components/ui/Button';
 import { LargeTitle } from '@/components/shell/LargeTitle';
 import { TopBarActions, useTopBar } from '@/components/shell/TopBarContext';
 import { friendsReadingFrom } from '@/components/social/feedFormat';
+import MonthlyExcerptFeedCard from '@/components/monthly-excerpt/MonthlyExcerptFeedCard';
 import FeedPost from './FeedPost';
 import { FriendsReadingList, FriendsReadingStrip } from './FriendsReading';
 import FriendRequestNotice from './FriendRequestNotice';
 import styles from './feed.module.css';
 
 export interface SocialFeedViewProps {
-  initialFeed: DetailSocialFeedEntry[];
+  initialFeed: SocialFeedItem[];
   userId: string;
   /** 서버가 정한 기준 시각(ISO) — 날 표시가 서버·클라이언트에서 같게 */
   referenceTime: string;
@@ -25,13 +26,17 @@ export interface SocialFeedViewProps {
   friendCount: number;
   pageSize: number;
   /** 다음 쪽을 불러온다(page는 0부터). 없으면 첫 쪽만 보인다 */
-  loadPage?: (page: number, limit: number) => Promise<DetailSocialFeedEntry[]>;
+  loadPage?: (page: number, limit: number) => Promise<SocialFeedItem[]>;
 }
 
 const FRIENDS_HREF = '/social/friends';
 
+/** 기록과 발췌집은 id 공간이 달라 종류까지 묶어 구분한다 */
+const itemKey = (item: SocialFeedItem) =>
+  item.kind === 'entry' ? `entry:${item.entry.id}` : `monthly_excerpt:${item.id}`;
+
 /**
- * 친구의 문장 — 친구가 친구에게 보이게 남긴 문장이 이어지는 피드.
+ * 친구의 문장 — 친구가 친구에게 보이게 남긴 문장과, 처음 공개한 달의 발췌집이 이어지는 피드.
  * 모바일은 한 화면씩 끊지 않고 글마다 가볍게 멈추고(스펙 2.5), 데스크톱은 글 흐름 옆에 친구들이 읽는 책을 둔다.
  */
 export default function SocialFeedView({
@@ -71,8 +76,8 @@ export default function SocialFeedView({
       }
       pageRef.current += 1;
       setFeed((prev) => {
-        const ids = new Set(prev.map((i) => i.entry.id));
-        return [...prev, ...next.filter((i) => !ids.has(i.entry.id))];
+        const keys = new Set(prev.map(itemKey));
+        return [...prev, ...next.filter((i) => !keys.has(itemKey(i)))];
       });
     } catch {
       errorRef.current = true;
@@ -106,7 +111,15 @@ export default function SocialFeedView({
     return () => cancelAnimationFrame(frame);
   }, [feed, loading, hasMore, loadError, loadMore]);
 
-  const reading = useMemo(() => friendsReadingFrom(feed, now), [feed, now]);
+  // 친구들이 읽는 책은 책이 있는 기록에서만 고른다
+  const reading = useMemo(
+    () =>
+      friendsReadingFrom(
+        feed.filter((item): item is SocialFeedEntryItem => item.kind === 'entry'),
+        now
+      ),
+    [feed, now]
+  );
 
   return (
     <div className={clsx(styles.feed, 'relative')}>
@@ -156,9 +169,19 @@ export default function SocialFeedView({
               <EmptyFeed friendCount={friendCount} />
             ) : (
               <div className="mt-6 flex flex-col gap-9 lg:mt-0 lg:gap-[34px]">
-                {feed.map((item, i) => (
-                  <FeedPost key={item.entry.id} item={item} userId={userId} now={now} index={i} />
-                ))}
+                {feed.map((item, i) =>
+                  item.kind === 'entry' ? (
+                    <FeedPost key={itemKey(item)} item={item} userId={userId} now={now} index={i} />
+                  ) : (
+                    <MonthlyExcerptFeedCard
+                      key={itemKey(item)}
+                      item={item}
+                      userId={userId}
+                      now={now}
+                      className={styles.item}
+                    />
+                  )
+                )}
               </div>
             )}
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { SkeletonScope, filler } from '@/components/ui/Skeleton';
-import type { DetailSocialFeedEntry } from '@/types/entry';
+import type { SocialFeedEntryItem } from '@/types/entry';
 import type { Friend } from '@/types/friends';
 import type { Profile } from '@/types/profile';
 import SocialFeedView from './SocialFeedView';
@@ -30,8 +30,9 @@ function post(
   id: string,
   profile: Profile,
   e: { quote?: string; note?: string; page?: number | null; hours: number }
-): DetailSocialFeedEntry {
+): SocialFeedEntryItem {
   return {
+    kind: 'entry',
     profile,
     entry: {
       id,
@@ -57,7 +58,7 @@ function post(
   };
 }
 
-const FEED: DetailSocialFeedEntry[] = [
+const FEED: SocialFeedEntryItem[] = [
   post('skeleton-e0', P0, { quote: filler(30), note: filler(40), page: 42, hours: 2 }),
   post('skeleton-e1', P1, { quote: filler(22), page: 118, hours: 20 }),
   post('skeleton-e2', P2, { note: filler(50), hours: 50 }),

@@ -1,6 +1,7 @@
 'use client';
 
 import { apiFetch } from '@/lib/api/fetch';
+import { commentsListUrl, commentsUrl, type CommentTarget } from '@/lib/comments/target';
 import { useState, useEffect, useRef } from 'react';
 import { useActionLock } from '@/hooks/useActionLock';
 import { AnimatePresence } from 'framer-motion';
@@ -14,7 +15,7 @@ import Button from '@/components/ui/Button';
 import Sheet from '@/components/ui/Sheet';
 
 interface Props {
-  entryId: string;
+  target: CommentTarget;
   currentUserId?: string;
   isOpen: boolean;
   onClose: () => void;
@@ -24,13 +25,14 @@ interface Props {
 }
 
 export default function CommentBottomSheet({
-  entryId,
+  target,
   currentUserId,
   isOpen,
   onClose,
   onCountChange,
   context,
 }: Props) {
+  const listUrl = commentsListUrl(target);
   const [loadAttempt, setLoadAttempt] = useState(0);
   const mutationVersion = useRef(0);
   const [hasLoaded, setHasLoaded] = useState(false);
@@ -57,7 +59,7 @@ export default function CommentBottomSheet({
     async function load() {
       const version = mutationVersion.current;
       try {
-        const res = await apiFetch(`/api/comments?entry_id=${entryId}`);
+        const res = await apiFetch(listUrl);
         if (!res.ok) throw new Error('댓글을 불러오지 못했어요.');
         const data = await res.json();
         if (version !== mutationVersion.current) return;
@@ -71,7 +73,7 @@ export default function CommentBottomSheet({
       }
     }
     load();
-  }, [entryId, isOpen, loadAttempt]);
+  }, [listUrl, isOpen, loadAttempt]);
 
   // 2. 댓글 작성 (대댓글 포함)
   const handleAddComment = (newComment: Comment) => {
@@ -93,7 +95,9 @@ export default function CommentBottomSheet({
     if (!deleteModalCommentId || postingRef.current || !deletion.acquire()) return;
     try {
       mutationVersion.current++;
-      const res = await apiFetch(`/api/comments?id=${deleteModalCommentId}`, { method: 'DELETE' });
+      const res = await apiFetch(commentsUrl(target, { id: deleteModalCommentId }), {
+        method: 'DELETE',
+      });
       if (!res.ok) throw new Error('삭제 실패');
       const updated = comments.filter(
         (c) => c.id !== deleteModalCommentId && c.parent_id !== deleteModalCommentId
@@ -103,7 +107,7 @@ export default function CommentBottomSheet({
     } catch (e) {
       console.error(e);
       try {
-        const response = await apiFetch(`/api/comments?entry_id=${entryId}`);
+        const response = await apiFetch(listUrl);
         if (!response.ok) throw new Error('조회 실패');
         const latest: Comment[] = await response.json();
         setComments(latest);
@@ -194,7 +198,7 @@ export default function CommentBottomSheet({
           )}
           <CommentInput
             onCommentSubmit={handleAddComment}
-            entryId={entryId}
+            target={target}
             disabled={isDeleting || !hasLoaded}
             onBusyChange={onPosting}
             replyingTo={replyingTo}

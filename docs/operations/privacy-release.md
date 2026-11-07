@@ -57,3 +57,101 @@ PGLITE_MODULE=/tmp/readiary-pr91-sql/node_modules/@electric-sql/pglite/dist/inde
 ## 이메일 소식 선택 기능 (2026-11-03 수집 시작 예정)
 
 이메일 수신 동의는 필수 약관·Web Push와 분리한다. 적용할 신규 마이그레이션, 본인 읽기/서버 쓰기 권한, 수신거부 토큰 및 로그 제외, 탈퇴 시 CASCADE 삭제와 공급자 기록의 차이는 [이메일 소식 수신 동의 운영](email-marketing-consent.md)을 따른다. 운영 DB 적용과 방침 공고(2026-10-27)는 끝났고 수집은 2026-11-03에 열린다. 실발송은 별도 작업이다. 수집 중지 절차와 담당자는 같은 문서를 따른다.
+
+## 달의 발췌집 친구 공개 (Task 7, 2026-11-06)
+
+친구는 공개 기록으로 이루어진 문장만 읽고, 비공개 기록의 id, 개수, 순서 번호의 빈틈은 응답에 남지 않는다. `monthly_excerpts`와 `monthly_excerpt_items`의 RLS는 소유자 전용 그대로이고, 친구의 길은 `20261106110000_monthly_excerpts_friends.sql`의 정의자 RPC뿐이다. 기록을 복사하지 않고 가리키므로 비공개 전환과 삭제는 다음 읽기에 바로 반영된다.
+
+| 시나리오 | 내 화면 | 친구의 RPC 응답 | 친구 화면 | 근거 |
+| --- | --- | --- | --- | --- |
+| 순서 [비공개 p, 공개 a, 비공개 q, 공개 b] | 넷 다, 비공개 표시 | a, b만. `position` 1, 2, 표지 a, 수 2. p·q의 id·문장·책 없음, `isPrivate`·`firstSharedAt` 키 없음 | 표제지·책 목록·수 모두 a, b 기준 | 계약 테스트 |
+| 나만 보기 | 그대로 | `null`, 해 목록·달 목록에서 빠짐 | 404 | 계약 테스트, 페이지 테스트 |
+| 공개 문장을 모두 비공개로 전환 | 그대로, `친구에게 보일 문장이 없어 지금은 나만 볼 수 있어요` | `null`, 다시 공개하면 복귀 | 404, 서재에서 빠짐 | 계약 테스트, 화면 테스트 |
+| 일부만 비공개로 전환 | 그대로 | 번호를 다시 매기고 표지가 다음 공개 문장으로 옮겨 감 | 줄어든 내용 | 계약 테스트 |
+| 기록 삭제 | 빠짐 | 빠짐 | 빠짐 | 계약 테스트 |
+| 친구 해제, 신청만 한 사이, 친구 아님 | 그대로 | `null`·빈 목록·`false` | 404 | 계약 테스트, 페이지 테스트 |
+| 없는 달·없는 사람·잘못된 달·범위 밖의 해 | 해당 없음 | 위와 같은 값. 예외를 던지지 않아 존재 여부를 알아낼 수 없음 | 404 | 계약 테스트 |
+| anon | 해당 없음 | 실행 권한 없음(42501). `proacl`에 PUBLIC과 anon 항목 없음 | 로그인으로 이동 | 계약 테스트 |
+| 테이블 직접 조회(친구) | 해당 없음 | 0행 | 해당 없음 | 계약 테스트 |
+
+내부 함수 `monthly_excerpt_visible_items`는 친구 관계를 확인하지 않으므로 `public`, `anon`, `authenticated` 누구도 실행하지 못한다. 공개 RPC가 정의자 권한으로만 부른다. 계약 스텁(`supabase/tests/lib/apply-migration-chain.mjs`)은 Supabase의 기본 함수 권한(세 역할에 직접 부여)을 재현하므로 `revoke ... from public`만 있고 anon 회수가 빠지면 테스트가 실패한다. 친구 해제 등 재현은 `node supabase/tests/run-monthly-excerpts-contract.mjs supabase/tests/monthly_excerpts_friend_contract.sql`이다.
+
+### 캐시
+
+`next.config.ts` → `lib/pwa/runtime-caching.ts`를 코드로 읽은 결과다. 고칠 것이 없었다.
+
+- `/social/u/*` 화면: 문서 내비게이션과 RSC 요청(`RSC` 헤더, `?_rsc=`)은 첫 규칙 `isPersonalizedSameOriginRequest`에 걸려 `NetworkOnly`다. Cache Storage에 들어가지 않는다.
+- `/api/monthly-excerpts*`: `/api/`로 시작하므로 같은 규칙으로 `NetworkOnly`다. 응답 헤더도 `private, no-store, max-age=0`이다(`excerptHeaders`). 친구용 경로 `/api/monthly-excerpts/friend`를 포함한다.
+- Supabase 직접 요청: 둘째 규칙으로 `NetworkOnly`다. `start-url` 캐시는 꺼져 있다.
+- 위 경로가 첫 규칙에 걸리는지는 `lib/pwa/__tests__/runtime-caching.test.ts`에 추가했다. 세션 없는 `/api/monthly-excerpts/friend` 요청이 401과 `no-store`로 돌아오고, 세션 없는 `/social/u/.../excerpts*`가 로그인으로 이동하는 것은 자리표시자 환경의 개발 서버에서 확인했다.
+- 남는 차이: 이미 열어 둔 탭의 메모리에 있는 화면은 지워지지 않는다. Next 라우터 캐시(`staleTimes` 설정 없음)가 뒤로 가기 때 앞서 받은 RSC를 재사용할 수 있고, 브라우저의 bfcache도 같을 수 있다. 다음 새 내비게이션이나 새로 고침부터는 닫힌다. 기기 저장소에 남는 경로는 코드상 없다. 받은 사람이 찍어 둔 화면 같은 사본은 회수할 수 없다.
+
+### 미검증
+
+- 실제 Supabase에서 두 계정으로 비공개 전환·친구 해제 뒤 페이지 접근. 프로덕션 마이그레이션 미적용이고, 이번 검증은 PGlite 계약과 픽스처 화면이다.
+- 설치형 PWA와 iOS Safari 실기기의 서비스 워커 동작, 로그인 상태의 페이지 응답 헤더. 위 캐시 항목은 코드 읽기와 단위 테스트이며 실기기 확인이 아니다.
+- PGlite의 슈퍼유저 소유자와 달리 프로덕션의 함수 소유자는 `postgres`다. 적용 뒤 `has_function_privilege`로 anon·authenticated 권한을 다시 조회한다.
+
+## 달의 발췌집 좋아요·댓글 (Task 8, 2026-11-06)
+
+반응은 한 권에 붙고, 읽기·남기기·지우기 모두 `can_view_monthly_excerpt` 한 곳에서 정한다(`20261106120000_monthly_excerpt_reactions.sql`). 나만 보기, 공개 문장 없음, 친구 해제는 같은 결과다. 친구에게는 0행과 같은 404이고, 소유자는 그대로 읽으며, 행은 남아 다시 보이면 돌아온다. 숨겨진 동안에는 자기 반응도 지우지 못한다. 권을 지우면 반응과 알림이 함께 사라진다. 계약 테스트: `supabase/tests/monthly_excerpts_reactions_contract.sql`.
+
+- 옛 친구의 이름과 댓글은 소유자와 남은 친구에게 그대로 보인다. 프로필은 로그인한 사용자에게 열려 있고(`profiles_select_authenticated`), 좋아한 사람 명단은 친구가 아니면 링크를 걸지 않는다.
+- 숨겨진 동안이나 친구를 끊은 뒤에는 반응으로 알림을 만들지 못한다.
+- API 응답은 `no-store`이고 `/api/`는 서비스 워커에서 NetworkOnly다. 프로덕션 적용과 실제 두 계정 확인은 아직 하지 않았다.
+
+## 달의 발췌집 피드와 프로덕션 적용 (Task 9, 2026-11-06)
+
+친구 피드는 `get_social_feed_items`로 읽는다. 기록은 호출자 권한으로 읽어 기존 RLS를 그대로 타고, 발췌집은 정의자 함수 `friend_feed_monthly_excerpts`로 읽는다. 이 함수는 보는 사람을 인자로 받지 않고 `auth.uid()`로만 정한다. 호출자 권한 RPC가 불러야 하므로 `authenticated`에 실행 권한이 있지만, 직접 불러도 그 사람이 피드에서 받는 카드와 같은 내용만 나온다. `monthly_excerpt_visible_items`는 여전히 아무도 직접 부르지 못한다.
+
+- 소식의 시각은 `first_shared_at`이다. 고치거나 공개를 껐다 켜도 자리가 그대로이고 1건이다.
+- 나만 보기, 공개 문장 없음, 친구 아님, 신청만 한 사이, 친구 해제는 피드에서 빠진다. 내 발췌집은 내 피드에 없다.
+- 표지, 표지의 책 이름, 문장 수, 책 수는 친구에게 보이는 문장 기준이다. 표지가 비공개로 바뀌면 다음 공개 문장이 표지가 된다.
+- 계약 테스트: `supabase/tests/monthly_excerpts_feed_contract.sql`. 달의 발췌집 계약 네 개는 `npm run test:db`(`.github/workflows/db-contract.yml`)에서 자격 증명 없이 파일마다 새 메모리 DB로 돈다.
+- 캐시: 첫 쪽은 `/social` 문서·RSC 응답이라 `NetworkOnly`(`isPersonalizedSameOriginRequest`)이고, 다음 쪽은 서버 액션 POST다. 코드 읽기 결과이고 실기기 확인이 아니다.
+
+### 프로덕션 적용 순서
+
+아직 적용하지 않았다. 모두 추가 전용이라 옛 코드가 돌아가는 동안 먼저 적용해도 안전하다. **코드 배포 전에** 아래 순서로 적용한다. 새 코드는 첫 쪽부터 `get_social_feed_items`를 부르므로, 마이그레이션이 없으면 소셜 화면이 오류가 된다.
+
+1. `supabase/migrations/20261106090000_monthly_excerpts.sql`
+2. `supabase/migrations/20261106100000_monthly_excerpt_candidate_preview.sql`
+3. `supabase/migrations/20261106110000_monthly_excerpts_friends.sql`
+4. `supabase/migrations/20261106120000_monthly_excerpt_reactions.sql`
+5. `supabase/migrations/20261106130000_social_feed_items.sql`
+
+옛 `get_social_feed`는 새 코드 배포를 확인할 때까지 남긴다. 제거는 후속 작업이다.
+
+### 적용 뒤 확인 (할 일, 아직 하지 않음)
+
+권한부터 읽기 전용으로 조회한다. 프로덕션 함수 소유자는 `postgres`이므로 PGlite 결과를 그대로 믿지 않는다.
+
+```sql
+select p.proname, p.prosecdef,
+  has_function_privilege('anon', p.oid, 'execute') as anon,
+  has_function_privilege('authenticated', p.oid, 'execute') as authenticated
+from pg_proc p
+where p.pronamespace = 'public'::regnamespace
+  and p.proname in ('get_social_feed_items', 'friend_feed_monthly_excerpts', 'monthly_excerpt_visible_items');
+```
+
+`anon`은 모두 `false`다. `authenticated`는 `monthly_excerpt_visible_items`만 `false`다. `prosecdef`는 `friend_feed_monthly_excerpts`만 `true`다.
+
+두 계정(A: 쓰는 사람, B: 수락된 친구)과 친구가 아닌 계정 C로 실제 화면에서 확인한다. 데이터는 읽기와 쓰기를 모두 테스트 계정의 것으로만 한다.
+
+- [ ] A가 공개로 엮으면 B의 `/social`에 1건 뜨고, 시각 순서대로 기록과 섞인다. C에게는 없다.
+- [ ] A가 문장을 고치거나 공개를 껐다 켜도 B의 피드에서 1건이고 자리가 같다.
+- [ ] A가 나만 보기로 돌리면 B의 피드와 서재에서 빠진다. 친구를 끊어도 빠진다.
+- [ ] 표지 문장을 비공개로 바꾸면 표지가 다음 공개 문장으로 바뀌고 수가 줄어든다. 응답에 비공개 문장이 없다.
+- [ ] B가 카드에서 좋아요·댓글을 남기면 A에게 알림이 오고, 카드와 책 화면의 수가 같다.
+- [ ] 스크롤로 다음 쪽을 불러와도 항목이 겹치거나 빠지지 않는다.
+
+### 코드를 되돌릴 때
+
+마이그레이션은 되돌리지 않는다. 옛 코드는 새 객체를 쓰지 않으므로 그대로 돈다. 다만 새 코드 배포 뒤 쌓인 `excerpt_like`·`excerpt_comment` 알림이 문제가 된다. 옛 코드의 `buildNotificationMessage`는 모르는 종류에서 예외를 던져 **알림 화면 전체가 오류**가 된다. 이번 변경으로 현재 코드는 중립 문구를 내지만, 이전에 배포된 코드에는 이 처리가 없다.
+
+옛 코드로 되돌렸다면 백업 여부를 먼저 정한 뒤 아래로 복구한다. 지운 알림은 되살릴 수 없고, 좋아요·댓글 자체는 남는다.
+
+```sql
+delete from public.notifications where type in ('excerpt_like','excerpt_comment');
+```

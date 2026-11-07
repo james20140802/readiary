@@ -35,6 +35,7 @@ export default async function ComposePage({ params }: Props) {
       books={books.status === 'fulfilled' ? books.value : null}
       firstPage={firstPage.status === 'fulfilled' ? firstPage.value : null}
       initialPicks={(excerpt.value?.items ?? []).map(pickFromItem)}
+      initialIsShared={excerpt.value?.isShared}
     />
   );
 }

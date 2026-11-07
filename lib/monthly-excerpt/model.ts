@@ -7,11 +7,18 @@ function counted(n: number, unit: string): string {
   return n >= 100 ? `${n}${unit}` : `${koreanCount(n)} ${unit}`;
 }
 
-/** '네 권의 책에서 문장 열두 개를 골랐습니다.' */
+/** 이름 뒤의 주격 조사. 끝 글자가 받침 있는 한글이면 '이', 그 밖(받침 없음·영문·숫자 등)은 '가'. */
+function subjectParticle(name: string): '이' | '가' {
+  const code = name.charCodeAt(name.length - 1);
+  const isHangulSyllable = code >= 0xac00 && code <= 0xd7a3;
+  return isHangulSyllable && (code - 0xac00) % 28 !== 0 ? '이' : '가';
+}
+
+/** '네 권의 책에서 문장 열두 개를 골랐습니다.' 이름이 있으면 '민지가 네 권의…', '민준이 네 권의…' */
 export function titlePageSentence(items: ExcerptItem[], ownerName?: string): string {
   const books = new Set(items.map((i) => i.book.id)).size;
   const body = `${counted(books, '권')}의 책에서 문장 ${counted(items.length, '개')}를 골랐습니다.`;
-  return ownerName ? `${ownerName}가 ${body}` : body;
+  return ownerName ? `${ownerName}${subjectParticle(ownerName)} ${body}` : body;
 }
 
 /** 책별 문장 수. 많은 순, 같으면 먼저 나온 순. */
@@ -41,6 +48,8 @@ export function bookTallyForDisplay(
 }
 
 /** 친구에게 보여 줄 때 달라지는 점. noteCount는 공개 항목 중 생각이 있는 수만 센다. */
+export const NO_PUBLIC_QUOTES = '친구에게 보일 문장이 없어요.';
+
 export function shareImpact(picks: ExcerptPick[]): {
   privateCount: number;
   noteCount: number;

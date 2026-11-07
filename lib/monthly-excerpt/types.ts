@@ -23,6 +23,27 @@ export interface MonthlyExcerpt {
   items: ExcerptItem[];
 }
 
+/** 친구에게 내려가는 한 권 (get_friend_monthly_excerpt). 공개 문장만 있고 순서 번호는 다시 매겨져 있다. */
+export interface FriendMonthlyExcerpt {
+  id: string;
+  month: MonthKey;
+  isShared: boolean;
+  items: Omit<ExcerptItem, 'isPrivate'>[];
+}
+
+/** 읽는 화면의 첫 좋아요·댓글 수 (get_monthly_excerpt_reactions) */
+export interface MonthlyExcerptReactionCounts {
+  likeCount: number;
+  commentCount: number;
+  liked: boolean;
+}
+
+/** 달의 발췌집 주소의 주인 */
+export interface ExcerptOwner {
+  id: string;
+  name: string;
+}
+
 /** 고르기 화면의 후보 문장 */
 export interface Candidate {
   entryId: string;

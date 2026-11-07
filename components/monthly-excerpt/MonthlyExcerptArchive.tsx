@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import clsx from 'clsx';
 import { ChevronDown, ChevronUp } from 'lucide-react';
@@ -307,6 +307,47 @@ export function MyMonthlyExcerptArchive(
       viewer="owner"
       hrefFor={myExcerptHref}
       back={{ href: '/profile', label: '나' }}
+    />
+  );
+}
+
+/**
+ * 서버 페이지에서 쓰는 친구의 모아 보기. 내 모아 보기와 같은 이유로 주소와 불러오기를 클라이언트 쪽에서 채운다.
+ * 보여 줄 달이 정해지는 곳은 서버의 친구용 RPC다. 이 화면은 받은 것만 그린다.
+ */
+export function FriendMonthlyExcerptArchive({
+  ownerId,
+  ownerName,
+  slug,
+  years,
+  firstYearMonths,
+}: Pick<MonthlyExcerptArchiveProps, 'years' | 'firstYearMonths'> & {
+  ownerId: string;
+  ownerName: string;
+  /** 서재 주소의 닉네임-태그 */
+  slug: string;
+}) {
+  const base = `/social/u/${slug}`;
+  const hrefFor = useCallback((month: MonthKey) => `${base}/excerpts/${month}`, [base]);
+  const loadYear = useCallback(
+    async (year: number) => {
+      const res = await apiFetch(`/api/monthly-excerpts/friend?owner=${ownerId}&year=${year}`);
+      if (!res.ok) throw new Error('year unavailable');
+      const body = (await res.json()) as { months?: ExcerptMonthRow[] };
+      return body.months ?? [];
+    },
+    [ownerId]
+  );
+  const back = useMemo(() => ({ href: base, label: `${ownerName}의 서재` }), [base, ownerName]);
+  return (
+    <MonthlyExcerptArchive
+      years={years}
+      firstYearMonths={firstYearMonths}
+      viewer="friend"
+      hrefFor={hrefFor}
+      loadYear={loadYear}
+      title={`${ownerName}의 달의 발췌집`}
+      back={back}
     />
   );
 }

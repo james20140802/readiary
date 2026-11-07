@@ -11,6 +11,24 @@ describe('buildNotificationMessage', () => {
     );
     expect(buildNotificationMessage('like', '상추')).toBe('상추님이 내 문장을 좋아해요');
     expect(buildNotificationMessage('comment', '상추')).toBe('상추님이 내 기록에 댓글을 남겼어요');
+    expect(buildNotificationMessage('excerpt_like', '민지')).toBe(
+      '민지님이 달의 발췌집을 좋아해요'
+    );
+    expect(buildNotificationMessage('excerpt_comment', '민지')).toBe(
+      '민지님이 달의 발췌집에 댓글을 남겼어요'
+    );
+  });
+});
+
+describe('buildNotificationMessage의 대체 문구', () => {
+  it('모르는 타입이어도 던지지 않고 중립 문구를 낸다', () => {
+    // 롤백한 옛 코드가 새 종류를 만나는 경우처럼, 코드보다 데이터가 앞선 상황이다
+    const unknown = 'someday_type' as unknown as Parameters<typeof buildNotificationMessage>[0];
+    expect(buildNotificationMessage(unknown, '상추')).toBe('상추님의 새 소식이 있어요');
+  });
+  it('Object.prototype의 이름도 모르는 타입으로 다룬다', () => {
+    const proto = 'constructor' as unknown as Parameters<typeof buildNotificationMessage>[0];
+    expect(buildNotificationMessage(proto, '상추')).toBe('상추님의 새 소식이 있어요');
   });
 });
 
