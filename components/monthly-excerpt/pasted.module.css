@@ -4,10 +4,13 @@
    여백선은 바탕의 무늬일 뿐이다. 모바일에서도 종이는 여백선을 피해 오른쪽으로 비키지 않고 화면 폭 가운데에 놓인다 */
 .page {
   position: relative;
+  /* 여백선을 이 페이지의 맨 아래 층에 둔다. 없으면 위치 지정된 선이 버튼·글자 위로 그려진다 */
+  isolation: isolate;
 }
 .page::before {
   content: '';
   position: fixed;
+  z-index: -1;
   top: 0;
   bottom: 0;
   left: 51px;
