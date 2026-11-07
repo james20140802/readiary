@@ -78,12 +78,12 @@ export default function MonthlyExcerptReader({
 
   if (items.length === 0) {
     return (
-      <>
+      <div className={styles.ruled}>
         <TitlePage label={label} />
         {slot}
         <p className="mt-8 text-center font-serif text-note text-ink-sub">담긴 문장이 없어요.</p>
         {reactionSlot}
-      </>
+      </div>
     );
   }
 
@@ -152,19 +152,19 @@ export default function MonthlyExcerptReader({
   );
 
   return (
-    <>
+    <div className={styles.ruled}>
       {body}
       {reactionSlot && (
         <div className={unfolded ? '' : GRID}>
           <div
-            // 판권과 같은 왼쪽 선에 맞춘다(펼친 페이지는 .page와 같은 폭)
+            // 판권과 같은 왼쪽 선에 맞춘다(펼친 페이지와 같은 폭)
             className={unfolded ? 'mx-auto w-full lg:max-w-[640px]' : 'lg:col-start-2'}
           >
             {reactionSlot}
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
 
