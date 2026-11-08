@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import clsx from 'clsx';
 import { ChevronRight, MoreHorizontal, Share } from 'lucide-react';
+import BookCover from '@/components/books/BookCover';
 import Button from '@/components/ui/Button';
 import { Leaf, Leaves } from '@/components/shell/Leaves';
 import { TopBarActions, useTopBar } from '@/components/shell/TopBarContext';
@@ -18,10 +19,12 @@ import styles from './EntryLayer.module.css';
 
 export interface EntryLayerProps {
   entry: Pick<Entry, 'id' | 'date' | 'quote' | 'note' | 'from_page' | 'to_page' | 'is_private'>;
-  book: Pick<Book, 'id' | 'title' | 'author'>;
+  book: Pick<Book, 'id' | 'title' | 'author' | 'cover_url'>;
   /** 책 한 권으로 가는 주소(친구의 기록이면 친구 서재 안의 책) */
   bookUrl: string;
   isFriend?: boolean;
+  /** 첫 장 맨 위 — 친구의 기록이면 누구의 서재인지 */
+  header?: ReactNode;
   /** 상단 바 뒤로 */
   back: { href: string; label: string };
   /** 덧붙인 생각 묶음(ReflectionThread) */
@@ -51,6 +54,7 @@ export default function EntryLayer({
   book,
   bookUrl,
   isFriend = false,
+  header,
   back,
   reflections,
   reactions,
@@ -98,6 +102,7 @@ export default function EntryLayer({
       >
         <Wrap>
           <First title={title}>
+            {header && <div className="mb-6 lg:mb-8">{header}</div>}
             {parts && (
               <div className="flex items-start gap-3.5">
                 <span
@@ -216,11 +221,53 @@ export default function EntryLayer({
                 </div>
               </>
             )}
+            {isFriend && <BookSlip book={book} href={bookUrl} />}
             <div className={isFriend ? '' : 'mt-[30px] lg:mt-[22px]'}>{reactions}</div>
           </Second>
         </Wrap>
       </div>
     </>
+  );
+}
+
+/** 책 쪽지 — 이 문장이 나온 책을 보여 주고 친구의 그 책으로 이어진다 */
+function BookSlip({ book, href }: { book: EntryLayerProps['book']; href: string }) {
+  const title = book.title ?? '제목 없음';
+  return (
+    <div className="mb-5 border-b border-hairline pb-5">
+      <Link
+        href={href}
+        className="flex items-center gap-4 rounded-sm transition-transform duration-150 ease-ink-out active:scale-[0.97] motion-reduce:active:scale-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+      >
+        <BookCover
+          title={title}
+          coverUrl={book.cover_url}
+          className="w-[60px] shrink-0 !shadow-none"
+          sizes="60px"
+          titleSize={9}
+        />
+        <span className="min-w-0">
+          <span
+            data-skeleton
+            className="line-clamp-2 font-serif text-[18px] font-semibold leading-[1.35] text-ink"
+          >
+            {title}
+          </span>
+          {book.author && (
+            <span
+              data-skeleton
+              className="mt-0.5 block truncate font-sans text-[14px] font-medium text-ink-sub"
+            >
+              {book.author}
+            </span>
+          )}
+          <span className="mt-2 flex items-center gap-0.5 font-sans text-[14px] font-semibold text-ink">
+            이 책의 기록 보기
+            <ChevronRight size={16} strokeWidth={1.75} className="text-ink-faint" aria-hidden />
+          </span>
+        </span>
+      </Link>
+    </div>
   );
 }
 

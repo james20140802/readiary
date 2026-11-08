@@ -52,30 +52,30 @@ export default function EntryDetailSkeleton({ isFriend = false }: { isFriend?: b
     : `/books/${BOOK.id}`;
   return (
     <SkeletonScope label="기록을 펼치는 중">
-      {isFriend && <FriendProfileHeader profile={FRIEND_PROFILE} title="기록" />}
-      <div className={isFriend ? 'mt-6' : undefined}>
-        <EntryLayer
-          entry={ENTRY}
-          book={BOOK}
-          bookUrl={bookUrl}
-          isFriend={isFriend}
-          back={isFriend ? { href: bookUrl, label: '책' } : { href: '/today', label: '오늘' }}
-          onShare={isFriend ? undefined : noop}
-          onMore={isFriend ? undefined : noop}
-          reactions={
-            <div className="flex min-h-10 items-center">
-              <SocialActionBar
-                entryId={ENTRY.id}
-                initialLikeCount={3}
-                initialLiked={false}
-                commentCount={2}
-                onCommentClick={noop}
-                border={false}
-              />
-            </div>
-          }
-        />
-      </div>
+      <EntryLayer
+        entry={ENTRY}
+        book={BOOK}
+        bookUrl={bookUrl}
+        isFriend={isFriend}
+        header={
+          isFriend ? <FriendProfileHeader profile={FRIEND_PROFILE} title="기록" /> : undefined
+        }
+        back={isFriend ? { href: bookUrl, label: '책' } : { href: '/today', label: '오늘' }}
+        onShare={isFriend ? undefined : noop}
+        onMore={isFriend ? undefined : noop}
+        reactions={
+          <div className="flex min-h-10 items-center">
+            <SocialActionBar
+              entryId={ENTRY.id}
+              initialLikeCount={3}
+              initialLiked={false}
+              commentCount={2}
+              onCommentClick={noop}
+              border={false}
+            />
+          </div>
+        }
+      />
     </SkeletonScope>
   );
 }

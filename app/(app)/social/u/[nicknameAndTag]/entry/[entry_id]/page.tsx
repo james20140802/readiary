@@ -4,7 +4,6 @@ import { fetchFriendEntryDetail } from '@/lib/friends/fetchFriendEntryDetail';
 import { notFound } from 'next/navigation';
 import { isFriendWith } from '@/lib/friends/isFriendWith';
 import { parseNicknameAndTagSlug } from '@/lib/social/invite';
-import FriendProfileHeader from '@/components/social/FriendProfileHeader';
 import EntryDetailContent from '@/components/entry/EntryDetailContent';
 import EntryUnavailable from '@/components/social/EntryUnavailable';
 
@@ -53,20 +52,15 @@ export default async function EntryDetailPage({
   }
 
   return (
-    <>
-      <FriendProfileHeader profile={profile} title="기록" />
-      <div className="mt-6">
-        <EntryDetailContent
-          entry={entry.entry}
-          book={entry.entry.book}
-          friendProfile={profile}
-          isFriend
-          initialLiked={entry.initialLiked}
-          initialLikeCount={entry.initialLikeCount}
-          initialCommentCount={entry.initialCommentCount}
-          currentUserId={user.id}
-        />
-      </div>
-    </>
+    <EntryDetailContent
+      entry={entry.entry}
+      book={entry.entry.book}
+      friendProfile={profile}
+      isFriend
+      initialLiked={entry.initialLiked}
+      initialLikeCount={entry.initialLikeCount}
+      initialCommentCount={entry.initialCommentCount}
+      currentUserId={user.id}
+    />
   );
 }
