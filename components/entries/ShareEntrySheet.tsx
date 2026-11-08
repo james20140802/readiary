@@ -1,9 +1,18 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { toPng } from 'html-to-image';
 import { toast } from 'sonner';
 import { createSupabaseClient } from '@/lib/supabase/client';
+import { exceedsCanvasLimits, pixelRatioFor } from '@/lib/share/canvas-limits';
+import {
+  noteSizeFor,
+  pickQuoteSize,
+  QUOTE_SIZES,
+  SHARE_CARD_HEIGHT,
+  SHARE_CARD_WIDTH,
+} from '@/lib/share/card-fit';
 import { formatDateLabel } from '@/lib/share/format';
 import { LIGHT_PALETTE } from '@/lib/share/palette';
 import Button from '@/components/ui/Button';
@@ -33,6 +42,8 @@ interface Props {
  *
  * Safari는 캡처처럼 오래 걸린 비동기 작업 뒤의 공유·클립보드 호출을 사용자 제스처가 아니라며 거부한다.
  * 그래서 카드는 시트가 열릴 때 미리 찍어 두고, 링크는 공유를 켜는 동안 ClipboardItem에 약속으로 넘긴다.
+ *
+ * 카드는 문장을 자르지 않는다. 4:5에 넘치면 글자를 재서 줄이고, 가장 작은 글자로도 넘치면 세로로 길어진다.
  */
 export default function ShareEntrySheet({
   open,
@@ -45,6 +56,7 @@ export default function ShareEntrySheet({
   bookAuthor,
 }: Props) {
   const cardRef = useRef<HTMLDivElement>(null);
+  const [quoteSize, setQuoteSize] = useState<number>(QUOTE_SIZES[0]);
   const [image, setImage] = useState<File | null>(null);
   const [capturing, setCapturing] = useState(false);
   const [linkBusy, setLinkBusy] = useState(false);
@@ -66,11 +78,27 @@ export default function ShareEntrySheet({
   }, [open, quote, note, bookTitle, bookAuthor, date]);
 
   async function capture(): Promise<File | null> {
-    if (!cardRef.current) return null;
+    const card = cardRef.current;
+    if (!card) return null;
     setCapturing(true);
     try {
+      // 재기 전에 카드에 쓸 글꼴을 받아 둔다 — 대체 글꼴로 재면 크기가 틀어진다
+      await Promise.all(
+        Array.from(card.querySelectorAll<HTMLElement>('blockquote, p'), (el) =>
+          document.fonts?.load(getComputedStyle(el).font, el.textContent ?? '')
+        )
+      );
       await document.fonts?.ready;
-      const dataUrl = await toPng(cardRef.current, { pixelRatio: 2, cacheBust: true });
+      const size = pickQuoteSize((candidate) => {
+        flushSync(() => setQuoteSize(candidate));
+        return card.offsetHeight <= SHARE_CARD_HEIGHT;
+      });
+      flushSync(() => setQuoteSize(size));
+      if (exceedsCanvasLimits(card.offsetWidth, card.offsetHeight)) return null;
+      const options = { pixelRatio: pixelRatioFor(card), cacheBust: true };
+      // Safari는 첫 캡처에서 웹폰트가 빠지는 일이 있어 한 번 버리고 시작한다
+      await toPng(card, options);
+      const dataUrl = await toPng(card, options);
       const blob = await (await fetch(dataUrl)).blob();
       return new File([blob], 'readiary-sentence.png', { type: 'image/png' });
     } catch (error) {
@@ -173,17 +201,20 @@ export default function ShareEntrySheet({
       <Sheet open={open} onClose={close} title="문장 카드로 공유">
         {/* 받는 사람이 보게 될 카드 — 밤에도 낮 종이로 찍히므로 미리보기도 낮 팔레트로 */}
         <div
+          role="region"
+          aria-label="카드 미리보기"
+          tabIndex={0}
           style={LIGHT_PALETTE}
-          className="mx-2 mt-1.5 -rotate-1 rounded-[4px] bg-paper px-6 py-[26px] text-ink shadow-[0_18px_40px_-18px_rgb(30_20_10/.5)] motion-reduce:rotate-0"
+          className="mx-2 mt-1.5 max-h-[38dvh] -rotate-1 overflow-y-auto rounded-[4px] bg-paper px-6 py-[26px] text-ink shadow-[0_18px_40px_-18px_rgb(30_20_10/.5)] motion-reduce:rotate-0"
         >
           {quote && (
-            <p className="line-clamp-6 whitespace-pre-wrap font-serif text-[21px] font-semibold leading-[1.65]">
+            <p className="whitespace-pre-wrap break-words font-serif text-[21px] font-semibold leading-[1.65]">
               {quote}
             </p>
           )}
           {note && (
             <p
-              className={`line-clamp-3 whitespace-pre-wrap font-serif text-[16px] leading-[1.6] text-ink-sub ${quote ? 'mt-2' : ''}`}
+              className={`whitespace-pre-wrap break-words font-serif text-[16px] leading-[1.6] text-ink-sub ${quote ? 'mt-2' : ''}`}
             >
               {note}
             </p>
@@ -213,13 +244,17 @@ export default function ShareEntrySheet({
         </div>
       </Sheet>
 
-      {/* 오프스크린 캡처 대상: 540×675(4:5) → pixelRatio 2 = 1080×1350 */}
+      {/* 오프스크린 캡처 대상: 기본 540×675(4:5) → pixelRatio 2 = 1080×1350. 높이는 하한이다 — 자르지 않는다 */}
       {open && (
         <div style={{ position: 'fixed', left: '-10000px', top: 0 }} aria-hidden>
           <div
             ref={cardRef}
-            style={{ width: 540, height: 675, ...LIGHT_PALETTE }}
-            className="flex flex-col justify-center overflow-hidden bg-paper p-12"
+            style={{
+              width: SHARE_CARD_WIDTH,
+              minHeight: SHARE_CARD_HEIGHT,
+              ...LIGHT_PALETTE,
+            }}
+            className="flex flex-col justify-center bg-paper p-12"
           >
             <SentenceCard
               quote={quote}
@@ -228,7 +263,7 @@ export default function ShareEntrySheet({
               bookAuthor={bookAuthor}
               dateLabel={formatDateLabel(date)}
               showWordmark
-              collapsed
+              sizes={{ quote: quoteSize, note: noteSizeFor(quoteSize) }}
             />
           </div>
         </div>
