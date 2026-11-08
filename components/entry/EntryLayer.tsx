@@ -130,13 +130,13 @@ export default function EntryLayer({
               data-skeleton
               className={clsx(
                 styles.onrule,
-                'mt-[38px] whitespace-pre-wrap break-words pl-[34px] font-serif text-[25px] leading-[40px] tracking-[-0.01em] text-ink lg:mt-14 lg:pl-0 lg:text-[32px] lg:leading-[56px]',
+                'mt-[38px] whitespace-pre-wrap break-words font-serif text-[25px] leading-[40px] tracking-[-0.01em] text-ink lg:mt-14 lg:text-[32px] lg:leading-[56px]',
                 entry.quote ? 'font-semibold' : 'font-normal'
               )}
             >
               {main}
             </p>
-            <div className="mt-3 pl-[34px] font-sans text-[15px] font-medium text-ink-sub lg:pl-0">
+            <div className="mt-3 font-sans text-[15px] font-medium text-ink-sub">
               <Link
                 href={bookUrl}
                 data-skeleton
@@ -147,7 +147,7 @@ export default function EntryLayer({
               {book.author && <span data-skeleton>{` · ${book.author}`}</span>}
               {pages && <span data-skeleton>{` · ${pages}`}</span>}
             </div>
-            <div className="mt-6 pl-[34px] lg:mt-9 lg:max-w-[600px] lg:pl-0">
+            <div className="mt-6 lg:mt-9 lg:max-w-[600px]">
               {then && (
                 <div>
                   <div className={clsx(LABEL, 'text-ink-faint')}>
