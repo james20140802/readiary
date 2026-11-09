@@ -16,6 +16,7 @@ import { Entry } from '@/types/entry';
 import { Book } from '@/types/book';
 import { Profile } from '@/types/profile';
 import SocialActionBar from '../social/SocialActionBar';
+import FriendProfileHeader from '../social/FriendProfileHeader';
 import ShareEntrySheet from '@/components/entries/ShareEntrySheet';
 import Button from '../ui/Button';
 import CommentSection from '../comments/CommentSection';
@@ -101,6 +102,11 @@ export default function EntryDetailContent({
         book={book}
         bookUrl={bookUrl}
         isFriend={isFriend}
+        header={
+          isFriend && friendProfile ? (
+            <FriendProfileHeader profile={friendProfile} title="기록" />
+          ) : undefined
+        }
         back={isFriend ? { href: bookUrl, label: '책' } : { href: '/today', label: '오늘' }}
         onShare={canShare ? () => setShareOpen(true) : undefined}
         onMore={isFriend ? undefined : () => setMenuOpen(true)}
@@ -131,6 +137,9 @@ export default function EntryDetailContent({
                 entryId={entry.id}
                 currentUserId={currentUserId}
                 onCountChange={setCommentCount}
+                inputPlaceholder={
+                  isFriend && friendProfile ? `${friendProfile.name}에게 한마디 남기기` : undefined
+                }
               />
             </div>
           </>

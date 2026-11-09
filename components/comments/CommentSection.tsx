@@ -17,6 +17,8 @@ interface CommentSectionProps {
   currentUserId?: string;
   onCountChange?: (count: number) => void;
   hideInput?: boolean;
+  /** 입력칸 안내 — 없으면 '댓글 남기기' */
+  inputPlaceholder?: string;
 }
 
 export default function CommentSection({
@@ -24,6 +26,7 @@ export default function CommentSection({
   currentUserId,
   onCountChange = () => {},
   hideInput = false,
+  inputPlaceholder,
 }: CommentSectionProps) {
   const [loadAttempt, setLoadAttempt] = useState(0);
   const mutationVersion = useRef(0);
@@ -118,23 +121,22 @@ export default function CommentSection({
   };
   return (
     <div className="mt-10">
-      <h3 className="font-sans text-overline text-ink-sub">
-        댓글 <span className="tabular-nums">{comments.length}</span>
-      </h3>
+      {/* 0개는 위의 말풍선 숫자가 이미 말해 주므로 제목을 세우지 않는다 */}
+      {comments.length > 0 && (
+        <h3 className="mb-2 font-sans text-overline text-ink-sub">
+          댓글 <span className="tabular-nums">{comments.length}</span>
+        </h3>
+      )}
 
-      <div className="mt-2 min-h-[100px]">
+      <div>
         {isLoading ? (
-          <p role="status" className="py-10 text-center font-sans text-caption text-ink-sub">
+          <p role="status" className="py-2 font-sans text-caption text-ink-sub">
             댓글을 불러오는 중…
           </p>
         ) : (
           <FoldList
             isEmpty={comments.length === 0}
-            empty={
-              <p className="border-t border-hairline py-10 text-center font-sans text-caption text-ink-sub">
-                아직 댓글이 없어요. 처음으로 한마디 남겨 보세요.
-              </p>
-            }
+            empty={<p className="py-2 font-sans text-caption text-ink-sub">아직 댓글이 없어요.</p>}
           >
             {comments
               .filter((c) => !c.parent_id)
@@ -190,6 +192,7 @@ export default function CommentSection({
             onBusyChange={onPosting}
             replyingTo={replyingTo}
             onCancelReply={() => setReplyingTo(null)}
+            placeholder={inputPlaceholder}
           />
         )}
       </div>

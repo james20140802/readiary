@@ -22,6 +22,8 @@ type CommentInputProps = (
   onBusyChange?: (busy: boolean) => void;
   replyingTo?: Comment | null;
   onCancelReply?: () => void;
+  /** 입력칸 안내 — 없으면 '댓글 남기기' */
+  placeholder?: string;
 };
 
 export default function CommentInput({
@@ -32,6 +34,7 @@ export default function CommentInput({
   target,
   disabled = false,
   onBusyChange,
+  placeholder = '댓글 남기기',
 }: CommentInputProps) {
   const resolved: CommentTarget = target ?? { kind: 'entry', entryId };
   const [content, setContent] = useState('');
@@ -121,7 +124,7 @@ export default function CommentInput({
           type="text"
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder={replying ? '답글 남기기' : '댓글 남기기'}
+          placeholder={replying ? '답글 남기기' : placeholder}
           aria-label={replying ? '답글' : '댓글'}
           className="h-11 min-w-0 flex-1 border-none bg-transparent font-serif text-[17px] text-ink outline-none placeholder:text-ink-faint"
           disabled={disabled || isSubmitting || !creation.ready || !!creation.snapshot}
@@ -129,7 +132,8 @@ export default function CommentInput({
         <button
           type="submit"
           disabled={!content.trim() || disabled || isSubmitting || !creation.ready}
-          className="inline-flex min-h-10 shrink-0 items-center rounded-full bg-ink px-4 font-sans text-button-sm text-ink-invert transition-[opacity,transform] duration-150 ease-ink-out active:scale-[0.97] disabled:opacity-40 motion-reduce:active:scale-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          // 쓴 글이 없으면 자리만 지키고 보이지 않는다 — 비어 있는 칸에서 가장 눈에 띄는 것이 못 누르는 버튼이 되지 않게
+          className={`inline-flex min-h-10 shrink-0 items-center rounded-full bg-ink px-4 font-sans text-button-sm text-ink-invert transition-[opacity,transform] duration-150 ease-ink-out active:scale-[0.97] motion-reduce:active:scale-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${content.trim() ? 'disabled:opacity-40' : 'pointer-events-none opacity-0'}`}
         >
           {creation.snapshot ? '다시 남기기' : isSubmitting ? '남기는 중…' : '남기기'}
         </button>
