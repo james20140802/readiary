@@ -1,7 +1,8 @@
 'use client';
 
 import { useActionLock } from '@/hooks/useActionLock';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type Ref } from 'react';
+import { flushSync } from 'react-dom';
 import { toBlob } from 'html-to-image';
 import { toast } from 'sonner';
 import Seal from '@/components/ui/Seal';
@@ -10,6 +11,7 @@ import Sheet from '@/components/ui/Sheet';
 import ExcerptBooklet, { ExcerptBookletProps, MonthlyBooks, koreanCount } from './ExcerptBooklet';
 import { LIGHT_PALETTE } from '@/lib/share/palette';
 import { formatReadingPeriod } from '@/lib/dates';
+import { layoutQuote, QUOTE_TIERS, type QuotePage } from '@/lib/export/excerpt-cards';
 
 type ExportMode = 'long' | 'cards';
 type Stage = 'choose' | 'generating' | 'preview';
@@ -35,21 +37,77 @@ function pixelRatioFor(el: HTMLElement): number {
 }
 
 /**
- * 카드 한 장(4:5)에 들어갈 인용의 글자 크기 — 길수록 작게, 넘치면 잘라낸다.
- * whitespace-pre-wrap이라 명시적 줄바꿈이 그대로 살아나므로, 글자 수만으로는
- * 짧은 시(줄 많음)의 렌더 높이를 놓친다 — 줄 수도 티어 결정에 넣고,
- * 각 티어의 line-clamp는 카드의 인용 영역 높이(약 520px)에 맞춘 상한이다.
+ * 문장 칸에 글자가 다 들어가는가. 재는 카드와 찍는 카드가 같은 조판을 쓴다.
  */
-function quoteSizeClass(quote: string): string {
-  const length = quote.length;
-  const lines = quote.split('\n').length;
-  // 내보내기 이미지는 화면 토큰과 무관한 고정 레이아웃이다. 앱 타입 토큰이 커져도
-  // 4:5 카드가 넘치지 않도록 예전 크기·굵기를 px로 고정한다.
-  if (length <= 80 && lines <= 4) return 'text-[20px] font-normal leading-[1.9] line-clamp-[10]';
-  if (length <= 200 && lines <= 9)
-    return 'text-[18px] font-semibold leading-[1.85] line-clamp-[13]';
-  if (length <= 420 && lines <= 14) return 'text-[15px] font-normal leading-[1.8] line-clamp-[16]';
-  return 'text-[13px] font-normal leading-[1.75] line-clamp-[20]';
+function quoteFits(card: HTMLElement): boolean {
+  const slot = card.querySelector('[data-card-slot]');
+  const quote = card.querySelector('blockquote');
+  return !slot || !quote || quote.offsetHeight <= slot.clientHeight;
+}
+
+const quoteClass = (tier: number) =>
+  `whitespace-pre-wrap break-words text-center font-serif text-ink ${QUOTE_TIERS[tier]}`;
+
+type CardPage = QuotePage & { id: string; number: number; source: string };
+
+/** 재는 카드의 글자를 바꿔 가며 문장마다 카드를 나눈다 */
+function layoutCards(
+  probe: HTMLElement,
+  quotes: { id: string; quote: string; source: string }[]
+): CardPage[] {
+  const quoteEl = probe.querySelector('blockquote')!;
+  const sourceEl = probe.querySelector('[data-card-source]')!;
+  return quotes.flatMap(({ id, quote, source }, index) => {
+    sourceEl.textContent = source;
+    const pages = layoutQuote(quote, (text, tier) => {
+      quoteEl.className = quoteClass(tier);
+      quoteEl.textContent = text;
+      return quoteFits(probe);
+    });
+    return pages.map((page) => ({ ...page, id, number: index + 1, source }));
+  });
+}
+
+/** 재기 전에 카드가 쓸 글꼴을 받아 둔다 — 대체 글꼴로 재면 나누는 자리가 틀어진다 */
+async function loadCardFonts(probe: HTMLElement, text: string) {
+  const quoteEl = probe.querySelector('blockquote')!;
+  for (let tier = 0; tier < QUOTE_TIERS.length; tier++) {
+    quoteEl.className = quoteClass(tier);
+    await document.fonts?.load(getComputedStyle(quoteEl).font, text);
+  }
+}
+
+function QuoteCard({
+  page,
+  cardRef,
+}: {
+  page: Pick<CardPage, 'text' | 'tier' | 'part' | 'parts' | 'number' | 'source'>;
+  cardRef?: Ref<HTMLDivElement>;
+}) {
+  return (
+    <div ref={cardRef} style={{ width: 540, height: 675, ...LIGHT_PALETTE }} className="bg-paper">
+      <div className="flex h-full w-full flex-col px-12 py-10">
+        <div className="text-center font-serif text-[13px] font-normal leading-5 tabular-nums text-accent">
+          {page.number}
+          {page.parts > 1 ? ` · ${page.part}/${page.parts}` : ''}
+        </div>
+        <div data-card-slot className="my-4 flex min-h-0 flex-1 items-center justify-center">
+          <blockquote className={quoteClass(page.tier)}>{page.text}</blockquote>
+        </div>
+        <div className="text-center">
+          <p
+            data-card-source
+            className="break-words font-serif text-[13px] font-normal leading-5 text-ink-sub"
+          >
+            {page.source}
+          </p>
+          <p className="mt-2 whitespace-nowrap font-sans text-seal uppercase text-ink-faint">
+            READIARY
+          </p>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 /**
@@ -80,6 +138,8 @@ export default function ExportExcerptsButton({
   const exportAction = useActionLock();
   const longRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const probeRef = useRef<HTMLDivElement>(null);
+  const [cardPages, setCardPages] = useState<CardPage[] | null>(null);
   const [stage, setStage] = useState<Stage | null>(null);
   // 바깥에서 열면 고르기부터 — 이전 값과 비교해 렌더 중에 맞춘다
   const [prevOpen, setPrevOpen] = useState(open);
@@ -123,8 +183,29 @@ export default function ExportExcerptsButton({
       // 중간에 실패하면 이미 만든 object URL을 catch에서 되짚어 revoke한다
       const nextUrls: string[] = [];
       try {
-        await document.fonts.ready;
+        await document.fonts?.ready;
         await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+        if (mode === 'cards') {
+          const probe = probeRef.current;
+          if (!probe) throw new Error('재는 카드 없음');
+          await loadCardFonts(probe, quotes.map((q) => q.quote).join(''));
+          if (cancelled) return;
+          const pages = layoutCards(
+            probe,
+            quotes.map((q) => ({
+              id: q.id,
+              quote: q.quote,
+              source: `『${q.bookTitle ?? bookTitle}』${author ? ` — ${author}` : ''}`,
+            }))
+          );
+          cardRefs.current.length = pages.length + 2;
+          flushSync(() => setCardPages(pages));
+          await new Promise((r) => requestAnimationFrame(r));
+          // 잰 값과 찍을 카드가 어긋나면 잘린 그림을 내보내지 않고 실패로 알린다
+          if (!cardRefs.current.every((card) => !card || quoteFits(card))) {
+            throw new Error('카드 넘침');
+          }
+        }
         const targets = (mode === 'long' ? [longRef.current] : cardRefs.current).filter(
           (el): el is HTMLDivElement => el != null
         );
@@ -177,6 +258,8 @@ export default function ExportExcerptsButton({
     return () => {
       cancelled = true;
     };
+    // 조판 중에 부모가 다시 그려져도 처음부터 다시 찍지 않는다
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stage, mode]);
 
   const saveFiles = async () => {
@@ -290,7 +373,7 @@ export default function ExportExcerptsButton({
                 카드로 나누어
               </span>
               <small className="mt-1 block font-sans text-[13px] font-medium leading-[1.5] text-ink-sub">
-                4:5 카드 {quotes.length + 2}장 · 인스타그램에 맞게
+                인스타그램에 맞는 4:5 카드 여러 장 · 긴 문장은 다음 장으로 이어져요
               </small>
             </button>
           </div>
@@ -372,6 +455,11 @@ export default function ExportExcerptsButton({
       )}
       {stage === 'generating' && mode === 'cards' && (
         <div style={{ position: 'fixed', left: '-10000px', top: 0 }} aria-hidden>
+          {/* 문장을 나누려고 재는 카드 — 찍지 않는다 */}
+          <QuoteCard
+            cardRef={probeRef}
+            page={{ text: '', tier: 0, part: 1, parts: 1, number: 1, source: '' }}
+          />
           {/* 표지 카드 — 카드 타이포는 화면 토큰과 무관한 고정 px (quoteSizeClass 참고) */}
           <div
             ref={(el) => {
@@ -400,44 +488,20 @@ export default function ExportExcerptsButton({
               </div>
             </div>
           </div>
-          {/* 문장 카드들 */}
-          {quotes.map((q, i) => (
-            <div
-              key={q.id}
-              ref={(el) => {
+          {/* 문장 카드들 — 한 문장이 여러 장으로 이어질 수 있다 */}
+          {cardPages?.map((page, i) => (
+            <QuoteCard
+              key={`${page.id}-${page.part}`}
+              page={page}
+              cardRef={(el) => {
                 cardRefs.current[i + 1] = el;
               }}
-              style={{ width: 540, height: 675, ...LIGHT_PALETTE }}
-              className="bg-paper"
-            >
-              <div className="flex h-full w-full flex-col px-12 py-10">
-                <div className="text-center font-serif text-[13px] font-normal leading-5 tabular-nums text-accent">
-                  {i + 1}
-                </div>
-                <div className="flex min-h-0 flex-1 items-center justify-center">
-                  <blockquote
-                    className={`whitespace-pre-wrap text-center font-serif text-ink ${quoteSizeClass(
-                      q.quote
-                    )}`}
-                  >
-                    {q.quote}
-                  </blockquote>
-                </div>
-                <div className="text-center">
-                  <p className="truncate font-serif text-[13px] font-normal leading-5 text-ink-sub">
-                    『{q.bookTitle ?? bookTitle}』{author ? ` — ${author}` : ''}
-                  </p>
-                  <p className="mt-2 whitespace-nowrap font-sans text-seal uppercase text-ink-faint">
-                    READIARY
-                  </p>
-                </div>
-              </div>
-            </div>
+            />
           ))}
           {/* 판권장 카드 */}
           <div
             ref={(el) => {
-              cardRefs.current[quotes.length + 1] = el;
+              cardRefs.current[(cardPages?.length ?? 0) + 1] = el;
             }}
             style={{ width: 540, height: 675, ...LIGHT_PALETTE }}
             className="bg-paper p-8"
