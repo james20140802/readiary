@@ -7,7 +7,8 @@ export interface SentenceCardProps {
   bookAuthor?: string | null;
   dateLabel: string;
   nickname?: string;
-  collapsed?: boolean;
+  /** 이미지로 찍을 때 칸에 맞춰 고른 글자 크기(px). 없으면 토큰 크기 */
+  sizes?: { quote: number; note: number };
   showWordmark?: boolean;
   /** 전달하면 출처 줄 왼쪽에 표지 썸네일(가름끈 포함)을 보여준다. null이면 기본 표지 */
   coverUrl?: string | null;
@@ -21,7 +22,7 @@ export default function SentenceCard({
   bookAuthor,
   dateLabel,
   nickname,
-  collapsed = false,
+  sizes,
   showWordmark = false,
   coverUrl,
   className = '',
@@ -34,18 +35,18 @@ export default function SentenceCard({
     <figure className={className}>
       {quote && (
         <blockquote
-          className={`font-serif text-quote text-ink whitespace-pre-wrap ${
-            collapsed ? 'line-clamp-4' : ''
-          }`}
+          className="font-serif text-quote text-ink whitespace-pre-wrap break-words"
+          style={sizes && { fontSize: sizes.quote }}
         >
           “{quote}”
         </blockquote>
       )}
       {note && (
         <p
-          className={`text-body-sm text-ink-sub whitespace-pre-wrap ${
+          className={`text-body-sm text-ink-sub whitespace-pre-wrap break-words ${
             quote ? 'mt-3' : ''
-          } ${collapsed ? 'line-clamp-3' : ''}`}
+          }`}
+          style={sizes && { fontSize: sizes.note }}
         >
           {note}
         </p>
@@ -70,8 +71,10 @@ export default function SentenceCard({
             </div>
           )}
           <div className="min-w-0">
-            <p className="text-body-sm font-semibold text-ink truncate">『{bookTitle}』</p>
-            {attribution && <p className="text-caption text-ink-faint truncate">{attribution}</p>}
+            <p className="text-body-sm font-semibold text-ink break-words">『{bookTitle}』</p>
+            {attribution && (
+              <p className="text-caption text-ink-faint break-words">{attribution}</p>
+            )}
           </div>
         </div>
         {showWordmark && <span className="text-seal text-ink-faint shrink-0">READIARY</span>}

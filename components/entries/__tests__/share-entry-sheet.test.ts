@@ -5,7 +5,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const rpc = vi.fn();
 vi.mock('@/lib/supabase/client', () => ({ createSupabaseClient: () => ({ rpc }) }));
-vi.mock('html-to-image', () => ({ toPng: vi.fn(async () => 'data:image/png;base64,AA==') }));
+const toPng = vi.hoisted(() => vi.fn(async () => 'data:image/png;base64,AA=='));
+vi.mock('html-to-image', () => ({ toPng }));
 const toast = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn() }));
 vi.mock('sonner', () => ({ toast }));
 
@@ -34,6 +35,7 @@ const writeText = vi.fn(async () => {});
 
 beforeEach(() => {
   rpc.mockReset().mockResolvedValue({ data: true, error: null });
+  toPng.mockClear();
   writeText.mockClear();
   Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
   vi.stubGlobal(
@@ -120,6 +122,65 @@ describe('ShareEntrySheet', () => {
     expect(data.files?.[0]).toBeInstanceOf(File);
     expect(rpc).not.toHaveBeenCalled();
     expect(writeText).not.toHaveBeenCalled();
+  });
+
+  describe('카드 이미지', () => {
+    const quote = '긴 문장의 첫머리\n'.repeat(40) + '마지막 줄';
+    const note = '생각의 첫머리\n'.repeat(20) + '생각의 마지막 줄';
+    const captureCard = () => document.querySelector<HTMLElement>('[style*="540"]')!;
+    const originalOffsetHeight = Object.getOwnPropertyDescriptor(
+      HTMLElement.prototype,
+      'offsetHeight'
+    )!;
+    afterEach(() => {
+      Object.defineProperty(HTMLElement.prototype, 'offsetHeight', originalOffsetHeight);
+    });
+    /** 이 글자 크기가 되어야 4:5에 들어간다고 꾸민다 */
+    const fitsAt = (fontSize: string) =>
+      Object.defineProperty(HTMLElement.prototype, 'offsetHeight', {
+        configurable: true,
+        get(this: HTMLElement) {
+          return this.querySelector('blockquote')?.style.fontSize === fontSize ? 675 : 900;
+        },
+      });
+
+    it('문장과 생각을 줄 수로 자르지 않고 끝까지 담는다', async () => {
+      render(h(ShareEntrySheet, { ...props, quote, note }));
+      await waitFor(() => expect(toPng).toHaveBeenCalled());
+      const card = captureCard();
+      expect(card.innerHTML).not.toContain('line-clamp');
+      expect(card.textContent).toContain('마지막 줄');
+      expect(card.textContent).toContain('생각의 마지막 줄');
+    });
+
+    it('4:5에 넘치면 들어가는 크기까지 글자를 줄여 찍는다', async () => {
+      fitsAt('19px');
+      render(h(ShareEntrySheet, { ...props, quote }));
+      await waitFor(() => expect(toPng).toHaveBeenCalled());
+      expect(captureCard().querySelector('blockquote')?.style.fontSize).toBe('19px');
+    });
+
+    it('높이를 고정하지 않아 가장 작은 글자로도 넘치면 카드가 길어진다', async () => {
+      fitsAt('never');
+      render(h(ShareEntrySheet, { ...props, quote }));
+      await waitFor(() => expect(toPng).toHaveBeenCalled());
+      const card = captureCard();
+      expect(card.style.height).toBe('');
+      expect(card.style.minHeight).toBe('675px');
+      expect(card.className).not.toContain('overflow-hidden');
+    });
+
+    it('웹폰트가 빠진 첫 캡처는 버리고 두 번째 그림을 쓴다', async () => {
+      render(h(ShareEntrySheet, props));
+      await waitFor(() => expect(toPng).toHaveBeenCalledTimes(2));
+    });
+
+    it('미리보기도 자르지 않는다', () => {
+      render(h(ShareEntrySheet, { ...props, quote, note }));
+      expect(screen.getByRole('region', { name: '카드 미리보기' }).innerHTML).not.toContain(
+        'line-clamp'
+      );
+    });
   });
 
   it('공유 창이 없으면 그림을 내려받고 링크는 열지 않는다', async () => {
