@@ -5,12 +5,22 @@ import { createServerClient } from '@supabase/ssr';
 vi.mock('@supabase/ssr', () => ({ createServerClient: vi.fn() }));
 const getUser = vi.fn();
 const lookup = vi.fn();
-const builder = { select: () => builder, eq: () => builder, maybeSingle: lookup };
+const select = vi.fn();
+const builder = {
+  select: (...args: unknown[]) => {
+    select(...args);
+    return builder;
+  },
+  eq: () => builder,
+  maybeSingle: lookup,
+};
+const pending = { id: 'a', account_deletions: [{ purge_after: '2026-11-26T00:00:00Z' }] };
 
 beforeEach(() => {
   vi.resetModules();
   getUser.mockReset().mockResolvedValue({ data: { user: { id: 'a' } }, error: null });
-  lookup.mockReset().mockResolvedValue({ data: { id: 'a' }, error: null });
+  select.mockReset();
+  lookup.mockReset().mockResolvedValue({ data: { id: 'a', account_deletions: [] }, error: null });
   vi.mocked(createServerClient).mockReturnValue({
     auth: { getUser },
     from: () => builder,
@@ -97,5 +107,62 @@ describe('proxy authentication and profile cache', () => {
       expect(config.matcher).toContain(`${prefix}/:path*`);
     }
     expect(config.matcher).not.toContain('/protected/:path*');
+  });
+
+  it('the matcher includes the restore screen', async () => {
+    const { config } = await import('../../../proxy');
+    expect(config.matcher).toContain('/account/:path*');
+  });
+});
+
+describe('proxy routing for a pending account deletion', () => {
+  it('reads the deletion state together with the profile', async () => {
+    const { updateSession } = await import('../../../proxy');
+    await updateSession(request('/today'));
+    expect(select).toHaveBeenCalledWith('id, account_deletions(purge_after)');
+  });
+  it('sends a pending reader from the app to the restore screen', async () => {
+    lookup.mockResolvedValue({ data: pending, error: null });
+    const { updateSession } = await import('../../../proxy');
+    const response = await updateSession(request('/today'));
+    expect(response.status).toBe(307);
+    expect(response.headers.get('location')).toBe('https://readiary.test/account/restore');
+  });
+  it.each(['/books/1', '/settings', '/onboarding', '/', '/login'])(
+    'sends a pending reader at %s to the restore screen',
+    async (path) => {
+      lookup.mockResolvedValue({ data: pending, error: null });
+      const { updateSession } = await import('../../../proxy');
+      const response = await updateSession(request(path));
+      expect(response.headers.get('location')).toBe('https://readiary.test/account/restore');
+    }
+  );
+  it('lets a pending reader open the restore screen', async () => {
+    lookup.mockResolvedValue({ data: pending, error: null });
+    const { updateSession } = await import('../../../proxy');
+    const response = await updateSession(request('/account/restore'));
+    expect(response.headers.get('location')).toBeNull();
+    expect(response.status).toBe(200);
+  });
+  it('sends an active reader away from the restore screen to /today', async () => {
+    const { updateSession } = await import('../../../proxy');
+    const response = await updateSession(request('/account/restore'));
+    expect(response.headers.get('location')).toBe('https://readiary.test/today');
+  });
+  it('the restore screen re-reads the source even after an active cache hit', async () => {
+    const { updateSession } = await import('../../../proxy');
+    await updateSession(request('/today'));
+    lookup.mockResolvedValue({ data: pending, error: null });
+    const response = await updateSession(request('/account/restore'));
+    expect(lookup).toHaveBeenCalledTimes(2);
+    expect(response.headers.get('location')).toBeNull();
+  });
+  it('sends a logged-out visitor of the restore screen to login', async () => {
+    getUser.mockResolvedValue({ data: { user: null } });
+    const { updateSession } = await import('../../../proxy');
+    const response = await updateSession(request('/account/restore'));
+    expect(response.headers.get('location')).toBe(
+      'https://readiary.test/login?redirect=%2Faccount%2Frestore'
+    );
   });
 });

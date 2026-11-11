@@ -2,8 +2,12 @@
 
 export const HOME_PATH = '/today';
 
+/** 탈퇴 유예 중인 독자가 머무는 유일한 앱 화면 */
+export const ACCOUNT_RESTORE_PATH = '/account/restore';
+
 /** 로그인이 필요한 화면의 첫 마디. 새 화면을 만들면 여기와 proxy.ts의 matcher에 함께 더한다. */
 export const APP_ROUTE_PREFIXES = [
+  '/account',
   '/today',
   '/books',
   '/entry',

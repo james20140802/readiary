@@ -8,44 +8,83 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
+const active = (id: string) => ({ data: { id, account_deletions: null }, error: null });
+
 describe('server-only profile routing cache', () => {
-  it('reuses a positive lookup for at most 60 seconds', async () => {
-    const { hasProfile } = await import('../profilePresence');
-    const lookup = vi.fn().mockResolvedValue({ data: { id: 'a' }, error: null });
-    expect(await hasProfile('a', lookup)).toBe(true);
-    await hasProfile('a', lookup);
+  it('reuses an active lookup for at most 60 seconds', async () => {
+    const { profileState } = await import('../profilePresence');
+    const lookup = vi.fn().mockResolvedValue(active('a'));
+    expect(await profileState('a', lookup)).toBe('active');
+    await profileState('a', lookup);
     expect(lookup).toHaveBeenCalledTimes(1);
     vi.advanceTimersByTime(60_000);
-    await hasProfile('a', lookup);
+    await profileState('a', lookup);
     expect(lookup).toHaveBeenCalledTimes(2);
   });
   it('never shares existence between accounts or caches missing profiles', async () => {
-    const { hasProfile } = await import('../profilePresence');
-    await hasProfile('a', async () => ({ data: { id: 'a' }, error: null }));
+    const { profileState } = await import('../profilePresence');
+    await profileState('a', async () => active('a'));
     const lookup = vi
       .fn()
       .mockResolvedValueOnce({ data: null, error: null })
-      .mockResolvedValueOnce({ data: { id: 'b' }, error: null });
-    expect(await hasProfile('b', lookup)).toBe(false);
-    expect(await hasProfile('b', lookup)).toBe(true);
+      .mockResolvedValueOnce(active('b'));
+    expect(await profileState('b', lookup)).toBe('missing');
+    expect(await profileState('b', lookup)).toBe('active');
     expect(lookup).toHaveBeenCalledTimes(2);
   });
   it('onboarding forces a source read and invalidates a deleted profile', async () => {
-    const { hasProfile } = await import('../profilePresence');
+    const { profileState } = await import('../profilePresence');
     const lookup = vi
       .fn()
-      .mockResolvedValueOnce({ data: { id: 'a' }, error: null })
+      .mockResolvedValueOnce(active('a'))
       .mockResolvedValue({ data: null, error: null });
-    await hasProfile('a', lookup);
-    expect(await hasProfile('a', lookup, true)).toBe(false);
-    expect(await hasProfile('a', lookup)).toBe(false);
+    await profileState('a', lookup);
+    expect(await profileState('a', lookup, true)).toBe('missing');
+    expect(await profileState('a', lookup)).toBe('missing');
     expect(lookup).toHaveBeenCalledTimes(3);
   });
   it('DB errors propagate instead of sending users to onboarding or entering the cache', async () => {
-    const { hasProfile } = await import('../profilePresence');
+    const { profileState } = await import('../profilePresence');
     const lookup = vi.fn().mockResolvedValue({ data: null, error: { code: 'timeout' } });
-    await expect(hasProfile('a', lookup)).rejects.toThrow('Profile lookup failed');
-    await expect(hasProfile('a', lookup)).rejects.toThrow('Profile lookup failed');
+    await expect(profileState('a', lookup)).rejects.toThrow('Profile lookup failed');
+    await expect(profileState('a', lookup)).rejects.toThrow('Profile lookup failed');
+    expect(lookup).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('account deletion state', () => {
+  it.each([null, undefined, [], {}])('an empty embed (%j) means active', async (embed) => {
+    const { profileState } = await import('../profilePresence');
+    const lookup = vi.fn().mockResolvedValue({ data: { id: 'a', account_deletions: embed } });
+    expect(await profileState('a', lookup)).toBe('active');
+  });
+  it.each([[[{ purge_after: '2026-11-26T00:00:00Z' }]], [{ purge_after: '2026-11-26T00:00:00Z' }]])(
+    'a deletion row (%j) means pending',
+    async (embed) => {
+      const { profileState } = await import('../profilePresence');
+      const lookup = vi.fn().mockResolvedValue({ data: { id: 'a', account_deletions: embed } });
+      expect(await profileState('a', lookup)).toBe('pending');
+    }
+  );
+  it('never caches pending, so a restore takes effect on the next request', async () => {
+    const { profileState } = await import('../profilePresence');
+    const lookup = vi
+      .fn()
+      .mockResolvedValueOnce({
+        data: { id: 'a', account_deletions: [{ purge_after: '2026-11-26T00:00:00Z' }] },
+        error: null,
+      })
+      .mockResolvedValue(active('a'));
+    expect(await profileState('a', lookup)).toBe('pending');
+    expect(await profileState('a', lookup)).toBe('active');
+    expect(lookup).toHaveBeenCalledTimes(2);
+  });
+  it('forgetProfileState drops a cached active state', async () => {
+    const { profileState, forgetProfileState } = await import('../profilePresence');
+    const lookup = vi.fn().mockResolvedValue(active('a'));
+    await profileState('a', lookup);
+    forgetProfileState('a');
+    await profileState('a', lookup);
     expect(lookup).toHaveBeenCalledTimes(2);
   });
 });

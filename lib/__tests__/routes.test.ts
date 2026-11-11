@@ -32,6 +32,7 @@ describe('app routes', () => {
   it('covers the spec list', () => {
     expect([...APP_ROUTE_PREFIXES].sort()).toEqual(
       [
+        '/account',
         '/books',
         '/entry',
         '/excerpts',
