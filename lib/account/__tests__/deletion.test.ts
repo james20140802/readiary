@@ -30,6 +30,16 @@ describe('hasRecentSignIn', () => {
     };
     expect(hasRecentSignIn(claims, 1600)).toBe(true);
   });
+  it('미래 timestamp는 시계 오차 5분까지만 받는다', () => {
+    expect(hasRecentSignIn({ amr: [{ timestamp: 1600 + 301 }] }, 1600)).toBe(false);
+    expect(hasRecentSignIn({ amr: [{ timestamp: 1600 + 300 }] }, 1600)).toBe(true);
+    expect(hasRecentSignIn({ amr: [{ timestamp: 1600000 }] }, 1600)).toBe(false);
+  });
+  it('미래 항목은 무시하고 유효한 최근 항목으로 판정한다', () => {
+    const claims = { amr: [{ timestamp: 9999999999 }, { timestamp: 1000 }] };
+    expect(hasRecentSignIn(claims, 1600)).toBe(true);
+    expect(hasRecentSignIn(claims, 1601)).toBe(false);
+  });
   it('amr이 없거나 배열이 아니면 false', () => {
     expect(hasRecentSignIn({}, 1000)).toBe(false);
     expect(hasRecentSignIn({ amr: 'x' }, 1000)).toBe(false);

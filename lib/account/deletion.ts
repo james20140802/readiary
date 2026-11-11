@@ -6,6 +6,9 @@ export const ACCOUNT_DELETION_GRACE_DAYS = 14;
 /** 소셜 로그인 계정은 탈퇴 직전 이 시간 안에 다시 로그인했어야 본인으로 본다 */
 export const OAUTH_REAUTH_WINDOW_SECONDS = 600;
 
+/** 서버가 찍은 timestamp가 이 기기 시계보다 조금 앞서도 거절하지 않는다 */
+const CLOCK_SKEW_SECONDS = 5 * 60;
+
 /** 시행일 전에는 탈퇴 신청을 열지 않는다 */
 export function isAccountDeletionOpen(now: Date = new Date()): boolean {
   return now.getTime() >= Date.parse(ACCOUNT_DELETION_EFFECTIVE_AT);
@@ -33,7 +36,10 @@ export function hasRecentSignIn(claims: unknown, nowSeconds: number): boolean {
   for (const entry of amr) {
     if (!entry || typeof entry !== 'object') continue;
     const ts = (entry as { timestamp?: unknown }).timestamp;
-    if (typeof ts === 'number' && Number.isFinite(ts) && ts > latest) latest = ts;
+    if (typeof ts !== 'number' || !Number.isFinite(ts)) continue;
+    // 기기 시계보다 한참 앞선 값(밀리초 단위 등)은 신선한 로그인으로 치지 않는다
+    if (ts - nowSeconds > CLOCK_SKEW_SECONDS) continue;
+    if (ts > latest) latest = ts;
   }
   return latest >= nowSeconds - OAUTH_REAUTH_WINDOW_SECONDS;
 }
