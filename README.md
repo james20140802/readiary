@@ -63,6 +63,11 @@ public/              # 아이콘, manifest 등 정적 파일
 - 빌드할 때 `sw.js`와 `workbox-*.js`가 생성됩니다.
 - iOS Safari, Android, 데스크톱 브라우저에서 홈 화면에 설치할 수 있습니다.
 
+## 저작권
+
+© 2025–2026 김상협.
+[PolyForm Strict License 1.0.0](LICENSE)에 따라 제공합니다. 비상업 목적으로 읽고 실행해 볼 수 있지만, 수정·재배포하거나 이를 바탕으로 다른 서비스를 만들 수는 없습니다. 자세한 내용은 [NOTICE](NOTICE)에 있습니다.
+
 ---
 
 작업 규칙은 [AGENTS.md](AGENTS.md)에 있습니다.
