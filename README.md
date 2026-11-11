@@ -65,7 +65,7 @@ public/              # 아이콘, manifest 등 정적 파일
 
 ## 저작권
 
-© 2025–2026 Readiary 운영자. All rights reserved.
+© 2025–2026 김상협. All rights reserved.
 코드·문서·디자인·문구를 허락 없이 복제하거나 다른 서비스에 쓸 수 없습니다. 자세한 내용은 [LICENSE](LICENSE)에 있습니다.
 
 ---
