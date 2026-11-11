@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- 유예 기간은 **14일**이다(`purge_after = requested_at + interval '14 days'`).
+- 유예 기간은 **14일**이다. 최종 리뷰에서 `purge_after`를 신청한 날(KST) + 15일의 0시 KST로 고쳤다(`(date_trunc('day', now() at time zone 'Asia/Seoul') + interval '15 days') at time zone 'Asia/Seoul'`). 화면의 "~까지"는 `purge_after − 1초`의 KST 날짜(= 신청일 + 14일)다(`formatRestoreDeadline`).
 - 삭제 완료 기록(`account_deletion_purges`)은 사용자 UUID와 삭제 시각만 담고, **30일** 뒤에 지운다. 이메일, 닉네임, 내용은 넣지 않는다.
 - OAuth 사용자(비밀번호 없음)의 본인 확인 기준은 마지막 인증 시각이 **10분(600초) 이내**인지다.
 - 약관과 방침 개정은 **30일 전에 공지**한다. 탈퇴 버튼과 API는 `ACCOUNT_DELETION_EFFECTIVE_AT` 전에는 닫혀 있다.

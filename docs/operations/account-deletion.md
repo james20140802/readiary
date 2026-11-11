@@ -4,6 +4,16 @@
 
 설계와 결정 근거는 [계정 탈퇴와 14일 복구 유예 설계](../superpowers/specs/2026-11-12-account-deletion-design.md)를 따른다. 약관 제8조, 방침 제3조 제1·4·5·6항과 제8조 제3항이 이 절차를 약속한다.
 
+## 배포 순서
+
+**마이그레이션을 먼저, 앱을 나중에** 반영한다.
+
+1. 마이그레이션 세 개 `20261112090000_account_deletions.sql`, `20261112091000_account_deletion_visibility.sql`, `20261112092000_account_deletion_writes.sql`을 이 순서로 운영 DB에 적용한다. 다른 미적용 마이그레이션을 일괄 적용하지 않는다.
+2. 적용을 확인한다. `select to_regclass('public.account_deletions'), to_regclass('public.account_deletion_purges');`가 두 이름을 돌려주고, `select proname from pg_proc where proname in ('request_account_deletion', 'cancel_account_deletion', 'record_account_purge', 'prune_account_purges');`가 네 행을 돌려줘야 한다.
+3. 그다음에 PR을 머지하고 앱 배포가 성공했는지 본다.
+
+순서가 뒤집히면 새 앱의 `proxy.ts`가 로그인한 모든 요청에서 `profiles.select('id, account_deletions(purge_after)')`를 부르는데, 운영 DB에 `account_deletions` 테이블이 없어 PostgREST가 임베드 오류를 돌려준다. 이때 앱은 `select('id')`로 한 번 더 읽어 프로필이 있으면 쓰는 중으로 보고 넘어가지만(캐시하지 않는다), 탈퇴 신청·복구 API와 정기 작업은 마이그레이션 없이 동작하지 않고 요청마다 조회가 두 번 일어난다. 대체 경로는 사고를 줄이는 안전장치일 뿐 정상 배포 순서가 아니다.
+
 ## 시행일과 공고
 
 - 개정 약관·방침은 `lib/legal/texts.ts`의 `LEGAL_ANNOUNCED`에 공고하고 30일 뒤 `TERMS_EFFECTIVE`·`PRIVACY_EFFECTIVE`에 시행한다. 보관이 늘어나는 것으로 읽힐 수 있어 불리한 변경 기준(약관 제10조, 방침 제11조)을 적용했다. 이 브랜치의 초안 값은 2026-11-13 공고, 2026-12-13 시행이다.
@@ -13,7 +23,7 @@
 
 ## 앱 흐름
 
-1. **신청**: 설정 → 계정 → "탈퇴하기" 시트. 비밀번호 사용자는 현재 비밀번호를, 비밀번호가 없는 Google 사용자는 10분 안에 다시 로그인했는지를 서버(`POST /api/account/deletion`)가 확인한다. 통과하면 `request_account_deletion`이 `account_deletions`에 신청 시각과 삭제 예정 시각(신청 + 14일)을 남기고 푸시 구독을 지운다. 이어서 모든 기기에서 로그아웃(global sign-out)하고 로그인 화면에 되돌릴 수 있는 날짜를 안내한다.
+1. **신청**: 설정 → 계정 → "탈퇴하기" 시트. 비밀번호 사용자는 현재 비밀번호를, 비밀번호가 없는 Google 사용자는 10분 안에 다시 로그인했는지를 서버(`POST /api/account/deletion`)가 확인한다. 통과하면 `request_account_deletion`이 `account_deletions`에 신청 시각과 삭제 예정 시각(신청한 날(KST) + 15일의 0시 KST — 신청한 날부터 14일째 되는 날 하루가 끝날 때)을 남기고 푸시 구독을 지운다. 이어서 모든 기기에서 로그아웃(global sign-out)하고 로그인 화면에 되돌릴 수 있는 날짜를 안내한다.
 2. **유예(0~14일)**: 프로필·책장·기록·발췌집·반응·친구 목록·공유 링크·알림에서 그 독자가 다른 사람에게 보이지 않는다. 숨김과 쓰기 차단은 RLS·RPC가 보장한다. 이미 발급된 액세스 토큰이 남아 있어도 쓰기는 거부된다. 푸시 구독은 지워졌고, 이메일 소식은 동의 상태를 그대로 둔 채 발송 대상에서 빠진다(`claim_marketing_email`).
 3. **복구**: 유예 중인 계정으로 로그인하면 `/account/restore`로 보낸다. "탈퇴 취소하고 돌아가기"(`DELETE /api/account/deletion` → `cancel_account_deletion`)를 누르면 숨김이 바로 풀린다. 기기 알림은 다시 켜야 한다. 삭제 예정 시각이 지난 신청은 취소할 수 없다.
 4. **완전 삭제**: 매일 KST 04:17 정기 작업이 기한이 지난 계정을 한 번에 최대 5개씩 처리한다(`app/api/cron/account-deletion/route.ts`).
@@ -28,6 +38,8 @@
 
 앱에 접근할 수 없는 독자를 위해 방침 제10조 연락처로 받은 요청도 처리한다. 요청을 확인한 날부터 10일 안에 처리하고 결과를 알린다(방침 제8조 제3항).
 
+**시행일 전에는 옛 방침대로 바로 지운다.** `ACCOUNT_DELETION_EFFECTIVE_AT`(새 방침 시행일 0시 KST, 현재 초안 2026-12-13) 전에 받은 메일 요청은 지금 시행 중인 방침(`/privacy/2026-11-03`)의 즉시 삭제를 따른다. 14일 유예를 적용하지 않고, 아래 2·3번 대신 4번의 단계(Storage 파일 삭제 → Auth 사용자 삭제 → `record_account_purge`)로 처리한다. 프로필이 있는 계정이어도 Auth 사용자를 지우면 FK CASCADE로 프로필과 기록이 함께 지워진다. 시행일부터는 아래 순서대로 14일 유예를 거친다.
+
 1. 본인임을 확인한다. 가입 이메일 주소에서 보낸 요청인지 보고, 확실하지 않으면 그 주소로 확인 메일을 보내 답을 받는다. 확인 전에는 처리하지 않는다.
 2. Supabase SQL Editor에서 그 계정의 UUID를 찾고(`auth.users`), 다음을 차례로 실행한다.
 
@@ -37,17 +49,19 @@
    ```
 
    첫 줄은 앱 신청과 같은 상태를 남기고 삭제 예정 시각을 돌려준다(이미 신청한 계정이면 기존 시각을 그대로 돌려준다). 둘째 줄은 모든 기기의 세션을 끊는다. 이미 발급된 액세스 토큰은 만료 전까지 남지만 RLS·RPC가 쓰기를 거부한다.
-3. 독자에게 돌려받은 삭제 예정일(KST)과 그 전에 로그인하면 되돌릴 수 있다는 점을 알린다. 나머지는 앱 신청과 같이 정기 작업이 처리한다.
-4. **프로필이 없는 계정(온보딩을 끝내지 않은 Auth 사용자)**: `account_deletions.user_id`가 `profiles(id)`를 참조하므로 2번의 `request_account_deletion`이 FK 위반으로 실패한다. 먼저 `select 1 from public.profiles where id = '<uuid>';`로 프로필 행이 없는지 확인하고, 없으면 유예 없이 바로 지운다. 다른 사람에게 보이는 프로필·기록이 없어 숨길 것이 없고, 되돌릴 데이터도 없기 때문이다. 이 경우에도 요청을 확인한 날부터 10일 안에 마친다.
+3. 독자에게 되돌릴 수 있는 마지막 날(돌려받은 삭제 예정 시각에서 1초 뺀 시각의 KST 날짜, 곧 신청한 날 + 14일)과 그날까지 로그인하면 되돌릴 수 있다는 점을 알린다. 나머지는 앱 신청과 같이 정기 작업이 처리한다.
+4. **프로필이 없는 계정(온보딩을 끝내지 않은 Auth 사용자), 또는 시행일 전 요청**: `account_deletions.user_id`가 `profiles(id)`를 참조하므로 2번의 `request_account_deletion`이 FK 위반으로 실패한다. 먼저 `select 1 from public.profiles where id = '<uuid>';`로 프로필 행이 없는지 확인하고, 없으면 유예 없이 바로 지운다. 다른 사람에게 보이는 프로필·기록이 없어 숨길 것이 없고, 되돌릴 데이터도 없기 때문이다. 이 경우에도 요청을 확인한 날부터 10일 안에 마친다.
    1. Storage API(대시보드 Storage 화면 또는 서비스 롤 클라이언트)로 `profiles/<uid>/`가 비어 있는지 보고, 파일이 있으면 Storage API로 지운다. 메타데이터 행을 SQL로 지우지 않는다.
    2. 대시보드 Authentication 화면이나 admin API(`auth.admin.deleteUser`)로 Auth 사용자를 지운다. 세션도 함께 사라진다.
    3. 백업 복구 때 다시 지울 수 있도록 SQL Editor에서 `select public.record_account_purge('<uuid>');`를 실행한다.
    4. 독자에게 삭제를 마쳤다고 알린다.
+
+   시행일 전 요청이면 프로필이 있어도 위 1~4를 그대로 따른다. 1번 전에 프로필 행 확인은 건너뛴다.
 5. 요청을 받은 메일과 처리 사실은 운영자 메일함 외의 곳(노션·이슈·PR)에 이메일 주소나 UUID와 함께 옮겨 적지 않는다.
 
 ## 정기 작업 설치
 
-먼저 앱과 마이그레이션 세 개(`20261112090000_account_deletions.sql`, `20261112091000_account_deletion_visibility.sql`, `20261112092000_account_deletion_writes.sql`)를 운영에 반영한다. 다른 미적용 마이그레이션을 일괄 적용하지 않는다.
+먼저 위 "배포 순서"대로 마이그레이션 세 개를 운영에 적용·확인한 뒤 앱을 반영한다.
 
 1. 서버 환경변수 `CRON_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_SUPABASE_URL`이 Production에 있는지 확인한다. 값은 출력하거나 복사하지 않는다. 서비스 롤 키가 없으면 라우트는 `503 {enabled:false}`로 응답한다.
 2. pg_cron과 pg_net이 켜져 있는지 확인한다(푸시 작업에서 이미 켰다).
