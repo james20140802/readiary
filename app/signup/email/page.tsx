@@ -18,6 +18,7 @@ import { PENDING_REDIRECT_KEY, toPendingRedirect } from '@/lib/auth/pendingRedir
 import {
   NETWORK_ERROR_MESSAGE,
   describeAuthError,
+  PENDING_DELETION_HINT,
   validateEmail,
   validateNewPassword,
   MIN_PASSWORD_LENGTH,
@@ -95,7 +96,7 @@ export default function EmailSignupPage() {
       // 그대로 "가입 완료"를 보여주면 사용자는 오지 않는 메일을 기다리게 된다
       if (data.user && data.user.identities && data.user.identities.length === 0) {
         setFormError(
-          '이미 가입된 이메일입니다. 로그인하거나 비밀번호를 재설정해주세요. 탈퇴를 신청한 계정이라면 14일 안에 로그인해서 되돌릴 수 있어요.'
+          `이미 가입된 이메일입니다. 로그인하거나 비밀번호를 재설정해주세요. ${PENDING_DELETION_HINT}`
         );
         return;
       }

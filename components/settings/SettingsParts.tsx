@@ -78,7 +78,7 @@ export function SettingsSection({
 }
 
 const ROW =
-  'flex min-h-[54px] w-full items-center gap-3 border-t border-hairline text-left font-sans text-[17px] font-medium text-ink';
+  'flex min-h-[54px] w-full items-center gap-3 border-t border-hairline text-left font-sans text-[17px] font-medium';
 
 /** 목록 줄 — 시안의 .lrow. 이동(href)·동작(onClick)·표시만(둘 다 없음) */
 export function SettingsRow({
@@ -128,7 +128,8 @@ export function SettingsRow({
   const cls = clsx(
     ROW,
     last && 'border-b',
-    tone === 'danger' && 'text-danger',
+    // ROW에 색을 박아 두면 tailwind 순서상 text-ink가 이겨 위험한 줄이 먹색으로 보인다 — 여기서 하나만 고른다
+    tone === 'danger' ? 'text-danger' : 'text-ink',
     (href || onClick) &&
       'focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent disabled:opacity-50'
   );
@@ -170,7 +171,7 @@ export function SwitchRow({
   last?: boolean;
 }) {
   return (
-    <div className={clsx(ROW, last && 'border-b')}>
+    <div className={clsx(ROW, 'text-ink', last && 'border-b')}>
       <span className="min-w-0 py-2.5">
         {title}
         {hint && (

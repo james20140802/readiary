@@ -14,7 +14,10 @@ describe('describeAuthError', () => {
       '이메일 또는 비밀번호가 일치하지 않습니다.'
     );
     expect(describeAuthError('signup', 'User already registered')).toBe(
-      '이미 가입된 이메일입니다.'
+      '이미 가입된 이메일입니다. 탈퇴를 신청한 계정이라면 14일 안에 로그인해서 되돌릴 수 있어요.'
+    );
+    expect(describeAuthError('signup', { code: 'user_already_exists', status: 422 })).toBe(
+      '이미 가입된 이메일입니다. 탈퇴를 신청한 계정이라면 14일 안에 로그인해서 되돌릴 수 있어요.'
     );
     expect(
       describeAuthError('updatePassword', 'New password should be different from the old password.')

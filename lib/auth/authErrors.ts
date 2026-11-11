@@ -24,6 +24,11 @@ export interface AuthErrorLike {
   code?: string;
 }
 
+/** 탈퇴 유예 중인 계정도 "이미 가입된 이메일"로 막히므로, 로그인해서 되돌리는 길을 함께 알린다 */
+export const PENDING_DELETION_HINT =
+  '탈퇴를 신청한 계정이라면 14일 안에 로그인해서 되돌릴 수 있어요.';
+const ALREADY_REGISTERED = `이미 가입된 이메일입니다. ${PENDING_DELETION_HINT}`;
+
 export type AuthFlow = 'login' | 'signup' | 'reset' | 'updatePassword';
 
 /** 오류 코드(문구보다 안정적) — 문구 표보다 먼저 본다 */
@@ -31,6 +36,9 @@ const CODE_TABLE: Partial<Record<AuthFlow, Record<string, string>>> = {
   login: {
     invalid_credentials: '이메일 또는 비밀번호가 일치하지 않습니다.',
     email_not_confirmed: '이메일 인증이 완료되지 않았습니다. 받은 메일함을 확인해주세요.',
+  },
+  signup: {
+    user_already_exists: ALREADY_REGISTERED,
   },
 };
 
@@ -41,7 +49,7 @@ const TABLE: Record<AuthFlow, Record<string, string>> = {
     'Email logins are disabled': '이메일 로그인이 비활성화되어 있습니다.',
   },
   signup: {
-    'User already registered': '이미 가입된 이메일입니다.',
+    'User already registered': ALREADY_REGISTERED,
     'Invalid email format': '이메일 형식을 확인해주세요.',
     'Unable to validate email address: invalid format': '이메일 형식을 확인해주세요.',
     'Password should be at least 6 characters': '비밀번호는 최소 6자 이상이어야 합니다.',
