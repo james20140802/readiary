@@ -14,7 +14,7 @@ export default function LandingFooter() {
         <Link href="/privacy">개인정보처리방침</Link>
         {SUPPORT_EMAIL && <a href={`mailto:${SUPPORT_EMAIL}`}>문의</a>}
       </nav>
-      <p>© 2026 Readiary. All rights reserved.</p>
+      <p>© 2026 Readiary</p>
     </footer>
   );
 }
