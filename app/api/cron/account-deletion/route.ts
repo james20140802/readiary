@@ -30,8 +30,10 @@ async function removeFiles(db: SupabaseClient, uid: string): Promise<boolean> {
   const paths: string[] = [];
   if (!(await collectPaths(db, uid, paths))) return false;
   for (let i = 0; i < paths.length; i += PAGE) {
-    const { error } = await db.storage.from(BUCKET).remove(paths.slice(i, i + PAGE));
-    if (error) return false;
+    const batch = paths.slice(i, i + PAGE);
+    const { data, error } = await db.storage.from(BUCKET).remove(batch);
+    // 실제로 지워졌는지 확인한다.
+    if (error || data?.length !== batch.length) return false;
   }
   return true;
 }
@@ -49,13 +51,15 @@ async function purgeUser(db: SupabaseClient, uid: string): Promise<Outcome> {
     .maybeSingle();
   if (checkError) return 'failed';
   if (!still) return 'skipped';
-  const { error: deleteError } = await db.auth.admin.deleteUser(uid);
-  // 일부만 처리된 뒤 재시도하면 이미 없는 사용자일 수 있다. 그때는 삭제된 것으로 본다.
-  const err = deleteError as { status?: number; code?: string } | null;
-  const gone = err?.status === 404 || err?.code === 'user_not_found';
-  if (deleteError && !gone) return 'failed';
+  // 계정 행은 auth 사용자 삭제와 함께 연쇄 삭제되어 다시 집계되지 않는다.
+  // 그러므로 완료 기록(upsert라 재시도해도 안전)을 먼저 남기고 사용자를 지운다.
   const { error: recordError } = await db.rpc('record_account_purge', { p_user: uid });
-  return recordError ? 'failed' : 'purged';
+  if (recordError) return 'failed';
+  const { error: deleteError } = await db.auth.admin.deleteUser(uid);
+  // 이미 없는 사용자(404)는 삭제된 것으로 본다. 다른 오류는 다음 실행에서 다시 집계해 재시도한다.
+  const err = deleteError as { status?: number; code?: string } | null;
+  if (deleteError && err?.status !== 404 && err?.code !== 'user_not_found') return 'failed';
+  return 'purged';
 }
 
 export async function GET(request: Request) {
@@ -64,6 +68,8 @@ export async function GET(request: Request) {
   if (!expected.length || actual.length !== expected.length || !timingSafeEqual(actual, expected))
     return reply({ error: 'Unauthorized' }, 401);
 
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY)
+    return reply({ enabled: false }, 503);
   const db = accountAdmin();
   let purged = 0;
   let failed = 0;
