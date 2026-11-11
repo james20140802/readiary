@@ -8,6 +8,7 @@ describe('frameFor', () => {
     ['/share/e/abc', 'bare'],
     ['/invite/x', 'bare'],
     ['/privacy', 'bare'],
+    ['/account/restore', 'bare'],
     ['/books', 'leaves'],
     ['/books/1', 'leaves'],
     ['/books/new', 'plain'],

@@ -94,7 +94,9 @@ export default function EmailSignupPage() {
       // 이메일 확인이 켜진 프로젝트는 기존 계정이어도 성공처럼 답하되 identities가 비어 온다 —
       // 그대로 "가입 완료"를 보여주면 사용자는 오지 않는 메일을 기다리게 된다
       if (data.user && data.user.identities && data.user.identities.length === 0) {
-        setFormError('이미 가입된 이메일입니다. 로그인하거나 비밀번호를 재설정해주세요.');
+        setFormError(
+          '이미 가입된 이메일입니다. 로그인하거나 비밀번호를 재설정해주세요. 탈퇴를 신청한 계정이라면 14일 안에 로그인해서 되돌릴 수 있어요.'
+        );
         return;
       }
       setSignupComplete(true);

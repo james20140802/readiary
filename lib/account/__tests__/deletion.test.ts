@@ -4,6 +4,8 @@ import {
   hasPasswordIdentity,
   hasRecentSignIn,
   isAccountDeletionOpen,
+  parsePurgeDateParam,
+  toPurgeDateParam,
 } from '../deletion';
 import { ACCOUNT_DELETION_EFFECTIVE_AT } from '@/lib/legal/texts';
 
@@ -12,6 +14,21 @@ describe('formatPurgeDate', () => {
     expect(formatPurgeDate('2026-11-26T14:59:59Z')).toBe('11월 26일');
     expect(formatPurgeDate('2026-11-26T15:00:00Z')).toBe('11월 27일');
     expect(formatPurgeDate(new Date('2026-11-26T15:00:00Z'))).toBe('11월 27일');
+  });
+});
+
+describe('삭제 예정일 주소 값', () => {
+  it('KST 날짜를 YYYY-MM-DD로 싣고, 다시 읽으면 같은 날로 보인다', () => {
+    expect(toPurgeDateParam('2026-11-26T14:59:59Z')).toBe('2026-11-26');
+    expect(toPurgeDateParam('2026-11-26T15:00:00Z')).toBe('2026-11-27');
+    const parsed = parsePurgeDateParam('2026-11-26');
+    expect(parsed && formatPurgeDate(parsed)).toBe('11월 26일');
+  });
+  it('모양이 다르거나 없는 날짜는 받지 않는다', () => {
+    expect(parsePurgeDateParam(null)).toBeNull();
+    expect(parsePurgeDateParam('2026-13-01')).toBeNull();
+    expect(parsePurgeDateParam('2026-02-30')).toBeNull();
+    expect(parsePurgeDateParam('<script>')).toBeNull();
   });
 });
 

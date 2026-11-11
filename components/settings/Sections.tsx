@@ -30,11 +30,14 @@ export function AccountSection({
   onPassword,
   onSignOut,
   signingOut,
+  onDelete,
 }: {
   email: string | null;
   onPassword: () => void;
   onSignOut: () => void;
   signingOut: boolean;
+  /** 탈퇴를 받는 동안에만 넘긴다 — 없으면 행을 그리지 않는다 */
+  onDelete?: () => void;
 }) {
   return (
     <SettingsSection id="account" title="계정">
@@ -47,9 +50,14 @@ export function AccountSection({
         <SettingsRow id="password" onClick={onPassword}>
           비밀번호 바꾸기
         </SettingsRow>
-        <SettingsRow onClick={onSignOut} disabled={signingOut} chevron={false} last>
+        <SettingsRow onClick={onSignOut} disabled={signingOut} chevron={false} last={!onDelete}>
           {signingOut ? '로그아웃하는 중…' : '로그아웃'}
         </SettingsRow>
+        {onDelete && (
+          <SettingsRow onClick={onDelete} disabled={signingOut} tone="danger" last>
+            탈퇴하기
+          </SettingsRow>
+        )}
       </div>
     </SettingsSection>
   );

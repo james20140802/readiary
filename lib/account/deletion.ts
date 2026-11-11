@@ -27,6 +27,27 @@ export function formatPurgeDate(purgeAfter: string | Date): string {
   return `${month}월 ${day}일`;
 }
 
+/** 로그인 화면 주소에 실을 삭제 예정일 — 한국 시간 기준 YYYY-MM-DD */
+export function toPurgeDateParam(purgeAfter: string | Date): string {
+  const date = typeof purgeAfter === 'string' ? new Date(purgeAfter) : purgeAfter;
+  // en-CA는 YYYY-MM-DD 꼴로 적는다
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date);
+}
+
+/** 주소의 삭제 예정일을 읽는다 — 모양이 틀리거나 없는 날이면 null(안내를 띄우지 않는다) */
+export function parsePurgeDateParam(value: string | null): Date | null {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  // 한국 시간 그날 정오로 둬서 어느 시간대에서 읽어도 같은 날이 된다
+  const date = new Date(`${value}T12:00:00+09:00`);
+  if (Number.isNaN(date.getTime()) || toPurgeDateParam(date) !== value) return null;
+  return date;
+}
+
 /** JWT `amr` 항목 중 가장 늦은 인증 시각이 최근 10분 안인지 — 방금 본인이 로그인했는지 확인한다 */
 export function hasRecentSignIn(claims: unknown, nowSeconds: number): boolean {
   if (!claims || typeof claims !== 'object') return false;
