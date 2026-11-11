@@ -60,6 +60,17 @@ describe('proxy authentication and profile cache', () => {
     expect(response.headers.get('cache-control')).toBe('no-store');
     expect(response.headers.get('location')).toBeNull();
   });
+  it('degrades to a plain profile read when the deletion embed fails (migration not applied yet)', async () => {
+    lookup
+      .mockResolvedValueOnce({ data: null, error: { code: 'PGRST200' } })
+      .mockResolvedValueOnce({ data: { id: 'a' }, error: null });
+    const { updateSession } = await import('../../../proxy');
+    const response = await updateSession(request('/today'));
+    expect(response.status).toBe(200);
+    expect(response.headers.get('location')).toBeNull();
+    expect(select).toHaveBeenNthCalledWith(1, 'id, account_deletions(purge_after)');
+    expect(select).toHaveBeenNthCalledWith(2, 'id');
+  });
   it('preserves refreshed auth cookies on onboarding redirects', async () => {
     vi.mocked(createServerClient).mockImplementation((_url, _key, options) => {
       getUser.mockImplementation(async () => {

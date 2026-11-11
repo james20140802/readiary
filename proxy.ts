@@ -57,7 +57,9 @@ export async function updateSession(request: NextRequest) {
             .select('id, account_deletions(purge_after)')
             .eq('id', user.id)
             .maybeSingle(),
-        pathname.startsWith('/onboarding') || onRestore
+        pathname.startsWith('/onboarding') || onRestore,
+        // 탈퇴 마이그레이션보다 앱이 먼저 배포돼도 임베드 실패로 모두가 503을 보지 않게 한다
+        () => supabase.from('profiles').select('id').eq('id', user.id).maybeSingle()
       );
     } catch {
       const response = new NextResponse(

@@ -18,16 +18,28 @@ function hasDeletionRow(embed: unknown): boolean {
   return false;
 }
 
-/** `profiles.select('id, account_deletions(purge_after)')` 결과로 이 사람이 갈 곳을 정한다 */
+type Lookup = () => PromiseLike<{ data: ProfileRow; error?: unknown }>;
+
+/**
+ * `profiles.select('id, account_deletions(purge_after)')` 결과로 이 사람이 갈 곳을 정한다.
+ * 임베드가 실패하면(탈퇴 마이그레이션이 아직 없는 DB 등) `fallbackLookup`(`select('id')`)으로
+ * 한 번 더 읽어 프로필이 있으면 'active'로 본다 — 이 대체 결과는 캐시하지 않는다.
+ */
 export async function profileState(
   userId: string,
-  lookup: () => PromiseLike<{ data: ProfileRow; error?: unknown }>,
-  forceRefresh = false
+  lookup: Lookup,
+  forceRefresh = false,
+  fallbackLookup?: Lookup
 ): Promise<ProfileState> {
   if (!forceRefresh && (activeUntil.get(userId) ?? 0) > Date.now()) return 'active';
   activeUntil.delete(userId);
   const { data, error } = await lookup();
-  if (error) throw new Error('Profile lookup failed');
+  if (error) {
+    if (!fallbackLookup) throw new Error('Profile lookup failed');
+    const fallback = await fallbackLookup();
+    if (fallback.error) throw new Error('Profile lookup failed');
+    return fallback.data ? 'active' : 'missing';
+  }
   // 없음·유예 중은 캐시하지 않는다: 온보딩을 마치거나 복구하면 바로 다음 요청부터 맞아야 한다
   if (!data) return 'missing';
   if (hasDeletionRow(data.account_deletions)) return 'pending';

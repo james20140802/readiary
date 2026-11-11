@@ -88,3 +88,29 @@ describe('account deletion state', () => {
     expect(lookup).toHaveBeenCalledTimes(2);
   });
 });
+
+describe('degrading before the deletion migration lands', () => {
+  it('falls back to a plain profile read when the embed errors, and does not cache it', async () => {
+    const { profileState } = await import('../profilePresence');
+    const lookup = vi.fn().mockResolvedValue({ data: null, error: { code: 'PGRST200' } });
+    const fallback = vi.fn().mockResolvedValue({ data: { id: 'a' }, error: null });
+    expect(await profileState('a', lookup, false, fallback)).toBe('active');
+    expect(await profileState('a', lookup, false, fallback)).toBe('active');
+    expect(lookup).toHaveBeenCalledTimes(2);
+    expect(fallback).toHaveBeenCalledTimes(2);
+  });
+  it('the fallback still reports a missing profile as missing', async () => {
+    const { profileState } = await import('../profilePresence');
+    const lookup = vi.fn().mockResolvedValue({ data: null, error: { code: 'PGRST200' } });
+    const fallback = vi.fn().mockResolvedValue({ data: null, error: null });
+    expect(await profileState('a', lookup, false, fallback)).toBe('missing');
+  });
+  it('throws when the fallback also fails', async () => {
+    const { profileState } = await import('../profilePresence');
+    const lookup = vi.fn().mockResolvedValue({ data: null, error: { code: 'PGRST200' } });
+    const fallback = vi.fn().mockResolvedValue({ data: null, error: { code: 'timeout' } });
+    await expect(profileState('a', lookup, false, fallback)).rejects.toThrow(
+      'Profile lookup failed'
+    );
+  });
+});
