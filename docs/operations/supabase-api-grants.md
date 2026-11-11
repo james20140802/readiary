@@ -53,6 +53,7 @@ PGLITE_MODULE=/tmp/readiary-grants-sql/node_modules/@electric-sql/pglite/dist/in
 - `20261106120000_monthly_excerpt_reactions.sql`(좋아요·댓글 테이블 2개, 정책 6개, RPC 3개, `notifications`의 열 2개·인덱스 3개·넓힌 `type` 검사): 프로덕션 미적용. 위와 같이 예상치다.
 - `20261106130000_social_feed_items.sql`(피드 RPC `get_social_feed_items`, 정의자 함수 `friend_feed_monthly_excerpts`): 프로덕션 미적용. 위와 같이 예상치다.
 - `20261112090000_account_deletions.sql`(탈퇴 신청 상태 테이블 2개, 정책 1개, 함수 7개): 프로덕션 미적용. 위와 같이 예상치다.
+- `20261112091000_account_deletion_visibility.sql`(유예 중인 계정을 숨기는 restrictive SELECT 정책 7개, 함수 8개 재정의 — 시그니처는 그대로): 프로덕션 미적용. 위와 같이 예상치다.
 
 ### CI에서 자동으로 도는 DB 테스트
 

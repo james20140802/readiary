@@ -1,5 +1,14 @@
 // 메모리 안의 임시 PGlite DB만 쓴다. 탈퇴 신청 상태 테이블과 신청·복구·삭제 RPC의 권한과 동작을 확인한다.
-import { runRlsContract, OWNER, FRIEND, DENIED } from './lib/rls-fixture.mjs';
+import {
+  runRlsContract,
+  OWNER,
+  FRIEND,
+  STRANGER,
+  SHELF,
+  PUBLIC_ENTRY,
+  DENIED,
+  uuid,
+} from './lib/rls-fixture.mjs';
 import assert from 'node:assert/strict';
 
 await runRlsContract(
@@ -159,5 +168,196 @@ await runRlsContract(
     // 삭제 기록 테이블은 사용자·비로그인에게 닫혀 있다
     await denied(run(OWNER, 'select * from public.account_deletion_purges'));
     await denied(run(null, 'select * from public.account_deletion_purges'));
+  }
+);
+
+// 유예 중인 계정은 다른 사람(친구·모르는 사람·공유 링크)에게 보이지 않고, 취소하면 그대로 돌아온다.
+// 새 DB에서 따로 시드한다. 위 시나리오가 남긴 신청 상태와 섞이지 않게 한다.
+await runRlsContract(
+  'pending accounts are hidden from others and come back after cancel',
+  async ({ db, run }) => {
+    const FRIEND_SHELF = uuid(13);
+    const FRIEND_BOOK = uuid(14);
+    const FRIEND_ENTRY = uuid(23);
+    const OWNER_JAN_ENTRY = uuid(24);
+    const MONTH = '2026-01';
+
+    // FRIEND의 공개 기록에 OWNER가 댓글·좋아요를 남겼고, 그 알림이 FRIEND에게 있다.
+    // OWNER의 공개 기록 하나는 외부 링크로 공유 중이다. 두 사람 모두 1월 발췌집을 친구에게 공개했다.
+    await db.exec(`
+      insert into public.books (id, title) values ('${FRIEND_BOOK}', 'friend book');
+      insert into public.user_books (id, user_id, book_id) values ('${FRIEND_SHELF}', '${FRIEND}', '${FRIEND_BOOK}');
+      insert into public.entries (id, user_book_id, date, quote, is_private) values
+        ('${FRIEND_ENTRY}', '${FRIEND_SHELF}', '${MONTH}-10', 'friend quote', false),
+        ('${OWNER_JAN_ENTRY}', '${SHELF}', '${MONTH}-10', 'owner january quote', false);
+      update public.entries set shared_at = now() where id = '${PUBLIC_ENTRY}';
+      insert into public.comments (entry_id, user_id, content) values ('${FRIEND_ENTRY}', '${OWNER}', 'owner comment');
+      insert into public.likes (entry_id, user_id) values ('${FRIEND_ENTRY}', '${OWNER}');
+      insert into public.notifications (user_id, actor_id, type, entry_id) values ('${FRIEND}', '${OWNER}', 'like', '${FRIEND_ENTRY}');
+    `);
+    await run(OWNER, 'select public.save_monthly_excerpt($1, $2, true)', [
+      MONTH,
+      [OWNER_JAN_ENTRY],
+    ]);
+    const friendExcerpt = (
+      await run(FRIEND, 'select public.save_monthly_excerpt($1, $2, true) as id', [
+        MONTH,
+        [FRIEND_ENTRY],
+      ])
+    ).rows[0].id;
+    await db.exec(`
+      insert into public.monthly_excerpt_likes (user_id, excerpt_id) values ('${OWNER}', '${friendExcerpt}');
+      insert into public.monthly_excerpt_comments (excerpt_id, user_id, content) values ('${friendExcerpt}', '${OWNER}', 'owner excerpt comment');
+    `);
+
+    const count = async (who, sql, params) =>
+      Number((await run(who, `select count(*)::int as n from (${sql}) q`, params)).rows[0].n);
+
+    // FRIEND·STRANGER·비로그인이 보는 OWNER의 흔적을 한 번에 모은다.
+    const snapshot = async () => {
+      const feed = (await run(FRIEND, 'select public.get_social_feed_items(0, 20) as f')).rows[0].f;
+      const reactions = (
+        await run(FRIEND, 'select public.get_monthly_excerpt_reactions($1) as r', [friendExcerpt])
+      ).rows[0].r;
+      return {
+        friendProfiles: await count(FRIEND, 'select 1 from public.profiles where id = $1', [OWNER]),
+        strangerProfiles: await count(STRANGER, 'select 1 from public.profiles where id = $1', [
+          OWNER,
+        ]),
+        userBooks: await count(FRIEND, 'select 1 from public.user_books where user_id = $1', [
+          OWNER,
+        ]),
+        entries: await count(FRIEND, 'select 1 from public.entries where user_book_id = $1', [
+          SHELF,
+        ]),
+        comments: await count(
+          FRIEND,
+          'select 1 from public.comments where entry_id = $1 and user_id = $2',
+          [FRIEND_ENTRY, OWNER]
+        ),
+        likes: await count(
+          FRIEND,
+          'select 1 from public.likes where entry_id = $1 and user_id = $2',
+          [FRIEND_ENTRY, OWNER]
+        ),
+        excerptLikes: await count(
+          FRIEND,
+          'select 1 from public.monthly_excerpt_likes where excerpt_id = $1 and user_id = $2',
+          [friendExcerpt, OWNER]
+        ),
+        excerptComments: await count(
+          FRIEND,
+          'select 1 from public.monthly_excerpt_comments where excerpt_id = $1 and user_id = $2',
+          [friendExcerpt, OWNER]
+        ),
+        friends: await count(
+          FRIEND,
+          'select 1 from public.friends where user_id = $1 or friend_id = $1',
+          [OWNER]
+        ),
+        notifications: await count(
+          FRIEND,
+          'select 1 from public.notifications where actor_id = $1',
+          [OWNER]
+        ),
+        isFriend: (await run(FRIEND, 'select public.is_friend_with($1) as f', [OWNER])).rows[0].f,
+        feedOwnerItems: feed.filter((i) => i.profile?.id === OWNER).length,
+        feedExcerpts: await count(
+          FRIEND,
+          'select 1 from public.friend_feed_monthly_excerpts(20) where user_id = $1',
+          [OWNER]
+        ),
+        friendExcerpt:
+          (
+            await run(FRIEND, 'select public.get_friend_monthly_excerpt($1, $2) as x', [
+              OWNER,
+              MONTH,
+            ])
+          ).rows[0].x !== null,
+        friendExcerptYear: (
+          await run(FRIEND, 'select public.get_friend_monthly_excerpt_year($1, 2026) as y', [OWNER])
+        ).rows[0].y.length,
+        friendExcerptYears: await count(
+          FRIEND,
+          'select 1 from public.get_friend_monthly_excerpt_years($1)',
+          [OWNER]
+        ),
+        reactionLikes: reactions.likeCount,
+        reactionComments: reactions.commentCount,
+        publicEntry: await count(null, 'select 1 from public.get_public_entry($1)', [PUBLIC_ENTRY]),
+        ownerSelfProfile: await count(OWNER, 'select 1 from public.profiles where id = $1', [
+          OWNER,
+        ]),
+      };
+    };
+
+    const before = await snapshot();
+    // 시드가 실제로 보이는지 먼저 확인한다(숨김 단언이 헛돌지 않게).
+    assert.deepEqual(before, {
+      friendProfiles: 1,
+      strangerProfiles: 1,
+      userBooks: 1,
+      entries: 2,
+      comments: 1,
+      likes: 1,
+      excerptLikes: 1,
+      excerptComments: 1,
+      friends: 1,
+      notifications: 1,
+      isFriend: true,
+      feedOwnerItems: 3,
+      feedExcerpts: 1,
+      friendExcerpt: true,
+      friendExcerptYear: 1,
+      friendExcerptYears: 1,
+      reactionLikes: 1,
+      reactionComments: 1,
+      publicEntry: 1,
+      ownerSelfProfile: 1,
+    });
+
+    await db.exec('set role service_role');
+    await db.query('select public.request_account_deletion($1)', [OWNER]);
+    await db.exec('reset role');
+
+    assert.deepEqual(
+      await snapshot(),
+      {
+        friendProfiles: 0,
+        strangerProfiles: 0,
+        userBooks: 0,
+        entries: 0,
+        comments: 0,
+        likes: 0,
+        excerptLikes: 0,
+        excerptComments: 0,
+        friends: 0,
+        notifications: 0,
+        isFriend: false,
+        feedOwnerItems: 0,
+        feedExcerpts: 0,
+        friendExcerpt: false,
+        friendExcerptYear: 0,
+        friendExcerptYears: 0,
+        reactionLikes: 0,
+        reactionComments: 0,
+        publicEntry: 0,
+        // 본인은 자기 프로필을 계속 읽는다(프록시가 복구 화면으로 보낼 때 쓴다).
+        ownerSelfProfile: 1,
+      },
+      '유예 중에는 다른 사람에게 숨는다'
+    );
+
+    // 본인 데이터는 본인에게 그대로 보인다.
+    assert.equal(
+      await count(OWNER, 'select 1 from public.entries where user_book_id = $1', [SHELF]),
+      3
+    );
+
+    assert.equal(
+      (await run(OWNER, 'select public.cancel_account_deletion() as c')).rows[0].c,
+      true
+    );
+    assert.deepEqual(await snapshot(), before, '취소하면 신청 전과 같다');
   }
 );
