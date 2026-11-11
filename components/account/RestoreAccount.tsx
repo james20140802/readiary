@@ -8,7 +8,7 @@ import ActionNavigation from '@/components/ui/ActionNavigation';
 import Button from '@/components/ui/Button';
 import FormAlert from '@/components/ui/FormAlert';
 import { useActionLock } from '@/hooks/useActionLock';
-import { formatPurgeDate } from '@/lib/account/deletion';
+import { formatRestoreDeadline } from '@/lib/account/deletion';
 import { apiFetch, SessionExpiredError } from '@/lib/api/fetch';
 import { clearPwaCaches } from '@/lib/pwa/clear-caches';
 import { createSupabaseClient } from '@/lib/supabase/client';
@@ -102,7 +102,7 @@ export default function RestoreAccount({ purgeAfter, expired: initiallyExpired }
       lead={
         expired
           ? '복구 기간이 지나 곧 모든 기록이 지워져요.'
-          : `${formatPurgeDate(purgeAfter)}에 모든 기록이 지워져요. 그 전에 돌아오면 지금 그대로 이어서 쓸 수 있어요.`
+          : `${formatRestoreDeadline(purgeAfter)}까지 돌아오면 지금 그대로 이어서 쓸 수 있어요. 그 뒤에는 모든 기록이 지워져요.`
       }
     >
       <div className="space-y-3">

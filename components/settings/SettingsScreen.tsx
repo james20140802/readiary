@@ -149,6 +149,7 @@ export default function SettingsScreen({
           open={deletionOpen}
           onClose={closeDeletion}
           hasPassword={hasPassword}
+          maskedEmail={email}
         />
       )}
     </SettingsLayout>

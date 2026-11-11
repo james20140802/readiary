@@ -45,7 +45,7 @@ function reply(status: number, body: unknown) {
 }
 
 const NOW = new Date('2026-11-12T03:00:00Z');
-const base = { open: true, onClose: () => {}, now: NOW };
+const base = { open: true, onClose: () => {}, now: NOW, maskedEmail: 'read•••@example.com' };
 
 beforeEach(() => {
   apiFetch.mockReset();
@@ -57,12 +57,24 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe('AccountDeletionSheet — 비밀번호 계정', () => {
-  it('지금부터 14일 뒤 날짜와 내보내기 안내를 보여 준다', () => {
+  it('탈퇴할 계정, 신청일 + 14일 날짜와 내보내기 안내를 보여 준다', () => {
     render(h(AccountDeletionSheet, { ...base, hasPassword: true }));
     expect(screen.getByRole('dialog', { name: '탈퇴하기' })).toBeTruthy();
+    expect(screen.getByText('read•••@example.com 계정을 탈퇴해요.')).toBeTruthy();
     expect(screen.getByText(/11월 26일까지 다시 로그인하면/)).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', { name: '떠나기 전에 기록 내보내기' }));
+    fireEvent.click(screen.getByRole('button', { name: '떠나기 전에 한 달씩 기록 내보내기' }));
     expect(screen.getByText('내보내기 시트')).toBeTruthy();
+  });
+
+  it('KST 자정을 넘기면 하루 뒤 날짜를 안내한다', () => {
+    render(
+      h(AccountDeletionSheet, {
+        ...base,
+        hasPassword: true,
+        now: new Date('2026-11-12T15:00:00Z'),
+      })
+    );
+    expect(screen.getByText(/11월 27일까지 다시 로그인하면/)).toBeTruthy();
   });
 
   it('비밀번호가 비어 있으면 탈퇴 신청을 누를 수 없다', () => {
@@ -77,6 +89,13 @@ describe('AccountDeletionSheet — 비밀번호 계정', () => {
     fireEvent.change(screen.getByLabelText('비밀번호'), { target: { value: 'secret1' } });
     fireEvent.click(screen.getByRole('button', { name: '탈퇴 신청' }));
     await waitFor(() => expect(screen.getByText('비밀번호가 맞지 않아요.')).toBeTruthy());
+    // 화면 낭독기가 오류를 듣도록 입력으로 초점을 옮기고, 입력이 오류 문구를 가리킨다
+    const input = screen.getByLabelText('비밀번호');
+    expect(document.activeElement).toBe(input);
+    const describedBy = input.getAttribute('aria-describedby') ?? '';
+    const error = screen.getByText('비밀번호가 맞지 않아요.');
+    expect(describedBy.split(' ')).toContain(error.id);
+    expect(input.getAttribute('aria-invalid')).toBe('true');
     expect(apiFetch).toHaveBeenCalledWith(
       '/api/account/deletion',
       expect.objectContaining({ method: 'POST' })
@@ -87,7 +106,8 @@ describe('AccountDeletionSheet — 비밀번호 계정', () => {
   });
 
   it('성공하면 이 기기에서 로그아웃하고 로그인 화면에 안내를 싣는다', async () => {
-    apiFetch.mockResolvedValue(reply(200, { purgeAfter: '2026-11-26T03:00:00.000Z' }));
+    // 2026-11-27 00:00 KST에 지워진다 → 주소에는 되돌릴 수 있는 마지막 날 11-26을 싣는다
+    apiFetch.mockResolvedValue(reply(200, { purgeAfter: '2026-11-26T15:00:00.000Z' }));
     render(h(AccountDeletionSheet, { ...base, hasPassword: true }));
     fireEvent.change(screen.getByLabelText('비밀번호'), { target: { value: 'secret1' } });
     fireEvent.click(screen.getByRole('button', { name: '탈퇴 신청' }));

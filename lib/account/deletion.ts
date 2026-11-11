@@ -27,6 +27,34 @@ export function formatPurgeDate(purgeAfter: string | Date): string {
   return `${month}월 ${day}일`;
 }
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+
+/**
+ * 지금 신청하면 DB(`request_account_deletion`)가 정할 삭제 시각 — 신청한 날(KST) + 15일의 0시 KST.
+ * 한국은 서머타임이 없어 +9시간 고정으로 계산해도 DB의 `at time zone 'Asia/Seoul'`과 같다.
+ */
+export function expectedPurgeAfter(now: Date): Date {
+  const kstDayStart = Math.floor((now.getTime() + KST_OFFSET_MS) / DAY_MS) * DAY_MS;
+  return new Date(kstDayStart + (ACCOUNT_DELETION_GRACE_DAYS + 1) * DAY_MS - KST_OFFSET_MS);
+}
+
+/** 되돌릴 수 있는 마지막 순간 — 삭제 시각 1초 전 */
+function restoreDeadline(purgeAfter: string | Date): Date {
+  const date = typeof purgeAfter === 'string' ? new Date(purgeAfter) : purgeAfter;
+  return new Date(date.getTime() - 1000);
+}
+
+/** "11월 26일까지 되돌릴 수 있어요"의 날짜 — 삭제 시각 1초 전의 KST 날짜(= 신청일 + 14일) */
+export function formatRestoreDeadline(purgeAfter: string | Date): string {
+  return formatPurgeDate(restoreDeadline(purgeAfter));
+}
+
+/** 로그인 화면 주소(`until`)에 실을 되돌릴 수 있는 마지막 날 — KST YYYY-MM-DD */
+export function toRestoreDeadlineParam(purgeAfter: string | Date): string {
+  return toPurgeDateParam(restoreDeadline(purgeAfter));
+}
+
 /** 로그인 화면 주소에 실을 삭제 예정일 — 한국 시간 기준 YYYY-MM-DD */
 export function toPurgeDateParam(purgeAfter: string | Date): string {
   const date = typeof purgeAfter === 'string' ? new Date(purgeAfter) : purgeAfter;
@@ -39,7 +67,7 @@ export function toPurgeDateParam(purgeAfter: string | Date): string {
   }).format(date);
 }
 
-/** 주소의 삭제 예정일을 읽는다 — 모양이 틀리거나 없는 날이면 null(안내를 띄우지 않는다) */
+/** 주소의 날짜(되돌릴 수 있는 마지막 날)를 읽는다 — 모양이 틀리거나 없는 날이면 null(안내를 띄우지 않는다) */
 export function parsePurgeDateParam(value: string | null): Date | null {
   if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
   // 한국 시간 그날 정오로 둬서 어느 시간대에서 읽어도 같은 날이 된다

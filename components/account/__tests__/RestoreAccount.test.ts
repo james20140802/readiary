@@ -22,7 +22,8 @@ function reply(status: number, body: unknown) {
   return { ok: status >= 200 && status < 300, status, json: async () => body };
 }
 
-const PURGE = '2026-11-26T03:00:00.000Z';
+// 2026-11-27 00:00 KST에 지워진다 → 11월 26일까지 돌아올 수 있다
+const PURGE = '2026-11-26T15:00:00.000Z';
 
 beforeEach(() => {
   apiFetch.mockReset();
@@ -37,7 +38,11 @@ describe('RestoreAccount', () => {
   it('삭제 예정일과 되돌리기·로그아웃을 보여 준다', () => {
     render(h(RestoreAccount, { purgeAfter: PURGE, expired: false }));
     expect(screen.getByRole('heading', { name: '탈퇴를 신청한 계정이에요' })).toBeTruthy();
-    expect(screen.getByText(/11월 26일에 모든 기록이 지워져요/)).toBeTruthy();
+    expect(
+      screen.getByText(
+        '11월 26일까지 돌아오면 지금 그대로 이어서 쓸 수 있어요. 그 뒤에는 모든 기록이 지워져요.'
+      )
+    ).toBeTruthy();
     expect(screen.getByRole('button', { name: '탈퇴 취소하고 돌아가기' })).toBeTruthy();
     expect(screen.getByRole('button', { name: '로그아웃' })).toBeTruthy();
   });

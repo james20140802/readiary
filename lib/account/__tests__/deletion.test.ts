@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
+  expectedPurgeAfter,
   formatPurgeDate,
+  formatRestoreDeadline,
+  toRestoreDeadlineParam,
   hasPasswordIdentity,
   hasRecentSignIn,
   isAccountDeletionOpen,
@@ -14,6 +17,35 @@ describe('formatPurgeDate', () => {
     expect(formatPurgeDate('2026-11-26T14:59:59Z')).toBe('11월 26일');
     expect(formatPurgeDate('2026-11-26T15:00:00Z')).toBe('11월 27일');
     expect(formatPurgeDate(new Date('2026-11-26T15:00:00Z'))).toBe('11월 27일');
+  });
+});
+
+describe('되돌릴 수 있는 마지막 날', () => {
+  it('purge_after(KST 자정)에서 1초 뺀 시각의 KST 날짜다', () => {
+    // 2026-11-27 00:00 KST에 지워진다 → 11월 26일까지 되돌릴 수 있다
+    expect(formatRestoreDeadline('2026-11-26T15:00:00Z')).toBe('11월 26일');
+    expect(formatRestoreDeadline(new Date('2026-11-26T15:00:00Z'))).toBe('11월 26일');
+    expect(toRestoreDeadlineParam('2026-11-26T15:00:00Z')).toBe('2026-11-26');
+  });
+});
+
+describe('expectedPurgeAfter — 신청한 날(KST) + 15일의 0시 KST', () => {
+  it('KST 자정 직전에 신청하면 그날부터 센다', () => {
+    // 11-12 23:59:59 KST
+    const purge = expectedPurgeAfter(new Date('2026-11-12T14:59:59Z'));
+    expect(purge.toISOString()).toBe('2026-11-26T15:00:00.000Z');
+    expect(formatRestoreDeadline(purge)).toBe('11월 26일');
+  });
+  it('KST 자정에 신청하면 다음 날부터 센다', () => {
+    // 11-13 00:00:00 KST
+    const purge = expectedPurgeAfter(new Date('2026-11-12T15:00:00Z'));
+    expect(purge.toISOString()).toBe('2026-11-27T15:00:00.000Z');
+    expect(formatRestoreDeadline(purge)).toBe('11월 27일');
+  });
+  it('한낮에 신청해도 마지막 날은 신청일 + 14일', () => {
+    expect(formatRestoreDeadline(expectedPurgeAfter(new Date('2026-11-12T03:00:00Z')))).toBe(
+      '11월 26일'
+    );
   });
 });
 

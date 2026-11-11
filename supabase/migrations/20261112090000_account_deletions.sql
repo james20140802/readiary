@@ -54,7 +54,8 @@ language plpgsql security definer set search_path = public, pg_temp as $$
 declare v_at timestamptz;
 begin
   insert into public.account_deletions (user_id, purge_after)
-  values (p_user, now() + interval '14 days')
+  -- 신청한 날(KST)부터 14일째 되는 날이 끝날 때(= 신청일 + 15일의 0시 KST)까지 되돌릴 수 있다
+  values (p_user, (date_trunc('day', now() at time zone 'Asia/Seoul') + interval '15 days') at time zone 'Asia/Seoul')
   on conflict (user_id) do nothing;
   select purge_after into v_at from public.account_deletions where user_id = p_user;
   delete from public.push_subscriptions where user_id = p_user;

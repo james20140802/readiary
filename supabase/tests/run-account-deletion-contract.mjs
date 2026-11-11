@@ -33,20 +33,24 @@ await runRlsContract(
       `insert into public.push_subscriptions (user_id, endpoint, p256dh, auth) values ('${OWNER}', 'https://push.example/1', 'k', 'a')`
     );
 
-    // 신청: 14일 유예, 멱등
+    // 신청: 14일 유예(신청한 날 KST + 15일의 0시 KST), 멱등
     const first = (await asService('select public.request_account_deletion($1) as at', [OWNER]))
       .rows[0].at;
     const row = (
       await db.query(
-        'select requested_at, purge_after from public.account_deletions where user_id = $1',
+        `select requested_at, purge_after,
+           (date_trunc('day', requested_at at time zone 'Asia/Seoul') + interval '15 days') at time zone 'Asia/Seoul' as expected,
+           to_char((purge_after - interval '1 second') at time zone 'Asia/Seoul', 'YYYY-MM-DD') as deadline,
+           to_char((requested_at at time zone 'Asia/Seoul') + interval '14 days', 'YYYY-MM-DD') as request_plus_14,
+           to_char(purge_after at time zone 'Asia/Seoul', 'HH24:MI:SS') as kst_time
+         from public.account_deletions where user_id = $1`,
         [OWNER]
       )
     ).rows[0];
-    assert.equal(
-      ms(first),
-      ms(row.requested_at) + 14 * 86400000,
-      'purge_after = requested_at + 14일'
-    );
+    assert.equal(ms(first), ms(row.purge_after), '돌려준 값이 저장된 purge_after');
+    assert.equal(ms(row.purge_after), ms(row.expected), 'purge_after = 신청일(KST) + 15일 0시 KST');
+    assert.equal(row.kst_time, '00:00:00', 'purge_after는 KST 자정');
+    assert.equal(row.deadline, row.request_plus_14, '되돌릴 수 있는 마지막 날 = 신청일 + 14일');
     const second = (await asService('select public.request_account_deletion($1) as at', [OWNER]))
       .rows[0].at;
     assert.equal(ms(second), ms(first), '두 번 불러도 같은 값');
@@ -383,6 +387,24 @@ await runRlsContract(
       await assert.rejects(promise, (e) => e.code === DENIED.code, `${label}: expected 42501`);
     };
     const scalar = async (sql, params) => (await db.query(sql, params)).rows[0].v;
+    // claim_push_batch는 안에서 now()의 시(hour)를 설정의 hour와 맞춰 본다. 테스트가 정시를 넘겨도
+    // 흔들리지 않게, 한 트랜잭션 안에서 OWNER의 hour를 그 트랜잭션의 now()로 다시 맞춘 뒤 부른다
+    // (트랜잭션 안의 now()는 같은 값이다).
+    const claimPushBatch = async () => {
+      await db.exec('begin');
+      try {
+        await db.exec(
+          `update public.push_preferences set hour = extract(hour from now() at time zone 'UTC')::int where user_id = '${OWNER}'`
+        );
+        await db.exec('set local role service_role');
+        const result = await db.query('select * from public.claim_push_batch(10)');
+        await db.exec('commit');
+        return result;
+      } catch (e) {
+        await db.exec('rollback');
+        throw e;
+      }
+    };
 
     // FRIEND의 공개 기록(댓글·좋아요 대상), 회상 알림 후보가 될 OWNER의 오래된 문장,
     // OWNER의 회상 알림 설정과 FRIEND의 친구 소식 알림 설정, OWNER의 마케팅 이메일 동의를 둔다.
@@ -563,7 +585,7 @@ await runRlsContract(
       '유예 중인 OWNER의 기록은 FRIEND의 친구 소식에 세지 않는다'
     );
     assert.equal(
-      (await asService('select * from public.claim_push_batch(10)')).rows.length,
+      (await claimPushBatch()).rows.length,
       0,
       '유예 중 OWNER는 발송 묶음에 들지 않는다'
     );
@@ -594,11 +616,7 @@ await runRlsContract(
       (await friendCandidates()).map((i) => i.kind),
       ['friends']
     );
-    assert.equal(
-      (await asService('select * from public.claim_push_batch(10)')).rows.length,
-      1,
-      '취소 뒤 OWNER가 발송 묶음에 다시 든다'
-    );
+    assert.equal((await claimPushBatch()).rows.length, 1, '취소 뒤 OWNER가 발송 묶음에 다시 든다');
     assert.notEqual(
       await scalar(
         `select public.claim_marketing_email($1, gen_random_uuid(), 'hash', 'token') as v`,
