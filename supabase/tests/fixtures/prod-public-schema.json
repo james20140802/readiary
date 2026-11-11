@@ -1,6 +1,8 @@
 {
-  "_captured": "2026-10-30 (functions re-checked 2026-11-02 after get_entry_months), read-only pg_catalog/information_schema queries against project piqlggyuhhicnjywombg (production). See docs/operations/supabase-api-grants.md. Plus the monthly excerpt migrations (20261106090000 onward) as expected values: not applied to production yet (see the doc).",
+  "_captured": "2026-10-30 (functions re-checked 2026-11-02 after get_entry_months), read-only pg_catalog/information_schema queries against project piqlggyuhhicnjywombg (production). See docs/operations/supabase-api-grants.md. Plus the monthly excerpt migrations (20261106090000 onward) and the account deletion migration (20261112090000) as expected values: not applied to production yet (see the doc).",
   "tables": [
+    "account_deletion_purges",
+    "account_deletions",
     "book_registration_requests",
     "books",
     "comments",
@@ -26,6 +28,15 @@
     "user_books"
   ],
   "columns": {
+    "account_deletion_purges": [
+      ["user_id", "uuid", "NO", null],
+      ["purged_at", "timestamp with time zone", "NO", "now()"]
+    ],
+    "account_deletions": [
+      ["user_id", "uuid", "NO", null],
+      ["requested_at", "timestamp with time zone", "NO", "now()"],
+      ["purge_after", "timestamp with time zone", "NO", null]
+    ],
     "book_registration_requests": [
       ["user_id", "uuid", "NO", null],
       ["request_id", "uuid", "NO", null],
@@ -228,6 +239,20 @@
     ]
   },
   "constraints": {
+    "account_deletion_purges": [["account_deletion_purges_pkey", "p", "PRIMARY KEY (user_id)"]],
+    "account_deletions": [
+      ["account_deletions_pkey", "p", "PRIMARY KEY (user_id)"],
+      [
+        "account_deletions_profile_fkey",
+        "f",
+        "FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE"
+      ],
+      [
+        "account_deletions_user_id_fkey",
+        "f",
+        "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+      ]
+    ],
     "book_registration_requests": [
       [
         "book_registration_requests_user_id_fkey",
@@ -572,6 +597,8 @@
     ]
   },
   "indexes": {
+    "account_deletion_purges": ["account_deletion_purges_pkey"],
+    "account_deletions": ["account_deletions_pkey"],
     "book_registration_requests": ["book_registration_requests_pkey"],
     "books": ["books_isbn_key", "books_pkey"],
     "comments": ["comments_pkey", "idx_comments_entry_id", "idx_comments_parent_id"],
@@ -627,6 +654,8 @@
     "user_books": ["user_books_pkey", "user_books_user_created_idx"]
   },
   "rlsEnabled": [
+    "account_deletion_purges",
+    "account_deletions",
     "book_registration_requests",
     "books",
     "comments",
@@ -652,6 +681,16 @@
     "user_books"
   ],
   "coreGrants": {
+    "account_deletion_purges": {
+      "anon": [],
+      "authenticated": [],
+      "service_role": ["delete", "insert", "select", "update"]
+    },
+    "account_deletions": {
+      "anon": [],
+      "authenticated": ["select"],
+      "service_role": ["delete", "insert", "select", "update"]
+    },
     "book_registration_requests": {
       "anon": [],
       "authenticated": ["insert", "select"],
@@ -769,6 +808,7 @@
     }
   },
   "policies": [
+    ["account_deletions", "own_account_deletion", "SELECT", "{authenticated}"],
     [
       "book_registration_requests",
       "book_registration_requests_insert_own",
@@ -846,9 +886,12 @@
     ["user_books", "user_books_update_own", "UPDATE", "{authenticated}"]
   ],
   "functions": [
+    ["assert_account_active", ""],
     ["authorize_push_delivery", "p_id uuid"],
     ["books_original_cover_url", ""],
     ["can_view_monthly_excerpt", "p_id uuid"],
+    ["cancel_account_deletion", ""],
+    ["claim_due_account_deletions", "p_limit integer"],
     ["claim_marketing_email", "p_user uuid, p_id uuid, p_content_hash text, p_token_hash text"],
     ["claim_push_batch", "p_limit integer"],
     ["claim_push_test", "p_user uuid, p_endpoint text"],
@@ -884,6 +927,7 @@
     ["get_social_feed_items", "p_page integer, p_limit integer"],
     ["guard_entry_reflection_update", ""],
     ["has_unread_notifications", ""],
+    ["is_account_active", "p_user uuid"],
     ["is_friend_with", "p_user_id uuid"],
     ["mark_push_seen", "p_kind text, p_delivery uuid"],
     ["monthly_excerpt_drop_if_empty", ""],
@@ -898,12 +942,15 @@
     ["notify_entry_event", "p_entry_id uuid, p_type text, p_comment_id uuid"],
     ["notify_friend_event", "p_recipient uuid, p_type text"],
     ["notify_monthly_excerpt_event", "p_excerpt_id uuid, p_type text, p_comment_id uuid"],
+    ["prune_account_purges", ""],
     ["push_candidates", "p_user uuid, p_now timestamp with time zone"],
     ["reading_rhythm", "p_since timestamp with time zone"],
+    ["record_account_purge", "p_user uuid"],
     [
       "register_book_idempotently",
       "p_request_id uuid, p_title text, p_author text, p_total_pages integer, p_isbn text, p_cover_url text"
     ],
+    ["request_account_deletion", "p_user uuid"],
     ["retract_like_notification", "p_entry_id uuid"],
     ["retract_monthly_excerpt_like_notification", "p_excerpt_id uuid"],
     ["revoke_changed_email_consent", ""],
