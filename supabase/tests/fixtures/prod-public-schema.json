@@ -1,5 +1,5 @@
 {
-  "_captured": "2026-10-30 (functions re-checked 2026-11-02 after get_entry_months), read-only pg_catalog/information_schema queries against project piqlggyuhhicnjywombg (production). See docs/operations/supabase-api-grants.md. Plus the monthly excerpt migrations (20261106090000 onward) and the account deletion migrations (20261112090000, 20261112091000) as expected values: not applied to production yet (see the doc).",
+  "_captured": "2026-10-30 (functions re-checked 2026-11-02 after get_entry_months), read-only pg_catalog/information_schema queries against project piqlggyuhhicnjywombg (production). See docs/operations/supabase-api-grants.md. Plus the monthly excerpt migrations (20261106090000 onward) and the account deletion migrations (20261112090000, 20261112091000, 20261112092000) as expected values: not applied to production yet (see the doc).",
   "tables": [
     "account_deletion_purges",
     "account_deletions",
@@ -817,22 +817,37 @@
     ],
     [
       "book_registration_requests",
+      "book_registration_requests_insert_requires_active",
+      "INSERT",
+      "{authenticated}"
+    ],
+    [
+      "book_registration_requests",
       "book_registration_requests_select_own",
       "SELECT",
       "{authenticated}"
     ],
     ["books", "books_insert_authenticated", "INSERT", "{authenticated}"],
+    ["books", "books_insert_requires_active", "INSERT", "{authenticated}"],
     ["books", "books_select_authenticated", "SELECT", "{authenticated}"],
     ["comments", "comments_delete_own", "DELETE", "{authenticated}"],
+    ["comments", "comments_delete_requires_active", "DELETE", "{authenticated}"],
     ["comments", "comments_hide_pending_deletion", "SELECT", "{authenticated}"],
     ["comments", "comments_insert_own_on_visible_entry", "INSERT", "{authenticated}"],
+    ["comments", "comments_insert_requires_active", "INSERT", "{authenticated}"],
     ["comments", "comments_select_visible_entry", "SELECT", "{authenticated}"],
     ["email_consent_events", "email_events_owner", "SELECT", "{authenticated}"],
     ["email_preferences", "email_preferences_owner", "SELECT", "{authenticated}"],
     ["entries", "entries_delete_own", "DELETE", "{authenticated}"],
+    ["entries", "entries_delete_requires_active", "DELETE", "{authenticated}"],
     ["entries", "entries_insert_own", "INSERT", "{authenticated}"],
+    ["entries", "entries_insert_requires_active", "INSERT", "{authenticated}"],
     ["entries", "entries_select_own_or_friend_public", "SELECT", "{authenticated}"],
     ["entries", "entries_update_own", "UPDATE", "{authenticated}"],
+    ["entries", "entries_update_requires_active", "UPDATE", "{authenticated}"],
+    ["entry_reflections", "entry_reflections_delete_requires_active", "DELETE", "{authenticated}"],
+    ["entry_reflections", "entry_reflections_insert_requires_active", "INSERT", "{authenticated}"],
+    ["entry_reflections", "entry_reflections_update_requires_active", "UPDATE", "{authenticated}"],
     ["entry_reflections", "reflections_delete", "DELETE", "{authenticated}"],
     ["entry_reflections", "reflections_insert", "INSERT", "{authenticated}"],
     ["entry_reflections", "reflections_read", "SELECT", "{authenticated}"],
@@ -841,17 +856,29 @@
     ["entry_reflections", "reflections_rollout_update", "UPDATE", "{authenticated}"],
     ["entry_reflections", "reflections_update", "UPDATE", "{authenticated}"],
     ["friends", "friends_delete_participant", "DELETE", "{authenticated}"],
+    ["friends", "friends_delete_requires_active", "DELETE", "{authenticated}"],
     ["friends", "friends_hide_pending_deletion", "SELECT", "{authenticated}"],
     ["friends", "friends_insert_as_requester", "INSERT", "{authenticated}"],
+    ["friends", "friends_insert_requires_active", "INSERT", "{authenticated}"],
+    ["friends", "friends_insert_requires_active_recipient", "INSERT", "{authenticated}"],
     ["friends", "friends_select_participant", "SELECT", "{authenticated}"],
     ["friends", "friends_update_as_recipient", "UPDATE", "{authenticated}"],
+    ["friends", "friends_update_requires_active", "UPDATE", "{authenticated}"],
     ["likes", "likes_delete_own", "DELETE", "{authenticated}"],
+    ["likes", "likes_delete_requires_active", "DELETE", "{authenticated}"],
     ["likes", "likes_hide_pending_deletion", "SELECT", "{authenticated}"],
     ["likes", "likes_insert_own_on_visible_entry", "INSERT", "{authenticated}"],
+    ["likes", "likes_insert_requires_active", "INSERT", "{authenticated}"],
     ["likes", "likes_select_visible_entry", "SELECT", "{authenticated}"],
     [
       "monthly_excerpt_comments",
       "monthly_excerpt_comments_delete_own",
+      "DELETE",
+      "{authenticated}"
+    ],
+    [
+      "monthly_excerpt_comments",
+      "monthly_excerpt_comments_delete_requires_active",
       "DELETE",
       "{authenticated}"
     ],
@@ -869,6 +896,12 @@
     ],
     [
       "monthly_excerpt_comments",
+      "monthly_excerpt_comments_insert_requires_active",
+      "INSERT",
+      "{authenticated}"
+    ],
+    [
+      "monthly_excerpt_comments",
       "monthly_excerpt_comments_select_viewable",
       "SELECT",
       "{authenticated}"
@@ -877,30 +910,56 @@
     ["monthly_excerpt_likes", "monthly_excerpt_likes_delete_own", "DELETE", "{authenticated}"],
     [
       "monthly_excerpt_likes",
+      "monthly_excerpt_likes_delete_requires_active",
+      "DELETE",
+      "{authenticated}"
+    ],
+    [
+      "monthly_excerpt_likes",
       "monthly_excerpt_likes_hide_pending_deletion",
       "SELECT",
       "{authenticated}"
     ],
     ["monthly_excerpt_likes", "monthly_excerpt_likes_insert_own", "INSERT", "{authenticated}"],
+    [
+      "monthly_excerpt_likes",
+      "monthly_excerpt_likes_insert_requires_active",
+      "INSERT",
+      "{authenticated}"
+    ],
     ["monthly_excerpt_likes", "monthly_excerpt_likes_select_viewable", "SELECT", "{authenticated}"],
     ["monthly_excerpts", "monthly_excerpts_delete_own", "DELETE", "{authenticated}"],
+    ["monthly_excerpts", "monthly_excerpts_delete_requires_active", "DELETE", "{authenticated}"],
     ["monthly_excerpts", "monthly_excerpts_select_own", "SELECT", "{authenticated}"],
     ["notifications", "notifications_delete_own", "DELETE", "{authenticated}"],
+    ["notifications", "notifications_delete_requires_active", "DELETE", "{authenticated}"],
     ["notifications", "notifications_hide_pending_deletion", "SELECT", "{authenticated}"],
     ["notifications", "notifications_select_own", "SELECT", "{authenticated}"],
     ["notifications", "notifications_update_own", "UPDATE", "{authenticated}"],
-    ["profiles", "profiles_insert_own", "INSERT", "{authenticated}"],
+    ["notifications", "notifications_update_requires_active", "UPDATE", "{authenticated}"],
     ["profiles", "profiles_hide_pending_deletion", "SELECT", "{authenticated}"],
+    ["profiles", "profiles_insert_own", "INSERT", "{authenticated}"],
+    ["profiles", "profiles_insert_requires_active", "INSERT", "{authenticated}"],
     ["profiles", "profiles_select_authenticated", "SELECT", "{authenticated}"],
     ["profiles", "profiles_update_own", "UPDATE", "{authenticated}"],
+    ["profiles", "profiles_update_requires_active", "UPDATE", "{authenticated}"],
     ["push_deliveries", "own_deliveries", "SELECT", "{authenticated}"],
     ["push_preferences", "own_preferences", "SELECT", "{authenticated}"],
     ["push_subscriptions", "delete_subscriptions", "DELETE", "{authenticated}"],
     ["push_subscriptions", "own_subscriptions", "SELECT", "{authenticated}"],
+    [
+      "push_subscriptions",
+      "push_subscriptions_delete_requires_active",
+      "DELETE",
+      "{authenticated}"
+    ],
     ["user_books", "user_books_delete_own", "DELETE", "{authenticated}"],
+    ["user_books", "user_books_delete_requires_active", "DELETE", "{authenticated}"],
     ["user_books", "user_books_insert_own", "INSERT", "{authenticated}"],
+    ["user_books", "user_books_insert_requires_active", "INSERT", "{authenticated}"],
     ["user_books", "user_books_select_own_or_friend", "SELECT", "{authenticated}"],
-    ["user_books", "user_books_update_own", "UPDATE", "{authenticated}"]
+    ["user_books", "user_books_update_own", "UPDATE", "{authenticated}"],
+    ["user_books", "user_books_update_requires_active", "UPDATE", "{authenticated}"]
   ],
   "functions": [
     ["assert_account_active", ""],

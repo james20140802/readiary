@@ -361,3 +361,251 @@ await runRlsContract(
     assert.deepEqual(await snapshot(), before, '취소하면 신청 전과 같다');
   }
 );
+
+// 유예 중에는 옛 토큰이 살아 있어도 DB가 쓰기를 거부하고, 알림·이메일 발송 후보에서 빠진다. 취소하면 다시 쓸 수 있다.
+// 새 DB에서 따로 시드한다.
+await runRlsContract(
+  'pending accounts cannot write and are left out of push and email sends',
+  async ({ db, run }) => {
+    const FRIEND_SHELF = uuid(13);
+    const FRIEND_BOOK = uuid(14);
+    const FRIEND_ENTRY = uuid(23);
+    const OLD_ENTRY = uuid(25);
+    const asService = async (sql, params) => {
+      await db.exec('set role service_role');
+      try {
+        return await db.query(sql, params);
+      } finally {
+        await db.exec('reset role');
+      }
+    };
+    const denied = async (promise, label) => {
+      await assert.rejects(promise, (e) => e.code === DENIED.code, `${label}: expected 42501`);
+    };
+    const scalar = async (sql, params) => (await db.query(sql, params)).rows[0].v;
+
+    // FRIEND의 공개 기록(댓글·좋아요 대상), 회상 알림 후보가 될 OWNER의 오래된 문장,
+    // OWNER의 회상 알림 설정과 FRIEND의 친구 소식 알림 설정, OWNER의 마케팅 이메일 동의를 둔다.
+    await db.exec(`
+      insert into public.books (id, title) values ('${FRIEND_BOOK}', 'friend book');
+      insert into public.user_books (id, user_id, book_id) values ('${FRIEND_SHELF}', '${FRIEND}', '${FRIEND_BOOK}');
+      insert into public.entries (id, user_book_id, date, quote, is_private) values
+        ('${FRIEND_ENTRY}', '${FRIEND_SHELF}', '2026-01-10', 'friend quote', false),
+        ('${OLD_ENTRY}', '${SHELF}', '2020-01-10', 'old quote', true);
+      insert into public.push_preferences (user_id, enabled, kinds, timezone, hour, weekdays, consent_at) values
+        ('${OWNER}', true, array['recall'], 'UTC', extract(hour from now() at time zone 'UTC')::int, array[0,1,2,3,4,5,6], now() - interval '60 days'),
+        ('${FRIEND}', true, array['friends'], 'UTC', 20, array[0,1,2,3,4,5,6], now() - interval '60 days');
+      update public.entries set created_at = now() where id = '${PUBLIC_ENTRY}';
+      update auth.users set email = 'owner@example.com', email_confirmed_at = now() where id = '${OWNER}';
+      insert into public.email_preferences (user_id, enabled, email) values ('${OWNER}', true, 'owner@example.com');
+    `);
+    // 다가오는 UTC 수요일(친구 소식 알림이 나가는 요일) 저녁. OWNER의 공개 기록은 그보다 7일 안쪽이다.
+    // created_at 기본값이 세션 시간대에 따라 밀리므로 위에서 now()로 맞춰 두었다.
+    const wednesday = await scalar(
+      `select (date_trunc('day', now() at time zone 'UTC') + ((3 - extract(dow from now() at time zone 'UTC')::int + 7) % 7) * interval '1 day' + interval '20 hours') at time zone 'UTC' as v`
+    );
+    const ownerCandidates = async () =>
+      (await asService('select public.push_candidates($1, now()) as v', [OWNER])).rows[0].v;
+    const friendCandidates = async () =>
+      (await asService('select public.push_candidates($1, $2) as v', [FRIEND, wednesday])).rows[0]
+        .v;
+
+    // 신청 전: 후보가 실제로 나오는지 먼저 확인한다(빠짐 단언이 헛돌지 않게).
+    assert.deepEqual(
+      (await ownerCandidates()).map((i) => i.kind),
+      ['recall'],
+      '신청 전 OWNER의 회상 알림 후보'
+    );
+    assert.deepEqual(
+      (await friendCandidates()).map((i) => i.kind),
+      ['friends'],
+      '신청 전 FRIEND의 친구 소식 후보(OWNER의 공개 기록)'
+    );
+
+    await asService('select public.request_account_deletion($1)', [OWNER]);
+    // 신청이 구독을 지운 뒤 기기가 다시 붙은 상황을 흉내 낸다(발송 묶음이 구독 유무와 상관없이 빼는지 본다).
+    await db.exec(
+      `insert into public.push_subscriptions (user_id, endpoint, p256dh, auth) values ('${OWNER}', 'https://push.example/owner', 'k', 'a')`
+    );
+
+    const snapshot = async () => ({
+      entries: await scalar(
+        `select count(*)::int as v from public.entries e join public.user_books ub on ub.id = e.user_book_id where ub.user_id = $1`,
+        [OWNER]
+      ),
+      quotes: await scalar(
+        `select string_agg(coalesce(e.quote, ''), '|' order by e.id) as v from public.entries e join public.user_books ub on ub.id = e.user_book_id where ub.user_id = $1`,
+        [OWNER]
+      ),
+      comments: await scalar('select count(*)::int as v from public.comments where user_id = $1', [
+        OWNER,
+      ]),
+      likes: await scalar('select count(*)::int as v from public.likes where user_id = $1', [
+        OWNER,
+      ]),
+      friends: await scalar(
+        'select count(*)::int as v from public.friends where user_id = $1 or friend_id = $1',
+        [OWNER]
+      ),
+      name: await scalar('select name as v from public.profiles where id = $1', [OWNER]),
+      excerpts: await scalar(
+        'select count(*)::int as v from public.monthly_excerpts where user_id = $1',
+        [OWNER]
+      ),
+      subscriptions: await scalar(
+        'select count(*)::int as v from public.push_subscriptions where user_id = $1',
+        [OWNER]
+      ),
+    });
+    const before = await snapshot();
+
+    // 유예 중인 OWNER의 쓰기는 모두 42501로 거부된다.
+    await denied(
+      run(
+        OWNER,
+        `insert into public.entries (user_book_id, date, quote) values ('${SHELF}', '2026-11-05', 'pending write')`
+      ),
+      'entries insert'
+    );
+    await denied(run(OWNER, `update public.entries set quote = 'pending edit'`), 'entries update');
+    await denied(
+      run(
+        OWNER,
+        `insert into public.comments (entry_id, user_id, content) values ('${FRIEND_ENTRY}', '${OWNER}', 'pending comment')`
+      ),
+      'comments insert on FRIEND entry'
+    );
+    await denied(
+      run(
+        OWNER,
+        `insert into public.comments (entry_id, user_id, content) values ('${PUBLIC_ENTRY}', '${OWNER}', 'pending comment')`
+      ),
+      'comments insert on own entry'
+    );
+    await denied(
+      run(
+        OWNER,
+        `insert into public.likes (entry_id, user_id) values ('${FRIEND_ENTRY}', '${OWNER}')`
+      ),
+      'likes insert on FRIEND entry'
+    );
+    await denied(
+      run(
+        OWNER,
+        `insert into public.likes (entry_id, user_id) values ('${PUBLIC_ENTRY}', '${OWNER}')`
+      ),
+      'likes insert on own entry'
+    );
+    await denied(
+      run(
+        OWNER,
+        `insert into public.friends (user_id, friend_id, status) values ('${OWNER}', '${STRANGER}', 'pending')`
+      ),
+      'friends insert'
+    );
+    await denied(run(OWNER, `update public.profiles set name = 'pending name'`), 'profiles update');
+    await denied(
+      run(OWNER, `select public.save_monthly_excerpt('2026-01', '{}', false)`),
+      'save_monthly_excerpt'
+    );
+    await denied(
+      run(OWNER, `select public.save_push_subscription('https://x', 'k', 'a')`),
+      'save_push_subscription'
+    );
+    // 지우기는 조용히 0행이 된다.
+    await run(OWNER, 'delete from public.entries');
+    await run(OWNER, 'delete from public.friends');
+    await run(OWNER, 'delete from public.push_subscriptions');
+    assert.deepEqual(await snapshot(), before, '유예 중 OWNER의 쓰기는 아무것도 바꾸지 않는다');
+
+    // 다른 사람의 쓰기는 그대로 된다. 다만 유예 중인 OWNER에게 새 친구 요청은 못 보낸다.
+    await run(
+      FRIEND,
+      `insert into public.entries (user_book_id, date, quote) values ('${FRIEND_SHELF}', '2026-11-05', 'friend write')`
+    );
+    await run(
+      FRIEND,
+      `insert into public.comments (entry_id, user_id, content) values ('${FRIEND_ENTRY}', '${FRIEND}', 'friend comment')`
+    );
+    await run(
+      FRIEND,
+      `insert into public.likes (entry_id, user_id) values ('${FRIEND_ENTRY}', '${FRIEND}')`
+    );
+    await run(FRIEND, `update public.profiles set name = 'friend renamed'`);
+    await run(
+      FRIEND,
+      `insert into public.friends (user_id, friend_id, status) values ('${FRIEND}', '${STRANGER}', 'pending')`
+    );
+    await denied(
+      run(
+        STRANGER,
+        `insert into public.friends (user_id, friend_id, status) values ('${STRANGER}', '${OWNER}', 'pending')`
+      ),
+      'friend request to a pending account'
+    );
+    assert.equal(
+      await scalar(
+        'select count(*)::int as v from public.friends where user_id = $1 and friend_id = $2',
+        [STRANGER, OWNER]
+      ),
+      0
+    );
+    assert.equal(
+      await scalar('select name as v from public.profiles where id = $1', [FRIEND]),
+      'friend renamed'
+    );
+
+    // 발송 후보: 유예 중인 OWNER는 받지 않고, OWNER가 남긴 기록은 친구 소식에 세지 않는다.
+    assert.deepEqual(await ownerCandidates(), [], '유예 중 OWNER의 알림 후보는 비어 있다');
+    assert.deepEqual(
+      await friendCandidates(),
+      [],
+      '유예 중인 OWNER의 기록은 FRIEND의 친구 소식에 세지 않는다'
+    );
+    assert.equal(
+      (await asService('select * from public.claim_push_batch(10)')).rows.length,
+      0,
+      '유예 중 OWNER는 발송 묶음에 들지 않는다'
+    );
+    assert.equal(
+      await scalar(
+        `select public.claim_marketing_email($1, gen_random_uuid(), 'hash', 'token') as v`,
+        [OWNER]
+      ),
+      null,
+      '유예 중 OWNER에게 마케팅 이메일을 보내지 않는다'
+    );
+
+    // 취소하면 다시 쓸 수 있고 발송 후보로 돌아온다.
+    assert.equal(
+      (await run(OWNER, 'select public.cancel_account_deletion() as c')).rows[0].c,
+      true
+    );
+    await run(
+      OWNER,
+      `insert into public.entries (user_book_id, date, quote) values ('${SHELF}', '2026-11-06', 'after cancel')`
+    );
+    assert.equal((await snapshot()).entries, before.entries + 1, '취소 뒤 OWNER의 기록이 남는다');
+    assert.deepEqual(
+      (await ownerCandidates()).map((i) => i.kind),
+      ['recall']
+    );
+    assert.deepEqual(
+      (await friendCandidates()).map((i) => i.kind),
+      ['friends']
+    );
+    assert.equal(
+      (await asService('select * from public.claim_push_batch(10)')).rows.length,
+      1,
+      '취소 뒤 OWNER가 발송 묶음에 다시 든다'
+    );
+    assert.notEqual(
+      await scalar(
+        `select public.claim_marketing_email($1, gen_random_uuid(), 'hash', 'token') as v`,
+        [OWNER]
+      ),
+      null,
+      '취소 뒤 마케팅 이메일을 다시 보낸다'
+    );
+  }
+);
