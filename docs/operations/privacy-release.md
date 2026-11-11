@@ -42,11 +42,9 @@ PGLITE_MODULE=/tmp/readiary-pr91-sql/node_modules/@electric-sql/pglite/dist/inde
 
 ## 탈퇴 및 미사용 이미지 처리
 
-- 탈퇴 요청자의 본인 여부를 확인하고 10일 이내 처리한다. 인증 세션을 해지하고 새 로그인을 차단한 뒤 처리한다. 단순 계정 삭제만으로 이미 발급한 액세스 토큰이 즉시 무효화된다고 가정하지 않는다.
-- `profiles` 버킷에서 해당 사용자 UUID 폴더의 파일을 페이지 단위로 끝까지 조회하고 Storage API로 삭제한다. 현재 프로필 사진뿐 아니라 예전 버전에서 버려진 업로드도 포함한다. Storage 메타데이터 행을 SQL로 직접 삭제하지 않는다.
-- 파일 삭제 완료를 확인한 뒤 Auth 사용자를 삭제하고 연결된 프로필·책장·기록·관계·좋아요·댓글·알림이 제거됐는지 확인한다. 파일 삭제 실패를 탈퇴 완료로 기록하지 않는다.
+- 탈퇴는 앱 신청이든 메일 요청이든 같은 14일 유예·숨김을 거쳐 정기 작업이 지운다. 신청·메일 요청 처리·정기 작업 설치·실패 확인·백업 복구 후 재반영은 [계정 탈퇴 운영](account-deletion.md)을 따른다. 파일 삭제를 확인하기 전에 Auth 사용자를 지우지 않고, Storage 메타데이터 행을 SQL로 직접 지우지 않는다.
 - 기존 미사용 파일 또는 업로드 도중 브라우저가 종료되어 남은 파일은 프로필 참조와 충분한 유예 시간을 대조해 별도로 정리한다. 이 PR은 기존 파일을 대량 삭제하지 않는다. 새 정책은 미참조 파일을 다른 회원에게 공개하지 않는다.
-- 백업 복구 때는 이미 완료한 삭제 요청을 다시 반영한다. 법령상 보관할 별도 항목이 있으면 항목·근거·기간을 기록하고 기간 종료 후 삭제한다.
+- 법령상 보관할 별도 항목이 있으면 항목·근거·기간을 기록하고 기간 종료 후 삭제한다. 2026-11-11 판단으로는 법 때문에 남기는 항목이 없다(설계 문서 참고).
 
 참고: [Supabase 비공개 버킷](https://supabase.com/docs/guides/storage/buckets/fundamentals), [Storage 접근 정책](https://supabase.com/docs/guides/storage/security/access-control), [Pretendard v1.3.9](https://github.com/orioncactus/pretendard/tree/v1.3.9). 글꼴 라이선스는 `app/fonts/Pretendard-LICENSE.txt`에 포함한다.
 

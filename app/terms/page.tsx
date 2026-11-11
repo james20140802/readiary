@@ -20,7 +20,7 @@ export default function TermsPage() {
         announced: LEGAL_REVISION.announced,
         effective: LEGAL_REVISION.effective,
         changes: LEGAL_REVISION.termsChanges,
-        previous: { href: '/terms/2026-09-13', label: '지난 판(2026년 9월 13일 시행) 보기' },
+        previous: { href: '/terms/2026-11-03', label: '지난 판(2026년 11월 3일 시행) 보기' },
       }}
     />
   );
