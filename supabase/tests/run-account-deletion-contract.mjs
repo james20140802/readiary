@@ -114,9 +114,31 @@ await runRlsContract(
     assert.deepEqual(due, [OWNER], '기한이 지난 행만 반환');
     await denied(run(OWNER, 'select * from public.claim_due_account_deletions(10)'));
 
+    // 기한이 지난 신청은 취소할 수 없다(삭제 작업과 겹치지 않는다)
+    assert.equal(
+      (await run(OWNER, 'select public.cancel_account_deletion() as c')).rows[0].c,
+      false
+    );
+    assert.equal(
+      (await db.query('select 1 from public.account_deletions where user_id = $1', [OWNER])).rows
+        .length,
+      1,
+      '기한 지난 행은 남는다'
+    );
+    await denied(run(null, 'select public.is_account_active($1)', [OWNER]));
+
     // 삭제 기록 정리
     await asService('select public.record_account_purge($1)', [OWNER]);
+    await db.exec(
+      `update public.account_deletion_purges set purged_at = now() - interval '5 days' where user_id = '${OWNER}'`
+    );
     await asService('select public.record_account_purge($1)', [OWNER]); // upsert
+    const refreshed = await db.query(
+      `select purged_at > now() - interval '1 day' as fresh from public.account_deletion_purges where user_id = $1`,
+      [OWNER]
+    );
+    assert.equal(refreshed.rows.length, 1, 'upsert 뒤에도 OWNER 행은 하나');
+    assert.equal(refreshed.rows[0].fresh, true, 'upsert가 purged_at을 갱신한다');
     await asService('select public.record_account_purge($1)', [FRIEND]);
     await db.exec(
       `update public.account_deletion_purges set purged_at = now() - interval '31 days' where user_id = '${OWNER}'`

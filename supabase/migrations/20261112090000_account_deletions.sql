@@ -34,8 +34,8 @@ create function public.is_account_active(p_user uuid) returns boolean
 language sql stable security definer set search_path = public, pg_temp as $$
   select not exists (select 1 from public.account_deletions where user_id = p_user)
 $$;
-revoke all on function public.is_account_active(uuid) from public;
-grant execute on function public.is_account_active(uuid) to authenticated, anon, service_role;
+revoke all on function public.is_account_active(uuid) from public, anon;
+grant execute on function public.is_account_active(uuid) to authenticated, service_role;
 
 -- 현재 사용자가 유예 중이면 쓰기를 거부한다.
 create function public.assert_account_active() returns void
@@ -45,7 +45,7 @@ begin
     raise exception 'account_pending_deletion' using errcode = '42501';
   end if;
 end $$;
-revoke all on function public.assert_account_active() from public;
+revoke all on function public.assert_account_active() from public, anon;
 grant execute on function public.assert_account_active() to authenticated, service_role;
 
 -- 탈퇴 신청(서비스 롤 전용). 이미 신청했으면 기존 기한을 그대로 돌려준다. 이 기기 알림 구독도 함께 지운다.
@@ -63,12 +63,13 @@ end $$;
 revoke all on function public.request_account_deletion(uuid) from public, anon, authenticated;
 grant execute on function public.request_account_deletion(uuid) to service_role;
 
--- 탈퇴 취소. 본인 행만 지운다. 지운 행이 있으면 true.
+-- 탈퇴 취소. 본인 행만, 기한 전일 때만 지운다. 지운 행이 있으면 true.
+-- 기한이 지난 행은 삭제 작업이 잡을 몫이므로 취소할 수 없다(취소 가능 집합과 claim 집합이 겹치지 않는다).
 create function public.cancel_account_deletion() returns boolean
 language plpgsql security definer set search_path = public, pg_temp as $$
 declare v_count integer;
 begin
-  delete from public.account_deletions where user_id = auth.uid();
+  delete from public.account_deletions where user_id = auth.uid() and purge_after > now();
   get diagnostics v_count = row_count;
   return v_count > 0;
 end $$;
