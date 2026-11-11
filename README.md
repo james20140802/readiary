@@ -63,6 +63,11 @@ public/              # 아이콘, manifest 등 정적 파일
 - 빌드할 때 `sw.js`와 `workbox-*.js`가 생성됩니다.
 - iOS Safari, Android, 데스크톱 브라우저에서 홈 화면에 설치할 수 있습니다.
 
+## 저작권
+
+© 2025–2026 Readiary 운영자. All rights reserved.
+코드·문서·디자인·문구를 허락 없이 복제하거나 다른 서비스에 쓸 수 없습니다. 자세한 내용은 [LICENSE](LICENSE)에 있습니다.
+
 ---
 
 작업 규칙은 [AGENTS.md](AGENTS.md)에 있습니다.
