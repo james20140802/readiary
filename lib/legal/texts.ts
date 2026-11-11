@@ -45,6 +45,9 @@ export const LEGAL_REVISION = {
 /** 선택 Web Push 항목 추가가 시행된 시각(2026년 9월 8일 공고) — 이후 개정과 무관하게 고정 */
 export const PUSH_PRIVACY_EFFECTIVE_AT = '2026-09-15T00:00:00+09:00';
 
+/** 계정 탈퇴 신청을 여는 시각 — 개정 방침 시행일과 같게 유지한다(본문 개정은 별도 작업) */
+export const ACCOUNT_DELETION_EFFECTIVE_AT = '2026-12-13T00:00:00+09:00';
+
 const CONTACT = describeSupportContact();
 
 export const TERMS_OF_SERVICE = `제1조 (목적)
