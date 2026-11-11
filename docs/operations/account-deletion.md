@@ -38,7 +38,12 @@
 
    첫 줄은 앱 신청과 같은 상태를 남기고 삭제 예정 시각을 돌려준다(이미 신청한 계정이면 기존 시각을 그대로 돌려준다). 둘째 줄은 모든 기기의 세션을 끊는다. 이미 발급된 액세스 토큰은 만료 전까지 남지만 RLS·RPC가 쓰기를 거부한다.
 3. 독자에게 돌려받은 삭제 예정일(KST)과 그 전에 로그인하면 되돌릴 수 있다는 점을 알린다. 나머지는 앱 신청과 같이 정기 작업이 처리한다.
-4. 요청을 받은 메일과 처리 사실은 운영자 메일함 외의 곳(노션·이슈·PR)에 이메일 주소나 UUID와 함께 옮겨 적지 않는다.
+4. **프로필이 없는 계정(온보딩을 끝내지 않은 Auth 사용자)**: `account_deletions.user_id`가 `profiles(id)`를 참조하므로 2번의 `request_account_deletion`이 FK 위반으로 실패한다. 먼저 `select 1 from public.profiles where id = '<uuid>';`로 프로필 행이 없는지 확인하고, 없으면 유예 없이 바로 지운다. 다른 사람에게 보이는 프로필·기록이 없어 숨길 것이 없고, 되돌릴 데이터도 없기 때문이다. 이 경우에도 요청을 확인한 날부터 10일 안에 마친다.
+   1. Storage API(대시보드 Storage 화면 또는 서비스 롤 클라이언트)로 `profiles/<uid>/`가 비어 있는지 보고, 파일이 있으면 Storage API로 지운다. 메타데이터 행을 SQL로 지우지 않는다.
+   2. 대시보드 Authentication 화면이나 admin API(`auth.admin.deleteUser`)로 Auth 사용자를 지운다. 세션도 함께 사라진다.
+   3. 백업 복구 때 다시 지울 수 있도록 SQL Editor에서 `select public.record_account_purge('<uuid>');`를 실행한다.
+   4. 독자에게 삭제를 마쳤다고 알린다.
+5. 요청을 받은 메일과 처리 사실은 운영자 메일함 외의 곳(노션·이슈·PR)에 이메일 주소나 UUID와 함께 옮겨 적지 않는다.
 
 ## 정기 작업 설치
 
@@ -56,17 +61,18 @@
 
 라우트는 사용자·파일 경로·이메일을 응답과 로그에 남기지 않고 `{purged, failed, pruned}` 집계만 돌려준다. 하나라도 실패하면 `500`이다.
 
-- 정기 작업 실행 기록: `select status, return_message, start_time from cron.job_run_details where jobid = (select jobid from cron.job where jobname = 'readiary-account-deletion') order by start_time desc limit 7;`
-- HTTP 응답: `select status_code, content, created from net._http_response order by created desc limit 20;`에서 `/api/cron/account-deletion` 응답의 상태와 집계를 본다. pg_net 응답은 짧게 보관되므로 실행 직후에 확인한다. 401은 Vault와 서버의 `CRON_SECRET` 불일치, 503은 서버 환경변수 누락이다.
-- 밀린 계정: `select count(*) from public.account_deletions where purge_after <= now() - interval '1 day';`가 0보다 크면 이틀 이상 처리되지 않은 계정이 있다. UUID를 노션·PR에 옮기지 않고, Vercel 함수 로그와 Storage 버킷에서 원인을 본다.
+- 정기 작업 실행 기록: `select status, return_message, start_time from cron.job_run_details where jobid = (select jobid from cron.job where jobname = 'readiary-account-deletion') order by start_time desc limit 7;` `net.http_get`은 요청을 큐에 넣고 바로 끝나는 비동기 호출이라, HTTP 호출이 실패해도 여기에는 `succeeded`로 남는다. 작업이 돌았는지만 알려 주고 결과는 아래 HTTP 응답에서 본다.
+- HTTP 응답: `select status_code, content, created from net._http_response order by created desc limit 20;`에서 상태와 집계를 본다. 이 테이블에는 URL 열이 없으므로, 본문이 `{"purged":…,"failed":…,"pruned":…}` 모양인 행을 이 작업의 응답으로 본다(푸시 작업 응답과 섞여 있다). pg_net 응답은 짧게 보관되므로 실행 직후에 확인한다. 401은 Vault와 서버의 `CRON_SECRET` 불일치, 503은 서버 환경변수 누락이다.
+- 밀린 계정: `select count(*) from public.account_deletions where purge_after <= now() - interval '1 day';`가 0보다 크면 하루 넘게 처리되지 않은 계정이 있다. 작업은 하루 한 번 실행에 최대 5개 계정만 처리하므로, 신청이 몰린 뒤 남은 계정은 실패가 아니라 처리량 문제일 수 있다. 먼저 HTTP 응답의 `failed`가 0인지 보고, 0이면 다음 실행에서 줄어드는지 지켜보거나 라우트를 한 번 더 호출한다. `failed`가 있으면 UUID를 노션·PR에 옮기지 않고, Vercel 함수 로그와 Storage 버킷에서 원인을 본다.
 - 파일 삭제 실패는 Storage 권한이나 일시 장애가 흔한 원인이다. 메타데이터 행을 SQL로 지워 넘기지 않는다. 원인을 고친 뒤 다음 실행을 기다리거나, 같은 Authorization 헤더로 라우트를 한 번 호출한다.
 
 ## 백업 복구 후 재반영
 
 DB를 백업이나 PITR로 되돌리면 그 시점 뒤에 지운 계정이 되살아날 수 있다.
 
-1. 복구 직후, 앱 접근을 열기 전에 복구본에 남은 `account_deletion_purges`가 아니라 **복구 전 운영 DB의 기록**을 기준으로 삼는다. 복구 전에 `select user_id, purged_at from public.account_deletion_purges;` 결과를 운영자만 접근할 수 있는 곳에 잠시 보관하고, 재반영을 마치면 지운다.
-2. 그 목록에 있으면서 복구본에 다시 나타난 계정마다, 앱과 같은 순서로 Storage `profiles/<uid>/` 파일을 지운 뒤 Auth 사용자를 지운다. 가장 단순한 방법은 해당 계정에 `account_deletions` 행을 기한이 지난 상태로 넣고(`purge_after = now()`) 정기 작업 라우트를 호출하는 것이다.
+0. **복구를 시작하기 전에** `select user_id, purged_at from public.account_deletion_purges;` 결과를 내보내 운영자만 접근할 수 있는 곳에 잠시 보관한다. PITR과 백업 복원은 DB를 그 자리에서 바꿔 놓으므로, 복구가 끝난 뒤에는 복구 시점 이후의 삭제 기록을 다시 읽을 수 없다. 재반영을 마치면 내보낸 목록을 지운다.
+1. 복구가 끝나면 앱 접근을 열기 전에, 복구본의 `account_deletion_purges`가 아니라 0번에서 내보낸 목록을 기준으로 삼는다.
+2. 그 목록에 있으면서 복구본에 다시 나타난 계정마다, 앱과 같은 순서로 Storage `profiles/<uid>/` 파일을 지운 뒤 Auth 사용자를 지운다. 가장 단순한 방법은 해당 계정에 `account_deletions` 행을 기한이 지난 상태로 넣고(`purge_after = now()`) 정기 작업 라우트를 호출하는 것이다. 프로필 행이 없는 계정은 이 행을 넣을 수 없으므로 "메일 요청 처리" 4번처럼 직접 지운다. 마치면 `select public.record_account_purge('<uuid>');`로 기록을 다시 남긴다.
 3. 복구 시점에 유예 중이던 신청(`account_deletions`)은 복구본에 그대로 있으므로 원래 기한에 처리된다.
 4. 삭제 기록 보관 30일은 Supabase 백업·PITR 보관 기간을 덮는 값이다. 운영 계정의 실제 백업 보관 기간이 30일보다 길어지면 `prune_account_purges`의 기간과 방침 제3조 제6항을 그 값에 맞춰 함께 고치고, 방침 개정 절차를 따른다.
 
