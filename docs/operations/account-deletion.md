@@ -72,10 +72,10 @@
 
 ## 실패 확인
 
-라우트는 사용자·파일 경로·이메일을 응답과 로그에 남기지 않고 `{purged, failed, pruned}` 집계만 돌려준다. 하나라도 실패하면 `500`이다.
+라우트는 사용자·파일 경로·이메일을 응답과 로그에 남기지 않고 `{purged, failed, pruned, deferred}` 집계만 돌려준다. 하나라도 실패하면 `500`이다. 45초 안에 시작하지 못한 계정은 `deferred`로 세고 다음 실행으로 넘기며, 실패로 보지 않는다.
 
 - 정기 작업 실행 기록: `select status, return_message, start_time from cron.job_run_details where jobid = (select jobid from cron.job where jobname = 'readiary-account-deletion') order by start_time desc limit 7;` `net.http_get`은 요청을 큐에 넣고 바로 끝나는 비동기 호출이라, HTTP 호출이 실패해도 여기에는 `succeeded`로 남는다. 작업이 돌았는지만 알려 주고 결과는 아래 HTTP 응답에서 본다.
-- HTTP 응답: `select status_code, content, created from net._http_response order by created desc limit 20;`에서 상태와 집계를 본다. 이 테이블에는 URL 열이 없으므로, 본문이 `{"purged":…,"failed":…,"pruned":…}` 모양인 행을 이 작업의 응답으로 본다(푸시 작업 응답과 섞여 있다). pg_net 응답은 짧게 보관되므로 실행 직후에 확인한다. 401은 Vault와 서버의 `CRON_SECRET` 불일치, 503은 서버 환경변수 누락이다.
+- HTTP 응답: `select status_code, content, created from net._http_response order by created desc limit 20;`에서 상태와 집계를 본다. 이 테이블에는 URL 열이 없으므로, 본문이 `{"purged":…,"failed":…,"pruned":…,"deferred":…}` 모양인 행을 이 작업의 응답으로 본다(푸시 작업 응답과 섞여 있다). pg_net 응답은 짧게 보관되므로 실행 직후에 확인한다. 401은 Vault와 서버의 `CRON_SECRET` 불일치, 503은 서버 환경변수 누락이다.
 - 밀린 계정: `select count(*) from public.account_deletions where purge_after <= now() - interval '1 day';`가 0보다 크면 하루 넘게 처리되지 않은 계정이 있다. 작업은 하루 한 번 실행에 최대 50개 계정을, 45초 안에 시작할 수 있는 만큼만 처리하므로, 신청이 몰린 뒤 남은 계정은 실패가 아니라 처리량 문제일 수 있다. 먼저 HTTP 응답의 `failed`가 0인지 보고, 0이면 `deferred`(잡았지만 시간이 모자라 시작하지 않은 수)와 함께 다음 실행에서 줄어드는지 지켜보거나 라우트를 한 번 더 호출한다. 같은 계정이 계속 실패하면 `last_attempt_at`이 매일 갱신되는데도 행이 남는다. `failed`가 있으면 UUID를 노션·PR에 옮기지 않고, Vercel 함수 로그와 Storage 버킷에서 원인을 본다.
 - 파일 삭제 실패는 Storage 권한이나 일시 장애가 흔한 원인이다. 메타데이터 행을 SQL로 지워 넘기지 않는다. 원인을 고친 뒤 다음 실행을 기다리거나, 같은 Authorization 헤더로 라우트를 한 번 호출한다.
 
