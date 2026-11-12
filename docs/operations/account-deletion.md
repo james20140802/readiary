@@ -8,8 +8,8 @@
 
 **마이그레이션을 먼저, 앱을 나중에** 반영한다.
 
-1. 마이그레이션 세 개 `20261112090000_account_deletions.sql`, `20261112091000_account_deletion_visibility.sql`, `20261112092000_account_deletion_writes.sql`을 이 순서로 운영 DB에 적용한다. 다른 미적용 마이그레이션을 일괄 적용하지 않는다.
-2. 적용을 확인한다. `select to_regclass('public.account_deletions'), to_regclass('public.account_deletion_purges');`가 두 이름을 돌려주고, `select proname from pg_proc where proname in ('request_account_deletion', 'cancel_account_deletion', 'mark_account_purge_attempt', 'record_account_purge', 'prune_account_purges');`가 다섯 행을 돌려줘야 한다.
+1. 마이그레이션 네 개 `20261112090000_account_deletions.sql`, `20261112091000_account_deletion_visibility.sql`, `20261112092000_account_deletion_writes.sql`, `20261112093000_account_deletion_storage.sql`(유예 중 프로필 이미지 쓰기 차단)을 이 순서로 운영 DB에 적용한다. 다른 미적용 마이그레이션을 일괄 적용하지 않는다.
+2. 적용을 확인한다. `select to_regclass('public.account_deletions'), to_regclass('public.account_deletion_purges');`가 두 이름을 돌려주고, `select proname from pg_proc where proname in ('request_account_deletion', 'cancel_account_deletion', 'mark_account_purge_attempt', 'record_account_purge', 'prune_account_purges');`가 다섯 행을, `select count(*) from pg_policies where schemaname = 'storage' and policyname like 'profiles_storage_%_requires_active';`가 3을 돌려줘야 한다.
 3. 그다음에 PR을 머지하고 앱 배포가 성공했는지 본다.
 
 순서가 뒤집히면 새 앱의 `proxy.ts`가 로그인한 모든 요청에서 `profiles.select('id, account_deletions(purge_after)')`를 부르는데, 운영 DB에 `account_deletions` 테이블이 없어 PostgREST가 임베드 오류를 돌려준다. 이때 앱은 `select('id')`로 한 번 더 읽어 프로필이 있으면 쓰는 중으로 보고 넘어가지만(캐시하지 않는다), 탈퇴 신청·복구 API와 정기 작업은 마이그레이션 없이 동작하지 않고 요청마다 조회가 두 번 일어난다. 대체 경로는 사고를 줄이는 안전장치일 뿐 정상 배포 순서가 아니다.

@@ -655,3 +655,64 @@ await runRlsContract(
     );
   }
 );
+
+await runRlsContract(
+  'pending accounts cannot write profile images, and the purge worker still can',
+  async ({ db, run }) => {
+    const MINE = `${OWNER}/mine.png`;
+    const FRIEND_FILE = `${FRIEND}/friend.png`;
+    await db.exec(`
+      grant select, insert, update, delete on storage.objects to anon, authenticated;
+      -- 실제 Supabase처럼 서비스 롤(삭제 작업)에게 storage를 연다. 서비스 롤은 RLS를 우회한다.
+      grant usage on schema storage to service_role;
+      grant select, insert, update, delete on storage.objects to service_role;
+      insert into storage.objects (bucket_id, name, owner) values
+        ('profiles', '${MINE}', '${OWNER}'),
+        ('profiles', '${FRIEND_FILE}', '${FRIEND}');
+    `);
+    const names = async () =>
+      (await db.query('select name from storage.objects order by name')).rows.map((r) => r.name);
+    const before = await names();
+
+    await db.exec('set role service_role');
+    await db.query('select public.request_account_deletion($1)', [OWNER]);
+    await db.exec('reset role');
+
+    await assert.rejects(
+      run(OWNER, `insert into storage.objects (bucket_id, name) values ('profiles', $1)`, [
+        `${OWNER}/new.png`,
+      ]),
+      (e) => e.code === DENIED.code,
+      '유예 중에는 새 이미지를 올리지 못한다'
+    );
+    await assert.rejects(
+      run(OWNER, `update storage.objects set metadata = '{"v":1}' where name = $1`, [MINE]),
+      (e) => e.code === DENIED.code,
+      '유예 중에는 이미지를 덮어쓰지 못한다'
+    );
+    const removed = await run(OWNER, 'delete from storage.objects where name = $1', [MINE]);
+    assert.equal(removed.affectedRows, 0, '유예 중에는 이미지를 지우지 못한다');
+    assert.deepEqual(await names(), before, '유예 중 OWNER의 시도는 아무것도 바꾸지 않는다');
+
+    // 다른 사람의 쓰기는 그대로 된다
+    await run(FRIEND, `insert into storage.objects (bucket_id, name) values ('profiles', $1)`, [
+      `${FRIEND}/new.png`,
+    ]);
+
+    // 삭제 작업(서비스 롤)은 유예 중인 계정의 파일을 지운다
+    await db.exec('set role service_role');
+    const purged = await db.query('delete from storage.objects where name = $1', [MINE]);
+    await db.exec('reset role');
+    assert.equal(purged.affectedRows, 1, '서비스 롤은 유예 중 계정의 파일을 지운다');
+
+    // 취소하면 바로 다시 올린다
+    assert.equal(
+      (await run(OWNER, 'select public.cancel_account_deletion() as c')).rows[0].c,
+      true
+    );
+    await run(OWNER, `insert into storage.objects (bucket_id, name) values ('profiles', $1)`, [
+      `${OWNER}/back.png`,
+    ]);
+    assert.ok((await names()).includes(`${OWNER}/back.png`), '취소 뒤에는 다시 올린다');
+  }
+);
