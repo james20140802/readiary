@@ -53,7 +53,10 @@ beforeEach(() => {
   mocks.deleteUser.mockResolvedValue({ error: null });
   mocks.recheck.mockResolvedValue({ data: { user_id: UID }, error: null });
 });
-afterEach(() => vi.unstubAllEnvs());
+afterEach(() => {
+  vi.unstubAllEnvs();
+  vi.restoreAllMocks();
+});
 
 describe('GET /api/cron/account-deletion', () => {
   it('rejects a wrong secret', async () => {
@@ -64,7 +67,7 @@ describe('GET /api/cron/account-deletion', () => {
   it('removes every file across pages before deleting the user', async () => {
     const res = await call();
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ purged: 1, failed: 0, pruned: 2 });
+    expect(await res.json()).toEqual({ purged: 1, failed: 0, pruned: 2, deferred: 0 });
     const removed = mocks.remove.mock.calls.flatMap((c) => c[0] as string[]);
     expect(removed).toHaveLength(150);
     expect(removed).toContain(`${UID}/f149.jpg`);
@@ -76,6 +79,65 @@ describe('GET /api/cron/account-deletion', () => {
       ];
     expect(recordOrder).toBeGreaterThan(mocks.remove.mock.invocationCallOrder.at(-1)!);
     expect(mocks.deleteUser.mock.invocationCallOrder[0]).toBeGreaterThan(recordOrder);
+  });
+
+  it('claims up to 50 and marks each attempt before touching storage', async () => {
+    await call();
+    expect(mocks.rpc).toHaveBeenCalledWith('claim_due_account_deletions', { p_limit: 50 });
+    const markIndex = mocks.rpc.mock.calls.findIndex((c) => c[0] === 'mark_account_purge_attempt');
+    expect(mocks.rpc.mock.calls[markIndex][1]).toEqual({ p_user: UID });
+    expect(mocks.rpc.mock.invocationCallOrder[markIndex]).toBeLessThan(
+      mocks.list.mock.invocationCallOrder[0]
+    );
+  });
+
+  it('does not touch storage when marking the attempt fails', async () => {
+    mocks.rpc.mockImplementation(async (name: string) => {
+      if (name === 'claim_due_account_deletions') return { data: [UID], error: null };
+      if (name === 'mark_account_purge_attempt') return { data: null, error: { message: 'x' } };
+      return { data: 0, error: null };
+    });
+    const res = await call();
+    expect(res.status).toBe(500);
+    expect(await res.json()).toMatchObject({ purged: 0, failed: 1, deferred: 0 });
+    expect(mocks.list).not.toHaveBeenCalled();
+  });
+
+  it('processes claimed users in order and leaves the rest for the next run after 45s', async () => {
+    const A = 'aaaaaaaa-0000-4000-8000-000000000001';
+    const B = 'bbbbbbbb-0000-4000-8000-000000000002';
+    const C = 'cccccccc-0000-4000-8000-000000000003';
+    mocks.rpc.mockImplementation(async (name: string) => {
+      if (name === 'claim_due_account_deletions') return { data: [A, B, C], error: null };
+      if (name === 'prune_account_purges') return { data: 0, error: null };
+      return { data: null, error: null };
+    });
+    // 시작 0ms, A 시작 전 0ms, B 시작 전 45,001ms — A만 처리하고 B·C는 손대지 않는다
+    vi.spyOn(performance, 'now')
+      .mockReturnValueOnce(0)
+      .mockReturnValueOnce(0)
+      .mockReturnValue(45_001);
+    const res = await call();
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ purged: 1, failed: 0, pruned: 0, deferred: 2 });
+    expect(mocks.deleteUser).toHaveBeenCalledTimes(1);
+    expect(mocks.deleteUser).toHaveBeenCalledWith(A);
+    const marked = mocks.rpc.mock.calls
+      .filter((c) => c[0] === 'mark_account_purge_attempt')
+      .map((c) => (c[1] as { p_user: string }).p_user);
+    expect(marked).toEqual([A]);
+    expect(mocks.rpc).toHaveBeenCalledWith('prune_account_purges');
+  });
+
+  it('keeps going through every claimed user within the budget, in claim order', async () => {
+    const ids = ['a', 'b', 'c'].map((x) => `${x.repeat(8)}-0000-4000-8000-000000000000`);
+    mocks.rpc.mockImplementation(async (name: string) => {
+      if (name === 'claim_due_account_deletions') return { data: ids, error: null };
+      return { data: 0, error: null };
+    });
+    const res = await call();
+    expect(await res.json()).toMatchObject({ purged: 3, failed: 0, deferred: 0 });
+    expect(mocks.deleteUser.mock.calls.map((c) => c[0])).toEqual(ids);
   });
 
   it('recurses into sub folders', async () => {
@@ -93,7 +155,7 @@ describe('GET /api/cron/account-deletion', () => {
       .mockResolvedValueOnce({ data: null, error: { message: 'x' } });
     const res = await call();
     expect(res.status).toBe(500);
-    expect(await res.json()).toEqual({ purged: 0, failed: 1, pruned: 2 });
+    expect(await res.json()).toEqual({ purged: 0, failed: 1, pruned: 2, deferred: 0 });
     expect(mocks.deleteUser).not.toHaveBeenCalled();
     expect(mocks.rpc).toHaveBeenCalledWith('prune_account_purges');
   });
@@ -109,14 +171,14 @@ describe('GET /api/cron/account-deletion', () => {
     mocks.recheck.mockResolvedValue({ data: null, error: null });
     const res = await call();
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ purged: 0, failed: 0, pruned: 2 });
+    expect(await res.json()).toEqual({ purged: 0, failed: 0, pruned: 2, deferred: 0 });
     expect(mocks.deleteUser).not.toHaveBeenCalled();
   });
 
   it('treats user-not-found as already deleted', async () => {
     mocks.deleteUser.mockResolvedValue({ error: { status: 404, code: 'user_not_found' } });
     const res = await call();
-    expect(await res.json()).toEqual({ purged: 1, failed: 0, pruned: 2 });
+    expect(await res.json()).toEqual({ purged: 1, failed: 0, pruned: 2, deferred: 0 });
     expect(mocks.rpc).toHaveBeenCalledWith('record_account_purge', { p_user: UID });
   });
 

@@ -140,6 +140,30 @@ await runRlsContract(
     );
     await denied(run(null, 'select public.is_account_active($1)', [OWNER]));
 
+    // 공정성: 시도한 계정은 한 번도 시도하지 않은 계정 뒤로 간다. 계속 실패하는 계정이 다른 계정을 막지 않는다.
+    // FRIEND도 기한을 넘기되 OWNER보다 늦게 넘긴다(purge_after만 보면 OWNER가 먼저다).
+    await db.exec(
+      `update public.account_deletions set purge_after = now() - interval '30 seconds' where user_id = '${FRIEND}'`
+    );
+    const claimOne = async () =>
+      (await asService('select * from public.claim_due_account_deletions(1) as u')).rows[0]?.u;
+    assert.equal(await claimOne(), OWNER, '아무도 시도하지 않았으면 기한이 이른 순서');
+    await asService('select public.mark_account_purge_attempt($1)', [OWNER]);
+    assert.equal(await claimOne(), FRIEND, '시도한 OWNER보다 시도하지 않은 FRIEND가 먼저');
+    await asService('select public.mark_account_purge_attempt($1)', [FRIEND]);
+    assert.equal(await claimOne(), OWNER, '둘 다 시도했으면 오래전에 시도한 쪽이 먼저');
+    assert.equal(
+      (
+        await db.query(
+          'select count(*)::int as n from public.account_deletions where last_attempt_at is not null'
+        )
+      ).rows[0].n,
+      2,
+      '시도 시각이 남는다'
+    );
+    await denied(run(OWNER, 'select public.mark_account_purge_attempt($1)', [OWNER]));
+    await denied(run(null, 'select public.mark_account_purge_attempt($1)', [OWNER]));
+
     // 삭제 기록 정리
     await asService('select public.record_account_purge($1)', [OWNER]);
     await db.exec(

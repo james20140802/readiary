@@ -35,7 +35,8 @@
     "account_deletions": [
       ["user_id", "uuid", "NO", null],
       ["requested_at", "timestamp with time zone", "NO", "now()"],
-      ["purge_after", "timestamp with time zone", "NO", null]
+      ["purge_after", "timestamp with time zone", "NO", null],
+      ["last_attempt_at", "timestamp with time zone", "YES", null]
     ],
     "book_registration_requests": [
       ["user_id", "uuid", "NO", null],
@@ -1005,6 +1006,7 @@
     ["has_unread_notifications", ""],
     ["is_account_active", "p_user uuid"],
     ["is_friend_with", "p_user_id uuid"],
+    ["mark_account_purge_attempt", "p_user uuid"],
     ["mark_push_seen", "p_kind text, p_delivery uuid"],
     ["monthly_excerpt_drop_if_empty", ""],
     ["monthly_excerpt_kst_today", ""],

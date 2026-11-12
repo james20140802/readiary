@@ -5,7 +5,9 @@
 create table public.account_deletions (
   user_id uuid primary key references auth.users(id) on delete cascade,
   requested_at timestamptz not null default now(),
-  purge_after timestamptz not null
+  purge_after timestamptz not null,
+  -- 삭제 작업이 마지막으로 이 계정을 시작한 시각. claim이 시도하지 않은·오래전에 시도한 계정부터 잡는 데 쓴다.
+  last_attempt_at timestamptz
 );
 -- 프록시가 profiles 조회에 account_deletions(purge_after)를 임베드할 수 있도록 profiles로도 잇는다.
 alter table public.account_deletions
@@ -78,16 +80,25 @@ revoke all on function public.cancel_account_deletion() from public, anon;
 grant execute on function public.cancel_account_deletion() to authenticated;
 
 -- 기한이 지난 신청을 잡아 돌려준다(서비스 롤 전용). 동시에 도는 작업은 건너뛴다.
+-- 시도하지 않은 계정 → 오래전에 시도한 계정 순서라, 계속 실패하는 계정이 다른 계정을 막지 않는다.
 create function public.claim_due_account_deletions(p_limit int) returns setof uuid
 language sql security definer set search_path = public, pg_temp as $$
   select user_id from public.account_deletions
   where purge_after <= now()
-  order by purge_after
+  order by last_attempt_at nulls first, purge_after
   limit greatest(p_limit, 0)
   for update skip locked
 $$;
 revoke all on function public.claim_due_account_deletions(int) from public, anon, authenticated;
 grant execute on function public.claim_due_account_deletions(int) to service_role;
+
+-- 삭제 작업이 이 계정을 시작했다고 남긴다(서비스 롤 전용).
+create function public.mark_account_purge_attempt(p_user uuid) returns void
+language sql security definer set search_path = public, pg_temp as $$
+  update public.account_deletions set last_attempt_at = now() where user_id = p_user
+$$;
+revoke all on function public.mark_account_purge_attempt(uuid) from public, anon, authenticated;
+grant execute on function public.mark_account_purge_attempt(uuid) to service_role;
 
 create function public.record_account_purge(p_user uuid) returns void
 language sql security definer set search_path = public, pg_temp as $$

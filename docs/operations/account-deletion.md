@@ -9,7 +9,7 @@
 **마이그레이션을 먼저, 앱을 나중에** 반영한다.
 
 1. 마이그레이션 세 개 `20261112090000_account_deletions.sql`, `20261112091000_account_deletion_visibility.sql`, `20261112092000_account_deletion_writes.sql`을 이 순서로 운영 DB에 적용한다. 다른 미적용 마이그레이션을 일괄 적용하지 않는다.
-2. 적용을 확인한다. `select to_regclass('public.account_deletions'), to_regclass('public.account_deletion_purges');`가 두 이름을 돌려주고, `select proname from pg_proc where proname in ('request_account_deletion', 'cancel_account_deletion', 'record_account_purge', 'prune_account_purges');`가 네 행을 돌려줘야 한다.
+2. 적용을 확인한다. `select to_regclass('public.account_deletions'), to_regclass('public.account_deletion_purges');`가 두 이름을 돌려주고, `select proname from pg_proc where proname in ('request_account_deletion', 'cancel_account_deletion', 'mark_account_purge_attempt', 'record_account_purge', 'prune_account_purges');`가 다섯 행을 돌려줘야 한다.
 3. 그다음에 PR을 머지하고 앱 배포가 성공했는지 본다.
 
 순서가 뒤집히면 새 앱의 `proxy.ts`가 로그인한 모든 요청에서 `profiles.select('id, account_deletions(purge_after)')`를 부르는데, 운영 DB에 `account_deletions` 테이블이 없어 PostgREST가 임베드 오류를 돌려준다. 이때 앱은 `select('id')`로 한 번 더 읽어 프로필이 있으면 쓰는 중으로 보고 넘어가지만(캐시하지 않는다), 탈퇴 신청·복구 API와 정기 작업은 마이그레이션 없이 동작하지 않고 요청마다 조회가 두 번 일어난다. 대체 경로는 사고를 줄이는 안전장치일 뿐 정상 배포 순서가 아니다.
@@ -26,13 +26,14 @@
 1. **신청**: 설정 → 계정 → "탈퇴하기" 시트. 비밀번호 사용자는 현재 비밀번호를, 비밀번호가 없는 Google 사용자는 10분 안에 다시 로그인했는지를 서버(`POST /api/account/deletion`)가 확인한다. 통과하면 `request_account_deletion`이 `account_deletions`에 신청 시각과 삭제 예정 시각(신청한 날(KST) + 15일의 0시 KST — 신청한 날부터 14일째 되는 날 하루가 끝날 때)을 남기고 푸시 구독을 지운다. 이어서 모든 기기에서 로그아웃(global sign-out)하고 로그인 화면에 되돌릴 수 있는 날짜를 안내한다.
 2. **유예(0~14일)**: 프로필·책장·기록·발췌집·반응·친구 목록·공유 링크·알림에서 그 독자가 다른 사람에게 보이지 않는다. 숨김과 쓰기 차단은 RLS·RPC가 보장한다. 이미 발급된 액세스 토큰이 남아 있어도 쓰기는 거부된다. 푸시 구독은 지워졌고, 이메일 소식은 동의 상태를 그대로 둔 채 발송 대상에서 빠진다(`claim_marketing_email`).
 3. **복구**: 유예 중인 계정으로 로그인하면 `/account/restore`로 보낸다. "탈퇴 취소하고 돌아가기"(`DELETE /api/account/deletion` → `cancel_account_deletion`)를 누르면 숨김이 바로 풀린다. 기기 알림은 다시 켜야 한다. 삭제 예정 시각이 지난 신청은 취소할 수 없다.
-4. **완전 삭제**: 매일 KST 04:17 정기 작업이 기한이 지난 계정을 한 번에 최대 5개씩 처리한다(`app/api/cron/account-deletion/route.ts`).
-   1. `profiles` 버킷의 `<uid>/` 아래 파일을 페이지 단위로 끝까지 모은 뒤 Storage API로 지우고, 지운 수가 요청한 수와 같은지 확인한다. Storage 메타데이터 행을 SQL로 직접 지우지 않는다.
-   2. 그 사이 복구되지 않았는지 다시 확인한다.
-   3. `account_deletion_purges`에 회원 식별번호와 삭제 시각만 남긴다(`record_account_purge`). 이메일·닉네임·기록 내용은 넣지 않는다.
-   4. Auth 사용자를 지운다. FK CASCADE로 프로필·책장·기록·관계·반응·알림·푸시 설정·이메일 소식 기록과 `account_deletions` 행이 함께 지워진다. 공용 서지 정보(`books`)는 방침대로 남을 수 있다.
-   5. 어느 단계든 실패하면 완료로 처리하지 않는다. 신청 행이 남아 있으므로 다음 실행에서 다시 집계된다.
-   6. 삭제 결과와 상관없이 30일이 지난 `account_deletion_purges` 행을 지운다(`prune_account_purges`).
+4. **완전 삭제**: 매일 KST 04:17 정기 작업이 기한이 지난 계정을 한 번에 최대 50개까지 잡아 하나씩 차례로 처리한다(`app/api/cron/account-deletion/route.ts`). 실행을 시작하고 45초가 지나면 새 계정을 시작하지 않는다. 잡았지만 시작하지 않은 계정은 응답의 `deferred`로 세고, 신청 행이 그대로 남아 다음 실행이 다시 잡는다(실패로 세지 않는다). `claim_due_account_deletions`는 한 번도 시도하지 않은 계정, 그다음 오래전에 시도한 계정 순서(`last_attempt_at nulls first, purge_after`)로 잡으므로 계속 실패하는 계정이 다른 계정을 막지 않는다.
+   1. 계정을 시작할 때 `mark_account_purge_attempt`로 시도 시각(`last_attempt_at`)을 남긴다. 이 기록에 실패하면 그 계정은 실패로 세고 손대지 않는다.
+   2. `profiles` 버킷의 `<uid>/` 아래 파일을 페이지 단위로 끝까지 모은 뒤 Storage API로 지우고, 지운 수가 요청한 수와 같은지 확인한다. Storage 메타데이터 행을 SQL로 직접 지우지 않는다.
+   3. 그 사이 복구되지 않았는지 다시 확인한다.
+   4. `account_deletion_purges`에 회원 식별번호와 삭제 시각만 남긴다(`record_account_purge`). 이메일·닉네임·기록 내용은 넣지 않는다.
+   5. Auth 사용자를 지운다. FK CASCADE로 프로필·책장·기록·관계·반응·알림·푸시 설정·이메일 소식 기록과 `account_deletions` 행이 함께 지워진다. 공용 서지 정보(`books`)는 방침대로 남을 수 있다.
+   6. 어느 단계든 실패하면 완료로 처리하지 않는다. 신청 행이 남아 있으므로 다음 실행에서 다시 집계된다.
+   7. 삭제 결과와 상관없이 30일이 지난 `account_deletion_purges` 행을 지운다(`prune_account_purges`).
 
 ## 메일 요청 처리
 
@@ -75,7 +76,7 @@
 
 - 정기 작업 실행 기록: `select status, return_message, start_time from cron.job_run_details where jobid = (select jobid from cron.job where jobname = 'readiary-account-deletion') order by start_time desc limit 7;` `net.http_get`은 요청을 큐에 넣고 바로 끝나는 비동기 호출이라, HTTP 호출이 실패해도 여기에는 `succeeded`로 남는다. 작업이 돌았는지만 알려 주고 결과는 아래 HTTP 응답에서 본다.
 - HTTP 응답: `select status_code, content, created from net._http_response order by created desc limit 20;`에서 상태와 집계를 본다. 이 테이블에는 URL 열이 없으므로, 본문이 `{"purged":…,"failed":…,"pruned":…}` 모양인 행을 이 작업의 응답으로 본다(푸시 작업 응답과 섞여 있다). pg_net 응답은 짧게 보관되므로 실행 직후에 확인한다. 401은 Vault와 서버의 `CRON_SECRET` 불일치, 503은 서버 환경변수 누락이다.
-- 밀린 계정: `select count(*) from public.account_deletions where purge_after <= now() - interval '1 day';`가 0보다 크면 하루 넘게 처리되지 않은 계정이 있다. 작업은 하루 한 번 실행에 최대 5개 계정만 처리하므로, 신청이 몰린 뒤 남은 계정은 실패가 아니라 처리량 문제일 수 있다. 먼저 HTTP 응답의 `failed`가 0인지 보고, 0이면 다음 실행에서 줄어드는지 지켜보거나 라우트를 한 번 더 호출한다. `failed`가 있으면 UUID를 노션·PR에 옮기지 않고, Vercel 함수 로그와 Storage 버킷에서 원인을 본다.
+- 밀린 계정: `select count(*) from public.account_deletions where purge_after <= now() - interval '1 day';`가 0보다 크면 하루 넘게 처리되지 않은 계정이 있다. 작업은 하루 한 번 실행에 최대 50개 계정을, 45초 안에 시작할 수 있는 만큼만 처리하므로, 신청이 몰린 뒤 남은 계정은 실패가 아니라 처리량 문제일 수 있다. 먼저 HTTP 응답의 `failed`가 0인지 보고, 0이면 `deferred`(잡았지만 시간이 모자라 시작하지 않은 수)와 함께 다음 실행에서 줄어드는지 지켜보거나 라우트를 한 번 더 호출한다. 같은 계정이 계속 실패하면 `last_attempt_at`이 매일 갱신되는데도 행이 남는다. `failed`가 있으면 UUID를 노션·PR에 옮기지 않고, Vercel 함수 로그와 Storage 버킷에서 원인을 본다.
 - 파일 삭제 실패는 Storage 권한이나 일시 장애가 흔한 원인이다. 메타데이터 행을 SQL로 지워 넘기지 않는다. 원인을 고친 뒤 다음 실행을 기다리거나, 같은 Authorization 헤더로 라우트를 한 번 호출한다.
 
 ## 백업 복구 후 재반영

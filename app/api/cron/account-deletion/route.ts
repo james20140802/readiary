@@ -7,6 +7,10 @@ export const maxDuration = 60;
 
 const BUCKET = 'profiles';
 const PAGE = 100;
+/** 한 번에 잡는 계정 수. 다 못 끝낸 계정은 다음 실행이 다시 잡는다. */
+const ACCOUNT_PURGE_BATCH = 50;
+/** 이 시간이 지나면 새 계정을 시작하지 않는다 — 시작한 계정은 maxDuration(60초) 안에 끝낼 여유를 둔다. */
+const ACCOUNT_PURGE_TIME_BUDGET_MS = 45_000;
 
 function reply(data: unknown, status = 200) {
   return Response.json(data, { status, headers: { 'Cache-Control': 'no-store' } });
@@ -41,6 +45,10 @@ async function removeFiles(db: SupabaseClient, uid: string): Promise<boolean> {
 type Outcome = 'purged' | 'failed' | 'skipped';
 
 async function purgeUser(db: SupabaseClient, uid: string): Promise<Outcome> {
+  // 시도 시각을 먼저 남긴다. 다음 claim은 시도하지 않은·오래전에 시도한 계정부터 잡으므로
+  // 계속 실패하는 계정이 앞자리를 차지해 다른 계정을 막지 않는다.
+  const { error: markError } = await db.rpc('mark_account_purge_attempt', { p_user: uid });
+  if (markError) return 'failed';
   if (!(await removeFiles(db, uid))) return 'failed';
   // claim의 행 잠금은 RPC 호출을 넘어 유지되지 않는다. 그 사이 복구됐다면 지우지 않는다.
   const { data: still, error: checkError } = await db
@@ -71,14 +79,22 @@ export async function GET(request: Request) {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY)
     return reply({ enabled: false }, 503);
   const db = accountAdmin();
+  const startedAt = performance.now();
   let purged = 0;
   let failed = 0;
+  let deferred = 0;
 
   const { data: due, error: claimError } = await db.rpc('claim_due_account_deletions', {
-    p_limit: 5,
+    p_limit: ACCOUNT_PURGE_BATCH,
   });
   if (claimError) failed += 1;
-  for (const uid of (due ?? []) as string[]) {
+  const claimed = (due ?? []) as string[];
+  for (const [index, uid] of claimed.entries()) {
+    // 시간이 모자라면 남은 계정은 시작하지 않는다. 신청 행이 그대로라 다음 실행이 다시 잡는다(실패가 아니다).
+    if (performance.now() - startedAt > ACCOUNT_PURGE_TIME_BUDGET_MS) {
+      deferred = claimed.length - index;
+      break;
+    }
     let outcome: Outcome;
     try {
       outcome = await purgeUser(db, uid);
@@ -94,5 +110,5 @@ export async function GET(request: Request) {
   if (pruneError) failed += 1;
   const pruned = typeof prunedCount === 'number' ? prunedCount : 0;
 
-  return reply({ purged, failed, pruned }, failed > 0 ? 500 : 200);
+  return reply({ purged, failed, pruned, deferred }, failed > 0 ? 500 : 200);
 }
