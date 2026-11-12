@@ -387,6 +387,10 @@ await runRlsContract(
       await assert.rejects(promise, (e) => e.code === DENIED.code, `${label}: expected 42501`);
     };
     const scalar = async (sql, params) => (await db.query(sql, params)).rows[0].v;
+    // push_preferences.hour는 9~21만 받는다. OWNER의 시간대를 지금 정오 무렵인 고정 오프셋 시간대로 두어
+    // 테스트가 UTC 몇 시에 돌든 OWNER의 현지 시(hour)가 그 범위 안에 들게 한다(Etc/GMT는 부호가 반대다).
+    const offset = 12 - new Date().getUTCHours();
+    const OWNER_TZ = offset === 0 ? 'UTC' : `Etc/GMT${offset > 0 ? '-' : '+'}${Math.abs(offset)}`;
     // claim_push_batch는 안에서 now()의 시(hour)를 설정의 hour와 맞춰 본다. 테스트가 정시를 넘겨도
     // 흔들리지 않게, 한 트랜잭션 안에서 OWNER의 hour를 그 트랜잭션의 now()로 다시 맞춘 뒤 부른다
     // (트랜잭션 안의 now()는 같은 값이다).
@@ -394,7 +398,7 @@ await runRlsContract(
       await db.exec('begin');
       try {
         await db.exec(
-          `update public.push_preferences set hour = extract(hour from now() at time zone 'UTC')::int where user_id = '${OWNER}'`
+          `update public.push_preferences set hour = extract(hour from now() at time zone '${OWNER_TZ}')::int where user_id = '${OWNER}'`
         );
         await db.exec('set local role service_role');
         const result = await db.query('select * from public.claim_push_batch(10)');
@@ -415,7 +419,7 @@ await runRlsContract(
         ('${FRIEND_ENTRY}', '${FRIEND_SHELF}', '2026-01-10', 'friend quote', false),
         ('${OLD_ENTRY}', '${SHELF}', '2020-01-10', 'old quote', true);
       insert into public.push_preferences (user_id, enabled, kinds, timezone, hour, weekdays, consent_at) values
-        ('${OWNER}', true, array['recall'], 'UTC', extract(hour from now() at time zone 'UTC')::int, array[0,1,2,3,4,5,6], now() - interval '60 days'),
+        ('${OWNER}', true, array['recall'], '${OWNER_TZ}', extract(hour from now() at time zone '${OWNER_TZ}')::int, array[0,1,2,3,4,5,6], now() - interval '60 days'),
         ('${FRIEND}', true, array['friends'], 'UTC', 20, array[0,1,2,3,4,5,6], now() - interval '60 days');
       update public.entries set created_at = now() where id = '${PUBLIC_ENTRY}';
       update auth.users set email = 'owner@example.com', email_confirmed_at = now() where id = '${OWNER}';
