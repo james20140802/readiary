@@ -99,4 +99,5 @@ DB를 백업이나 PITR로 되돌리면 그 시점 뒤에 지운 계정이 되�
 
 - 2026-11-12: 마이그레이션 네 개를 SQL Editor로 운영 DB에 적용했다(앞의 세 개, 이어서 `20261112093000`). Storage 정책 확인 쿼리가 3을 돌려줬다. 자세한 대조는 [Supabase API 권한](supabase-api-grants.md)에 있다.
 - 2026-11-12: Vercel Production에 `CRON_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_SUPABASE_URL`이 있음을 운영자가 대시보드에서 확인했다(이름만 확인, 값은 보지 않음).
-- 미완료: Vault `readiary_account_deletion_url` 저장과 정기 작업 설치(머지·배포 뒤), 실제 Storage·Auth 삭제, 모바일 실기기 흐름.
+- 2026-11-12: 운영자가 Vault에 `readiary_account_deletion_url`을 저장했다(값은 문서에 남기지 않음).
+- 미완료: 정기 작업 설치(`enable-account-deletion-cron.sql`, 머지·배포 뒤), 실제 Storage·Auth 삭제, 모바일 실기기 흐름.
