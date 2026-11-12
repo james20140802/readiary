@@ -9,7 +9,17 @@ import { apiFetch, SessionExpiredError } from '@/lib/api/fetch';
 import { exportActions, type ExportAction } from '@/lib/export/exportActions';
 import type { EntryMonth } from '@/lib/export/monthPicker';
 
-export type ExportScope = { kind: 'book'; userBookId: string } | { kind: 'month' };
+export type ExportScope =
+  | { kind: 'book'; userBookId: string }
+  | { kind: 'month' }
+  /** 지금까지의 모든 기록 — 탈퇴 시트에서만 연다 */
+  | { kind: 'all' };
+
+const SCOPE_LEAD: Record<ExportScope['kind'], string> = {
+  book: '이 책에 남긴 문장과 생각을',
+  month: '한 달 동안 남긴 문장과 생각을',
+  all: '지금까지 남긴 모든 문장과 생각을',
+};
 
 interface Props {
   open: boolean;
@@ -58,7 +68,7 @@ function ExportBody({ scope }: { scope: ExportScope }) {
   const [months, setMonths] = useState<Load<EntryMonth[]>>({ status: 'loading' });
   const [month, setMonth] = useState<string | null>(null);
   const [text, setText] = useState<Load<ExportText> | null>(
-    scope.kind === 'book' ? { status: 'loading' } : null
+    scope.kind === 'month' ? null : { status: 'loading' }
   );
   const [copyFailed, setCopyFailed] = useState(false);
   const [actions] = useState(() =>
@@ -97,9 +107,11 @@ function ExportBody({ scope }: { scope: ExportScope }) {
   const textUrl =
     scope.kind === 'book'
       ? `/api/export?book=${encodeURIComponent(scope.userBookId)}`
-      : month
-        ? `/api/export?month=${month}`
-        : null;
+      : scope.kind === 'all'
+        ? '/api/export?scope=all'
+        : month
+          ? `/api/export?month=${month}`
+          : null;
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- 시트가 열릴 때 한 번 가져온다
@@ -150,8 +162,7 @@ function ExportBody({ scope }: { scope: ExportScope }) {
   return (
     <div>
       <p className="font-sans text-caption leading-[1.5] text-ink-sub">
-        {scope.kind === 'book' ? '이 책에' : '한 달 동안'} 남긴 문장과 생각을 붙여 넣을 수 있는 글로
-        꺼내요. 비공개 기록도 포함돼요.
+        {SCOPE_LEAD[scope.kind]} 붙여 넣을 수 있는 글로 꺼내요. 비공개 기록도 포함돼요.
       </p>
 
       {scope.kind === 'month' && (
@@ -219,7 +230,7 @@ function ExportBody({ scope }: { scope: ExportScope }) {
   );
 }
 
-/** 기록 꺼내기 — 책 한 권 또는 한 달의 내 기록을 마크다운으로 미리 보고 공유·복사·저장한다 */
+/** 기록 꺼내기 — 책 한 권, 한 달 또는 모든 내 기록을 마크다운으로 미리 보고 공유·복사·저장한다 */
 export default function ExportRecordsSheet({ open, onClose, scope }: Props) {
   return (
     <Sheet open={open} onClose={onClose} title="기록 꺼내기">

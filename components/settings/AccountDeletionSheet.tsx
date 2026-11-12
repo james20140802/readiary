@@ -159,7 +159,7 @@ export default function AccountDeletionSheet({
             onClick={() => setExporting(true)}
             className="min-h-11 font-sans text-body-sm font-semibold text-accent underline-offset-4 hover:underline"
           >
-            떠나기 전에 한 달씩 기록 내보내기
+            떠나기 전에 기록 모두 내보내기
           </button>
           {formError && <FormAlert>{formError}</FormAlert>}
           {hasPassword && (
@@ -206,7 +206,7 @@ export default function AccountDeletionSheet({
       <ExportRecordsSheet
         open={open && exporting}
         onClose={() => setExporting(false)}
-        scope={{ kind: 'month' }}
+        scope={{ kind: 'all' }}
       />
       <ActionNavigation href={action.destination} />
     </>

@@ -16,7 +16,8 @@ vi.mock('@/lib/pwa/clear-caches', () => ({ clearPwaCaches: vi.fn(async () => {})
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 // 내보내기 시트는 따로 검증한다 — 여기서는 열렸는지만 본다
 vi.mock('@/components/export/ExportRecordsSheet', () => ({
-  default: ({ open }: { open: boolean }) => (open ? h('p', null, '내보내기 시트') : null),
+  default: ({ open, scope }: { open: boolean; scope: { kind: string } }) =>
+    open ? h('p', null, `내보내기 시트:${scope.kind}`) : null,
 }));
 
 import AccountDeletionSheet from '../AccountDeletionSheet';
@@ -62,8 +63,9 @@ describe('AccountDeletionSheet — 비밀번호 계정', () => {
     expect(screen.getByRole('dialog', { name: '탈퇴하기' })).toBeTruthy();
     expect(screen.getByText('read•••@example.com 계정을 탈퇴해요.')).toBeTruthy();
     expect(screen.getByText(/11월 26일까지 다시 로그인하면/)).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', { name: '떠나기 전에 한 달씩 기록 내보내기' }));
-    expect(screen.getByText('내보내기 시트')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: '떠나기 전에 기록 모두 내보내기' }));
+    // 떠나는 독자는 달마다 고르지 않고 모든 기록을 한 번에 꺼낸다
+    expect(screen.getByText('내보내기 시트:all')).toBeTruthy();
   });
 
   it('KST 자정을 넘기면 하루 뒤 날짜를 안내한다', () => {
