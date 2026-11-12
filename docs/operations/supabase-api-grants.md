@@ -57,7 +57,7 @@ PGLITE_MODULE=/tmp/readiary-grants-sql/node_modules/@electric-sql/pglite/dist/in
 
 `20261112090000_account_deletions.sql`, `20261112091000_account_deletion_visibility.sql`, `20261112092000_account_deletion_writes.sql`은 2026-11-12에 SQL Editor로 직접 적용했고, `schema_migrations` 이력은 파일 이름 버전으로 넣었다. 적용 뒤 읽기 전용 조회로 테이블 2개, 탈퇴 함수 8개, 숨김 정책 7개, 쓰기 차단 정책 29개, 확인 줄이 들어간 쓰기 함수 11개, `is_account_active`의 anon 실행 불가, `request_account_deletion`의 authenticated 실행 불가를 대조했다. 픽스처의 해당 값은 이 대조로 확인한 예상치다.
 
-뒤이어 더한 `20261112093000_account_deletion_storage.sql`(유예 중 계정의 프로필 이미지 Storage 쓰기 차단, restrictive 정책 3개)은 아직 프로덕션에 적용하지 않았다. 앞의 세 개와 같이 SQL Editor로 적용하고 `schema_migrations`에 `20261112093000`을 넣는다.
+뒤이어 더한 `20261112093000_account_deletion_storage.sql`(유예 중 계정의 프로필 이미지 Storage 쓰기 차단, restrictive 정책 3개)도 2026-11-12에 같은 방식으로 SQL Editor에서 적용하고 `schema_migrations`에 `20261112093000`을 넣었다. 적용 뒤 `pg_policies`에서 `profiles_storage_%_requires_active` 정책 3개를 확인했다.
 
 ### CI에서 자동으로 도는 DB 테스트
 

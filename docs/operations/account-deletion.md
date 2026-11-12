@@ -60,7 +60,7 @@
 
 ## 정기 작업 설치
 
-먼저 위 "배포 순서"대로 마이그레이션 세 개를 운영에 적용·확인한 뒤 앱을 반영한다.
+먼저 위 "배포 순서"대로 마이그레이션 네 개를 운영에 적용·확인한 뒤 앱을 반영한다.
 
 1. 서버 환경변수 `CRON_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_SUPABASE_URL`이 Production에 있는지 확인한다. 값은 출력하거나 복사하지 않는다. 서비스 롤 키가 없으면 라우트는 `503 {enabled:false}`로 응답한다.
 2. pg_cron과 pg_net이 켜져 있는지 확인한다(푸시 작업에서 이미 켰다).
@@ -94,3 +94,9 @@ DB를 백업이나 PITR로 되돌리면 그 시점 뒤에 지운 계정이 되�
 - `node supabase/tests/run-account-deletion-contract.mjs`: 신청·복구·삭제 RPC 권한, 유예 중 숨김과 쓰기 거부, 복구 뒤 원상태, 삭제 기록 정리. `npm run test:db`가 `run-*-contract.mjs`를 모두 찾아 실행하므로 CI 필수 검사 "Verify DB contracts"에 포함된다.
 - Vitest: 신청·복구 API(출처·본인 확인·재인증), 정기 작업 라우트(파일 삭제 확인, 재확인, 기록 순서, 실패 재시도), 시트·복구 화면.
 - 운영 DB 적용, Vault·cron 설치, 실제 Storage 삭제와 Auth 삭제, 모바일 실기기 흐름은 위 테스트로 완료를 대신하지 않는다. 각각 실행한 날과 결과를 이 문서에 따로 적는다.
+
+## 운영 적용 기록
+
+- 2026-11-12: 마이그레이션 네 개를 SQL Editor로 운영 DB에 적용했다(앞의 세 개, 이어서 `20261112093000`). Storage 정책 확인 쿼리가 3을 돌려줬다. 자세한 대조는 [Supabase API 권한](supabase-api-grants.md)에 있다.
+- 2026-11-12: Vercel Production에 `CRON_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_SUPABASE_URL`이 있음을 운영자가 대시보드에서 확인했다(이름만 확인, 값은 보지 않음).
+- 미완료: Vault `readiary_account_deletion_url` 저장과 정기 작업 설치(머지·배포 뒤), 실제 Storage·Auth 삭제, 모바일 실기기 흐름.
