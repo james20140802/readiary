@@ -8,11 +8,13 @@ import Sheet from '@/components/ui/Sheet';
 import EmailSettings from '@/components/email/EmailSettings';
 import { useTopBar } from '@/components/shell/TopBarContext';
 import { useActionLock } from '@/hooks/useActionLock';
+import { isAccountDeletionOpen } from '@/lib/account/deletion';
 import { createSupabaseClient } from '@/lib/supabase/client';
 import { disableDevicePush } from '@/lib/push/browser';
 import { clearPwaCaches } from '@/lib/pwa/clear-caches';
 import { buildInviteSlug } from '@/lib/social/invite';
 import type { Profile } from '@/types/profile';
+import AccountDeletionSheet from './AccountDeletionSheet';
 import PasswordChange from './PasswordChange';
 import ProfileSettings from './ProfileSettings';
 import PushSettings from './PushSettings';
@@ -21,21 +23,47 @@ import { SettingsLayout, SettingsSection } from './SettingsParts';
 
 /** 주소 끝이 #password면(예전 비밀번호 변경 주소에서 왔다) 비밀번호 시트를 바로 연다 */
 const PASSWORD_HASH = '#password';
+/** 소셜 로그인으로 다시 확인받고 돌아오면 주소에 ?delete=1 이 붙어 있다 — 탈퇴 시트를 연 채로 시작한다 */
+const DELETE_PARAM = 'delete';
 
 /**
- * 설정 — 프로필 고치기, 내 책의 표지, 친구, 알림(휴대폰·이메일), 계정(비밀번호·로그아웃), 안내.
+ * 설정 — 프로필 고치기, 내 책의 표지, 친구, 알림(휴대폰·이메일), 계정(비밀번호·로그아웃·탈퇴), 안내.
  * 예전 /profile/edit, /profile/update-password, /notifications/settings 가 각 구역으로 이어진다.
  */
 export default function SettingsScreen({
   profile,
   email,
+  hasPassword,
 }: {
   profile: Profile;
   email: string | null;
+  /** 이메일·비밀번호 계정인지 — 탈퇴할 때 비밀번호로 본인을 확인한다 */
+  hasPassword: boolean;
 }) {
   useTopBar({ title: '설정', back: { href: '/profile', label: '나' } });
   const router = useRouter();
   const [passwordOpen, setPasswordOpen] = useState(false);
+  const [deletionOpen, setDeletionOpen] = useState(false);
+  // 시행일 전에는 탈퇴 행을 두지 않는다
+  const deletionAvailable = isAccountDeletionOpen();
+
+  useEffect(() => {
+    if (!deletionAvailable) return;
+    if (new URLSearchParams(window.location.search).get(DELETE_PARAM) === '1') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- 주소는 마운트 뒤에만 읽을 수 있다
+      setDeletionOpen(true);
+    }
+  }, [deletionAvailable]);
+
+  const closeDeletion = () => {
+    setDeletionOpen(false);
+    // 닫은 뒤 새로고침해도 다시 열리지 않게 주소의 ?delete=1 을 지운다
+    const url = new URL(window.location.href);
+    if (url.searchParams.has(DELETE_PARAM)) {
+      url.searchParams.delete(DELETE_PARAM);
+      history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+    }
+  };
 
   useEffect(() => {
     const openFromHash = () => {
@@ -108,6 +136,7 @@ export default function SettingsScreen({
         onPassword={() => setPasswordOpen(true)}
         onSignOut={() => void handleSignOut()}
         signingOut={signOutLock.busy}
+        onDelete={deletionAvailable ? () => setDeletionOpen(true) : undefined}
       />
       <ActionNavigation href={signOutLock.destination} />
       <AboutSection />
@@ -115,6 +144,14 @@ export default function SettingsScreen({
       <Sheet open={passwordOpen} onClose={closePassword} title="비밀번호 바꾸기">
         <PasswordChange onClose={closePassword} />
       </Sheet>
+      {deletionAvailable && (
+        <AccountDeletionSheet
+          open={deletionOpen}
+          onClose={closeDeletion}
+          hasPassword={hasPassword}
+          maskedEmail={email}
+        />
+      )}
     </SettingsLayout>
   );
 }

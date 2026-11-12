@@ -1,6 +1,8 @@
 {
-  "_captured": "2026-10-30 (functions re-checked 2026-11-02 after get_entry_months), read-only pg_catalog/information_schema queries against project piqlggyuhhicnjywombg (production). See docs/operations/supabase-api-grants.md. Plus the monthly excerpt migrations (20261106090000 onward) as expected values: not applied to production yet (see the doc).",
+  "_captured": "2026-10-30 (functions re-checked 2026-11-02 after get_entry_months), read-only pg_catalog/information_schema queries against project piqlggyuhhicnjywombg (production). See docs/operations/supabase-api-grants.md. Plus the monthly excerpt migrations (20261106090000 onward) as expected values: not applied to production yet (see the doc). The account deletion migrations (20261112090000, 20261112091000, 20261112092000) were applied on 2026-11-12 and their counts were checked read-only (see the doc).",
   "tables": [
+    "account_deletion_purges",
+    "account_deletions",
     "book_registration_requests",
     "books",
     "comments",
@@ -26,6 +28,16 @@
     "user_books"
   ],
   "columns": {
+    "account_deletion_purges": [
+      ["user_id", "uuid", "NO", null],
+      ["purged_at", "timestamp with time zone", "NO", "now()"]
+    ],
+    "account_deletions": [
+      ["user_id", "uuid", "NO", null],
+      ["requested_at", "timestamp with time zone", "NO", "now()"],
+      ["purge_after", "timestamp with time zone", "NO", null],
+      ["last_attempt_at", "timestamp with time zone", "YES", null]
+    ],
     "book_registration_requests": [
       ["user_id", "uuid", "NO", null],
       ["request_id", "uuid", "NO", null],
@@ -228,6 +240,20 @@
     ]
   },
   "constraints": {
+    "account_deletion_purges": [["account_deletion_purges_pkey", "p", "PRIMARY KEY (user_id)"]],
+    "account_deletions": [
+      ["account_deletions_pkey", "p", "PRIMARY KEY (user_id)"],
+      [
+        "account_deletions_profile_fkey",
+        "f",
+        "FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE"
+      ],
+      [
+        "account_deletions_user_id_fkey",
+        "f",
+        "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+      ]
+    ],
     "book_registration_requests": [
       [
         "book_registration_requests_user_id_fkey",
@@ -572,6 +598,8 @@
     ]
   },
   "indexes": {
+    "account_deletion_purges": ["account_deletion_purges_pkey"],
+    "account_deletions": ["account_deletions_pkey"],
     "book_registration_requests": ["book_registration_requests_pkey"],
     "books": ["books_isbn_key", "books_pkey"],
     "comments": ["comments_pkey", "idx_comments_entry_id", "idx_comments_parent_id"],
@@ -627,6 +655,8 @@
     "user_books": ["user_books_pkey", "user_books_user_created_idx"]
   },
   "rlsEnabled": [
+    "account_deletion_purges",
+    "account_deletions",
     "book_registration_requests",
     "books",
     "comments",
@@ -652,6 +682,16 @@
     "user_books"
   ],
   "coreGrants": {
+    "account_deletion_purges": {
+      "anon": [],
+      "authenticated": [],
+      "service_role": ["delete", "insert", "select", "update"]
+    },
+    "account_deletions": {
+      "anon": [],
+      "authenticated": ["select"],
+      "service_role": ["delete", "insert", "select", "update"]
+    },
     "book_registration_requests": {
       "anon": [],
       "authenticated": ["insert", "select"],
@@ -769,9 +809,16 @@
     }
   },
   "policies": [
+    ["account_deletions", "own_account_deletion", "SELECT", "{authenticated}"],
     [
       "book_registration_requests",
       "book_registration_requests_insert_own",
+      "INSERT",
+      "{authenticated}"
+    ],
+    [
+      "book_registration_requests",
+      "book_registration_requests_insert_requires_active",
       "INSERT",
       "{authenticated}"
     ],
@@ -782,16 +829,26 @@
       "{authenticated}"
     ],
     ["books", "books_insert_authenticated", "INSERT", "{authenticated}"],
+    ["books", "books_insert_requires_active", "INSERT", "{authenticated}"],
     ["books", "books_select_authenticated", "SELECT", "{authenticated}"],
     ["comments", "comments_delete_own", "DELETE", "{authenticated}"],
+    ["comments", "comments_delete_requires_active", "DELETE", "{authenticated}"],
+    ["comments", "comments_hide_pending_deletion", "SELECT", "{authenticated}"],
     ["comments", "comments_insert_own_on_visible_entry", "INSERT", "{authenticated}"],
+    ["comments", "comments_insert_requires_active", "INSERT", "{authenticated}"],
     ["comments", "comments_select_visible_entry", "SELECT", "{authenticated}"],
     ["email_consent_events", "email_events_owner", "SELECT", "{authenticated}"],
     ["email_preferences", "email_preferences_owner", "SELECT", "{authenticated}"],
     ["entries", "entries_delete_own", "DELETE", "{authenticated}"],
+    ["entries", "entries_delete_requires_active", "DELETE", "{authenticated}"],
     ["entries", "entries_insert_own", "INSERT", "{authenticated}"],
+    ["entries", "entries_insert_requires_active", "INSERT", "{authenticated}"],
     ["entries", "entries_select_own_or_friend_public", "SELECT", "{authenticated}"],
     ["entries", "entries_update_own", "UPDATE", "{authenticated}"],
+    ["entries", "entries_update_requires_active", "UPDATE", "{authenticated}"],
+    ["entry_reflections", "entry_reflections_delete_requires_active", "DELETE", "{authenticated}"],
+    ["entry_reflections", "entry_reflections_insert_requires_active", "INSERT", "{authenticated}"],
+    ["entry_reflections", "entry_reflections_update_requires_active", "UPDATE", "{authenticated}"],
     ["entry_reflections", "reflections_delete", "DELETE", "{authenticated}"],
     ["entry_reflections", "reflections_insert", "INSERT", "{authenticated}"],
     ["entry_reflections", "reflections_read", "SELECT", "{authenticated}"],
@@ -800,11 +857,19 @@
     ["entry_reflections", "reflections_rollout_update", "UPDATE", "{authenticated}"],
     ["entry_reflections", "reflections_update", "UPDATE", "{authenticated}"],
     ["friends", "friends_delete_participant", "DELETE", "{authenticated}"],
+    ["friends", "friends_delete_requires_active", "DELETE", "{authenticated}"],
+    ["friends", "friends_hide_pending_deletion", "SELECT", "{authenticated}"],
     ["friends", "friends_insert_as_requester", "INSERT", "{authenticated}"],
+    ["friends", "friends_insert_requires_active", "INSERT", "{authenticated}"],
+    ["friends", "friends_insert_requires_active_recipient", "INSERT", "{authenticated}"],
     ["friends", "friends_select_participant", "SELECT", "{authenticated}"],
     ["friends", "friends_update_as_recipient", "UPDATE", "{authenticated}"],
+    ["friends", "friends_update_requires_active", "UPDATE", "{authenticated}"],
     ["likes", "likes_delete_own", "DELETE", "{authenticated}"],
+    ["likes", "likes_delete_requires_active", "DELETE", "{authenticated}"],
+    ["likes", "likes_hide_pending_deletion", "SELECT", "{authenticated}"],
     ["likes", "likes_insert_own_on_visible_entry", "INSERT", "{authenticated}"],
+    ["likes", "likes_insert_requires_active", "INSERT", "{authenticated}"],
     ["likes", "likes_select_visible_entry", "SELECT", "{authenticated}"],
     [
       "monthly_excerpt_comments",
@@ -814,7 +879,25 @@
     ],
     [
       "monthly_excerpt_comments",
+      "monthly_excerpt_comments_delete_requires_active",
+      "DELETE",
+      "{authenticated}"
+    ],
+    [
+      "monthly_excerpt_comments",
+      "monthly_excerpt_comments_hide_pending_deletion",
+      "SELECT",
+      "{authenticated}"
+    ],
+    [
+      "monthly_excerpt_comments",
       "monthly_excerpt_comments_insert_own",
+      "INSERT",
+      "{authenticated}"
+    ],
+    [
+      "monthly_excerpt_comments",
+      "monthly_excerpt_comments_insert_requires_active",
       "INSERT",
       "{authenticated}"
     ],
@@ -826,29 +909,66 @@
     ],
     ["monthly_excerpt_items", "monthly_excerpt_items_select_own", "SELECT", "{authenticated}"],
     ["monthly_excerpt_likes", "monthly_excerpt_likes_delete_own", "DELETE", "{authenticated}"],
+    [
+      "monthly_excerpt_likes",
+      "monthly_excerpt_likes_delete_requires_active",
+      "DELETE",
+      "{authenticated}"
+    ],
+    [
+      "monthly_excerpt_likes",
+      "monthly_excerpt_likes_hide_pending_deletion",
+      "SELECT",
+      "{authenticated}"
+    ],
     ["monthly_excerpt_likes", "monthly_excerpt_likes_insert_own", "INSERT", "{authenticated}"],
+    [
+      "monthly_excerpt_likes",
+      "monthly_excerpt_likes_insert_requires_active",
+      "INSERT",
+      "{authenticated}"
+    ],
     ["monthly_excerpt_likes", "monthly_excerpt_likes_select_viewable", "SELECT", "{authenticated}"],
     ["monthly_excerpts", "monthly_excerpts_delete_own", "DELETE", "{authenticated}"],
+    ["monthly_excerpts", "monthly_excerpts_delete_requires_active", "DELETE", "{authenticated}"],
     ["monthly_excerpts", "monthly_excerpts_select_own", "SELECT", "{authenticated}"],
     ["notifications", "notifications_delete_own", "DELETE", "{authenticated}"],
+    ["notifications", "notifications_delete_requires_active", "DELETE", "{authenticated}"],
+    ["notifications", "notifications_hide_pending_deletion", "SELECT", "{authenticated}"],
     ["notifications", "notifications_select_own", "SELECT", "{authenticated}"],
     ["notifications", "notifications_update_own", "UPDATE", "{authenticated}"],
+    ["notifications", "notifications_update_requires_active", "UPDATE", "{authenticated}"],
+    ["profiles", "profiles_hide_pending_deletion", "SELECT", "{authenticated}"],
     ["profiles", "profiles_insert_own", "INSERT", "{authenticated}"],
+    ["profiles", "profiles_insert_requires_active", "INSERT", "{authenticated}"],
     ["profiles", "profiles_select_authenticated", "SELECT", "{authenticated}"],
     ["profiles", "profiles_update_own", "UPDATE", "{authenticated}"],
+    ["profiles", "profiles_update_requires_active", "UPDATE", "{authenticated}"],
     ["push_deliveries", "own_deliveries", "SELECT", "{authenticated}"],
     ["push_preferences", "own_preferences", "SELECT", "{authenticated}"],
     ["push_subscriptions", "delete_subscriptions", "DELETE", "{authenticated}"],
     ["push_subscriptions", "own_subscriptions", "SELECT", "{authenticated}"],
+    [
+      "push_subscriptions",
+      "push_subscriptions_delete_requires_active",
+      "DELETE",
+      "{authenticated}"
+    ],
     ["user_books", "user_books_delete_own", "DELETE", "{authenticated}"],
+    ["user_books", "user_books_delete_requires_active", "DELETE", "{authenticated}"],
     ["user_books", "user_books_insert_own", "INSERT", "{authenticated}"],
+    ["user_books", "user_books_insert_requires_active", "INSERT", "{authenticated}"],
     ["user_books", "user_books_select_own_or_friend", "SELECT", "{authenticated}"],
-    ["user_books", "user_books_update_own", "UPDATE", "{authenticated}"]
+    ["user_books", "user_books_update_own", "UPDATE", "{authenticated}"],
+    ["user_books", "user_books_update_requires_active", "UPDATE", "{authenticated}"]
   ],
   "functions": [
+    ["assert_account_active", ""],
     ["authorize_push_delivery", "p_id uuid"],
     ["books_original_cover_url", ""],
     ["can_view_monthly_excerpt", "p_id uuid"],
+    ["cancel_account_deletion", ""],
+    ["claim_due_account_deletions", "p_limit integer"],
     ["claim_marketing_email", "p_user uuid, p_id uuid, p_content_hash text, p_token_hash text"],
     ["claim_push_batch", "p_limit integer"],
     ["claim_push_test", "p_user uuid, p_endpoint text"],
@@ -884,7 +1004,9 @@
     ["get_social_feed_items", "p_page integer, p_limit integer"],
     ["guard_entry_reflection_update", ""],
     ["has_unread_notifications", ""],
+    ["is_account_active", "p_user uuid"],
     ["is_friend_with", "p_user_id uuid"],
+    ["mark_account_purge_attempt", "p_user uuid"],
     ["mark_push_seen", "p_kind text, p_delivery uuid"],
     ["monthly_excerpt_drop_if_empty", ""],
     ["monthly_excerpt_kst_today", ""],
@@ -898,12 +1020,15 @@
     ["notify_entry_event", "p_entry_id uuid, p_type text, p_comment_id uuid"],
     ["notify_friend_event", "p_recipient uuid, p_type text"],
     ["notify_monthly_excerpt_event", "p_excerpt_id uuid, p_type text, p_comment_id uuid"],
+    ["prune_account_purges", ""],
     ["push_candidates", "p_user uuid, p_now timestamp with time zone"],
     ["reading_rhythm", "p_since timestamp with time zone"],
+    ["record_account_purge", "p_user uuid"],
     [
       "register_book_idempotently",
       "p_request_id uuid, p_title text, p_author text, p_total_pages integer, p_isbn text, p_cover_url text"
     ],
+    ["request_account_deletion", "p_user uuid"],
     ["retract_like_notification", "p_entry_id uuid"],
     ["retract_monthly_excerpt_like_notification", "p_excerpt_id uuid"],
     ["revoke_changed_email_consent", ""],

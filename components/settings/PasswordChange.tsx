@@ -14,6 +14,7 @@ import { useActionLock } from '@/hooks/useActionLock';
 import { createSupabaseClient } from '@/lib/supabase/client';
 import { disableAccountPush, disableDevicePush } from '@/lib/push/browser';
 import { clearPwaCaches } from '@/lib/pwa/clear-caches';
+import { hasPasswordIdentity } from '@/lib/account/deletion';
 import { describeAuthError, validateNewPassword } from '@/lib/auth/authErrors';
 import {
   isReauthenticationCodeInvalid,
@@ -234,10 +235,10 @@ export default function PasswordChange({ onClose }: { onClose: () => void }) {
         router.replace('/login?redirect=%2Fsettings');
         return;
       }
-      const hasPassword =
-        !!user.email && (user.identities ?? []).some((i) => i.provider === 'email');
       setAccount(
-        hasPassword ? { state: 'password', email: user.email! } : { state: 'no-password' }
+        hasPasswordIdentity(user)
+          ? { state: 'password', email: user.email! }
+          : { state: 'no-password' }
       );
     });
     return () => {

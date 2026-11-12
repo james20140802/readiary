@@ -3,6 +3,7 @@ import { getServerUser } from '@/lib/supabase/getServerUser';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import SettingsScreen from '@/components/settings/SettingsScreen';
 import { maskEmail } from '@/components/settings/maskEmail';
+import { hasPasswordIdentity } from '@/lib/account/deletion';
 
 export default async function SettingsPage() {
   const {
@@ -18,5 +19,11 @@ export default async function SettingsPage() {
   const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
   if (!profile) return notFound();
 
-  return <SettingsScreen profile={profile} email={maskEmail(user.email)} />;
+  return (
+    <SettingsScreen
+      profile={profile}
+      email={maskEmail(user.email)}
+      hasPassword={hasPasswordIdentity(user)}
+    />
+  );
 }

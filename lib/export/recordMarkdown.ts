@@ -3,7 +3,7 @@ import { formatInTimeZone } from 'date-fns-tz';
 /**
  * 내 기록을 마크다운으로 — AI에 붙여 넣어 함께 이야기하거나 다른 곳에 옮길 텍스트.
  * 기록만 담는다(안내문·장식 없음). 규칙은 docs/superpowers/specs/2026-10-30-record-export-design.md.
- * 책 한 권과 한 달이 같은 기록 서식을 쓴다. 나중에 월별 일기장도 이 함수를 그대로 쓴다.
+ * 책 한 권·한 달·모든 기록이 같은 기록 서식을 쓴다. 나중에 월별 일기장도 이 함수를 그대로 쓴다.
  */
 
 export interface ExportReflection {
@@ -113,31 +113,47 @@ function period(entries: ExportEntry[]): string | null {
 
 const join = (blocks: string[]) => `${blocks.join('\n\n')}\n`;
 
-export function bookMarkdown(book: ExportBook): string {
-  const entries = exportableEntries(book.entries);
+/** 책 한 권의 블록 — level은 책 제목의 '#' 수, 기록 제목은 한 단계 아래 */
+function bookBlocks(book: ExportBook, entries: ExportEntry[], level: string): string[] {
   const meta = [book.author?.trim() || null, period(entries), book.isFinished ? '완독' : null]
     .filter(Boolean)
     .join(' · ');
-  const blocks = [`# ${book.title}`];
+  const blocks = [`${level} ${book.title}`];
   if (meta && entries.length > 0) blocks.push(meta);
   for (const entry of entries) {
-    blocks.push(heading('##', fullDate(entry.date), entry), ...entryBlocks(entry));
+    blocks.push(heading(`${level}#`, fullDate(entry.date), entry), ...entryBlocks(entry));
   }
+  return blocks;
+}
+
+export function bookMarkdown(book: ExportBook): string {
+  return join(bookBlocks(book, exportableEntries(book.entries), '#'));
+}
+
+/** 내용 있는 기록이 있는 책만, 첫 기록이 이른 책부터(한 달 내보내기와 같은 순서) */
+function bookGroups(books: ExportBook[]) {
+  return books
+    .map((book) => ({ book, entries: exportableEntries(book.entries) }))
+    .filter((g) => g.entries.length > 0)
+    .sort((a, b) => {
+      const x = a.entries[0];
+      const y = b.entries[0];
+      return x.date.localeCompare(y.date) || x.createdAt.localeCompare(y.createdAt);
+    });
+}
+
+/** 지금까지의 모든 기록 — 책마다 책 한 권 내보내기와 같은 서식을 한 단계 낮춰 잇는다 */
+export function allMarkdown(books: ExportBook[]): string {
+  const blocks = ['# 모든 기록'];
+  for (const { book, entries } of bookGroups(books))
+    blocks.push(...bookBlocks(book, entries, '##'));
   return join(blocks);
 }
 
 export function monthMarkdown(month: string, books: ExportBook[]): string {
   const [y, m] = month.split('-').map(Number);
-  const groups = books
-    .map((book) => ({ book, entries: exportableEntries(book.entries) }))
-    .filter((g) => g.entries.length > 0)
-    .sort((a, b) => {
-      const x = a.entries[0];
-      const y2 = b.entries[0];
-      return x.date.localeCompare(y2.date) || x.createdAt.localeCompare(y2.createdAt);
-    });
   const blocks = [`# ${y}년 ${m}월의 기록`];
-  for (const { book, entries } of groups) {
+  for (const { book, entries } of bookGroups(books)) {
     const author = book.author?.trim();
     blocks.push(`## ${book.title}${author ? ` — ${author}` : ''}`);
     for (const entry of entries) {

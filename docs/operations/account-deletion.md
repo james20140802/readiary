@@ -1,0 +1,103 @@
+# 계정 탈퇴 운영
+
+독자는 설정 화면에서 직접 탈퇴를 신청하고, 14일 안에 다시 로그인하면 되돌릴 수 있다. 14일이 지나면 정기 작업이 프로필 사진 파일과 계정을 지운다. 메일로 받은 요청도 같은 신청 상태를 기록해 **같은 14일 유예·숨김·자동 삭제**를 거친다. 방침이 약속하는 규칙을 하나로 유지하기 위해서다.
+
+설계와 결정 근거는 [계정 탈퇴와 14일 복구 유예 설계](../superpowers/specs/2026-11-12-account-deletion-design.md)를 따른다. 약관 제8조, 방침 제3조 제1·4·5·6항과 제8조 제3항이 이 절차를 약속한다.
+
+## 배포 순서
+
+**마이그레이션을 먼저, 앱을 나중에** 반영한다.
+
+1. 마이그레이션 네 개 `20261112090000_account_deletions.sql`, `20261112091000_account_deletion_visibility.sql`, `20261112092000_account_deletion_writes.sql`, `20261112093000_account_deletion_storage.sql`(유예 중 프로필 이미지 쓰기 차단)을 이 순서로 운영 DB에 적용한다. 다른 미적용 마이그레이션을 일괄 적용하지 않는다.
+2. 적용을 확인한다. `select to_regclass('public.account_deletions'), to_regclass('public.account_deletion_purges');`가 두 이름을 돌려주고, `select proname from pg_proc where proname in ('request_account_deletion', 'cancel_account_deletion', 'mark_account_purge_attempt', 'record_account_purge', 'prune_account_purges');`가 다섯 행을, `select count(*) from pg_policies where schemaname = 'storage' and policyname like 'profiles_storage_%_requires_active';`가 3을 돌려줘야 한다.
+3. 그다음에 PR을 머지하고 앱 배포가 성공했는지 본다.
+
+순서가 뒤집히면 새 앱의 `proxy.ts`가 로그인한 모든 요청에서 `profiles.select('id, account_deletions(purge_after)')`를 부르는데, 운영 DB에 `account_deletions` 테이블이 없어 PostgREST가 임베드 오류를 돌려준다. 이때 앱은 `select('id')`로 한 번 더 읽어 프로필이 있으면 쓰는 중으로 보고 넘어가지만(캐시하지 않는다), 탈퇴 신청·복구 API와 정기 작업은 마이그레이션 없이 동작하지 않고 요청마다 조회가 두 번 일어난다. 대체 경로는 사고를 줄이는 안전장치일 뿐 정상 배포 순서가 아니다.
+
+## 시행일과 공고
+
+- 개정 약관·방침은 `lib/legal/texts.ts`의 `LEGAL_ANNOUNCED`에 공고하고 30일 뒤 `TERMS_EFFECTIVE`·`PRIVACY_EFFECTIVE`에 시행한다. 보관이 늘어나는 것으로 읽힐 수 있어 불리한 변경 기준(약관 제10조, 방침 제11조)을 적용했다. 이 브랜치의 초안 값은 2026-11-13 공고, 2026-12-13 시행이다.
+- 탈퇴 버튼과 API는 `ACCOUNT_DELETION_EFFECTIVE_AT`(시행일 0시 KST) 전에는 닫혀 있다. 시행일이 바뀌면 이 상수와 `LEGAL_REVISION.noticeUntil`(시행일 다음 날 0시)을 함께 고친다.
+- 공고일에 프로덕션에 배포돼 화면에 실려야 공고한 것이다. 머지·배포가 늦어지면 공고일과 시행일을 실제 배포일 기준으로 다시 맞춘다. 공고를 소급 기록하지 않는다.
+- 공고 기간 동안 지금 시행 중인 판은 `/terms/2026-11-03`, `/privacy/2026-11-03`에 있다. `/terms`, `/privacy`에는 개정판과 개정 안내가, 오늘 화면에는 시행일까지 닫을 수 있는 한 줄 안내(`PolicyNotice`)가 보인다.
+
+## 앱 흐름
+
+1. **신청**: 설정 → 계정 → "탈퇴하기" 시트. 비밀번호 사용자는 현재 비밀번호를, 비밀번호가 없는 Google 사용자는 10분 안에 다시 로그인했는지를 서버(`POST /api/account/deletion`)가 확인한다. 통과하면 `request_account_deletion`이 `account_deletions`에 신청 시각과 삭제 예정 시각(신청한 날(KST) + 15일의 0시 KST — 신청한 날부터 14일째 되는 날 하루가 끝날 때)을 남기고 푸시 구독을 지운다. 이어서 모든 기기에서 로그아웃(global sign-out)하고 로그인 화면에 되돌릴 수 있는 날짜를 안내한다.
+2. **유예(0~14일)**: 프로필·책장·기록·발췌집·반응·친구 목록·공유 링크·알림에서 그 독자가 다른 사람에게 보이지 않는다. 숨김과 쓰기 차단은 RLS·RPC가 보장한다. 이미 발급된 액세스 토큰이 남아 있어도 쓰기는 거부된다. 푸시 구독은 지워졌고, 이메일 소식은 동의 상태를 그대로 둔 채 발송 대상에서 빠진다(`claim_marketing_email`).
+3. **복구**: 유예 중인 계정으로 로그인하면 `/account/restore`로 보낸다. "탈퇴 취소하고 돌아가기"(`DELETE /api/account/deletion` → `cancel_account_deletion`)를 누르면 숨김이 바로 풀린다. 기기 알림은 다시 켜야 한다. 삭제 예정 시각이 지난 신청은 취소할 수 없다.
+4. **완전 삭제**: 매일 KST 04:17 정기 작업이 기한이 지난 계정을 한 번에 최대 50개까지 잡아 하나씩 차례로 처리한다(`app/api/cron/account-deletion/route.ts`). 실행을 시작하고 45초가 지나면 새 계정을 시작하지 않는다. 잡았지만 시작하지 않은 계정은 응답의 `deferred`로 세고, 신청 행이 그대로 남아 다음 실행이 다시 잡는다(실패로 세지 않는다). `claim_due_account_deletions`는 한 번도 시도하지 않은 계정, 그다음 오래전에 시도한 계정 순서(`last_attempt_at nulls first, purge_after`)로 잡으므로 계속 실패하는 계정이 다른 계정을 막지 않는다.
+   1. 계정을 시작할 때 `mark_account_purge_attempt`로 시도 시각(`last_attempt_at`)을 남긴다. 이 기록에 실패하면 그 계정은 실패로 세고 손대지 않는다.
+   2. `profiles` 버킷의 `<uid>/` 아래 파일을 페이지 단위로 끝까지 모은 뒤 Storage API로 지우고, 지운 수가 요청한 수와 같은지 확인한다. Storage 메타데이터 행을 SQL로 직접 지우지 않는다.
+   3. 그 사이 복구되지 않았는지 다시 확인한다.
+   4. `account_deletion_purges`에 회원 식별번호와 삭제 시각만 남긴다(`record_account_purge`). 이메일·닉네임·기록 내용은 넣지 않는다.
+   5. Auth 사용자를 지운다. FK CASCADE로 프로필·책장·기록·관계·반응·알림·푸시 설정·이메일 소식 기록과 `account_deletions` 행이 함께 지워진다. 공용 서지 정보(`books`)는 방침대로 남을 수 있다.
+   6. 어느 단계든 실패하면 완료로 처리하지 않는다. 신청 행이 남아 있으므로 다음 실행에서 다시 집계된다.
+   7. 삭제 결과와 상관없이 30일이 지난 `account_deletion_purges` 행을 지운다(`prune_account_purges`).
+
+## 메일 요청 처리
+
+앱에 접근할 수 없는 독자를 위해 방침 제10조 연락처로 받은 요청도 처리한다. 요청을 확인한 날부터 10일 안에 처리하고 결과를 알린다(방침 제8조 제3항).
+
+**시행일 전에는 옛 방침대로 바로 지운다.** `ACCOUNT_DELETION_EFFECTIVE_AT`(새 방침 시행일 0시 KST, 현재 초안 2026-12-13) 전에 받은 메일 요청은 지금 시행 중인 방침(`/privacy/2026-11-03`)의 즉시 삭제를 따른다. 14일 유예를 적용하지 않고, 아래 2·3번 대신 4번의 단계(Storage 파일 삭제 → Auth 사용자 삭제 → `record_account_purge`)로 처리한다. 프로필이 있는 계정이어도 Auth 사용자를 지우면 FK CASCADE로 프로필과 기록이 함께 지워진다. 시행일부터는 아래 순서대로 14일 유예를 거친다.
+
+1. 본인임을 확인한다. 가입 이메일 주소에서 보낸 요청인지 보고, 확실하지 않으면 그 주소로 확인 메일을 보내 답을 받는다. 확인 전에는 처리하지 않는다.
+2. Supabase SQL Editor에서 그 계정의 UUID를 찾고(`auth.users`), 다음을 차례로 실행한다.
+
+   ```sql
+   select public.request_account_deletion('<uuid>');
+   delete from auth.sessions where user_id = '<uuid>';
+   ```
+
+   첫 줄은 앱 신청과 같은 상태를 남기고 삭제 예정 시각을 돌려준다(이미 신청한 계정이면 기존 시각을 그대로 돌려준다). 둘째 줄은 모든 기기의 세션을 끊는다. 이미 발급된 액세스 토큰은 만료 전까지 남지만 RLS·RPC가 쓰기를 거부한다.
+3. 독자에게 되돌릴 수 있는 마지막 날(돌려받은 삭제 예정 시각에서 1초 뺀 시각의 KST 날짜, 곧 신청한 날 + 14일)과 그날까지 로그인하면 되돌릴 수 있다는 점을 알린다. 나머지는 앱 신청과 같이 정기 작업이 처리한다.
+4. **바로 지우는 경우 — 시행일 전 요청, 또는 프로필이 없는 계정(온보딩을 끝내지 않은 Auth 사용자)**: 시행일 전 요청은 프로필 유무와 상관없이 아래 1~4를 따른다. 시행일 뒤 요청은 프로필이 없을 때만 여기로 온다. `account_deletions.user_id`가 `profiles(id)`를 참조하므로 2번의 `request_account_deletion`이 FK 위반으로 실패한다. 먼저 `select 1 from public.profiles where id = '<uuid>';`로 프로필 행이 없는지 확인하고, 없으면 유예 없이 바로 지운다. 다른 사람에게 보이는 프로필·기록이 없어 숨길 것이 없고, 되돌릴 데이터도 없기 때문이다. 이 경우에도 요청을 확인한 날부터 10일 안에 마친다.
+   1. Storage API(대시보드 Storage 화면 또는 서비스 롤 클라이언트)로 `profiles/<uid>/`가 비어 있는지 보고, 파일이 있으면 Storage API로 지운다. 메타데이터 행을 SQL로 지우지 않는다.
+   2. 대시보드 Authentication 화면이나 admin API(`auth.admin.deleteUser`)로 Auth 사용자를 지운다. 세션도 함께 사라진다.
+   3. 백업 복구 때 다시 지울 수 있도록 SQL Editor에서 `select public.record_account_purge('<uuid>');`를 실행한다.
+   4. 독자에게 삭제를 마쳤다고 알린다.
+5. 요청을 받은 메일과 처리 사실은 운영자 메일함 외의 곳(노션·이슈·PR)에 이메일 주소나 UUID와 함께 옮겨 적지 않는다.
+
+## 정기 작업 설치
+
+먼저 위 "배포 순서"대로 마이그레이션 네 개를 운영에 적용·확인한 뒤 앱을 반영한다.
+
+1. 서버 환경변수 `CRON_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_SUPABASE_URL`이 Production에 있는지 확인한다. 값은 출력하거나 복사하지 않는다. 서비스 롤 키가 없으면 라우트는 `503 {enabled:false}`로 응답한다.
+2. pg_cron과 pg_net이 켜져 있는지 확인한다(푸시 작업에서 이미 켰다).
+3. Vault에 `readiary_account_deletion_url`을 운영 도메인의 `https://<운영 도메인>/api/cron/account-deletion`으로 저장한다. `readiary_cron_secret`은 푸시 작업(`enable-push-cron.sql`)에서 쓰는 값을 그대로 쓴다. 값은 소스·문서·로그에 남기지 않는다.
+4. SQL Editor에서 `supabase/operations/enable-account-deletion-cron.sql`을 실행한다. Vault 값이 없거나 형식이 틀리면 예외를 내고 멈춘다. 다시 실행해도 같은 이름의 작업을 먼저 해제하므로 안전하다.
+5. 설치 확인: `select jobname, schedule, active from cron.job where jobname = 'readiary-account-deletion';`에서 `17 19 * * *`(UTC, KST 04:17)과 `active = true`를 본다.
+
+설치는 시행일 전에 해도 된다. 신청이 없으면 처리할 계정이 없고 정리만 돈다.
+
+## 실패 확인
+
+라우트는 사용자·파일 경로·이메일을 응답과 로그에 남기지 않고 `{purged, failed, pruned, deferred}` 집계만 돌려준다. 하나라도 실패하면 `500`이다. 45초 안에 시작하지 못한 계정은 `deferred`로 세고 다음 실행으로 넘기며, 실패로 보지 않는다.
+
+- 정기 작업 실행 기록: `select status, return_message, start_time from cron.job_run_details where jobid = (select jobid from cron.job where jobname = 'readiary-account-deletion') order by start_time desc limit 7;` `net.http_get`은 요청을 큐에 넣고 바로 끝나는 비동기 호출이라, HTTP 호출이 실패해도 여기에는 `succeeded`로 남는다. 작업이 돌았는지만 알려 주고 결과는 아래 HTTP 응답에서 본다.
+- HTTP 응답: `select status_code, content, created from net._http_response order by created desc limit 20;`에서 상태와 집계를 본다. 이 테이블에는 URL 열이 없으므로, 본문이 `{"purged":…,"failed":…,"pruned":…,"deferred":…}` 모양인 행을 이 작업의 응답으로 본다(푸시 작업 응답과 섞여 있다). pg_net 응답은 짧게 보관되므로 실행 직후에 확인한다. 401은 Vault와 서버의 `CRON_SECRET` 불일치, 503은 서버 환경변수 누락이다.
+- 밀린 계정: `select count(*) from public.account_deletions where purge_after <= now() - interval '1 day';`가 0보다 크면 하루 넘게 처리되지 않은 계정이 있다. 작업은 하루 한 번 실행에 최대 50개 계정을, 45초 안에 시작할 수 있는 만큼만 처리하므로, 신청이 몰린 뒤 남은 계정은 실패가 아니라 처리량 문제일 수 있다. 먼저 HTTP 응답의 `failed`가 0인지 보고, 0이면 `deferred`(잡았지만 시간이 모자라 시작하지 않은 수)와 함께 다음 실행에서 줄어드는지 지켜보거나 라우트를 한 번 더 호출한다. 같은 계정이 계속 실패하면 `last_attempt_at`이 매일 갱신되는데도 행이 남는다. `failed`가 있으면 UUID를 노션·PR에 옮기지 않고, Vercel 함수 로그와 Storage 버킷에서 원인을 본다.
+- 파일 삭제 실패는 Storage 권한이나 일시 장애가 흔한 원인이다. 메타데이터 행을 SQL로 지워 넘기지 않는다. 원인을 고친 뒤 다음 실행을 기다리거나, 같은 Authorization 헤더로 라우트를 한 번 호출한다.
+
+## 백업 복구 후 재반영
+
+DB를 백업이나 PITR로 되돌리면 그 시점 뒤에 지운 계정이 되살아날 수 있다.
+
+0. **복구를 시작하기 전에** `select user_id, purged_at from public.account_deletion_purges;` 결과를 내보내 운영자만 접근할 수 있는 곳에 잠시 보관한다. PITR과 백업 복원은 DB를 그 자리에서 바꿔 놓으므로, 복구가 끝난 뒤에는 복구 시점 이후의 삭제 기록을 다시 읽을 수 없다. 재반영을 마치면 내보낸 목록을 지운다.
+1. 복구가 끝나면 앱 접근을 열기 전에, 복구본의 `account_deletion_purges`가 아니라 0번에서 내보낸 목록을 기준으로 삼는다.
+2. 그 목록에 있으면서 복구본에 다시 나타난 계정마다, 앱과 같은 순서로 Storage `profiles/<uid>/` 파일을 지운 뒤 Auth 사용자를 지운다. 가장 단순한 방법은 해당 계정에 `account_deletions` 행을 기한이 지난 상태로 넣고(`purge_after = now()`) 정기 작업 라우트를 호출하는 것이다. 프로필 행이 없는 계정은 이 행을 넣을 수 없으므로 "메일 요청 처리" 4번처럼 직접 지운다. 마치면 `select public.record_account_purge('<uuid>');`로 기록을 다시 남긴다.
+3. 복구 시점에 유예 중이던 신청(`account_deletions`)은 복구본에 그대로 있으므로 원래 기한에 처리된다.
+4. 삭제 기록 보관 30일은 Supabase 백업·PITR 보관 기간을 덮는 값이다. 운영 계정의 실제 백업 보관 기간이 30일보다 길어지면 `prune_account_purges`의 기간과 방침 제3조 제6항을 그 값에 맞춰 함께 고치고, 방침 개정 절차를 따른다.
+
+## 검증
+
+- `node supabase/tests/run-account-deletion-contract.mjs`: 신청·복구·삭제 RPC 권한, 유예 중 숨김과 쓰기 거부, 복구 뒤 원상태, 삭제 기록 정리. `npm run test:db`가 `run-*-contract.mjs`를 모두 찾아 실행하므로 CI 필수 검사 "Verify DB contracts"에 포함된다.
+- Vitest: 신청·복구 API(출처·본인 확인·재인증), 정기 작업 라우트(파일 삭제 확인, 재확인, 기록 순서, 실패 재시도), 시트·복구 화면.
+- 운영 DB 적용, Vault·cron 설치, 실제 Storage 삭제와 Auth 삭제, 모바일 실기기 흐름은 위 테스트로 완료를 대신하지 않는다. 각각 실행한 날과 결과를 이 문서에 따로 적는다.
+
+## 운영 적용 기록
+
+- 2026-11-12: 마이그레이션 네 개를 SQL Editor로 운영 DB에 적용했다(앞의 세 개, 이어서 `20261112093000`). Storage 정책 확인 쿼리가 3을 돌려줬다. 자세한 대조는 [Supabase API 권한](supabase-api-grants.md)에 있다.
+- 2026-11-12: Vercel Production에 `CRON_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_SUPABASE_URL`이 있음을 운영자가 대시보드에서 확인했다(이름만 확인, 값은 보지 않음).
+- 2026-11-12: 운영자가 Vault에 `readiary_account_deletion_url`을 저장했다(값은 문서에 남기지 않음).
+- 미완료: 정기 작업 설치(`enable-account-deletion-cron.sql`, 머지·배포 뒤), 실제 Storage·Auth 삭제, 모바일 실기기 흐름.

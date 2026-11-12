@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  allMarkdown,
   bookMarkdown,
   exportFileName,
   monthMarkdown,
@@ -235,6 +236,39 @@ describe('monthMarkdown', () => {
       book({ author: null, entries: [entry({ date: '2026-10-02', note: 'a' })] }),
     ]);
     expect(md).toContain('## 아무튼, 메모\n');
+  });
+});
+
+describe('allMarkdown', () => {
+  it('nests each book document one level under a single title, books by first entry', () => {
+    const later = book({
+      userBookId: 'ub2',
+      title: '나중 책',
+      author: null,
+      entries: [entry({ date: '2026-10-01', note: '나중' })],
+    });
+    const earlier = book({
+      isFinished: true,
+      entries: [entry({ date: '2025-02-03', fromPage: 12, quote: '첫 줄\n\n둘째 줄' })],
+    });
+    const empty = book({ userBookId: 'ub3', title: '빈 책', entries: [entry({ note: ' ' })] });
+    expect(allMarkdown([later, empty, earlier])).toBe(
+      [
+        '# 모든 기록',
+        '## 아무튼, 메모',
+        '정혜윤 · 2025년 2월 3일 · 완독',
+        '### 2025년 2월 3일 · 12쪽',
+        '> 첫 줄\n>\n> 둘째 줄',
+        '## 나중 책',
+        '2026년 10월 1일',
+        '### 2026년 10월 1일',
+        '나중',
+      ].join('\n\n') + '\n'
+    );
+  });
+
+  it('writes only the title when there is nothing to export', () => {
+    expect(allMarkdown([book({ entries: [] })])).toBe('# 모든 기록\n');
   });
 });
 

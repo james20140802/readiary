@@ -30,8 +30,9 @@ function from(table: string) {
     return query;
   };
   query.maybeSingle = async () => ({ data: tables[table]?.single ?? null, error: null });
-  query.range = async (start: number) => ({
-    data: start === 0 ? (tables[table]?.rows ?? []) : [],
+  // 서버 max-rows처럼 요청한 범위만 잘라 돌려준다
+  query.range = async (start: number, end: number) => ({
+    data: (tables[table]?.rows ?? []).slice(start, end + 1),
     error: null,
   });
   return query;
@@ -55,12 +56,18 @@ describe('record export API', () => {
     expect((await response.json()).code).toBe('session_expired');
   });
 
-  it.each(['', 'month=2026-13', 'month=26-10', 'book=nope', `book=${bookId}&month=2026-10`])(
-    'rejects range %s',
-    async (qs) => {
-      expect((await get(qs)).status).toBe(400);
-    }
-  );
+  it.each([
+    '',
+    'month=2026-13',
+    'month=26-10',
+    'book=nope',
+    `book=${bookId}&month=2026-10`,
+    'scope=everything',
+    'scope=all&month=2026-10',
+    `scope=all&book=${bookId}`,
+  ])('rejects range %s', async (qs) => {
+    expect((await get(qs)).status).toBe(400);
+  });
 
   it('does not reveal books the caller does not own', async () => {
     const response = await get(`book=${bookId}`);
@@ -126,6 +133,62 @@ describe('record export API', () => {
     expect(filters).toContainEqual(['entries', 'eq', ['user_books.user_id', 'owner']]);
     expect(filters).toContainEqual(['entries', 'gte', ['date', '2026-12-01']]);
     expect(filters).toContainEqual(['entries', 'lt', ['date', '2027-01-01']]);
+  });
+});
+
+describe('record export API — 모든 기록', () => {
+  const row = (i: number, ub: string, title: string, date: string) => ({
+    id: `e${String(i).padStart(5, '0')}`,
+    date,
+    created_at: `${date}T03:00:00Z`,
+    quote: null,
+    note: `생각-${i}`,
+    from_page: null,
+    to_page: null,
+    user_book_id: ub,
+    user_books: { user_id: 'owner', is_finished: ub === 'ub2', books: { title, author: null } },
+  });
+
+  it('requires a session', async () => {
+    getUser.mockResolvedValue({ data: { user: null }, error: null });
+    const response = await get('scope=all');
+    expect(response.status).toBe(401);
+  });
+
+  it('reads every page of the caller’s entries and groups them by book', async () => {
+    // 한 페이지(1,000행)를 넘는 서재 — 잘리면 뒤쪽 책·기록이 빠진다
+    const rows = [
+      ...Array.from({ length: 700 }, (_, i) => row(i, 'ub1', '첫 책', '2025-01-02')),
+      ...Array.from({ length: 600 }, (_, i) => row(700 + i, 'ub2', '둘째 책', '2025-03-04')),
+      row(1300, 'ub3', '마지막 책', '2026-11-01'),
+      // 내용 없는 기록은 세지 않는다
+      { ...row(1301, 'ub3', '마지막 책', '2026-11-02'), note: '  ' },
+    ];
+    tables.entries = { rows };
+    const response = await get('scope=all');
+    expect(response.status).toBe(200);
+    expect(response.headers.get('Cache-Control')).toBe('private, no-store, max-age=0');
+    const body = await response.json();
+    expect(body.entryCount).toBe(1301);
+    expect(body.fileName).toBe('readiary-모든 기록.md');
+    const md: string = body.markdown;
+    expect(md.startsWith('# 모든 기록\n\n## 첫 책\n')).toBe(true);
+    // 책은 첫 기록이 이른 순서, 책 안의 서식은 책 한 권 내보내기와 같다(한 단계 낮춘 제목)
+    expect(md.indexOf('## 첫 책')).toBeLessThan(md.indexOf('## 둘째 책'));
+    expect(md.indexOf('## 둘째 책')).toBeLessThan(md.indexOf('## 마지막 책'));
+    expect(md).toContain('## 둘째 책\n\n2025년 3월 4일 · 완독\n\n### 2025년 3월 4일\n\n생각-700');
+    expect(md).toContain('생각-1299');
+    expect(md).toContain('### 2026년 11월 1일\n\n생각-1300\n');
+    expect(filters).toContainEqual(['entries', 'eq', ['user_books.user_id', 'owner']]);
+  });
+
+  it('returns count 0 and only the title for an empty library', async () => {
+    const body = await (await get('scope=all')).json();
+    expect(body).toEqual({
+      markdown: '# 모든 기록\n',
+      fileName: 'readiary-모든 기록.md',
+      entryCount: 0,
+    });
   });
 });
 

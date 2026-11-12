@@ -1,8 +1,8 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
-import { hasProfile } from '@/lib/auth/profilePresence';
+import { profileState, type ProfileState } from '@/lib/auth/profilePresence';
 import { sanitizeRedirectPath } from '@/lib/auth/safeRedirect';
-import { HOME_PATH, isAppRoute } from '@/lib/routes';
+import { ACCOUNT_RESTORE_PATH, HOME_PATH, isAppRoute } from '@/lib/routes';
 
 export async function proxy(request: NextRequest) {
   return await updateSession(request);
@@ -42,15 +42,24 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Short-lived, server-only positive cache. Onboarding always reads the source.
+  // Short-lived, server-only positive cache. Onboarding and the restore screen always read the source.
   // getUser above stays uncached so revoked/deleted sessions are checked immediately.
-  let profile = false;
+  const { pathname } = request.nextUrl;
+  const onRestore = pathname === ACCOUNT_RESTORE_PATH;
+  let state: ProfileState = 'missing';
   if (user) {
     try {
-      profile = await hasProfile(
+      state = await profileState(
         user.id,
-        () => supabase.from('profiles').select('id').eq('id', user.id).maybeSingle(),
-        request.nextUrl.pathname.startsWith('/onboarding')
+        () =>
+          supabase
+            .from('profiles')
+            .select('id, account_deletions(purge_after)')
+            .eq('id', user.id)
+            .maybeSingle(),
+        pathname.startsWith('/onboarding') || onRestore,
+        // 탈퇴 마이그레이션보다 앱이 먼저 배포돼도 임베드 실패로 모두가 503을 보지 않게 한다
+        () => supabase.from('profiles').select('id').eq('id', user.id).maybeSingle()
       );
     } catch {
       const response = new NextResponse(
@@ -73,14 +82,34 @@ export async function updateSession(request: NextRequest) {
     return response;
   };
 
+  const redirectTo = (path: string) => {
+    const url = request.nextUrl.clone();
+    url.pathname = path;
+    url.search = '';
+    return redirectWithAuthCookies(url);
+  };
+
+  // 탈퇴 유예 중에는 복구 화면 말고는 앱·온보딩·첫 화면 어디로 와도 복구 화면으로 보낸다
+  if (
+    user &&
+    state === 'pending' &&
+    !onRestore &&
+    (isAppRoute(pathname) ||
+      pathname.startsWith('/onboarding') ||
+      pathname === '/' ||
+      pathname.startsWith('/login') ||
+      pathname.startsWith('/signup'))
+  ) {
+    return redirectTo(ACCOUNT_RESTORE_PATH);
+  }
+
   // Redirect to onboarding if profile is missing
-  if (user && !profile && !request.nextUrl.pathname.startsWith('/onboarding')) {
+  if (user && state === 'missing' && !pathname.startsWith('/onboarding')) {
     const url = request.nextUrl.clone();
     url.pathname = '/onboarding';
     return redirectWithAuthCookies(url);
   }
 
-  const { pathname } = request.nextUrl;
   if (
     !user &&
     !pathname.startsWith('/login') &&
@@ -99,19 +128,16 @@ export async function updateSession(request: NextRequest) {
 
   if (
     user &&
-    (request.nextUrl.pathname === '/' ||
-      request.nextUrl.pathname.startsWith('/login') ||
-      request.nextUrl.pathname.startsWith('/signup'))
+    (pathname === '/' || pathname.startsWith('/login') || pathname.startsWith('/signup'))
   ) {
     // 이미 로그인한 채 /login?redirect=… 로 오면(초대 링크 재방문 등) 원래 목적지를 살린다
     const target = sanitizeRedirectPath(request.nextUrl.searchParams.get('redirect'));
     return redirectWithAuthCookies(new URL(target, request.url));
   }
 
-  if (user && profile && request.nextUrl.pathname.startsWith('/onboarding')) {
-    const url = request.nextUrl.clone();
-    url.pathname = HOME_PATH;
-    return redirectWithAuthCookies(url);
+  // 되살릴 것이 없는 독자는 복구 화면 대신 오늘로 간다
+  if (user && state === 'active' && (pathname.startsWith('/onboarding') || onRestore)) {
+    return redirectTo(HOME_PATH);
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
@@ -140,6 +166,7 @@ export const config = {
     '/signup/:path*',
     '/onboarding/:path*',
     '/invite/:path*',
+    '/account/:path*',
     '/today/:path*',
     '/books/:path*',
     '/entry/:path*',

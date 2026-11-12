@@ -21,7 +21,7 @@ export default function PrivacyPage() {
         announced: LEGAL_REVISION.announced,
         effective: LEGAL_REVISION.effective,
         changes: LEGAL_REVISION.privacyChanges,
-        previous: { href: '/privacy/2026-09-15', label: '지난 판(2026년 9월 15일 시행) 보기' },
+        previous: { href: '/privacy/2026-11-03', label: '지난 판(2026년 11월 3일 시행) 보기' },
       }}
     />
   );

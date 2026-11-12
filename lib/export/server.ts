@@ -126,34 +126,33 @@ function monthRange(month: string): { start: string; end: string } {
   return { start: `${month}-01`, end: `${next}-01` };
 }
 
-interface MonthEntryRow extends EntryRow {
+interface OwnedEntryRow extends EntryRow {
   user_books: { user_id: string; is_finished: boolean | null; books: BookInfo | null };
 }
 
-/** 내 한 달 — 기록 날짜가 그달인 기록을 user_book별로 묶는다(묶음 순서는 마크다운 함수가 정한다) */
-export async function loadMonthExport(
+/**
+ * 내 기록을 user_book별로 묶는다(묶음 순서는 마크다운 함수가 정한다).
+ * 소유자 조건은 user_books 조인으로 건다 — RLS가 친구의 공개 기록도 읽게 하므로 내 것만 남긴다.
+ * fetchAllRows로 끝까지 읽어 PostgREST 행 상한에 잘리지 않는다.
+ */
+async function loadOwnedBooks(
   supabase: Client,
   userId: string,
-  month: string,
-  includeReflections: boolean
+  includeReflections: boolean,
+  range?: { start: string; end: string }
 ): Promise<ExportBook[]> {
-  const { start, end } = monthRange(month);
-  const { rows, error } = await fetchAllRows<MonthEntryRow>(
-    (from, to) =>
-      supabase
-        .from('entries')
-        .select(`${ENTRY_COLUMNS},user_books!inner(user_id,is_finished,books(title,author))`)
-        .eq('user_books.user_id', userId)
-        .gte('date', start)
-        .lt('date', end)
-        .order('date')
-        .order('created_at')
-        .order('id')
-        .range(from, to) as unknown as PromiseLike<{
-        data: MonthEntryRow[] | null;
-        error: null;
-      }>
-  );
+  const { rows, error } = await fetchAllRows<OwnedEntryRow>((from, to) => {
+    let query = supabase
+      .from('entries')
+      .select(`${ENTRY_COLUMNS},user_books!inner(user_id,is_finished,books(title,author))`)
+      .eq('user_books.user_id', userId);
+    if (range) query = query.gte('date', range.start).lt('date', range.end);
+    return query
+      .order('date')
+      .order('created_at')
+      .order('id')
+      .range(from, to) as unknown as PromiseLike<{ data: OwnedEntryRow[] | null; error: null }>;
+  });
   if (error) throw error;
 
   const entries = await withReflections(supabase, rows, includeReflections);
@@ -173,4 +172,23 @@ export async function loadMonthExport(
     book.entries.push(entries[i]);
   });
   return [...books.values()];
+}
+
+/** 내 한 달 — 기록 날짜가 그달인 기록 */
+export function loadMonthExport(
+  supabase: Client,
+  userId: string,
+  month: string,
+  includeReflections: boolean
+): Promise<ExportBook[]> {
+  return loadOwnedBooks(supabase, userId, includeReflections, monthRange(month));
+}
+
+/** 내 모든 기록 — 기록이 있는 모든 책 */
+export function loadAllExport(
+  supabase: Client,
+  userId: string,
+  includeReflections: boolean
+): Promise<ExportBook[]> {
+  return loadOwnedBooks(supabase, userId, includeReflections);
 }

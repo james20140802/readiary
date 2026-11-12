@@ -27,6 +27,7 @@ import {
 } from '@/lib/auth/authErrors';
 import { emailConfirmRedirectTo } from '@/lib/auth/emailRedirect';
 import { isGoogleLoginEnabled } from '@/lib/auth/oauthRedirect';
+import { formatPurgeDate, parsePurgeDateParam } from '@/lib/account/deletion';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -65,6 +66,12 @@ export default function LoginPage() {
   }, [searchParams]);
 
   const redirectParam = searchParams.get('redirect');
+  // 탈퇴를 신청하고 로그아웃된 직후 — 언제까지 되돌릴 수 있는지 알린다.
+  // `until`은 되돌릴 수 있는 마지막 날(삭제 시각 1초 전의 KST 날짜)이다
+  const restoreDeadline =
+    searchParams.get('notice') === 'deletion-requested'
+      ? parsePurgeDateParam(searchParams.get('until'))
+      : null;
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,6 +134,14 @@ export default function LoginPage() {
 
   return (
     <AuthFrame title="다시 만나서 반가워요" wordmark>
+      {restoreDeadline && (
+        <p
+          role="status"
+          className="mb-5 break-keep rounded-md border border-hairline px-3 py-2 font-sans text-body-sm text-ink"
+        >
+          탈퇴를 신청했어요. {formatPurgeDate(restoreDeadline)}까지 로그인하면 되돌릴 수 있어요.
+        </p>
+      )}
       <form onSubmit={handleLogin} noValidate className="space-y-5">
         {formError && (
           <FormAlert>

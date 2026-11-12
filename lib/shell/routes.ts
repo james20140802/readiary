@@ -1,7 +1,7 @@
 /** 화면이 앉는 틀 — 일기장 괘선과 내비 구성을 정한다 */
 export type Frame = 'leaves' | 'feed' | 'plain' | 'bare' | 'landing';
 
-/** 내비 없이 괘선만 깔리는 화면(인증 절차·공개 링크·약관) */
+/** 내비 없이 괘선만 깔리는 화면(인증 절차·탈퇴 복구·공개 링크·약관) */
 const BARE_PREFIXES = [
   '/login',
   '/signup',
@@ -14,6 +14,8 @@ const BARE_PREFIXES = [
   '/privacy',
   '/terms',
   '/email',
+  // 탈퇴 유예 중에는 앱을 쓸 수 없으므로 메뉴 없이 복구 화면만 보인다
+  '/account',
 ] as const;
 
 /** 간지(여백선) 틀을 쓰는 화면 — 화면별 PR이 하나씩 추가한다 */
