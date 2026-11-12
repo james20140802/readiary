@@ -76,7 +76,10 @@ export async function POST(req: Request) {
   }
 }
 
-/** 탈퇴 취소(복구): 기한 전이면 되살린다. 유예 중이 아니었으면 restored: false */
+/**
+ * 탈퇴 취소(복구): 기한 전이면 되살린다. 응답의 restored는 "지금 활성 계정인가"다 —
+ * 다른 탭이나 응답을 잃은 재시도로 이미 되살아났다면 true, 기한이 지나 남아 있는 신청이면 false.
+ */
 export async function DELETE(req: Request) {
   if (!sameOrigin(req)) return reply({ code: 'forbidden_origin' }, 403);
   try {
@@ -86,13 +89,20 @@ export async function DELETE(req: Request) {
       error,
     } = await client.auth.getUser();
     if (error || !user) return unauthorized();
-    // 생성된 DB 타입에 아직 없는 함수라 타입 없는 클라이언트로 부른다
-    const { data, error: cancelError } = await (client as unknown as SupabaseClient).rpc(
-      'cancel_account_deletion'
-    );
+    // 생성된 DB 타입에 아직 없는 함수·테이블이라 타입 없는 클라이언트로 부른다
+    const db = client as unknown as SupabaseClient;
+    const { data, error: cancelError } = await db.rpc('cancel_account_deletion');
     if (cancelError) return reply({ code: 'restore_failed' }, 503);
     forgetProfileState(user.id);
-    return reply({ restored: data === true });
+    if (data === true) return reply({ restored: true });
+    // 지운 행이 없다 — 이미 복구됐는지(행 없음), 기한이 지났는지(행 남음) 본인 행으로 가린다
+    const { data: pending, error: readError } = await db
+      .from('account_deletions')
+      .select('user_id')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    if (readError) return reply({ code: 'restore_failed' }, 503);
+    return reply({ restored: pending === null });
   } catch {
     return reply({ code: 'restore_failed' }, 503);
   }

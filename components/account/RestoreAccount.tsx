@@ -54,7 +54,8 @@ export default function RestoreAccount({ purgeAfter, expired: initiallyExpired }
         return;
       }
       if (!body.restored) {
-        // 그사이 기한이 지났다 — 오늘로 보내도 proxy가 이 화면으로 되돌리므로 지우는 중으로 바꾼다
+        // 신청이 남은 채 기한이 지났다 — 오늘로 보내도 proxy가 이 화면으로 되돌리므로 지우는 중으로 바꾼다.
+        // (다른 탭이나 재시도로 이미 되살아난 계정은 서버가 restored: true로 답한다)
         setExpired(true);
         return;
       }

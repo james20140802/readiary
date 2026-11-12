@@ -10,11 +10,15 @@ const mocks = vi.hoisted(() => ({
   createClient: vi.fn(),
   isOpen: vi.fn(),
   forget: vi.fn(),
+  from: vi.fn(),
+  eq: vi.fn(),
+  maybeSingle: vi.fn(),
 }));
 vi.mock('@/lib/supabase/server', () => ({
   createSupabaseServerClient: async () => ({
     auth: { getUser: mocks.getUser, getClaims: mocks.getClaims, signOut: mocks.signOut },
     rpc: mocks.userRpc,
+    from: mocks.from,
   }),
 }));
 vi.mock('@supabase/supabase-js', () => ({ createClient: mocks.createClient }));
@@ -59,6 +63,9 @@ beforeEach(() => {
   mocks.signInWithPassword.mockResolvedValue({ data: { user: { id: owner } }, error: null });
   mocks.adminRpc.mockResolvedValue({ data: PURGE, error: null });
   mocks.userRpc.mockResolvedValue({ data: true, error: null });
+  mocks.from.mockReturnValue({ select: () => ({ eq: mocks.eq }) });
+  mocks.eq.mockReturnValue({ maybeSingle: mocks.maybeSingle });
+  mocks.maybeSingle.mockResolvedValue({ data: null, error: null });
 });
 
 describe('POST /api/account/deletion', () => {
@@ -172,11 +179,30 @@ describe('DELETE /api/account/deletion', () => {
     expect(mocks.adminRpc).not.toHaveBeenCalled();
     expect(mocks.forget).toHaveBeenCalledWith(owner);
   });
-  it('answers 200 with restored: false when nothing was pending', async () => {
+  it('does not look the row up again after a successful restore', async () => {
+    await DELETE(req('DELETE'));
+    expect(mocks.from).not.toHaveBeenCalled();
+  });
+  it('answers restored: true when another tab or a lost response already restored the account', async () => {
     mocks.userRpc.mockResolvedValue({ data: false, error: null });
     const r = await DELETE(req('DELETE'));
     expect(r.status).toBe(200);
+    expect(await r.json()).toEqual({ restored: true });
+    expect(mocks.from).toHaveBeenCalledWith('account_deletions');
+    expect(mocks.eq).toHaveBeenCalledWith('user_id', owner);
+  });
+  it('answers restored: false when the request is still there past its deadline', async () => {
+    mocks.userRpc.mockResolvedValue({ data: false, error: null });
+    mocks.maybeSingle.mockResolvedValue({ data: { user_id: owner }, error: null });
+    const r = await DELETE(req('DELETE'));
+    expect(r.status).toBe(200);
     expect(await r.json()).toEqual({ restored: false });
+  });
+  it('reports 503 when it cannot tell which case it is', async () => {
+    mocks.userRpc.mockResolvedValue({ data: false, error: null });
+    mocks.maybeSingle.mockResolvedValue({ data: null, error: { message: 'boom' } });
+    const r = await DELETE(req('DELETE'));
+    expect(r.status).toBe(503);
   });
   it('reports a failed restore as 503', async () => {
     mocks.userRpc.mockResolvedValue({ data: null, error: { message: 'boom' } });
