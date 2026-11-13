@@ -65,12 +65,21 @@ export default function FriendLibrarySkeleton() {
           quoteCount: 12,
           href: '#',
         }))}
-        monthlyExcerpts={[3, 2].map((m) => ({
-          month: `2026-0${m}`,
-          coverQuote: filler(24),
-          quoteCount: 6,
-          href: '#',
-        }))}
+        monthlySentences={{
+          mode: 'friend',
+          hasAnyExcerpt: true,
+          nextBefore: null,
+          rows: [3, 2].map((m) => ({
+            month: `2026-0${m}`,
+            entryId: `skeleton-sentence-${m}`,
+            quote: filler(24),
+            bookTitle: filler(8),
+            fromPage: null,
+            toPage: null,
+            hasExcerpt: false,
+          })),
+        }}
+        monthlyEntryBase="#"
         monthlyExcerptsHref="#"
       />
     </SkeletonScope>
