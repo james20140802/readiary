@@ -192,7 +192,7 @@ export default function Landing() {
             <br />한 권의 일기장으로
           </h2>
           <p className={clsx(s.lead, s.center)}>
-            달마다 가장 오래 머문 문장이 차례가 되고, 내가 고른 한 문장이 표지가 돼요.
+            달마다 고른 한 문장이 차례가 되고, 내가 고른 한 문장이 표지가 돼요.
           </p>
           <div className={s.ystage} aria-hidden="true">
             {MONTHS.map((m) => (

@@ -1,7 +1,7 @@
 # 달마다 한 문장 — 일기장 설계
 
 - 작성: 2026-11-13
-- 상태: 초안(검토자 확인 반영, 사용자 승인 전)
+- 상태: 승인됨(2026-11-13). 구현은 `feat/monthly-sentence`, 프로덕션 마이그레이션은 아직 적용하지 않았다
 - 대체하는 설계: [일기장과 간지 설계](2026-10-20-diary-vellum-redesign-design.md) 4.3 "달마다 간지"
 - 관련: [달의 발췌집 설계](2026-11-05-monthly-excerpt-design.md), [이어 남긴 생각](../../features/entry-reflections.md)
 
@@ -169,6 +169,19 @@
 - 자동 기준: 사람마다 하나. `likes` | `reflections` | `recent`, 기본 `likes`.
 
 **읽기는 DB 집계 한 번이다.** 한 사람의 달 범위를 받아 달마다 문장 하나와 그 출처(책 제목, 쪽수, 기록 id)를 돌려준다. 클라이언트로 그 달의 기록 전체를 내려보내지 않는다. 기존 달 요약(최근 여섯 달)과 엮은 달 조회를 이 읽기로 합칠지, 옆에 둘지는 만드는 사람 몫이다.
+
+**구현된 이름** (`supabase/migrations/20261113090000_monthly_sentences.sql`)
+
+- 테이블: `monthly_sentence_picks`(달별 선택), `monthly_sentence_settings`(자동 기준). 프로필과 따로 둔 것은 프로필 행이 친구에게 읽히기 때문이다.
+- RPC: `get_monthly_sentences`(읽기, 본인·친구·그 밖을 안에서 가른다), `get_monthly_sentence_candidates`(고르기 후보), `set_monthly_sentence`(고르기·되돌리기), `set_monthly_sentence_rule`(자동 기준).
+- 무효가 된 선택(날짜가 다른 달로 옮겨짐, 문장이 지워짐)은 지우지 않고 읽을 때 무시한다. 기록을 되돌리면 선택도 다시 살아난다.
+- 계약 테스트: `supabase/tests/monthly_sentences_contract.sql`.
+
+**구현하며 정한 것**
+
+- 문장 크기는 `text-note`, 쪽수 표기는 기존 `p.184` 꼴이다.
+- 서재에 보일 줄이 없어도 보여 준 발췌집이 있으면 구역 머리와 `모두 보기`는 남긴다(24개월보다 오래된 발췌집으로 가는 길).
+- 기록이 없는 달의 메타에는 `기록 0`을 붙이지 않는다.
 
 **지켜야 할 계약**
 

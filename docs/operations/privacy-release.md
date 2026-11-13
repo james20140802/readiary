@@ -153,3 +153,24 @@ where p.pronamespace = 'public'::regnamespace
 ```sql
 delete from public.notifications where type in ('excerpt_like','excerpt_comment');
 ```
+
+## 달마다 한 문장 (2026-11-13, 프로덕션 미적용)
+
+설계는 [달마다 한 문장 설계](../superpowers/specs/2026-11-13-monthly-sentence-design.md)다. 친구 서재(`/social/u/…`)의 달별 목록이 `달마다 엮은 발췌집`에서 `달마다 한 문장`으로 바뀐다.
+
+**친구에게 새로 보이는 것.** 달마다 공개 기록 하나의 문장, 책 제목, 쪽수, 그 기록으로 가는 링크. 모두 친구가 이미 읽을 수 있던 공개 기록의 값이다. 발췌집을 보여 준 달에는 `펼치기`가 붙는다(이전과 같은 범위).
+
+**친구에게 보이지 않는 것.** 나만 보기 기록의 문장·id, 그달의 기록 수, 문장이 정해진 방식(고름·표지·자동), 자동 기준, 나만 보기 문장을 골랐다는 사실. 나만 보기 문장을 고른 달은 공개 문장 중 하나가 대신 보이고, 공개 문장이 없는 달은 줄이 없다. `nextBefore`도 공개 문장이 있는 달이 더 남았을 때만 채운다. 친구 화면의 '생각 많은 문장' 계산은 친구가 읽을 수 있는 생각만 센다.
+
+**접근 경로.** 두 테이블은 본인 `select`만 열려 있고 쓰기 권한이 없다. 읽기·쓰기는 정의자 RPC 넷뿐이며 모두 안에서 `auth.uid()`, `is_friend_with`(탈퇴 유예 포함), 공개 범위를 확인한다. API 응답은 `private, no-store`다.
+
+**확인한 것(코드).** `supabase/tests/monthly_sentences_contract.sql`의 `private pick`, `private-only month`, `friend reflections`, `friend paging`, `unfriended · stranger`, `pending deletion`, `direct writes` 장면. 친구 응답에 비공개 기록의 id·문장·책 이름과 본인 전용 키가 없는지 `t.no_trace`로 본다.
+
+**적용 순서.** 마이그레이션 `20261113090000_monthly_sentences.sql`을 먼저 적용한다. 새 객체만 더하므로 옛 코드와 함께 돌아도 안전하다. 코드를 먼저 배포하면 일기장과 서재의 이 목록만 "불러오지 못했어요"로 보이고 다른 칸은 그대로다. 적용한 뒤 [API 권한 문서](supabase-api-grants.md)의 예상치 항목을 조회 결과로 대조한다.
+
+**실제 화면에서 확인할 것.** 두 계정(A: 쓰는 사람, B: 수락된 친구)과 친구가 아닌 계정 C로 확인한다.
+
+- [ ] A가 나만 보기 문장을 고른 달이 B에게 다른 공개 문장으로 보인다. 공개 문장이 없는 달은 B에게 줄이 없다.
+- [ ] A가 고른 공개 기록을 나만 보기로 바꾼 직후 B가 서재를 다시 열면 이전 문장이 남아 있지 않다(브라우저와 설치형 PWA 각각).
+- [ ] A가 B와 친구를 끊으면 B의 `더 보기`가 더 불러오지 않고, C는 서재 자체를 볼 수 없다.
+- [ ] A가 자동 기준을 바꿔도 B의 화면에 기준이 드러나지 않는다.
