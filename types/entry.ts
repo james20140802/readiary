@@ -21,6 +21,8 @@ export type DetailSocialFeedEntry = {
   initialLikeCount: number;
   initialLiked: boolean;
   initialCommentCount: number;
+  /** 이 기록의 문장을 그 달의 문장으로 골랐는가 — 내 기록 한 장을 열 때만 채운다 */
+  isMonthlySentence?: boolean;
 };
 
 /** 친구 피드의 한 항목: 기록 하나 */
@@ -43,6 +45,8 @@ export type SocialFeedExcerptItem = {
   initialLiked: boolean;
   initialLikeCount: number;
   initialCommentCount: number;
+  /** 이 기록의 문장을 그 달의 문장으로 골랐는가 — 내 기록 한 장을 열 때만 채운다 */
+  isMonthlySentence?: boolean;
 };
 
 export type SocialFeedItem = SocialFeedEntryItem | SocialFeedExcerptItem;
@@ -74,6 +78,8 @@ export type EntryDetailData = {
   initialLiked: boolean;
   initialLikeCount: number;
   initialCommentCount: number;
+  /** 이 기록의 문장을 그 달의 문장으로 골랐는가 — 내 기록 한 장을 열 때만 채운다 */
+  isMonthlySentence?: boolean;
 };
 
 /** On-demand reading payload with viewer permissions and canonical navigation. */

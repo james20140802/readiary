@@ -6,7 +6,7 @@ import { fetchProfileData } from '@/lib/profile/fetchProfileData';
 import { fetchRetrospectData } from '@/lib/profile/fetchRetrospectData';
 import { fetchFeaturedQuote } from '@/lib/profile/fetchFeaturedQuote';
 import { parseNicknameAndTagSlug } from '@/lib/social/invite';
-import { fetchFriendRecentExcerpts, fetchMyRecentExcerpts } from '@/lib/monthly-excerpt/server';
+import { fetchLibrarySentences } from '@/lib/monthly-sentence/server';
 import { PROFILE_SHELF_LIMIT, toShelfBook } from '@/lib/books/shelfBook';
 import FriendLibraryView from '@/components/social/library/FriendLibraryView';
 
@@ -45,12 +45,12 @@ export default async function FriendProfilePage({ params }: FriendProfilePagePro
   // 본인이 자기 소셜 주소를 열면 /profile과 같이 비공개 포함
   const isOwn = user.id === profile.id;
   const publicOnly = { publicOnly: !isOwn };
-  const [stats, retrospect, featuredQuote, monthly] = await Promise.all([
+  const [stats, retrospect, featuredQuote, monthlySentences] = await Promise.all([
     getUserStats(profile.id),
     fetchRetrospectData(profile.id, publicOnly),
     fetchFeaturedQuote(profile.featured_entry_id, profile.id, publicOnly),
-    // 달의 발췌집은 다른 칸과 따로 실패한다. 친구에게는 공개된 권만 RPC가 돌려준다
-    (isOwn ? fetchMyRecentExcerpts() : fetchFriendRecentExcerpts(profile.id)).catch(() => null),
+    // 달마다 한 문장은 다른 칸과 따로 실패한다. 친구에게는 공개 문장만 RPC가 돌려준다
+    fetchLibrarySentences(profile.id).catch(() => null),
   ]);
 
   // 친구의 읽기 통계(기간·문장 수)는 본인 것만 조회 가능해 비워 둔다
@@ -108,14 +108,9 @@ export default async function FriendProfilePage({ params }: FriendProfilePagePro
       shelfHref={shelfHref}
       excerpts={excerpts}
       retrospectError={!retrospect}
-      monthlyExcerpts={(monthly ?? []).map((row) => ({
-        month: row.month,
-        coverQuote: row.coverQuote,
-        quoteCount: row.quoteCount,
-        href: isOwn ? `/excerpts/${row.month}` : `${base}/excerpts/${row.month}`,
-      }))}
+      monthlySentences={monthlySentences}
+      monthlyEntryBase={isOwn ? '/entry' : `${base}/entry`}
       monthlyExcerptsHref={isOwn ? '/excerpts' : `${base}/excerpts`}
-      monthlyExcerptsError={monthly === null}
     />
   );
 }

@@ -6,11 +6,9 @@ import {
   fetchFriendExcerptYear,
   fetchFriendExcerptYears,
   fetchFriendMonthlyExcerpt,
-  fetchFriendRecentExcerpts,
   fetchMyExcerptMonths,
   fetchMyExcerptYears,
   fetchMyMonthlyExcerpt,
-  fetchMyRecentExcerpts,
 } from '../server';
 
 vi.mock('@/lib/supabase/server', () => ({ createSupabaseServerClient: vi.fn() }));
@@ -85,75 +83,6 @@ describe('monthly excerpt server fetchers', () => {
       p_owner: 'owner',
       p_year: 2026,
     });
-  });
-
-  it('gathers the recent friend excerpts year by year and stops once it has enough', async () => {
-    const rows = (year: number, n: number) =>
-      Array.from({ length: n }, (_, i) => ({
-        month: `${year}-0${n - i}`,
-        quoteCount: 1,
-        excerptId: `${year}-${i}`,
-        coverQuote: '표지',
-      }));
-    rpc.mockImplementation(async (name: string, args: { p_year?: number }) => {
-      if (name === 'get_friend_monthly_excerpt_years') {
-        return {
-          data: [
-            { year: 2026, excerpt_count: 3 },
-            { year: 2025, excerpt_count: 3 },
-            { year: 2024, excerpt_count: 3 },
-          ],
-          error: null,
-        };
-      }
-      return { data: rows(args.p_year as number, 3), error: null };
-    });
-    const recent = await fetchFriendRecentExcerpts('owner');
-    expect(recent.map((r) => r.month)).toEqual([
-      '2026-03',
-      '2026-02',
-      '2026-01',
-      '2025-03',
-      '2025-02',
-    ]);
-    // 2024년은 물어보지 않는다
-    expect(rpc).toHaveBeenCalledTimes(3);
-  });
-
-  it('gathers my recent excerpts, leaving out months I have not made', async () => {
-    rpc.mockImplementation(async (name: string) =>
-      name === 'get_my_monthly_excerpt_years'
-        ? {
-            data: [
-              { year: 2026, excerpt_count: 1, has_unmade: true },
-              { year: 2025, excerpt_count: 0, has_unmade: true },
-            ],
-            error: null,
-          }
-        : {
-            data: [
-              {
-                month: '2026-03',
-                quoteCount: 4,
-                excerptId: null,
-                isShared: false,
-                coverQuote: null,
-              },
-              {
-                month: '2026-02',
-                quoteCount: 2,
-                excerptId: 'x',
-                isShared: false,
-                coverQuote: '표지',
-              },
-            ],
-            error: null,
-          }
-    );
-    const recent = await fetchMyRecentExcerpts();
-    expect(recent.map((r) => r.month)).toEqual(['2026-02']);
-    // 엮은 것이 없는 해는 달을 물어보지 않는다
-    expect(rpc).toHaveBeenCalledTimes(2);
   });
 });
 

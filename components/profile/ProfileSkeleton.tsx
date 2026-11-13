@@ -3,7 +3,7 @@ import { todayKST } from '@/lib/dates';
 import { buildRhythm, rhythmMonthKeys, RHYTHM_MONTHS } from '@/lib/profile/readingRhythm';
 import type { ShelfBook } from '@/components/books/BookSpineShelf';
 import MeView, { type MeViewProps } from './MeView';
-import { diaryShelf, monthRows } from './meModel';
+import { diaryShelf } from './meModel';
 
 const SHELF_COUNT = 6;
 const MONTH_COUNT = 3;
@@ -60,25 +60,30 @@ export const PROFILE_SKELETON_PROPS: MeViewProps = {
   shelfBooks,
   shelfTotal: SHELF_COUNT,
   diary: diaryShelf(`${Number(today.slice(0, 4)) - 1}-03-08T01:00:00Z`, today),
-  // 달 이름은 최근 몇 달을 거슬러 올라간 실제 달 숫자 — 각 줄이 서로 다른 달이어야(key) 한다
-  months: monthRows(
-    Array.from({ length: MONTH_COUNT }, (_, i) => {
+  // 달은 최근 몇 달을 거슬러 올라간 실제 달 — 각 줄이 서로 다른 달이어야(key) 한다
+  sentences: {
+    mode: 'own',
+    rule: 'likes',
+    reflectionsOn: false,
+    nextBefore: null,
+    rows: Array.from({ length: MONTH_COUNT }, (_, i) => {
       const [y, m] = today.split('-').map(Number);
       const d = new Date(Date.UTC(y, m - 1 - i, 1));
       return {
-        label: `${d.getUTCFullYear()}년 ${d.getUTCMonth() + 1}월`,
-        count: 4,
-        books: [],
-        quotes: [],
-        quotePreviews: [{ entryId: `skeleton-m${i}`, quote: filler(26) }],
+        month: `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`,
+        entryId: `skeleton-m${i}`,
+        quote: filler(26),
+        bookTitle: filler(8),
+        fromPage: null,
+        toPage: null,
+        source: 'auto' as const,
+        entryCount: 4,
+        isPrivate: false,
+        friendFallback: null,
+        excerpt: 'none' as const,
       };
     }),
-    today,
-    // 실제 화면은 줄마다 행동 칸이 생기므로 자리에도 같은 칸을 둔다
-    new Set()
-  ),
-  todayKst: today,
-  monthsError: false,
+  },
   bookmark: {
     userBookId: 'skeleton-bm',
     bookId: 'skeleton-bm-book',

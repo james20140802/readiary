@@ -1,5 +1,5 @@
 {
-  "_captured": "2026-10-30 (functions re-checked 2026-11-02 after get_entry_months), read-only pg_catalog/information_schema queries against project piqlggyuhhicnjywombg (production). See docs/operations/supabase-api-grants.md. Plus the monthly excerpt migrations (20261106090000 onward) as expected values: not applied to production yet (see the doc). The account deletion migrations (20261112090000, 20261112091000, 20261112092000) were applied on 2026-11-12 and their counts were checked read-only (see the doc).",
+  "_captured": "2026-10-30 (functions re-checked 2026-11-02 after get_entry_months), read-only pg_catalog/information_schema queries against project piqlggyuhhicnjywombg (production). See docs/operations/supabase-api-grants.md. Plus the monthly excerpt migrations (20261106090000 onward) as expected values: not applied to production yet (see the doc). The account deletion migrations (20261112090000, 20261112091000, 20261112092000) were applied on 2026-11-12 and their counts were checked read-only (see the doc). The monthly sentence migration (20261113090000) was applied on 2026-11-13 and its tables, policies, grants and function signatures were checked read-only (see the doc).",
   "tables": [
     "account_deletion_purges",
     "account_deletions",
@@ -18,6 +18,8 @@
     "monthly_excerpt_items",
     "monthly_excerpt_likes",
     "monthly_excerpts",
+    "monthly_sentence_picks",
+    "monthly_sentence_settings",
     "notifications",
     "profiles",
     "push_deliveries",
@@ -237,6 +239,16 @@
       ["created_at", "timestamp with time zone", "YES", "timezone('utc'::text, now())"],
       ["progress", "integer", "YES", "0"],
       ["finished_at", "timestamp with time zone", "YES", null]
+    ],
+    "monthly_sentence_picks": [
+      ["user_id", "uuid", "NO", null],
+      ["month", "date", "NO", null],
+      ["entry_id", "uuid", "NO", null],
+      ["created_at", "timestamp with time zone", "NO", "now()"]
+    ],
+    "monthly_sentence_settings": [
+      ["user_id", "uuid", "NO", null],
+      ["rule", "text", "NO", null]
     ]
   },
   "constraints": {
@@ -595,6 +607,37 @@
         "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
       ],
       ["user_books_pkey", "p", "PRIMARY KEY (id)"]
+    ],
+    "monthly_sentence_picks": [
+      [
+        "monthly_sentence_picks_entry_id_fkey",
+        "f",
+        "FOREIGN KEY (entry_id) REFERENCES entries(id) ON DELETE CASCADE"
+      ],
+      [
+        "monthly_sentence_picks_month_check",
+        "c",
+        "CHECK ((EXTRACT(day FROM month) = (1)::numeric))"
+      ],
+      ["monthly_sentence_picks_pkey", "p", "PRIMARY KEY (user_id, month)"],
+      [
+        "monthly_sentence_picks_user_id_fkey",
+        "f",
+        "FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE"
+      ]
+    ],
+    "monthly_sentence_settings": [
+      ["monthly_sentence_settings_pkey", "p", "PRIMARY KEY (user_id)"],
+      [
+        "monthly_sentence_settings_rule_check",
+        "c",
+        "CHECK ((rule = ANY (ARRAY['likes'::text, 'reflections'::text, 'recent'::text])))"
+      ],
+      [
+        "monthly_sentence_settings_user_id_fkey",
+        "f",
+        "FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE"
+      ]
     ]
   },
   "indexes": {
@@ -652,7 +695,12 @@
       "push_subscriptions_pkey",
       "push_subscriptions_user_idx"
     ],
-    "user_books": ["user_books_pkey", "user_books_user_created_idx"]
+    "user_books": ["user_books_pkey", "user_books_user_created_idx"],
+    "monthly_sentence_picks": [
+      "monthly_sentence_picks_entry_id_idx",
+      "monthly_sentence_picks_pkey"
+    ],
+    "monthly_sentence_settings": ["monthly_sentence_settings_pkey"]
   },
   "rlsEnabled": [
     "account_deletion_purges",
@@ -672,6 +720,8 @@
     "monthly_excerpt_items",
     "monthly_excerpt_likes",
     "monthly_excerpts",
+    "monthly_sentence_picks",
+    "monthly_sentence_settings",
     "notifications",
     "profiles",
     "push_deliveries",
@@ -806,6 +856,16 @@
       "anon": [],
       "authenticated": ["delete", "insert", "select", "update"],
       "service_role": ["delete", "insert", "select", "update"]
+    },
+    "monthly_sentence_picks": {
+      "anon": [],
+      "authenticated": ["select"],
+      "service_role": ["delete", "insert", "select", "update"]
+    },
+    "monthly_sentence_settings": {
+      "anon": [],
+      "authenticated": ["select"],
+      "service_role": ["delete", "insert", "select", "update"]
     }
   },
   "policies": [
@@ -932,6 +992,13 @@
     ["monthly_excerpts", "monthly_excerpts_delete_own", "DELETE", "{authenticated}"],
     ["monthly_excerpts", "monthly_excerpts_delete_requires_active", "DELETE", "{authenticated}"],
     ["monthly_excerpts", "monthly_excerpts_select_own", "SELECT", "{authenticated}"],
+    ["monthly_sentence_picks", "monthly_sentence_picks_select_own", "SELECT", "{authenticated}"],
+    [
+      "monthly_sentence_settings",
+      "monthly_sentence_settings_select_own",
+      "SELECT",
+      "{authenticated}"
+    ],
     ["notifications", "notifications_delete_own", "DELETE", "{authenticated}"],
     ["notifications", "notifications_delete_requires_active", "DELETE", "{authenticated}"],
     ["notifications", "notifications_hide_pending_deletion", "SELECT", "{authenticated}"],
@@ -993,6 +1060,8 @@
     ["get_monthly_excerpt_prompt", "p_today date"],
     ["get_monthly_excerpt_reactions", "p_id uuid"],
     ["get_monthly_recap", "p_today date"],
+    ["get_monthly_sentence_candidates", "p_month text, p_offset integer, p_limit integer"],
+    ["get_monthly_sentences", "p_owner uuid, p_before text, p_limit integer"],
     ["get_my_monthly_excerpt", "p_month text"],
     ["get_my_monthly_excerpt_year", "p_year integer"],
     ["get_my_monthly_excerpt_years", ""],
@@ -1013,6 +1082,9 @@
     ["monthly_excerpt_month_start", "p_month text"],
     ["monthly_excerpt_sync_entry", ""],
     ["monthly_excerpt_visible_items", "p_id uuid"],
+    ["monthly_sentence_own_rows", "p_owner uuid, p_from date, p_to date"],
+    ["monthly_sentence_reflections_on", "p_user uuid"],
+    ["monthly_sentence_resolve", "p_owner uuid, p_from date, p_to date, p_friend boolean"],
     [
       "mutate_entry_with_reflection_ack",
       "p_entry_id uuid, p_patch jsonb, p_delete boolean, p_reflection_count integer"
@@ -1048,6 +1120,8 @@
       "p_query text, p_kind text, p_book_id uuid, p_from date, p_to date, p_cursor jsonb"
     ],
     ["set_monthly_excerpt_shared", "p_id uuid, p_is_shared boolean"],
+    ["set_monthly_sentence", "p_month text, p_entry_id uuid"],
+    ["set_monthly_sentence_rule", "p_rule text"],
     ["update_user_book_progress", "p_book_id uuid, p_user_id uuid"],
     ["withdraw_email_by_token", "p_hash text"]
   ],
