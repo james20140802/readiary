@@ -195,6 +195,41 @@ export type Database = {
           },
         ];
       };
+      monthly_sentence_picks: {
+        Row: { user_id: string; month: string; entry_id: string; created_at: string };
+        Insert: { user_id: string; month: string; entry_id: string; created_at?: string };
+        Update: { user_id?: string; month?: string; entry_id?: string; created_at?: string };
+        Relationships: [
+          {
+            foreignKeyName: 'monthly_sentence_picks_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'monthly_sentence_picks_entry_id_fkey';
+            columns: ['entry_id'];
+            isOneToOne: false;
+            referencedRelation: 'entries';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      monthly_sentence_settings: {
+        Row: { user_id: string; rule: string };
+        Insert: { user_id: string; rule: string };
+        Update: { user_id?: string; rule?: string };
+        Relationships: [
+          {
+            foreignKeyName: 'monthly_sentence_settings_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: true;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       monthly_excerpt_likes: {
         Row: { user_id: string; excerpt_id: string; created_at: string };
         Insert: { user_id: string; excerpt_id: string; created_at?: string };
@@ -657,6 +692,19 @@ export type Database = {
         Returns: undefined;
       };
       get_my_monthly_excerpt: { Args: { p_month: string }; Returns: Json };
+      get_monthly_sentences: {
+        Args: { p_owner: string; p_before?: string; p_limit?: number };
+        Returns: Json;
+      };
+      get_monthly_sentence_candidates: {
+        Args: { p_month: string; p_offset?: number; p_limit?: number };
+        Returns: Json;
+      };
+      set_monthly_sentence: {
+        Args: { p_month: string; p_entry_id: string | null };
+        Returns: Json;
+      };
+      set_monthly_sentence_rule: { Args: { p_rule: string }; Returns: undefined };
       get_monthly_excerpt_candidates: {
         Args: { p_month: string; p_user_book_id?: string; p_page?: number; p_limit?: number };
         Returns: Json;

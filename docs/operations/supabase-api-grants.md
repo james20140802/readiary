@@ -52,6 +52,7 @@ PGLITE_MODULE=/tmp/readiary-grants-sql/node_modules/@electric-sql/pglite/dist/in
 - `20261106110000_monthly_excerpts_friends.sql`(친구용 RPC 4개, 내부 함수 1개): 프로덕션 미적용. 위와 같이 예상치다.
 - `20261106120000_monthly_excerpt_reactions.sql`(좋아요·댓글 테이블 2개, 정책 6개, RPC 3개, `notifications`의 열 2개·인덱스 3개·넓힌 `type` 검사): 프로덕션 미적용. 위와 같이 예상치다.
 - `20261106130000_social_feed_items.sql`(피드 RPC `get_social_feed_items`, 정의자 함수 `friend_feed_monthly_excerpts`): 프로덕션 미적용. 위와 같이 예상치다.
+- `20261113090000_monthly_sentences.sql`(달마다 한 문장 테이블 2개, 정책 2개, RPC 4개, 내부 함수 3개): 프로덕션 미적용. 위와 같이 예상치다.
 
 #### 탈퇴 마이그레이션: 2026-11-12 프로덕션 적용
 
