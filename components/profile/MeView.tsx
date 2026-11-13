@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, use, useState } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import clsx from 'clsx';
@@ -14,13 +14,9 @@ import type { FinishedBookExcerpt } from '@/lib/profile/fetchRetrospectData';
 import type { RhythmMonth } from '@/lib/profile/readingRhythm';
 import OverlappedMonths from './OverlappedMonths';
 import InviteSheet from './InviteSheet';
-import {
-  ordinalCount,
-  ordinalVolume,
-  withExcerptState,
-  type DiaryShelf,
-  type MonthRow,
-} from './meModel';
+import type { OwnSentences } from '@/lib/monthly-sentence/types';
+import MySentences from '@/components/monthly-sentence/MySentences';
+import { ordinalCount, ordinalVolume, type DiaryShelf } from './meModel';
 import s from './me.module.css';
 import { coverTier } from './coverTier';
 
@@ -46,13 +42,8 @@ export interface MeViewProps {
   shelfBooks: ShelfBook[];
   shelfTotal: number;
   diary: DiaryShelf;
-  months: MonthRow[];
-  /** 오늘(KST) — 끝난 달인지 가른다 */
-  todayKst: string;
-  /** 내가 엮은 달 — 늦게 올 수 있고 실패하면 null. 없으면 엮기·펼치기를 두지 않는다 */
-  excerptMonths?: Promise<ReadonlySet<string> | null>;
-  /** 달 요약을 불러오지 못했다 */
-  monthsError: boolean;
+  /** 달마다 한 문장의 첫 쪽 — null이면 불러오지 못한 것 */
+  sentences: OwnSentences | null;
   bookmark: FeaturedBookmark | null;
   /** 다 읽은 책이 있어야 책갈피를 꽂을 수 있다 */
   canBookmark: boolean;
@@ -355,147 +346,6 @@ function Volumes({ diary, name, mobile }: { diary: DiaryShelf; name: string; mob
   return mobile ? <div className={s.volsMobile}>{vols}</div> : vols;
 }
 
-const MONTH_ROW = 'grid min-w-0 flex-1 grid-cols-[44px_1fr_auto] items-baseline gap-3 py-3';
-const ACTION =
-  'inline-flex min-h-11 w-14 shrink-0 items-center justify-end font-sans text-button-sm focus-visible:rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent';
-
-/** 줄의 행동 — 끝난 달은 엮기, 엮은 달은 펼치기. 진행 중인 달·문장 없는 달·알 수 없을 때는 없다 */
-function MonthAction({ m }: { m: MonthRow }) {
-  if (m.excerpt === 'unmade') {
-    return (
-      <Link
-        href={`/excerpts/${m.monthKey}/compose`}
-        aria-label={`${m.key} 엮기`}
-        className={clsx(ACTION, 'text-ink underline underline-offset-[3px]')}
-      >
-        엮기
-      </Link>
-    );
-  }
-  if (m.excerpt === 'made') {
-    return (
-      <Link
-        href={`/excerpts/${m.monthKey}`}
-        aria-label={`${m.key} 펼치기`}
-        className={clsx(ACTION, 'text-accent')}
-      >
-        펼치기
-      </Link>
-    );
-  }
-  // 행동이 없는 줄도 같은 폭을 비워 둬 기록 수의 세로 줄이 맞는다
-  return <span aria-hidden className="w-14 shrink-0" />;
-}
-
-function MonthItems({ rows }: { rows: MonthRow[] }) {
-  return (
-    <ol className="mt-3.5" aria-label="달마다 남긴 문장">
-      {rows.map((m) => {
-        const body = (
-          <>
-            <span data-skeleton className="font-sans text-[15px] font-semibold text-ink">
-              {m.month}
-            </span>
-            <span
-              data-skeleton={Boolean(m.quote)}
-              className={clsx(
-                'line-clamp-2 font-serif text-[17px] leading-normal',
-                m.quote ? 'text-ink' : 'text-ink-faint'
-              )}
-            >
-              {m.quote ?? (m.count > 0 ? '생각만 남긴 달' : '쉬어 간 달')}
-            </span>
-            <span className="font-mono text-[14px] font-medium text-ink-sub">
-              <span className="sr-only">기록 </span>
-              <span data-skeleton>{m.count}</span>
-            </span>
-          </>
-        );
-        return (
-          <li key={m.key} className="flex items-center border-t border-hairline">
-            {m.entryId ? (
-              <Link
-                href={`/entry/${m.entryId}`}
-                className={clsx(
-                  MONTH_ROW,
-                  'hover:bg-ink/[.03] focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent'
-                )}
-              >
-                {body}
-              </Link>
-            ) : (
-              <div className={MONTH_ROW}>{body}</div>
-            )}
-            <MonthAction m={m} />
-          </li>
-        );
-      })}
-    </ol>
-  );
-}
-
-/** 엮은 달 조회가 도착하면 줄마다 엮기·펼치기를 입힌다 */
-function ResolvedMonthItems({
-  rows,
-  made,
-  todayKst,
-}: {
-  rows: MonthRow[];
-  made: Promise<ReadonlySet<string> | null>;
-  todayKst: string;
-}) {
-  return <MonthItems rows={withExcerptState(rows, todayKst, use(made))} />;
-}
-
-function MonthList({
-  months,
-  error,
-  limit,
-  made,
-  todayKst,
-}: {
-  months: MonthRow[];
-  error: boolean;
-  limit?: number;
-  /** 엮은 달 — 따로 늦게 올 수 있다. 없거나 실패(null)면 행동만 빠지고 목록은 그대로다 */
-  made?: Promise<ReadonlySet<string> | null>;
-  todayKst: string;
-}) {
-  if (error) {
-    return (
-      <p className={clsx(CAP, 'mt-3.5')}>
-        달마다 남긴 문장을 불러오지 못했어요. 잠시 뒤 다시 열어 주세요.
-      </p>
-    );
-  }
-  if (months.length === 0) {
-    return (
-      <p className={clsx(CAP, 'mt-3.5')}>
-        첫 문장을 남기면 이 일기장의 첫 장이 생겨요.{' '}
-        <Link href="/today" className={TEXT_LINK}>
-          오늘 남기기
-        </Link>
-      </p>
-    );
-  }
-  const shown = limit ? months.slice(0, limit) : months;
-  const plain = <MonthItems rows={shown} />;
-  return (
-    <>
-      {made ? (
-        <Suspense fallback={plain}>
-          <ResolvedMonthItems rows={shown} made={made} todayKst={todayKst} />
-        </Suspense>
-      ) : (
-        plain
-      )}
-      <Link href="/excerpts" className={clsx(TEXT_LINK, 'mt-2 inline-flex min-h-11 items-center')}>
-        달의 발췌집 모두 보기
-      </Link>
-    </>
-  );
-}
-
 const DESK_ITEMS = [
   { id: 'me-cover', label: '표지' },
   { id: 'me-books', label: '나를 만든 책·서가' },
@@ -521,10 +371,7 @@ export default function MeView(props: MeViewProps) {
     shelfBooks,
     shelfTotal,
     diary,
-    months,
-    todayKst,
-    excerptMonths,
-    monthsError,
+    sentences,
     bookmark,
     canBookmark,
     settingsHref = '/settings',
@@ -623,13 +470,8 @@ export default function MeView(props: MeViewProps) {
           <h2 className={H2}>{diaryTitle}</h2>
           <p className={clsx(CAP, 'mt-1.5')}>{diaryCap}</p>
           <Volumes diary={diary} name={name} mobile />
-          <MonthList
-            months={months}
-            error={monthsError}
-            limit={3}
-            made={excerptMonths}
-            todayKst={todayKst}
-          />
+          <h2 className={clsx(H2, 'mt-[34px]')}>달마다 한 문장</h2>
+          <MySentences initial={sentences} />
           {rhythm && (
             <>
               <h2 className={clsx(H2, 'mt-[34px]')}>언제 읽었나</h2>
@@ -709,13 +551,8 @@ export default function MeView(props: MeViewProps) {
             </div>
             <div className="pt-16">
               <h2 className={H2_DESK}>최근의 차례</h2>
-              <p className={clsx(CAP, 'mt-1.5')}>달마다 가장 최근에 남긴 문장</p>
-              <MonthList
-                months={months}
-                error={monthsError}
-                made={excerptMonths}
-                todayKst={todayKst}
-              />
+              <p className={clsx(CAP, 'mt-1.5')}>달마다 한 문장</p>
+              <MySentences initial={sentences} />
             </div>
           </div>
           {rhythm && (

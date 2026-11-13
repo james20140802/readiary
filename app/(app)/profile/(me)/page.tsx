@@ -10,9 +10,9 @@ import { getUserStats } from '@/lib/stats/getUserStats';
 import { PROFILE_SHELF_LIMIT, toShelfBook } from '@/lib/books/shelfBook';
 import { buildInviteSlug } from '@/lib/social/invite';
 import { todayKST } from '@/lib/dates';
-import { fetchMyExcerptMonths } from '@/lib/monthly-excerpt/server';
+import { fetchMySentences } from '@/lib/monthly-sentence/server';
 import MeView from '@/components/profile/MeView';
-import { diaryShelf, formatPublishedDate, monthRows } from '@/components/profile/meModel';
+import { diaryShelf, formatPublishedDate } from '@/components/profile/meModel';
 
 export default async function ProfilePage() {
   const {
@@ -24,16 +24,16 @@ export default async function ProfilePage() {
     return <p className="mt-10 text-center text-danger">로그인이 필요합니다.</p>;
   }
 
-  // 엮은 달은 기다리지 않는다 — 도착하면 달 목록에 엮기·펼치기가 붙고, 실패하면 그 행동만 빠진다
-  const excerptMonths = fetchMyExcerptMonths().catch(() => null);
-
-  const [{ profile, userBooks }, stats, retrospect, readingStats, rhythm] = await Promise.all([
-    fetchProfileData(user.id),
-    getUserStats(user.id),
-    fetchRetrospectData(user.id),
-    fetchBookReadingStats(),
-    fetchReadingRhythm(),
-  ]);
+  const [{ profile, userBooks }, stats, retrospect, readingStats, rhythm, sentences] =
+    await Promise.all([
+      fetchProfileData(user.id),
+      getUserStats(user.id),
+      fetchRetrospectData(user.id),
+      fetchBookReadingStats(),
+      fetchReadingRhythm(),
+      // 달마다 한 문장은 다른 칸과 따로 실패한다 — 못 읽으면 그 목록만 실패를 알린다
+      fetchMySentences(user.id).catch(() => null),
+    ]);
 
   if (!profile || !userBooks) {
     return notFound();
@@ -65,10 +65,7 @@ export default async function ProfilePage() {
       shelfBooks={shelfBooks}
       shelfTotal={userBooks.length}
       diary={diaryShelf(profile.created_at, today)}
-      months={monthRows(retrospect?.monthly ?? [], today)}
-      todayKst={today}
-      excerptMonths={excerptMonths}
-      monthsError={!retrospect}
+      sentences={sentences}
       bookmark={bookmark}
       canBookmark={userBooks.some((ub) => ub.is_finished)}
       rhythm={rhythm}
