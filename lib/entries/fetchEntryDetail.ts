@@ -48,6 +48,16 @@ export async function fetchEntryDetail(entryId: string): Promise<EntryDetailData
 
   if (error || !data || user.id !== data.user_books.user_id) return null;
 
+  // 이 기록을 그 달의 문장으로 골랐는가 — 날짜가 다른 달로 옮겨졌거나 문장이 지워진 선택은 무효다(DB의 읽기 규칙과 같다).
+  // 곁다리라 읽지 못해도 기록은 그대로 보인다.
+  const { data: pick } = await supabase
+    .from('monthly_sentence_picks')
+    .select('month')
+    .eq('entry_id', entryId)
+    .maybeSingle();
+  const isMonthlySentence =
+    !!pick && !!data.quote?.trim() && pick.month.slice(0, 7) === data.date.slice(0, 7);
+
   const isLiked = data.likes?.some((like) => like.user_id === user.id) ?? false;
   const likeCount = data.likes?.length ?? 0;
 
@@ -67,5 +77,6 @@ export async function fetchEntryDetail(entryId: string): Promise<EntryDetailData
     initialLiked: isLiked,
     initialLikeCount: likeCount,
     initialCommentCount: data.comments[0]?.count ?? 0,
+    isMonthlySentence,
   };
 }
