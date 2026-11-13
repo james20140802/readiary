@@ -1,7 +1,7 @@
 # 달마다 한 문장 — 일기장 설계
 
 - 작성: 2026-11-13
-- 상태: 승인됨(2026-11-13). 구현은 `feat/monthly-sentence`, 프로덕션 마이그레이션은 아직 적용하지 않았다
+- 상태: 승인됨(2026-11-13). 구현은 `feat/monthly-sentence`, 프로덕션 마이그레이션은 2026-11-13에 적용했다(코드는 PR #177, 머지 전)
 - 대체하는 설계: [일기장과 간지 설계](2026-10-20-diary-vellum-redesign-design.md) 4.3 "달마다 간지"
 - 관련: [달의 발췌집 설계](2026-11-05-monthly-excerpt-design.md), [이어 남긴 생각](../../features/entry-reflections.md)
 

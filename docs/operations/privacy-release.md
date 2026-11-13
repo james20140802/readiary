@@ -154,7 +154,7 @@ where p.pronamespace = 'public'::regnamespace
 delete from public.notifications where type in ('excerpt_like','excerpt_comment');
 ```
 
-## 달마다 한 문장 (2026-11-13, 프로덕션 미적용)
+## 달마다 한 문장 (2026-11-13, DB 적용 완료 · 코드 머지 전)
 
 설계는 [달마다 한 문장 설계](../superpowers/specs/2026-11-13-monthly-sentence-design.md)다. 친구 서재(`/social/u/…`)의 달별 목록이 `달마다 엮은 발췌집`에서 `달마다 한 문장`으로 바뀐다.
 
@@ -166,7 +166,7 @@ delete from public.notifications where type in ('excerpt_like','excerpt_comment'
 
 **확인한 것(코드).** `supabase/tests/monthly_sentences_contract.sql`의 `private pick`, `private-only month`, `friend reflections`, `friend paging`, `unfriended · stranger`, `pending deletion`, `direct writes` 장면. 친구 응답에 비공개 기록의 id·문장·책 이름과 본인 전용 키가 없는지 `t.no_trace`로 본다.
 
-**적용 순서.** 마이그레이션 `20261113090000_monthly_sentences.sql`을 먼저 적용한다. 새 객체만 더하므로 옛 코드와 함께 돌아도 안전하다. 코드를 먼저 배포하면 일기장과 서재의 이 목록만 "불러오지 못했어요"로 보이고 다른 칸은 그대로다. 적용한 뒤 [API 권한 문서](supabase-api-grants.md)의 예상치 항목을 조회 결과로 대조한다.
+**적용 순서.** 마이그레이션 `20261113090000_monthly_sentences.sql`은 2026-11-13에 프로덕션에 먼저 적용했다(이력 버전 `20261113125542`). 적용 뒤 기록이 가장 많은 계정으로 읽기 RPC를 불러 응답의 모양(본인 응답, 여섯 줄, 표지·자동 출처, 엮음 상태)만 확인했고 문장 내용은 조회하지 않았다. 새 객체만 더하므로 옛 코드와 함께 돌아도 안전하다. 코드를 먼저 배포하면 일기장과 서재의 이 목록만 "불러오지 못했어요"로 보이고 다른 칸은 그대로다. 대조 결과는 [API 권한 문서](supabase-api-grants.md)에 적었다.
 
 **실제 화면에서 확인할 것.** 두 계정(A: 쓰는 사람, B: 수락된 친구)과 친구가 아닌 계정 C로 확인한다.
 

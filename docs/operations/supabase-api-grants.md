@@ -52,7 +52,7 @@ PGLITE_MODULE=/tmp/readiary-grants-sql/node_modules/@electric-sql/pglite/dist/in
 - `20261106110000_monthly_excerpts_friends.sql`(친구용 RPC 4개, 내부 함수 1개): 프로덕션 미적용. 위와 같이 예상치다.
 - `20261106120000_monthly_excerpt_reactions.sql`(좋아요·댓글 테이블 2개, 정책 6개, RPC 3개, `notifications`의 열 2개·인덱스 3개·넓힌 `type` 검사): 프로덕션 미적용. 위와 같이 예상치다.
 - `20261106130000_social_feed_items.sql`(피드 RPC `get_social_feed_items`, 정의자 함수 `friend_feed_monthly_excerpts`): 프로덕션 미적용. 위와 같이 예상치다.
-- `20261113090000_monthly_sentences.sql`(달마다 한 문장 테이블 2개, 정책 2개, RPC 4개, 내부 함수 3개): 프로덕션 미적용. 위와 같이 예상치다.
+- `20261113090000_monthly_sentences.sql`(달마다 한 문장 테이블 2개, 정책 2개, RPC 4개, 내부 함수 3개): 2026-11-13 프로덕션 적용(이력 버전 `20261113125542`). 적용 직후 읽기 전용 조회로 대조했다: 두 테이블 RLS 켜짐·`authenticated`는 `select`만·`anon` 권한 없음, 정책 2개, 함수 7개 모두 정의자·`search_path=""`, 공개 RPC 4개만 `authenticated` 실행 가능, 내부 함수 3개는 `anon`·`authenticated` 모두 불가.
 
 #### 탈퇴 마이그레이션: 2026-11-12 프로덕션 적용
 
