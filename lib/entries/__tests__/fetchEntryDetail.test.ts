@@ -9,11 +9,15 @@ vi.mock('@/lib/supabase/getServerUser', () => ({
 
 const entryResult = vi.fn();
 const pickResult = vi.fn();
+const pickFilters: [string, unknown][] = [];
 
 function from(table: string) {
   const chain: Record<string, unknown> = {};
   chain.select = () => chain;
-  chain.eq = () => chain;
+  chain.eq = (column: string, value: unknown) => {
+    if (table === 'monthly_sentence_picks') pickFilters.push([column, value]);
+    return chain;
+  };
   chain.single = async () => entryResult();
   chain.maybeSingle = async () =>
     table === 'monthly_sentence_picks' ? pickResult() : entryResult();
@@ -41,6 +45,7 @@ const entry = (over: Record<string, unknown> = {}) => ({
 
 beforeEach(() => {
   entryResult.mockReset().mockResolvedValue(entry());
+  pickFilters.length = 0;
   pickResult.mockReset().mockResolvedValue({ data: null, error: null });
   vi.mocked(createSupabaseServerClient).mockResolvedValue({ from } as never);
 });
@@ -55,11 +60,6 @@ describe('fetchEntryDetail — 이달의 문장', () => {
     expect((await fetchEntryDetail('e1'))?.isMonthlySentence).toBe(true);
   });
 
-  it('기록 날짜가 다른 달로 옮겨진 선택은 무효다', async () => {
-    pickResult.mockResolvedValue({ data: { month: '2026-08-01' }, error: null });
-    expect((await fetchEntryDetail('e1'))?.isMonthlySentence).toBe(false);
-  });
-
   it('문장이 지워진 기록의 선택은 무효다', async () => {
     entryResult.mockResolvedValue(entry({ quote: '  ', note: '생각' }));
     pickResult.mockResolvedValue({ data: { month: '2026-09-01' }, error: null });
@@ -71,5 +71,13 @@ describe('fetchEntryDetail — 이달의 문장', () => {
     const detail = await fetchEntryDetail('e1');
     expect(detail?.entry.id).toBe('e1');
     expect(detail?.isMonthlySentence).toBe(false);
+  });
+
+  it('기록의 달로 좁혀 읽는다 — 날짜를 옮기기 전 달의 선택은 세지 않고, 함께 남아 있어도 한 행만 본다', async () => {
+    await fetchEntryDetail('e1');
+    expect(pickFilters).toEqual([
+      ['entry_id', 'e1'],
+      ['month', '2026-09-01'],
+    ]);
   });
 });

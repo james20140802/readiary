@@ -47,6 +47,27 @@ async function reload(shown: number): Promise<OwnSentences> {
 }
 
 /**
+ * 서버가 첫 쪽을 새로 내려 줬을 때(저장 뒤 router.refresh 등) 펼쳐 둔 목록에 합친다.
+ * 같은 기준이면 앞쪽 줄만 새 값으로 갈고 더 펼친 줄과 다음 위치는 그대로 둔다 — 저장할 때마다 목록이 접히지 않게.
+ * 기준이 달라졌으면 펼친 줄의 문장도 달라졌을 수 있으므로 새 값으로 통째로 맞춘다.
+ */
+export function mergeFresh(
+  shown: OwnSentences | null,
+  fresh: OwnSentences | null
+): OwnSentences | null {
+  if (!shown || !fresh || shown.rule !== fresh.rule || shown.rows.length <= fresh.rows.length) {
+    return fresh;
+  }
+  const head = new Set(fresh.rows.map((r) => r.month));
+  const oldest = fresh.rows.at(-1)?.month;
+  if (!oldest) return fresh;
+  // 새 첫 쪽보다 오래된 줄만 뒤에 잇는다(달이 바뀌어 첫 쪽이 한 칸 밀려도 겹치지 않는다)
+  const tail = shown.rows.filter((r) => !head.has(r.month) && r.month < oldest);
+  if (tail.length === 0) return fresh;
+  return { ...fresh, rows: [...fresh.rows, ...tail], nextBefore: shown.nextBefore };
+}
+
+/**
  * 내 일기장의 달마다 한 문장 — 자동 기준 한 줄, 달 목록, 더 보기, 문장 고르기.
  * 모바일 장과 데스크톱 장에 한 번씩 그려지므로, 저장한 뒤 router.refresh()로 다른 쪽도 새 값을 받게 한다.
  */
@@ -57,6 +78,8 @@ export default function MySentences({ initial }: { initial: OwnSentences | null 
   const [rulesOpen, setRulesOpen] = useState(false);
   const [savingRule, setSavingRule] = useState(false);
   const [more, setMore] = useState<'idle' | 'loading' | 'error'>('idle');
+  // 기준은 저장됐는데 새 기준의 목록을 받지 못했다 — 기준은 그대로 두고 목록만 다시 받게 한다
+  const [stale, setStale] = useState(false);
   const [picking, setPicking] = useState<OwnSentenceRow | null>(null);
   // 닫히는 동안에도 시트가 마지막 달을 들고 있도록 열림 여부를 따로 둔다
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -64,7 +87,7 @@ export default function MySentences({ initial }: { initial: OwnSentences | null 
   // 서버가 새 값을 내려 주면(다른 쪽에서 저장했거나 화면을 다시 열었을 때) 그 값으로 맞춘다
   if (initial !== seen) {
     setSeen(initial);
-    setData(initial);
+    setData(mergeFresh(data, initial));
     setMore('idle');
   }
 
@@ -88,6 +111,16 @@ export default function MySentences({ initial }: { initial: OwnSentences | null 
 
   const rule = shownRule(data.rule, data.reflectionsOn);
 
+  const refetch = async (shown: number) => {
+    try {
+      const fresh = await reload(shown);
+      setData(fresh);
+      setStale(false);
+    } catch (error) {
+      if (!(error instanceof SessionExpiredError)) setStale(true);
+    }
+  };
+
   const changeRule = async (next: SentenceRule) => {
     if (savingRule || next === rule) return;
     const previous = data;
@@ -100,19 +133,21 @@ export default function MySentences({ initial }: { initial: OwnSentences | null 
         body: JSON.stringify({ rule: next }),
       });
       if (!res.ok) throw new Error('rule');
-      setData(await reload(previous.rows.length));
-      setRulesOpen(false);
-      router.refresh();
     } catch (error) {
       setData(previous);
       if (!(error instanceof SessionExpiredError)) toast.error(RULE_FAILED);
-    } finally {
       setSavingRule(false);
+      return;
     }
+    // 여기부터는 저장이 끝난 뒤다. 목록을 못 받아도 기준을 되돌리거나 실패했다고 말하지 않는다.
+    setRulesOpen(false);
+    await refetch(previous.rows.length);
+    setSavingRule(false);
+    router.refresh();
   };
 
   const loadMore = async () => {
-    if (more === 'loading' || !data.nextBefore) return;
+    if (more === 'loading' || savingRule || !data.nextBefore) return;
     setMore('loading');
     try {
       const next = await loadPage(data.nextBefore);
@@ -213,6 +248,19 @@ export default function MySentences({ initial }: { initial: OwnSentences | null 
         </div>
       )}
 
+      {stale && (
+        <p role="alert" className={`${CAP} pb-3`}>
+          문장을 불러오지 못했어요.{' '}
+          <button
+            type="button"
+            onClick={() => refetch(data.rows.length)}
+            className={`${TEXT_LINK} min-h-11`}
+          >
+            다시 시도
+          </button>
+        </p>
+      )}
+
       <SentenceRows rows={views} label="달마다 한 문장" />
 
       {more === 'error' ? (
@@ -225,7 +273,12 @@ export default function MySentences({ initial }: { initial: OwnSentences | null 
       ) : (
         data.nextBefore && (
           <div className="border-t border-hairline pt-3">
-            <Button variant="secondary" size="sm" disabled={more === 'loading'} onClick={loadMore}>
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={more === 'loading' || savingRule}
+              onClick={loadMore}
+            >
               더 보기
             </Button>
           </div>

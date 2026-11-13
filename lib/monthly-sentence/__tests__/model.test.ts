@@ -3,6 +3,7 @@ import {
   availableRules,
   fallbackNotice,
   friendMeta,
+  isInSentenceWindow,
   monthNumber,
   ownMeta,
   pickNotice,
@@ -115,5 +116,12 @@ describe('달마다 한 문장 표시 모델', () => {
     expect(pickNotice({ isPrivate: true }, 0)).toBe(fallbackNotice('none'));
     expect(pickNotice({ isPrivate: true }, 2)).toBe(fallbackNotice('other'));
     expect(pickNotice({ isPrivate: false }, 0)).toBeNull();
+  });
+
+  it('isInSentenceWindow: 이번 달 포함 최근 24개월만', () => {
+    expect(isInSentenceWindow('2026-11', '2026-11-13')).toBe(true);
+    expect(isInSentenceWindow('2024-12', '2026-11-13')).toBe(true);
+    expect(isInSentenceWindow('2024-11', '2026-11-13')).toBe(false);
+    expect(isInSentenceWindow('2026-12', '2026-11-13')).toBe(false);
   });
 });

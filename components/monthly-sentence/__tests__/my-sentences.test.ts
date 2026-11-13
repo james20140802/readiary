@@ -253,3 +253,74 @@ describe('MySentences — 바꾸기', () => {
     expect(refresh).toHaveBeenCalled();
   });
 });
+
+describe('MySentences — 펼친 뒤에 저장해도 접히지 않는다', () => {
+  const expand = async () => {
+    apiFetch.mockResolvedValueOnce(
+      res(own({ rows: months(6, 5).map((m) => ownRow(m)), nextBefore: null }))
+    );
+    const view = show(own({ nextBefore: '2026-06' }));
+    fireEvent.click(screen.getByRole('button', { name: '더 보기' }));
+    await waitFor(() => expect(rows()).toHaveLength(12));
+    return view;
+  };
+
+  it('서버가 첫 쪽을 새로 내려 줘도 펼친 줄은 남고, 앞쪽 줄만 새 값으로 바뀐다', async () => {
+    const { rerender } = await expand();
+    rerender(
+      h(MySentences, {
+        initial: own({
+          rows: months(6).map((m, i) => ownRow(m, i === 0 ? { quote: '새로 고른 문장' } : {})),
+          nextBefore: '2026-06',
+        }),
+      })
+    );
+    expect(rows()).toHaveLength(12);
+    expect(screen.getByRole('link', { name: '새로 고른 문장' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: '2025-12의 문장' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: '더 보기' })).toBeNull();
+  });
+
+  it('다른 기준으로 계산된 값이 오면 펼친 줄을 버리고 그 값으로 맞춘다', async () => {
+    const { rerender } = await expand();
+    rerender(h(MySentences, { initial: own({ rule: 'recent', nextBefore: '2026-06' }) }));
+    expect(rows()).toHaveLength(6);
+    expect(screen.getByRole('button', { name: /고르지 않은 달은 최근 문장으로/ })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '더 보기' })).toBeTruthy();
+  });
+});
+
+describe('MySentences — 기준은 저장됐는데 목록을 다시 받지 못했을 때', () => {
+  it('새 기준을 그대로 두고, 실패했다고 말하지 않으며, 다시 받을 수 있다', async () => {
+    apiFetch.mockImplementation(async (_url: string, init?: RequestInit) =>
+      init?.method === 'PUT' ? res({ rule: 'recent' }) : res({ error: 'x' }, false)
+    );
+    show(own({ rule: 'likes' }));
+    fireEvent.click(screen.getByRole('button', { name: /고르지 않은 달은/ }));
+    fireEvent.click(screen.getByRole('radio', { name: '최근 문장' }));
+    await waitFor(() => expect(screen.getByText('문장을 불러오지 못했어요.')).toBeTruthy());
+    expect(screen.getByRole('button', { name: /고르지 않은 달은 최근 문장으로/ })).toBeTruthy();
+    expect(toastError).not.toHaveBeenCalled();
+
+    apiFetch.mockResolvedValue(
+      res(own({ rule: 'recent', rows: [ownRow('2026-11', { quote: '최근의 문장' })] }))
+    );
+    fireEvent.click(screen.getByRole('button', { name: '다시 시도' }));
+    await waitFor(() => expect(screen.getByRole('link', { name: '최근의 문장' })).toBeTruthy());
+    expect(screen.queryByText('문장을 불러오지 못했어요.')).toBeNull();
+  });
+
+  it('기준을 저장하는 동안에는 더 보기를 잠근다', async () => {
+    apiFetch.mockImplementation((_url: string, init?: RequestInit) =>
+      init?.method === 'PUT' ? new Promise<Response>(() => {}) : Promise.resolve(res(own()))
+    );
+    show(own({ nextBefore: '2026-06' }));
+    fireEvent.click(screen.getByRole('button', { name: /고르지 않은 달은/ }));
+    fireEvent.click(screen.getByRole('radio', { name: '최근 문장' }));
+    await waitFor(() =>
+      expect((screen.getByRole('button', { name: '더 보기' }) as HTMLButtonElement).disabled).toBe(
+        true
+      )
+    );
+  });
+});

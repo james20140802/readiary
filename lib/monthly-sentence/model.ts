@@ -2,6 +2,16 @@ import { formatPages } from '@/lib/entries/pages';
 import type { MonthKey } from '@/lib/monthly-excerpt/types';
 import type { FriendSentenceRow, OwnSentenceRow, SentenceCandidate, SentenceRule } from './types';
 
+/** 일기장에 보이는 범위 — 이번 달 포함 최근 24개월. DB의 바닥과 같다. */
+const WINDOW_MONTHS = 24;
+
+/** 그 달이 일기장에 보이는 범위 안인가. todayKst는 'YYYY-MM-DD'. */
+export function isInSentenceWindow(month: MonthKey, todayKst: string): boolean {
+  const index = (key: string) => Number(key.slice(0, 4)) * 12 + Number(key.slice(5, 7));
+  const diff = index(todayKst) - index(month);
+  return diff >= 0 && diff < WINDOW_MONTHS;
+}
+
 /** 한 번에 보이는 줄 수. 더 보기도 이만큼씩 연다. */
 export const SENTENCE_PAGE_SIZE = 6;
 

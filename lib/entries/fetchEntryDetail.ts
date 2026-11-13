@@ -54,9 +54,10 @@ export async function fetchEntryDetail(entryId: string): Promise<EntryDetailData
     .from('monthly_sentence_picks')
     .select('month')
     .eq('entry_id', entryId)
+    // 날짜를 옮기기 전 달의 무효 선택이 함께 남아 있을 수 있어 기록의 달로 좁힌다
+    .eq('month', `${data.date.slice(0, 7)}-01`)
     .maybeSingle();
-  const isMonthlySentence =
-    !!pick && !!data.quote?.trim() && pick.month.slice(0, 7) === data.date.slice(0, 7);
+  const isMonthlySentence = !!pick && !!data.quote?.trim();
 
   const isLiked = data.likes?.some((like) => like.user_id === user.id) ?? false;
   const likeCount = data.likes?.length ?? 0;

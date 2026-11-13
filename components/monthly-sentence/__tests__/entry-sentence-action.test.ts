@@ -30,6 +30,7 @@ const show = (over: Record<string, unknown> = {}) =>
       date: '2026-09-14',
       quote: '문장',
       picked: false,
+      today: '2026-11-13',
       onStart,
       onChange,
       ...over,
@@ -114,5 +115,19 @@ describe('EntrySentenceAction', () => {
     );
     expect(onChange).not.toHaveBeenCalled();
     expect(toastSuccess).not.toHaveBeenCalled();
+  });
+
+  it('일기장에 보이지 않는 달(24개월보다 오래됨)의 기록에는 그리지 않는다', () => {
+    const { container } = show({ date: '2024-11-30' });
+    expect(container.innerHTML).toBe('');
+  });
+
+  it('누르는 사이 다시 눌러도 한 번만 저장한다', async () => {
+    apiFetch.mockImplementation(() => new Promise<Response>(() => {}));
+    show();
+    const button = screen.getByRole('button', { name: '이달의 문장으로' });
+    fireEvent.click(button);
+    fireEvent.click(button);
+    expect(apiFetch).toHaveBeenCalledTimes(1);
   });
 });
