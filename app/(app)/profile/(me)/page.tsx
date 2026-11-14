@@ -12,7 +12,7 @@ import { buildInviteSlug } from '@/lib/social/invite';
 import { todayKST } from '@/lib/dates';
 import { fetchMySentences } from '@/lib/monthly-sentence/server';
 import MeView from '@/components/profile/MeView';
-import { diaryShelf, formatPublishedDate } from '@/components/profile/meModel';
+import { formatPublishedDate } from '@/components/profile/meModel';
 
 export default async function ProfilePage() {
   const {
@@ -64,7 +64,6 @@ export default async function ProfilePage() {
       finishedBooks={retrospect?.finishedBooks ?? []}
       shelfBooks={shelfBooks}
       shelfTotal={userBooks.length}
-      diary={diaryShelf(profile.created_at, today)}
       sentences={sentences}
       bookmark={bookmark}
       canBookmark={userBooks.some((ub) => ub.is_finished)}

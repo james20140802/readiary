@@ -16,7 +16,6 @@ import OverlappedMonths from './OverlappedMonths';
 import InviteSheet from './InviteSheet';
 import type { OwnSentences } from '@/lib/monthly-sentence/types';
 import MySentences from '@/components/monthly-sentence/MySentences';
-import { ordinalCount, ordinalVolume, type DiaryShelf } from './meModel';
 import s from './me.module.css';
 import { coverTier } from './coverTier';
 
@@ -41,7 +40,6 @@ export interface MeViewProps {
   finishedBooks: FinishedBookExcerpt[];
   shelfBooks: ShelfBook[];
   shelfTotal: number;
-  diary: DiaryShelf;
   /** 달마다 한 문장의 첫 쪽 — null이면 불러오지 못한 것 */
   sentences: OwnSentences | null;
   bookmark: FeaturedBookmark | null;
@@ -317,35 +315,6 @@ function Shelf({ books, total }: { books: ShelfBook[]; total: number }) {
   );
 }
 
-function Volumes({ diary, name, mobile }: { diary: DiaryShelf; name: string; mobile?: boolean }) {
-  const cls = [s.v1, s.v2, s.v3];
-  const [current] = diary.years;
-  const vols = (
-    <div
-      className={s.vols}
-      role="img"
-      aria-label={`해마다 한 권씩 쌓인 독서 일기, 지금은 ${ordinalVolume(diary.count)}`}
-    >
-      {diary.years.map((year, i) => {
-        return (
-          <div key={year} className={clsx(s.vol, cls[i])} aria-hidden>
-            {i === 0 && (
-              <div className={s.lab}>
-                <b className={s.labTitle}>독서 일기 {current}</b>
-                <span className={s.labBy}>
-                  <span data-skeleton>{name}</span> ·{' '}
-                  <span data-skeleton>{ordinalVolume(diary.count)}</span>
-                </span>
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-  return mobile ? <div className={s.volsMobile}>{vols}</div> : vols;
-}
-
 const DESK_ITEMS = [
   { id: 'me-cover', label: '표지' },
   { id: 'me-books', label: '나를 만든 책·서가' },
@@ -370,7 +339,6 @@ export default function MeView(props: MeViewProps) {
     finishedBooks,
     shelfBooks,
     shelfTotal,
-    diary,
     sentences,
     bookmark,
     canBookmark,
@@ -380,22 +348,6 @@ export default function MeView(props: MeViewProps) {
   useTopBar({ title: '나' });
   const [inviting, setInviting] = useState(false);
   const entries = stats?.totalEntries ?? null;
-  const diaryTitle = (
-    <>
-      <span data-skeleton>{ordinalCount(diary.count)}</span> 일기장
-    </>
-  );
-  const diaryCap =
-    diary.count > 1 ? (
-      <>
-        <span data-skeleton>{diary.firstYear}</span>년부터 해마다 한 권씩
-      </>
-    ) : (
-      <>
-        <span data-skeleton>{diary.firstYear}</span>년에 펴낸 첫 권
-      </>
-    );
-
   const actions = (desk: boolean) => (
     <>
       <Button asChild variant="secondary" size={desk ? 'md' : 'sm'}>
@@ -467,10 +419,8 @@ export default function MeView(props: MeViewProps) {
         </Leaf>
 
         <Leaf title="일기장" vellum free>
-          <h2 className={H2}>{diaryTitle}</h2>
-          <p className={clsx(CAP, 'mt-1.5')}>{diaryCap}</p>
-          <Volumes diary={diary} name={name} mobile />
-          <h2 className={clsx(H2, 'mt-[34px]')}>달마다 한 문장</h2>
+          <h2 className={H2}>일기장</h2>
+          <p className={clsx(CAP, 'mt-1.5')}>달마다 한 문장</p>
           <MySentences initial={sentences} />
           {rhythm && (
             <>
@@ -543,17 +493,10 @@ export default function MeView(props: MeViewProps) {
         </DesktopLeaf>
 
         <DesktopLeaf id="me-diary">
-          <div className="grid grid-cols-[minmax(0,.9fr)_minmax(0,1.1fr)] items-start gap-16">
-            <div>
-              <h2 className={H2_DESK}>{diaryTitle}</h2>
-              <p className={clsx(CAP, 'mt-1.5')}>{diaryCap}</p>
-              <Volumes diary={diary} name={name} />
-            </div>
-            <div className="pt-16">
-              <h2 className={H2_DESK}>최근의 차례</h2>
-              <p className={clsx(CAP, 'mt-1.5')}>달마다 한 문장</p>
-              <MySentences initial={sentences} />
-            </div>
+          <div className="max-w-[760px]">
+            <h2 className={H2_DESK}>일기장</h2>
+            <p className={clsx(CAP, 'mt-1.5')}>달마다 한 문장</p>
+            <MySentences initial={sentences} />
           </div>
           {rhythm && (
             <div className="mt-20 border-t border-hairline pt-14">

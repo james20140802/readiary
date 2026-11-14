@@ -3,7 +3,6 @@ import { todayKST } from '@/lib/dates';
 import { buildRhythm, rhythmMonthKeys, RHYTHM_MONTHS } from '@/lib/profile/readingRhythm';
 import type { ShelfBook } from '@/components/books/BookSpineShelf';
 import MeView, { type MeViewProps } from './MeView';
-import { diaryShelf } from './meModel';
 
 const SHELF_COUNT = 6;
 const MONTH_COUNT = 3;
@@ -59,7 +58,6 @@ export const PROFILE_SKELETON_PROPS: MeViewProps = {
   })),
   shelfBooks,
   shelfTotal: SHELF_COUNT,
-  diary: diaryShelf(`${Number(today.slice(0, 4)) - 1}-03-08T01:00:00Z`, today),
   // 달은 최근 몇 달을 거슬러 올라간 실제 달 — 각 줄이 서로 다른 달이어야(key) 한다
   sentences: {
     mode: 'own',
