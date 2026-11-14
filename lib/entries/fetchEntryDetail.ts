@@ -50,14 +50,20 @@ export async function fetchEntryDetail(entryId: string): Promise<EntryDetailData
 
   // 이 기록을 그 달의 문장으로 골랐는가 — 날짜가 다른 달로 옮겨졌거나 문장이 지워진 선택은 무효다(DB의 읽기 규칙과 같다).
   // 곁다리라 읽지 못해도 기록은 그대로 보인다.
-  const { data: pick } = await supabase
-    .from('monthly_sentence_picks')
-    .select('month')
-    .eq('entry_id', entryId)
-    // 날짜를 옮기기 전 달의 무효 선택이 함께 남아 있을 수 있어 기록의 달로 좁힌다
-    .eq('month', `${data.date.slice(0, 7)}-01`)
-    .maybeSingle();
-  const isMonthlySentence = !!pick && !!data.quote?.trim();
+  // 내 책의 표지 문장이 이 기록인가도 같은 곁다리다 — 읽지 못하면 아닌 것으로 본다.
+  const [{ data: pick }, { data: cover }] = await Promise.all([
+    supabase
+      .from('monthly_sentence_picks')
+      .select('month')
+      .eq('entry_id', entryId)
+      // 날짜를 옮기기 전 달의 무효 선택이 함께 남아 있을 수 있어 기록의 달로 좁힌다
+      .eq('month', `${data.date.slice(0, 7)}-01`)
+      .maybeSingle(),
+    supabase.from('profiles').select('featured_entry_id').eq('id', user.id).maybeSingle(),
+  ]);
+  const hasQuote = !!data.quote?.trim();
+  const isMonthlySentence = !!pick && hasQuote;
+  const isCoverQuote = cover?.featured_entry_id === data.id && hasQuote;
 
   const isLiked = data.likes?.some((like) => like.user_id === user.id) ?? false;
   const likeCount = data.likes?.length ?? 0;
@@ -79,5 +85,6 @@ export async function fetchEntryDetail(entryId: string): Promise<EntryDetailData
     initialLikeCount: likeCount,
     initialCommentCount: data.comments[0]?.count ?? 0,
     isMonthlySentence,
+    isCoverQuote,
   };
 }

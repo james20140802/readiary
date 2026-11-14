@@ -10,6 +10,7 @@ vi.mock('@/lib/supabase/getServerUser', () => ({
 const entryResult = vi.fn();
 const pickResult = vi.fn();
 const pickFilters: [string, unknown][] = [];
+const profileResult = vi.fn();
 
 function from(table: string) {
   const chain: Record<string, unknown> = {};
@@ -20,7 +21,11 @@ function from(table: string) {
   };
   chain.single = async () => entryResult();
   chain.maybeSingle = async () =>
-    table === 'monthly_sentence_picks' ? pickResult() : entryResult();
+    table === 'monthly_sentence_picks'
+      ? pickResult()
+      : table === 'profiles'
+        ? profileResult()
+        : entryResult();
   return chain;
 }
 
@@ -47,6 +52,7 @@ beforeEach(() => {
   entryResult.mockReset().mockResolvedValue(entry());
   pickFilters.length = 0;
   pickResult.mockReset().mockResolvedValue({ data: null, error: null });
+  profileResult.mockReset().mockResolvedValue({ data: { featured_entry_id: null }, error: null });
   vi.mocked(createSupabaseServerClient).mockResolvedValue({ from } as never);
 });
 
@@ -79,5 +85,28 @@ describe('fetchEntryDetail — 이달의 문장', () => {
       ['entry_id', 'e1'],
       ['month', '2026-09-01'],
     ]);
+  });
+});
+
+describe('fetchEntryDetail — 표지 문장', () => {
+  it('내 표지 문장이 이 기록이면 true, 다른 기록이거나 없으면 false', async () => {
+    expect((await fetchEntryDetail('e1'))?.isCoverQuote).toBe(false);
+    profileResult.mockResolvedValue({ data: { featured_entry_id: 'other' }, error: null });
+    expect((await fetchEntryDetail('e1'))?.isCoverQuote).toBe(false);
+    profileResult.mockResolvedValue({ data: { featured_entry_id: 'e1' }, error: null });
+    expect((await fetchEntryDetail('e1'))?.isCoverQuote).toBe(true);
+  });
+
+  it('문장이 지워진 기록은 표지 문장이 아니다', async () => {
+    entryResult.mockResolvedValue(entry({ quote: ' ', note: '생각' }));
+    profileResult.mockResolvedValue({ data: { featured_entry_id: 'e1' }, error: null });
+    expect((await fetchEntryDetail('e1'))?.isCoverQuote).toBe(false);
+  });
+
+  it('프로필을 읽지 못해도 기록은 보이고 false다', async () => {
+    profileResult.mockResolvedValue({ data: null, error: { code: 'XX000' } });
+    const detail = await fetchEntryDetail('e1');
+    expect(detail?.entry.id).toBe('e1');
+    expect(detail?.isCoverQuote).toBe(false);
   });
 });

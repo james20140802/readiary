@@ -21,6 +21,7 @@ import ShareEntrySheet from '@/components/entries/ShareEntrySheet';
 import EntrySentenceAction from '@/components/monthly-sentence/EntrySentenceAction';
 import Button from '../ui/Button';
 import CommentSection from '../comments/CommentSection';
+import EntryCoverAction from './EntryCoverAction';
 import EntryLayer from './EntryLayer';
 interface Props {
   entry: Entry;
@@ -34,6 +35,8 @@ interface Props {
   openComposer?: boolean;
   /** 이 기록을 그 달의 문장으로 골랐는가(내 기록만) */
   isMonthlySentence?: boolean;
+  /** 이 기록의 문장이 내 책의 표지 문장인가(내 기록만) */
+  isCoverQuote?: boolean;
 }
 
 const MENU_ROW =
@@ -51,12 +54,14 @@ export default function EntryDetailContent({
   currentUserId,
   openComposer = false,
   isMonthlySentence = false,
+  isCoverQuote = false,
 }: Props) {
   const enabled = useReflectionFeature();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [monthlySentence, setMonthlySentence] = useState(isMonthlySentence);
+  const [coverQuote, setCoverQuote] = useState(isCoverQuote);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const deletion = useActionLock();
   const isDeleting = deletion.busy;
@@ -174,6 +179,16 @@ export default function EntryDetailContent({
                 picked={monthlySentence}
                 onStart={() => setMenuOpen(false)}
                 onChange={setMonthlySentence}
+                className={MENU_ROW}
+              />
+              <EntryCoverAction
+                entryId={entry.id}
+                userId={currentUserId}
+                quote={entry.quote}
+                isPrivate={!!entry.is_private}
+                picked={coverQuote}
+                onStart={() => setMenuOpen(false)}
+                onChange={setCoverQuote}
                 className={MENU_ROW}
               />
               <Link href={`/entry/${entry.id}/edit`} className={MENU_ROW}>

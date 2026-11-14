@@ -80,6 +80,8 @@ export type EntryDetailData = {
   initialCommentCount: number;
   /** 이 기록의 문장을 그 달의 문장으로 골랐는가 — 내 기록 한 장을 열 때만 채운다 */
   isMonthlySentence?: boolean;
+  /** 이 기록의 문장이 내 책의 표지 문장인가 — 내 기록 한 장을 열 때만 채운다 */
+  isCoverQuote?: boolean;
 };
 
 /** On-demand reading payload with viewer permissions and canonical navigation. */
