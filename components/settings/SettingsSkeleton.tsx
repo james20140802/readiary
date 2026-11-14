@@ -6,6 +6,8 @@ import FeaturedQuoteSelection from '@/components/profile/FeaturedQuoteSelection'
 import { EmailSettingsView } from '@/components/email/EmailSettings';
 import { useTopBar } from '@/components/shell/TopBarContext';
 import { CoverFieldsView, ProfileFieldsView } from './ProfileFields';
+import { RULES } from '@/lib/monthly-sentence/model';
+import { DiarySettingsView } from './DiarySettings';
 import { PushSettingsView } from './PushSettings';
 import { AboutSection, AccountSection, FriendsSection, SETTINGS_TOC } from './Sections';
 import { SettingsLayout, SettingsSection } from './SettingsParts';
@@ -64,6 +66,8 @@ export default function SettingsSkeleton() {
               }
             />
           </SettingsSection>
+
+          <DiarySettingsView rules={[...RULES]} selected={null} disabled onSelect={noop} />
 
           <FriendsSection onInvite={noop} />
 

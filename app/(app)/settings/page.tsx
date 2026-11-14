@@ -4,6 +4,7 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
 import SettingsScreen from '@/components/settings/SettingsScreen';
 import { maskEmail } from '@/components/settings/maskEmail';
 import { hasPasswordIdentity } from '@/lib/account/deletion';
+import { fetchSentenceRule } from '@/lib/monthly-sentence/server';
 
 export default async function SettingsPage() {
   const {
@@ -16,7 +17,11 @@ export default async function SettingsPage() {
   }
 
   const supabase = await createSupabaseServerClient();
-  const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+  // 일기장 기준은 다른 구역과 따로 실패한다 — 못 불러와도 설정은 열린다
+  const [{ data: profile }, sentenceRule] = await Promise.all([
+    supabase.from('profiles').select('*').eq('id', user.id).single(),
+    fetchSentenceRule(user.id).catch(() => null),
+  ]);
   if (!profile) return notFound();
 
   return (
@@ -24,6 +29,7 @@ export default async function SettingsPage() {
       profile={profile}
       email={maskEmail(user.email)}
       hasPassword={hasPasswordIdentity(user)}
+      sentenceRule={sentenceRule}
     />
   );
 }

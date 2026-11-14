@@ -1,6 +1,6 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { SENTENCE_PAGE_SIZE } from './model';
-import type { FriendSentences, OwnSentences } from './types';
+import { isSentenceRule, SENTENCE_PAGE_SIZE } from './model';
+import type { FriendSentences, OwnSentences, SentenceRuleSetting } from './types';
 
 // 불러오지 못한 것은 throw로 알려 "문장이 없음"과 섞이지 않게 한다. 로그에는 오류 코드만 남긴다.
 function fail(label: string, error: { code?: string }): never {
@@ -36,4 +36,23 @@ export async function fetchLibrarySentences(
   if (data?.mode === 'own') return data as OwnSentences;
   if (data?.mode === 'friend') return data as FriendSentences;
   return { mode: 'friend', hasAnyExcerpt: false, rows: [], nextBefore: null };
+}
+
+/**
+ * 설정에 보일 자동 기준. 저장한 적이 없으면 DB의 기본과 같은 좋아요 기준이다.
+ * 이어 남긴 생각을 확인하지 못하면 꺼진 것으로 본다(고를 수 없는 기준을 내놓지 않는다).
+ * 기준을 불러오지 못하면 throw.
+ */
+export async function fetchSentenceRule(userId: string): Promise<SentenceRuleSetting> {
+  const supabase = await createSupabaseServerClient();
+  const [saved, reflections] = await Promise.all([
+    supabase.from('monthly_sentence_settings').select('rule').eq('user_id', userId).maybeSingle(),
+    supabase.rpc('entry_reflections_enabled'),
+  ]);
+  if (saved.error) fail('Monthly sentence rule unavailable', saved.error);
+  const rule = saved.data?.rule;
+  return {
+    rule: isSentenceRule(rule) ? rule : 'likes',
+    reflectionsOn: !reflections.error && reflections.data === true,
+  };
 }

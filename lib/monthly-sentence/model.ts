@@ -31,10 +31,6 @@ export function ruleLabel(rule: SentenceRule): string {
   return RULE_LABELS[rule];
 }
 
-export function ruleSentence(rule: SentenceRule): string {
-  return `고르지 않은 달은 ${ruleLabel(rule)}으로`;
-}
-
 /** 이어 남긴 생각이 꺼져 있으면 그 기준은 고를 수 없다. */
 export function availableRules(reflectionsOn: boolean): SentenceRule[] {
   return RULES.filter((rule) => reflectionsOn || rule !== 'reflections');

@@ -42,6 +42,12 @@ export interface OwnSentences {
   nextBefore: MonthKey | null;
 }
 
+/** 설정 화면이 받는 자동 기준과, 이어 남긴 생각 기준을 고를 수 있는지. */
+export interface SentenceRuleSetting {
+  rule: SentenceRule;
+  reflectionsOn: boolean;
+}
+
 export interface FriendSentences {
   mode: 'friend';
   hasAnyExcerpt: boolean;

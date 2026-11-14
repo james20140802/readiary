@@ -9,7 +9,6 @@ import {
   pickNotice,
   placeholder,
   ruleLabel,
-  ruleSentence,
   shownRule,
   yearLabels,
 } from '../model';
@@ -106,7 +105,6 @@ describe('달마다 한 문장 표시 모델', () => {
     expect(shownRule('likes', false)).toBe('likes');
     expect(ruleLabel('reflections')).toBe('생각 많은 문장');
     expect(ruleLabel('recent')).toBe('최근 문장');
-    expect(ruleSentence('likes')).toBe('고르지 않은 달은 좋아요 많은 문장으로');
   });
 
   it('안내 문구', () => {
