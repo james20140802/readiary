@@ -14,7 +14,9 @@ import { disableDevicePush } from '@/lib/push/browser';
 import { clearPwaCaches } from '@/lib/pwa/clear-caches';
 import { buildInviteSlug } from '@/lib/social/invite';
 import type { Profile } from '@/types/profile';
+import type { SentenceRuleSetting } from '@/lib/monthly-sentence/types';
 import AccountDeletionSheet from './AccountDeletionSheet';
+import DiarySettings from './DiarySettings';
 import PasswordChange from './PasswordChange';
 import ProfileSettings from './ProfileSettings';
 import PushSettings from './PushSettings';
@@ -27,18 +29,21 @@ const PASSWORD_HASH = '#password';
 const DELETE_PARAM = 'delete';
 
 /**
- * 설정 — 프로필 고치기, 내 책의 표지, 친구, 알림(휴대폰·이메일), 계정(비밀번호·로그아웃·탈퇴), 안내.
+ * 설정 — 프로필 고치기, 내 책의 표지, 일기장(달마다 한 문장의 자동 기준), 친구, 알림(휴대폰·이메일), 계정(비밀번호·로그아웃·탈퇴), 안내.
  * 예전 /profile/edit, /profile/update-password, /notifications/settings 가 각 구역으로 이어진다.
  */
 export default function SettingsScreen({
   profile,
   email,
   hasPassword,
+  sentenceRule,
 }: {
   profile: Profile;
   email: string | null;
   /** 이메일·비밀번호 계정인지 — 탈퇴할 때 비밀번호로 본인을 확인한다 */
   hasPassword: boolean;
+  /** 달마다 한 문장의 자동 기준 — 불러오지 못했으면 null */
+  sentenceRule: SentenceRuleSetting | null;
 }) {
   useTopBar({ title: '설정', back: { href: '/profile', label: '나' } });
   const router = useRouter();
@@ -124,6 +129,7 @@ export default function SettingsScreen({
   return (
     <SettingsLayout toc={SETTINGS_TOC}>
       <ProfileSettings profile={profile} />
+      <DiarySettings initial={sentenceRule} />
       <FriendsSection onInvite={() => void shareInvite()} />
       <SettingsSection id="push" title="알림">
         <PushSettings />

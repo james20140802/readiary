@@ -33,6 +33,8 @@ export default async function EntryDetailPage({
       initialLikeCount={detail.initialLikeCount}
       initialCommentCount={detail.initialCommentCount}
       currentUserId={user.id}
+      isMonthlySentence={detail.isMonthlySentence}
+      isCoverQuote={detail.isCoverQuote}
       openComposer={(await searchParams).reflect === '1'}
     />
   );

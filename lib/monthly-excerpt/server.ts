@@ -132,9 +132,6 @@ export async function fetchMyExcerptMonths(): Promise<Set<MonthKey>> {
   return new Set((data ?? []).map((row) => row.month.slice(0, 7)));
 }
 
-/** 서재의 '달마다 엮은 발췌집'에 놓는 수 */
-const RECENT_EXCERPTS = 5;
-
 /** 주소의 닉네임과 태그로 찾은 주인. 없으면 null, 불러오지 못하면 throw. */
 export async function fetchExcerptOwner(
   nickname: string,
@@ -196,29 +193,4 @@ export async function fetchFriendExcerptYear(
   const rows = (data ?? []) as unknown as Omit<ExcerptMonthRow, 'isShared'>[];
   // 친구에게 내려오는 달은 모두 공개 중이다. 응답에는 없지만 모아 보기와 같은 모양으로 맞춘다.
   return rows.map((row) => ({ ...row, isShared: true }));
-}
-
-/** 친구의 최근 발췌집. 해를 최신부터 읽다가 수가 차면 멈춘다. 불러오지 못하면 throw. */
-export async function fetchFriendRecentExcerpts(
-  ownerId: string,
-  limit = RECENT_EXCERPTS
-): Promise<ExcerptMonthRow[]> {
-  const rows: ExcerptMonthRow[] = [];
-  for (const { year } of await fetchFriendExcerptYears(ownerId)) {
-    rows.push(...(await fetchFriendExcerptYear(ownerId, year)));
-    if (rows.length >= limit) break;
-  }
-  return rows.slice(0, limit);
-}
-
-/** 자기 소셜 주소의 서재에 놓을 내 최근 발췌집. 엮지 않은 달은 뺀다. 불러오지 못하면 throw. */
-export async function fetchMyRecentExcerpts(limit = RECENT_EXCERPTS): Promise<ExcerptMonthRow[]> {
-  const rows: ExcerptMonthRow[] = [];
-  for (const { year, excerptCount } of await fetchMyExcerptYears()) {
-    if (excerptCount === 0) continue;
-    const months = await fetchMyExcerptYear(year);
-    rows.push(...months.filter((m) => m.excerptId !== null));
-    if (rows.length >= limit) break;
-  }
-  return rows.slice(0, limit);
 }

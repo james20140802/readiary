@@ -30,6 +30,8 @@ interface Props {
   userId?: string;
   isFriend?: boolean;
   friendProfile?: Profile;
+  /** 내 책갈피가 이 책에 꽂혀 있는가(내 책만) */
+  isBookmarked?: boolean;
 }
 
 type Order = 'desc' | 'asc';
@@ -54,12 +56,14 @@ export default function BookDetailContent({
   userId,
   isFriend = false,
   friendProfile,
+  isBookmarked = false,
 }: Props) {
   const router = useRouter();
   const finishAction = useActionLock();
   const [isFinished, setIsFinished] = useState(!!userBook.is_finished);
   const [order, setOrder] = useState<Order>('desc');
   const [finishOpen, setFinishOpen] = useState(false);
+  const [bookmarked, setBookmarked] = useState(isBookmarked);
 
   // 기록 목록은 서버 props를 따르되, 시트에서 고치거나 지운 결과를 재조회 전에 먼저 반영한다.
   const [entryList, setEntryList] = useState(entries);
@@ -274,6 +278,7 @@ export default function BookDetailContent({
               isFinished={isFinished}
               onUnfinish={() => setIsFinished(false)}
               unfinishAction={finishAction}
+              bookmark={{ userId, picked: bookmarked, onChange: setBookmarked }}
             />
           }
           stack={stack}

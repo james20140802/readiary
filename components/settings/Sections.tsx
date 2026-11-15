@@ -6,6 +6,7 @@ import { SettingsRow, SettingsSection, type TocItem } from './SettingsParts';
 export const SETTINGS_TOC: TocItem[] = [
   { id: 'profile', label: '프로필' },
   { id: 'cover', label: '내 책의 표지' },
+  { id: 'diary', label: '일기장' },
   { id: 'friends', label: '친구' },
   { id: 'push', label: '알림' },
   { id: 'account', label: '계정' },
