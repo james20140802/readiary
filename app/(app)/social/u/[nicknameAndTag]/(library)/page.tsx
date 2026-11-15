@@ -7,6 +7,7 @@ import { fetchRetrospectData } from '@/lib/profile/fetchRetrospectData';
 import { fetchFeaturedQuote } from '@/lib/profile/fetchFeaturedQuote';
 import { parseNicknameAndTagSlug } from '@/lib/social/invite';
 import { fetchLibrarySentences } from '@/lib/monthly-sentence/server';
+import { fetchMyExcerptMonths } from '@/lib/monthly-excerpt/server';
 import { PROFILE_SHELF_LIMIT, toShelfBook } from '@/lib/books/shelfBook';
 import FriendLibraryView from '@/components/social/library/FriendLibraryView';
 
@@ -45,12 +46,14 @@ export default async function FriendProfilePage({ params }: FriendProfilePagePro
   // 본인이 자기 소셜 주소를 열면 /profile과 같이 비공개 포함
   const isOwn = user.id === profile.id;
   const publicOnly = { publicOnly: !isOwn };
-  const [stats, retrospect, featuredQuote, monthlySentences] = await Promise.all([
+  const [stats, retrospect, featuredQuote, monthlySentences, ownExcerptMonths] = await Promise.all([
     getUserStats(profile.id),
     fetchRetrospectData(profile.id, publicOnly),
     fetchFeaturedQuote(profile.featured_entry_id, profile.id, publicOnly),
     // 달마다 한 문장은 다른 칸과 따로 실패한다. 친구에게는 공개 문장만 RPC가 돌려준다
     fetchLibrarySentences(profile.id).catch(() => null),
+    // 본인 응답의 첫 쪽에는 최근 여섯 달만 있어, 엮은 달이 있는지는 따로 센다(친구 응답에는 이미 있다)
+    isOwn ? fetchMyExcerptMonths().catch(() => null) : null,
   ]);
 
   // 친구의 읽기 통계(기간·문장 수)는 본인 것만 조회 가능해 비워 둔다
@@ -109,6 +112,7 @@ export default async function FriendProfilePage({ params }: FriendProfilePagePro
       excerpts={excerpts}
       retrospectError={!retrospect}
       monthlySentences={monthlySentences}
+      monthlyHasExcerpts={ownExcerptMonths ? ownExcerptMonths.size > 0 : undefined}
       monthlyEntryBase={isOwn ? '/entry' : `${base}/entry`}
       monthlyExcerptsHref={isOwn ? '/excerpts' : `${base}/excerpts`}
     />

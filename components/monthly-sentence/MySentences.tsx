@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Button from '@/components/ui/Button';
@@ -13,6 +13,9 @@ import SentenceRows, { ROW_ACTION, type SentenceRowView } from './SentenceRows';
 
 const CAP = 'font-sans text-[14px] font-medium leading-normal text-ink-sub';
 const TEXT_LINK = 'font-sans text-button-sm text-accent underline-offset-4 hover:underline';
+
+/** 한 장에서 고른 문장을 함께 그려진 다른 장에 알리는 신호 */
+const PICKED_EVENT = 'readiary:monthly-sentence-picked';
 
 async function loadPage(before: string | null): Promise<OwnSentences> {
   const res = await apiFetch(
@@ -47,7 +50,8 @@ export function mergeFresh(
 
 /**
  * 내 일기장의 달마다 한 문장 — 달 목록, 더 보기, 문장 고르기. 고르지 않은 달을 채우는 기준은 설정에서 고른다.
- * 모바일 장과 데스크톱 장에 한 번씩 그려지므로, 저장한 뒤 router.refresh()로 다른 쪽도 새 값을 받게 한다.
+ * 모바일 장과 데스크톱 장에 한 번씩 그려지므로, 고른 줄은 신호로 두 장에 함께 반영하고
+ * router.refresh()로 서버 값(프로필의 다른 칸 포함)도 새로 받는다.
  */
 export default function MySentences({ initial }: { initial: OwnSentences | null }) {
   const router = useRouter();
@@ -64,6 +68,19 @@ export default function MySentences({ initial }: { initial: OwnSentences | null 
     setData(mergeFresh(data, initial));
     setMore('idle');
   }
+
+  // 다른 장에서 고른 문장도 받는다. 서버가 새로 내려 주는 것은 첫 쪽뿐이라,
+  // 더 펼친 달은 이 신호가 없으면 옛 문장으로 남는다.
+  useEffect(() => {
+    const onPickedElsewhere = (event: Event) => {
+      const row = (event as CustomEvent<OwnSentenceRow>).detail;
+      setData((prev) =>
+        prev ? { ...prev, rows: prev.rows.map((r) => (r.month === row.month ? row : r)) } : prev
+      );
+    };
+    window.addEventListener(PICKED_EVENT, onPickedElsewhere);
+    return () => window.removeEventListener(PICKED_EVENT, onPickedElsewhere);
+  }, []);
 
   if (!data) {
     return (
@@ -98,9 +115,8 @@ export default function MySentences({ initial }: { initial: OwnSentences | null 
   };
 
   const onPicked = (row: OwnSentenceRow) => {
-    setData((prev) =>
-      prev ? { ...prev, rows: prev.rows.map((r) => (r.month === row.month ? row : r)) } : prev
-    );
+    // 이 장도 같은 신호로 줄을 바꾼다
+    window.dispatchEvent(new CustomEvent(PICKED_EVENT, { detail: row }));
     router.refresh();
   };
 

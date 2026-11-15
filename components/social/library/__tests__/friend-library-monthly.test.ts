@@ -247,6 +247,19 @@ describe('내 서재 주소에서 본 달마다 한 문장', () => {
     );
   });
 
+  it('엮은 달이 첫 쪽보다 오래됐어도 모두 보기가 있다', () => {
+    show({
+      isOwn: true,
+      monthlySentences: own({ rows: [ownRow('2026-11')] }),
+      monthlyHasExcerpts: true,
+      monthlyEntryBase: '/entry',
+      monthlyExcerptsHref: '/excerpts',
+    });
+    expect(
+      within(section()).getByRole('link', { name: '달의 발췌집 모두 보기' }).getAttribute('href')
+    ).toBe('/excerpts');
+  });
+
   it('더 보기는 내 다음 줄을 읽기 전용으로 붙인다', async () => {
     apiFetch.mockResolvedValue(
       res(own({ rows: months(2, 7).map((m) => ownRow(m)), nextBefore: null }))

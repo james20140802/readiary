@@ -52,6 +52,11 @@ export interface FriendLibraryViewProps {
   retrospectError?: boolean;
   /** 달마다 한 문장의 첫 쪽. 친구에게는 공개 문장만 온다. null이면 불러오지 못한 것 */
   monthlySentences: OwnSentences | FriendSentences | null;
+  /**
+   * 본인이 엮은 달이 하나라도 있는지 — 본인 응답의 첫 쪽에는 최근 여섯 달만 있어 따로 받는다.
+   * 없으면(친구이거나 확인하지 못했으면) 응답에서 판단한다.
+   */
+  monthlyHasExcerpts?: boolean;
   /** 문장을 누르면 가는 기록 한 장 주소의 앞부분 */
   monthlyEntryBase: string;
   /** 달의 발췌집 모아 보기 주소 — 한 달의 발췌집은 이 뒤에 달이 붙는다 */
@@ -94,9 +99,12 @@ export default function FriendLibraryView({
   excerpts,
   retrospectError,
   monthlySentences,
+  monthlyHasExcerpts,
   monthlyEntryBase,
   monthlyExcerptsHref,
 }: FriendLibraryViewProps) {
+  const hasMonthlyExcerpts =
+    monthlyHasExcerpts ?? (monthlySentences ? hasLibraryExcerpts(monthlySentences) : false);
   useTopBar({
     title: `${profile.name}의 서재`,
     back: { href: '/social/friends', label: '친구' },
@@ -311,11 +319,11 @@ export default function FriendLibraryView({
         {(monthlySentences === null ||
           libraryRows(monthlySentences).length > 0 ||
           monthlySentences.nextBefore !== null ||
-          hasLibraryExcerpts(monthlySentences)) && (
+          hasMonthlyExcerpts) && (
           <section aria-labelledby="lib-monthly-sentences" className="mt-[34px]">
             <div className="flex items-baseline justify-between">
               <SectionLabel id="lib-monthly-sentences">달마다 한 문장</SectionLabel>
-              {monthlySentences && hasLibraryExcerpts(monthlySentences) && (
+              {monthlySentences && hasMonthlyExcerpts && (
                 <Link
                   href={monthlyExcerptsHref}
                   aria-label="달의 발췌집 모두 보기"

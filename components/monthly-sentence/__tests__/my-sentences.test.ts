@@ -186,6 +186,38 @@ describe('MySentences — 바꾸기', () => {
   });
 });
 
+describe('MySentences — 모바일 장과 데스크톱 장', () => {
+  it('한쪽에서 고른 문장이 다른 쪽의 같은 달에도 바로 보인다', async () => {
+    // 두 장이 함께 그려진다. 서버가 새로 내려 주는 첫 쪽에 없는(더 펼친) 달도 맞아야 한다.
+    render(h('div', null, h(MySentences, { initial: own() }), h(MySentences, { initial: own() })));
+    apiFetch.mockImplementation(async (_url: string, init?: RequestInit) => {
+      if (init?.method === 'PUT') {
+        return res({
+          row: ownRow('2026-11', { entryId: 'c1', quote: '고른 문장', source: 'picked' }),
+        });
+      }
+      return res({
+        pickedEntryId: null,
+        publicCount: 1,
+        total: 1,
+        hasMore: false,
+        items: [
+          {
+            entryId: 'c1',
+            quote: '후보 하나',
+            bookTitle: '책',
+            date: '2026-11-09',
+            isPrivate: false,
+          },
+        ],
+      });
+    });
+    fireEvent.click(screen.getAllByRole('button', { name: '2026년 11월 문장 바꾸기' })[0]);
+    fireEvent.click(await screen.findByRole('radio', { name: /후보 하나/ }));
+    await waitFor(() => expect(screen.getAllByText('고른 문장')).toHaveLength(2));
+  });
+});
+
 describe('MySentences — 펼친 뒤에 저장해도 접히지 않는다', () => {
   const expand = async () => {
     apiFetch.mockResolvedValueOnce(
