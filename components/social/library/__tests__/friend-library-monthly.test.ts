@@ -217,6 +217,24 @@ describe('내 서재 주소에서 본 달마다 한 문장', () => {
     }
   });
 
+  it('최근 달에 문장이 없어도 더 오래된 달이 남았으면 더 보기로 닿는다', async () => {
+    const empty = (month: string) =>
+      ownRow(month, { entryId: null, quote: null, bookTitle: null, source: null, entryCount: 0 });
+    apiFetch.mockResolvedValue(res(own({ rows: [ownRow('2026-05')], nextBefore: null })));
+    show({
+      isOwn: true,
+      monthlySentences: own({ rows: months(6).map(empty), nextBefore: '2026-06' }),
+      monthlyEntryBase: '/entry',
+      monthlyExcerptsHref: '/excerpts',
+    });
+    expect(within(section()).getByText('최근 달에는 남긴 문장이 없어요.')).toBeTruthy();
+    expect(within(section()).queryByRole('list')).toBeNull();
+    fireEvent.click(within(section()).getByRole('button', { name: '더 보기' }));
+    await waitFor(() => expect(within(section()).getAllByRole('listitem')).toHaveLength(1));
+    expect(apiFetch.mock.calls[0][0]).toBe('/api/monthly-sentences?owner=owner-id&before=2026-06');
+    expect(within(section()).queryByText('최근 달에는 남긴 문장이 없어요.')).toBeNull();
+  });
+
   it('엮은 달에 펼치기, 엮은 달이 있으면 모두 보기', () => {
     showMine();
     const list = within(section());

@@ -105,11 +105,17 @@ export default function LibrarySentences({
     ) : undefined,
   }));
 
-  if (views.length === 0) return null;
+  // 더 불러올 달이 남았으면 줄이 없어도 더 보기를 남긴다 — 최근 달이 비어도 오래된 문장에 닿게.
+  // 끝까지 불러와도 줄이 없으면 구역 제목만 남지 않도록 안내는 그대로 둔다.
+  if (views.length === 0 && initial.nextBefore === null) return null;
 
   return (
     <>
-      <SentenceRows rows={views} label="달마다 한 문장" />
+      {views.length > 0 ? (
+        <SentenceRows rows={views} label="달마다 한 문장" />
+      ) : (
+        <p className="py-3 font-sans text-body-sm text-ink-sub">최근 달에는 남긴 문장이 없어요.</p>
+      )}
       {more === 'error' ? (
         <p
           role="alert"

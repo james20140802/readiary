@@ -310,6 +310,7 @@ export default function FriendLibraryView({
         {/* 달별 목록은 이것 하나다 — 문장은 기록 한 장으로, 발췌집을 보여 준 달은 펼치기로 이어진다 */}
         {(monthlySentences === null ||
           libraryRows(monthlySentences).length > 0 ||
+          monthlySentences.nextBefore !== null ||
           hasLibraryExcerpts(monthlySentences)) && (
           <section aria-labelledby="lib-monthly-sentences" className="mt-[34px]">
             <div className="flex items-baseline justify-between">
