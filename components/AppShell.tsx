@@ -106,7 +106,7 @@ export default function AppShell({ initialLoggedIn, initialUnread, children }: A
       </main>
       {/* fixed라 화면은 같고, 키보드 순서는 본문 다음이 되도록 main 뒤에 둔다 */}
       {nav && <TabBar prefetch={nav} />}
-      {/* 토스트는 탭 바·사이드바 여부를 알아야 자리를 잡으므로 셸이 그린다 */}
+      {/* 토스트는 사이드바 여부를 알아야 데스크톱에서 자리를 잡으므로 셸이 그린다 */}
       <Toaster nav={nav} />
     </TopBarProvider>
   );
