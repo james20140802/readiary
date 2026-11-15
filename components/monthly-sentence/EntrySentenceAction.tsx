@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { Quote } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiFetch, SessionExpiredError } from '@/lib/api/fetch';
@@ -36,6 +37,7 @@ export default function EntrySentenceAction({
   onChange: (picked: boolean) => void;
   className?: string;
 }) {
+  const router = useRouter();
   const busy = useRef(false);
   const month = date.slice(0, 7);
   if (!quote?.trim() || !isInSentenceWindow(month, today ?? todayKST())) return null;
@@ -56,15 +58,16 @@ export default function EntrySentenceAction({
       }
       const { row } = (await res.json()) as { row: OwnSentenceRow };
       onChange(!picked);
-      if (picked) {
-        toast.success(`${monthNumber(month)}월의 문장에서 내렸어요`, undefined);
-        return;
+      if (picked) toast.success(`${monthNumber(month)}월의 문장에서 내렸어요`, undefined);
+      else {
+        const notice = fallbackNotice(row?.friendFallback ?? null);
+        toast.success(
+          `${monthNumber(month)}월의 문장으로 골랐어요`,
+          notice ? { description: notice } : undefined
+        );
       }
-      const notice = fallbackNotice(row?.friendFallback ?? null);
-      toast.success(
-        `${monthNumber(month)}월의 문장으로 골랐어요`,
-        notice ? { description: notice } : undefined
-      );
+      // 이미 다녀온 프로필의 일기장이 옛 문장을 들고 있지 않게 한다(라우터에 남은 화면을 버린다)
+      router.refresh();
     } catch (error) {
       if (!(error instanceof SessionExpiredError)) toast.error(FAILED);
     } finally {

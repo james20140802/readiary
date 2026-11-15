@@ -6,9 +6,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const toastError = vi.fn();
 const toastSuccess = vi.fn();
 const saved = vi.fn();
+const refresh = vi.fn();
 const updates: unknown[] = [];
 const filters: unknown[] = [];
 
+vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh }) }));
 vi.mock('sonner', () => ({
   toast: {
     success: (m: string, o?: unknown) => toastSuccess(m, o),
@@ -79,6 +81,8 @@ describe('EntryCoverAction', () => {
     expect(updates).toEqual([['profiles', { featured_entry_id: 'e1' }]]);
     expect(filters).toEqual([['id', 'me']]);
     expect(toastSuccess).toHaveBeenCalledWith('표지 문장으로 골랐어요', undefined);
+    // 이미 다녀온 프로필 화면이 옛 표지를 들고 있지 않게 한다
+    expect(refresh).toHaveBeenCalled();
   });
 
   it('나만 보기 기록을 올리면 친구에게는 보이지 않는다고 알린다', async () => {
@@ -108,6 +112,7 @@ describe('EntryCoverAction', () => {
       )
     );
     expect(onChange).not.toHaveBeenCalled();
+    expect(refresh).not.toHaveBeenCalled();
   });
 
   it('저장하는 동안 다시 눌러도 한 번만 저장한다', async () => {

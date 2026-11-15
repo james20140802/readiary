@@ -7,7 +7,9 @@ import { ownRow, res } from './fixtures';
 const apiFetch = vi.fn();
 const toastError = vi.fn();
 const toastSuccess = vi.fn();
+const refresh = vi.fn();
 
+vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh }) }));
 vi.mock('sonner', () => ({
   toast: {
     success: (m: string, o?: unknown) => toastSuccess(m, o),
@@ -76,6 +78,8 @@ describe('EntrySentenceAction', () => {
     expect(apiFetch.mock.calls[0][1].method).toBe('PUT');
     expect(JSON.parse(apiFetch.mock.calls[0][1].body)).toEqual({ month: '2026-09', entryId: 'e1' });
     expect(toastSuccess).toHaveBeenCalledWith('9월의 문장으로 골랐어요', undefined);
+    // 이미 다녀온 프로필의 일기장이 옛 문장을 들고 있지 않게 한다
+    expect(refresh).toHaveBeenCalled();
   });
 
   it.each([
@@ -104,6 +108,7 @@ describe('EntrySentenceAction', () => {
     await waitFor(() => expect(onChange).toHaveBeenCalledWith(false));
     expect(JSON.parse(apiFetch.mock.calls[0][1].body)).toEqual({ month: '2026-09', entryId: null });
     expect(toastSuccess).toHaveBeenCalledWith('9월의 문장에서 내렸어요', undefined);
+    expect(refresh).toHaveBeenCalled();
   });
 
   it('저장하지 못하면 그대로 두고 알린다', async () => {
@@ -115,6 +120,7 @@ describe('EntrySentenceAction', () => {
     );
     expect(onChange).not.toHaveBeenCalled();
     expect(toastSuccess).not.toHaveBeenCalled();
+    expect(refresh).not.toHaveBeenCalled();
   });
 
   it('일기장에 보이지 않는 달(24개월보다 오래됨)의 기록에는 그리지 않는다', () => {

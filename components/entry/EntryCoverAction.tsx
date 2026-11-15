@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
 import { createSupabaseClient } from '@/lib/supabase/client';
@@ -34,6 +35,7 @@ export default function EntryCoverAction({
   onChange: (picked: boolean) => void;
   className?: string;
 }) {
+  const router = useRouter();
   const busy = useRef(false);
   if (!userId || !quote?.trim()) return null;
 
@@ -53,14 +55,15 @@ export default function EntryCoverAction({
         return;
       }
       onChange(!picked);
-      if (picked) {
-        toast.success('표지 문장에서 내렸어요', undefined);
-        return;
+      if (picked) toast.success('표지 문장에서 내렸어요', undefined);
+      else {
+        toast.success(
+          '표지 문장으로 골랐어요',
+          isPrivate ? { description: PRIVATE_NOTICE } : undefined
+        );
       }
-      toast.success(
-        '표지 문장으로 골랐어요',
-        isPrivate ? { description: PRIVATE_NOTICE } : undefined
-      );
+      // 이미 다녀온 프로필 화면이 옛 표지를 들고 있지 않게 한다
+      router.refresh();
     } catch {
       toast.error(FAILED);
     } finally {

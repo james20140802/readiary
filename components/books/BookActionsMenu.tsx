@@ -8,6 +8,7 @@ import ExportRecordsSheet from '@/components/export/ExportRecordsSheet';
 import Sheet from '@/components/ui/Sheet';
 import { useActionLock } from '@/hooks/useActionLock';
 import { apiFetch, SessionExpiredError } from '@/lib/api/fetch';
+import BookBookmarkAction from './BookBookmarkAction';
 import { BTN_DANGER, BTN_LINE } from './buttonStyles';
 import UnfinishBookSheet from './UnfinishBookSheet';
 
@@ -26,6 +27,7 @@ export default function BookActionsMenu({
   isFinished = false,
   onUnfinish,
   unfinishAction,
+  bookmark,
   triggerClassName,
 }: {
   userBookId: string;
@@ -35,6 +37,8 @@ export default function BookActionsMenu({
   /** 완독 취소가 끝난 뒤 — 넘기면 다 읽은 책 메뉴에 '완독 취소'가 생긴다 */
   onUnfinish?: () => void;
   unfinishAction?: ReturnType<typeof useActionLock>;
+  /** 넘기면 다 읽은 책 메뉴에 '책갈피 꽂기/빼기'가 생긴다 */
+  bookmark?: { userId?: string; picked: boolean; onChange: (picked: boolean) => void };
   triggerClassName?: string;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -85,6 +89,16 @@ export default function BookActionsMenu({
               <BookOpen size={20} strokeWidth={1.75} className="text-ink-sub" aria-hidden />
               발췌집 펼치기
             </Link>
+          )}
+          {isFinished && bookmark && (
+            <BookBookmarkAction
+              userBookId={userBookId}
+              userId={bookmark.userId}
+              picked={bookmark.picked}
+              onStart={() => setMenuOpen(false)}
+              onChange={bookmark.onChange}
+              className={ROW}
+            />
           )}
           {isFinished && onUnfinish && (
             <button
