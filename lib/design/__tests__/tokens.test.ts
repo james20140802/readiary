@@ -46,6 +46,7 @@ describe('색 토큰', () => {
     ['margin', '142 169 221', '79 102 148'],
     ['sheet', '251 250 246', '38 35 31'],
     ['sheet-alpha', '0.62', '0.74'],
+    ['danger-on-ink', '233 128 108', '166 61 47'], // 토스트(먹 바탕) 위 오류 표시
   ])('%s 토큰은 시안 값이다', (name, light, dark) => {
     expect(readTokens('light')[`--${name}`]).toBe(light);
     expect(readTokens('dark')[`--${name}`]).toBe(dark);

@@ -24,6 +24,7 @@
 | `*-accent` | `#2D5FB8` | `#85A9EC` | 강조(잉크). 아껴 쓴다 |
 | `bg-accent-soft` | 잉크 7% | 잉크 7% | 강조 연한 배경 |
 | `*-danger` / `*-success` | 가라앉힌 적갈/초록 | 밝힌 톤 | 상태 |
+| `text-danger-on-ink` | `#E9806C` | `#A63D2F` | 먹 바탕(토스트) 위 오류 표시. 다크의 먹은 밝아서 라이트의 적갈을 쓴다 |
 | `margin` | `#8EA9DD` | `#4F6694` | 일기장 여백선 |
 | `sheet` | `#FBFAF6` | `#26231F` | 간지(반투명 시트) 바탕 |
 | `sheet-alpha` | 0.62 | 0.74 | 간지 불투명도 (`--sheet-alpha`) |
@@ -114,6 +115,7 @@
 | `Input`/`Textarea` | 기본(`box`): 카드 표면 + strong 헤어라인, 포커스에 accent 1px. `Input variant="line"`: 기존 1px 밑줄의 색만 accent로 변경(두께·위치 유지). `Textarea variant="line"`과 기록 입력: 밑줄 없이 왼쪽 accent 표시 — 글이 놓이는 칸 높이 전체(커서와 같은 줄에서 시작), 함께 묶인 라벨도 accent로 변경 |
 | `Sheet` | 간지 바텀 시트. 모바일은 아래에서 올라오고 lg 이상은 가운데 창. 자세한 규칙은 아래 "바텀 시트" |
 | `Modal` | 내부적으로 `Sheet`를 감싼다. 새 화면은 `Sheet`를 바로 쓴다 |
+| `Toaster` | 먹 바탕 알약 토스트. 셸(`AppShell`)이 한 번 그린다. 자세한 규칙은 아래 "토스트" |
 | `Seal` | 잉크색 날짜/상태 라벨 ("1년 전 오늘", "완독") |
 | `Chip` | 알약형 선택 칩, `dot`으로 잉크 점 |
 | `Avatar` | card-raised 배경 + 헤어라인 |
@@ -192,6 +194,20 @@
 - 시트 위에 시트를 열어도 안전하다. `InertBackground`가 참조 횟수를 세므로 안쪽 시트가 닫혀도 바깥 시트 뒤의 배경은 계속 비활성으로 남는다.
 - `Modal`은 이제 `Sheet`를 감싸 시트 모양으로 열린다.
 - 기존 시트(`EntryEditSheet`, `CommentBottomSheet`, `LikersBottomSheet`, `WeeklyLetterSheet` 등)는 화면 이전 PR에서 옮긴다. 각 화면 이전 PR에서 `Sheet`로 바꾼다.
+
+## 토스트 (Toast)
+
+`components/ui/Toaster.tsx`가 시안의 `.toast`(docs/design/concept-2026-10/app.css)를 앱에 옮긴 것이다. 부르는 쪽은 그대로 `import { toast } from 'sonner'`이고 `toast.success`·`toast.error` 등을 쓴다.
+
+- 모양: 먹 바탕(`ink`)에 `ink-invert` 글자, 15px·600 산세리프, 높이 44px 이상, 곡률 22px. 그림자·테두리 없이 먹과 종이의 대비로 뜬다. 다크에서는 먹이 밝아지므로 밝은 알약이 된다.
+- 폭: 글자만큼만 넓다. 상자 폭은 `min(420px, 100vw - 32px)`이고 넘치면 줄을 바꾼다.
+- 자리: 아래 가운데. 탭 바가 있으면 탭 바 위 26px, 없으면 아래 24px(안전 영역 더함). lg 이상은 아래 32px이고, 사이드바가 있으면 사이드바를 뺀 본문의 가운데다. 셸이 `nav` 여부를 넘긴다.
+- 종류: 성공·안내는 글자만 둔다. 잘 된 일은 조용히 지나가고, 오류·경고에만 `CircleAlert`(1.75) 적갈 표시(`danger-on-ink`)를 붙인다. 초록 체크·빨간 바탕(`richColors`)은 쓰지 않는다. 닫기 버튼도 두지 않는다(밀어서 치우거나 저절로 사라진다).
+- 시간: 4초. 올려 두거나(데스크톱) 탭이 숨으면 멈춘다(sonner).
+- 쌓임: 접혀 있을 때는 앞 토스트 하나만 보인다. 알약 폭이 글마다 달라 겹쳐 쌓으면 뒤 알약이 띠처럼 비치기 때문이다. 누르거나 올려 두면 펼쳐져 모두 보인다.
+- 움직임: 아래에서 올라오며 나타나고(360ms `--ease-out`), 위로 비키며 흐려진다. 줄인 모션에서는 이동 없이 200ms 흐림만 남는다(sonner는 전환을 모두 끄므로 덮어쓴다).
+- 키보드: `Alt+T`로 토스트 목록에 포커스가 간다(sonner). 포커스 표시는 accent 2px 외곽선이다.
+- 쓰임: 행동의 결과를 짧게 알릴 때. 입력 하나에 매달 수 있는 오류는 입력 아래에, 폼 전체의 실패는 `FormAlert`에 둔다.
 
 ## 움직임 (Motion)
 

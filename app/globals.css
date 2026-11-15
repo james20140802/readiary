@@ -26,6 +26,7 @@
   --accent: 45 95 184; /* #2D5FB8 파란 잉크 — 브랜드 대표색 (2026-08-31 확정, 주홍 후보 폐기) */
   --accent-hover: 36 80 158;
   --danger: 166 61 47; /* #A63D2F 가라앉힌 적갈 */
+  --danger-on-ink: 233 128 108; /* #E9806C 먹 바탕(토스트) 위 적갈 — 시안 .lrow.danger 다크 값 */
   --success: 74 124 89; /* #4A7C59 가라앉힌 초록 */
   /* 일기장과 간지 — 좌측 여백선, 반투명 시트, 플래그(간지) 여섯 색.
      플래그는 라이트·다크가 같은 값이라 :root에만 둔다. 다크에서 "알파 .5 + 안쪽 테두리"는
@@ -63,6 +64,7 @@
     --accent: 133 169 236; /* #85A9EC 밤의 잉크 */
     --accent-hover: 159 188 240;
     --danger: 201 106 87;
+    --danger-on-ink: 166 61 47; /* 다크의 먹은 밝으니 라이트의 적갈을 쓴다 */
     --success: 127 174 143;
     --margin: 79 102 148; /* #4F6694 */
     --sheet: 38 35 31; /* #26231F */
@@ -772,4 +774,81 @@ body {
 }
 ::view-transition-group(root) {
   animation-duration: 200ms;
+}
+
+/* ── 토스트(components/ui/Toaster) ──
+   시안 .toast: 먹 바탕 알약이 탭 바 위에서 조용히 올라온다. 그림자·테두리 없이 먹과 종이의 대비만으로 뜬다.
+   쌓기·스와이프·타이머는 sonner가 정하고, 여기서는 자리·겉모습·움직임 곡선만 바꾼다.
+   sonner가 런타임에 넣는 [data-sonner-toaster][data-…] 규칙(0,2,0)보다 한 단계 높게 .ink-toaster를 더한다. */
+[data-sonner-toaster].ink-toaster[data-x-position] {
+  left: 50%;
+  right: auto;
+  width: var(--width);
+  transform: translateX(-50%);
+  font-family: var(--font-sans), ui-sans-serif, system-ui;
+}
+[data-sonner-toaster].ink-toaster[data-y-position='bottom'] {
+  bottom: calc(24px + var(--app-safe-bottom));
+}
+[data-sonner-toaster].ink-toaster--nav[data-y-position='bottom'] {
+  bottom: calc(var(--app-tabbar-h) + 26px + var(--app-safe-bottom));
+}
+@media (min-width: 1024px) {
+  [data-sonner-toaster].ink-toaster[data-y-position='bottom'] {
+    bottom: 32px;
+  }
+  /* 사이드바를 뺀 본문의 가운데 */
+  [data-sonner-toaster].ink-toaster--nav[data-x-position] {
+    left: calc(50% + var(--app-side) / 2);
+  }
+}
+
+/* 알약은 글자만큼만 넓고 상자 가운데에 놓인다. 긴 문장은 상자 폭에서 줄을 바꾼다 */
+.ink-toaster [data-sonner-toast].ink-toast {
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  width: fit-content;
+  max-width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 11px 18px;
+  border-radius: 22px;
+  background: rgb(var(--ink));
+  color: rgb(var(--ink-invert));
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.45;
+  word-break: keep-all;
+  transition:
+    transform 360ms var(--ease-out),
+    opacity 240ms var(--ease-out),
+    height 360ms var(--ease-out);
+}
+.ink-toaster [data-sonner-toast].ink-toast:focus-visible {
+  outline: 2px solid rgb(var(--accent));
+  outline-offset: 2px;
+}
+/* 알약 폭이 글자마다 달라 접어 쌓으면 넓은 뒤 알약이 앞 알약 양옆으로 띠처럼 비친다.
+   접혀 있을 때는 앞 토스트 하나만 보이고, 누르거나(모바일) 올려 두면(데스크톱) 펼쳐져 모두 보인다 */
+.ink-toaster [data-sonner-toast][data-expanded='false'][data-front='false'] {
+  opacity: 0;
+  pointer-events: none;
+}
+.ink-toast__icon {
+  display: flex;
+  flex: none;
+  margin-left: -3px;
+  color: rgb(var(--danger-on-ink));
+}
+.ink-toast__content {
+  min-width: 0;
+}
+/* sonner는 줄인 모션에서 전환을 모두 끈다. 이동은 빼되 나타나고 사라지는 흐림은 남긴다 */
+@media (prefers-reduced-motion: reduce) {
+  .ink-toaster [data-sonner-toast].ink-toast {
+    transition: opacity 200ms ease !important;
+  }
 }
