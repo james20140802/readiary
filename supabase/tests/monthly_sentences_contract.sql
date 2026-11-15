@@ -219,6 +219,20 @@ begin
 end;
 $$;
 
+-- ── own empty: 기록이 없으면 줄도 다음 쪽도 없다 ─────────────
+-- D(…004)는 기록이 하나도 없다. 빈 달 여섯 줄이 아니라 빈 목록이어야 화면이 첫 문장 안내를 보인다.
+do $$
+declare v jsonb;
+begin
+  perform t.as_user(t.id(4));
+  v := public.get_monthly_sentences(t.id(4), null, 6);
+  perform t.eq('no entries mode', v -> 'mode', '"own"');
+  perform t.eq('no entries rows', v -> 'rows', '[]');
+  perform t.eq('no entries next', v -> 'nextBefore', 'null');
+  perform t.eq('no entries paged', public.get_monthly_sentences(t.id(4), '2026-06', 6) -> 'rows', '[]');
+end;
+$$;
+
 -- ── rules: 기준을 바꾼다 ─────────────────────────────────────
 do $$
 begin
