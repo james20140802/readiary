@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>문장 토론 · 많은 답을 어떻게 놓을까</title>
+<style>
+@font-face{font-family:Maru;src:url(../../../app/fonts/MaruBuri-Regular.woff2) format('woff2');font-weight:400}
+@font-face{font-family:Maru;src:url(../../../app/fonts/MaruBuri-SemiBold.woff2) format('woff2');font-weight:600}
+@font-face{font-family:Pre;src:url(../../../app/fonts/PretendardVariable.woff2) format('woff2');font-weight:100 900}
+:root{--paper:244 240 232;--ink:34 30 26;--sub:107 100 90;--faint:158 150 138;--hair:224 217 204;--hair2:207 197 180;--accent:45 95 184;--margin:142 169 221;--sheet:251 250 246;
+  --serif:Maru,serif;--sans:Pre,system-ui,sans-serif}
+@media (prefers-color-scheme:dark){:root{--paper:26 23 20;--ink:236 229 218;--sub:177 168 153;--faint:142 132 118;--hair:46 42 37;--hair2:74 64 54;--accent:133 169 236;--margin:79 102 148;--sheet:38 35 31}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:rgb(var(--paper));color:rgb(var(--ink));font-family:var(--sans);padding:32px 24px 80px}
+.intro{max-width:1240px;margin:0 auto 28px}
+.intro h1{font:600 26px var(--serif)}
+.intro p{font-size:15px;line-height:1.6;color:rgb(var(--sub));margin-top:8px;max-width:760px}
+.grid{max-width:1240px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:28px;align-items:start}
+.opt{cursor:pointer;border-radius:14px;padding:14px;border:1.5px solid transparent;transition:border-color 160ms ease}
+.opt.selected{border-color:rgb(var(--accent))}
+.opt h2{font:600 17px var(--sans);display:flex;gap:8px;align-items:baseline}
+.opt h2 .l{font:700 14px var(--sans);color:rgb(var(--accent))}
+.opt .why{font-size:14px;line-height:1.55;color:rgb(var(--sub));margin:6px 0 12px;min-height:66px}
+.opt .why b{color:rgb(var(--ink));font-weight:600}
+/* 휴대폰 틀 */
+.phone{width:360px;height:740px;margin:0 auto;border-radius:30px;overflow:hidden;position:relative;
+  box-shadow:0 0 0 1px rgb(var(--hair2)),0 20px 40px -28px rgb(60 45 25/.5);
+  background:rgb(var(--paper)) repeating-linear-gradient(to bottom,transparent 0 31px,rgb(var(--hair)/.7) 31px 32px)}
+.scroll{height:100%;overflow:auto;padding:14px 20px 40px}
+.bar{display:flex;align-items:center;justify-content:space-between;font:600 15px var(--sans);height:40px;margin:0 -4px 6px;color:rgb(var(--ink))}
+.bar .bk{color:rgb(var(--accent))}
+.by{font:500 13px var(--sans);color:rgb(var(--sub))}
+.by b{color:rgb(var(--ink));font-weight:600}
+.s{font:400 22px/1.75 var(--serif);margin-top:10px;word-break:keep-all}
+.u{text-decoration:underline;text-decoration-color:rgb(var(--accent));text-decoration-thickness:2px;text-underline-offset:6px;cursor:pointer}
+.u.on{background:rgb(var(--accent)/.1)}
+.u sup{font:700 11px var(--sans);color:rgb(var(--accent));margin-left:2px;vertical-align:super;text-decoration:none;display:inline-block}
+.src{font:500 12px var(--sans);color:rgb(var(--faint));margin-top:6px}
+.ask{font:600 17px/1.6 var(--serif);margin-top:14px;padding-left:12px;box-shadow:inset 2px 0 0 rgb(var(--accent));word-break:keep-all}
+.tally{font:500 13px var(--sans);color:rgb(var(--sub));margin-top:12px;display:flex;gap:12px;flex-wrap:wrap}
+.tally b{color:rgb(var(--ink))}
+.st{font:600 12px var(--sans);color:rgb(var(--sub));display:inline-flex;align-items:center;gap:4px}
+.st svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+.st.diff{color:rgb(var(--accent))}
+.a{padding:14px 0;border-top:1px solid rgb(var(--hair2)/.8)}
+.a .h{display:flex;gap:8px;align-items:center;font:600 13px var(--sans)}
+.a .t{font:400 16px/1.65 var(--serif);margin-top:6px;word-break:keep-all}
+.a .f{font:500 12px var(--sans);color:rgb(var(--faint));margin-top:6px;display:flex;gap:12px}
+.a .f .m{color:rgb(var(--accent))}
+.btn{display:inline-flex;align-items:center;justify-content:center;height:40px;padding:0 16px;border-radius:999px;font:600 14px var(--sans)}
+.btn.line{box-shadow:inset 0 0 0 1px rgb(var(--hair2));color:rgb(var(--ink))}
+.btn.ink{background:rgb(var(--ink));color:rgb(var(--paper))}
+.more{font:600 14px var(--sans);color:rgb(var(--accent));padding:10px 0 4px;display:block}
+/* A: 간지 */
+.slipwrap{position:relative;margin-top:-2px;margin-left:-6px;margin-right:-10px}
+.slip{position:relative;padding:12px 16px 14px;border-radius:2px;background:rgb(var(--sheet)/.92);
+  box-shadow:inset 0 0 0 1px rgb(255 255 255/.6),0 1px 1px rgb(60 45 25/.05),0 18px 34px -22px rgb(60 45 25/.45)}
+.slip.b1,.slip.b2{position:absolute;inset:0;}
+.slip.b1{transform:translate(8px,8px) rotate(1.4deg);opacity:.85}
+.slip.b2{transform:translate(16px,15px) rotate(-1deg);opacity:.7}
+.slip.top{transform:rotate(-.6deg)}
+.slip .hd{display:flex;justify-content:space-between;font:600 13px var(--sans);color:rgb(var(--sub))}
+.slip .hd q{quotes:none;font-family:var(--serif);color:rgb(var(--accent))}
+.slip .hd .n{color:rgb(var(--accent))}
+.fade{opacity:.35}
+/* B: 밑줄별 장 */
+.sec{margin-top:26px}
+.sec .sh{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.sec .sh .k{font:600 15px var(--serif)}
+.sec .sh .k q{quotes:none;text-decoration:underline;text-decoration-color:rgb(var(--accent));text-decoration-thickness:2px;text-underline-offset:5px}
+.sec .sh .c{font:600 12px var(--sans);color:rgb(var(--sub));white-space:nowrap}
+.dist{display:flex;height:4px;border-radius:2px;overflow:hidden;margin:8px 0 2px;gap:2px}
+.dist i{display:block;background:rgb(var(--ink)/.55)}
+.dist i.d{background:rgb(var(--accent))}
+.dist i.q{background:rgb(var(--ink)/.2)}
+.legend{font:500 12px var(--sans);color:rgb(var(--faint))}
+.pick{font:600 11px var(--sans);color:rgb(var(--accent));letter-spacing:.02em}
+.sticky{position:sticky;top:-14px;margin:0 -20px;padding:10px 20px 10px;background:rgb(var(--paper)/.94);border-bottom:1px solid rgb(var(--hair2));z-index:2;font:400 15px/1.6 var(--serif);backdrop-filter:blur(6px)}
+/* C: 입장별 */
+.seg{display:grid;grid-template-columns:repeat(3,1fr);height:38px;padding:2px;border-radius:999px;background:rgb(127 127 127/.14);margin:18px 0 6px}
+.seg span{display:flex;align-items:center;justify-content:center;border-radius:999px;font:600 13px var(--sans);color:rgb(var(--sub))}
+.seg span.on{background:rgb(var(--sheet));color:rgb(var(--ink));box-shadow:0 1px 3px rgb(0 0 0/.12)}
+.on-u{font:500 12px var(--sans);color:rgb(var(--sub));margin-top:4px}
+.on-u q{quotes:none;font-family:var(--serif);color:rgb(var(--ink))}
+.note{max-width:1240px;margin:30px auto 0;font-size:14px;line-height:1.6;color:rgb(var(--sub))}
+</style></head><body>
+<svg width="0" height="0" style="position:absolute"><defs>
+<symbol id="i-agree" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+<symbol id="i-diff" viewBox="0 0 24 24"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></symbol>
+<symbol id="i-q" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></symbol>
+<symbol id="i-move" viewBox="0 0 24 24"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></symbol>
+</defs></svg>
+
+<div class="intro">
+  <h1>답이 18개 달린 토론을 휴대폰에서 어떻게 읽을까</h1>
+  <p>같은 토론(밑줄 3개 + 문장 전체, 답 18개)을 세 가지로 놓았습니다. 휴대폰 틀 안은 스크롤됩니다. 마음에 드는 안을 누르고, 섞고 싶은 부분은 터미널에 적어 주세요. 다크모드는 기기 설정을 따릅니다.</p>
+</div>
+
+<div class="grid">
+
+<!-- A -->
+<div class="opt" data-choice="a" >
+  <h2><span class="l">A</span>밑줄을 누르면 간지 묶음 (시안 그대로)</h2>
+  <p class="why">문장이 화면의 주인공으로 남고, 답은 <b>한 장씩</b> 넘겨 읽습니다. 집중은 좋지만, 한 밑줄에 답이 9개면 9번 넘겨야 하고 <b>전체 흐름이 한눈에 안 보입니다.</b></p>
+  <div class="phone"><div class="scroll">
+    <div class="bar"><span class="bk">‹ 토론</span><span>발제</span><span style="width:40px"></span></div>
+    <div class="by"><b>윤서</b> · 이틀 전 · 에로스의 종말</div>
+    <p class="s"><span class="u">경계와 문턱<sup>4</sup></span>이 사라짐과 <span class="u">동시에<sup>2</sup></span> <span class="u on">타자에 대한 환상<sup>9</sup></span>도</p>
+    <div class="slipwrap">
+      <div class="slip b2">&nbsp;</div><div class="slip b1">&nbsp;</div>
+      <div class="slip top">
+        <div class="hd"><span><q>타자에 대한 환상</q>에 붙은 답</span><span class="n">1 / 9 · 다음 ›</span></div>
+        <div class="a" style="border-top:0;padding-top:8px">
+          <div class="h">도현 <span class="st diff"><svg><use href="#i-diff"/></svg>다르게 읽음</span></div>
+          <div class="t">환상이 사라져야 진짜 그 사람이 보인다고 읽었어요. 사라지는 건 상상 속의 상대뿐이에요.</div>
+          <div class="f"><span class="m">생각이 바뀌었어요 5</span><span>답글 2</span></div>
+        </div>
+        <span class="btn ink" style="height:36px;font-size:13px">여기에 내 답 붙이기</span>
+      </div>
+    </div>
+    <p class="s fade" style="margin-top:22px">사라진다.</p>
+    <div class="fade">
+      <div class="ask">가까워질수록 상대를 덜 궁금해하게 되는 걸까요?</div>
+      <div class="tally"><span><b>8</b> 공감</span><span><b>7</b> 다르게 읽음</span><span><b>3</b> 질문</span></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- B -->
+<div class="opt" data-choice="b" >
+  <h2><span class="l">B</span>밑줄마다 한 단락, 대표 답 둘 (추천)</h2>
+  <p class="why">문장 아래로 밑줄마다 단락이 이어집니다. 단락마다 <b>입장 분포 한 줄</b>과, <b>생각을 가장 많이 바꾼 답</b> + <b>그와 다른 입장의 대표 답</b>만 펼쳐 둡니다. 나머지는 접힘. 의견이 어디서 갈리는지 스크롤 한 번에 보입니다.</p>
+  <div class="phone"><div class="scroll">
+    <div class="bar"><span class="bk">‹ 토론</span><span>발제</span><span style="width:40px"></span></div>
+    <div class="by"><b>윤서</b> · 이틀 전 · 에로스의 종말</div>
+    <p class="s"><span class="u">경계와 문턱<sup>4</sup></span>이 사라짐과 <span class="u">동시에<sup>2</sup></span> <span class="u">타자에 대한 환상<sup>9</sup></span>도 사라진다.</p>
+    <div class="src">한병철 · p.42</div>
+    <div class="ask">가까워질수록 상대를 덜 궁금해하게 되는 걸까요?</div>
+    <div class="tally"><span><b>8</b> 공감</span><span><b>7</b> 다르게 읽음</span><span><b>3</b> 질문</span><span>생각이 바뀐 사람 <b>4</b></span></div>
+    <div style="margin-top:14px"><span class="btn line">문장 전체에 답하기</span></div>
+
+    <div class="sticky">경계와 문턱이 사라짐과 동시에 <span class="u">타자에 대한 환상</span>도…</div>
+
+    <div class="sec" style="margin-top:14px">
+      <div class="sh"><span class="k"><q>타자에 대한 환상</q></span><span class="c">답 9</span></div>
+      <div class="dist"><i style="flex:3"></i><i class="d" style="flex:5"></i><i class="q" style="flex:1"></i></div>
+      <div class="legend">공감 3 · 다르게 읽음 5 · 질문 1</div>
+      <div class="a" style="margin-top:8px">
+        <div class="pick">생각을 가장 많이 바꾼 답</div>
+        <div class="h" style="margin-top:4px">도현 <span class="st diff"><svg><use href="#i-diff"/></svg>다르게 읽음</span></div>
+        <div class="t">환상이 사라져야 진짜 그 사람이 보인다고 읽었어요. 사라지는 건 상상 속의 상대뿐이에요.</div>
+        <div class="f"><span class="m">생각이 바뀌었어요 5</span><span>답글 2</span></div>
+      </div>
+      <div class="a">
+        <div class="pick">다르게 본 쪽에서</div>
+        <div class="h" style="margin-top:4px">민재 <span class="st"><svg><use href="#i-agree"/></svg>공감</span></div>
+        <div class="t">오래 만난 사람일수록 궁금한 걸 묻지 않게 되더라고요. 환상이 사라진 자리를 아무것도 채우지 않아서요.</div>
+        <div class="f"><span class="m">생각이 바뀌었어요 2</span></div>
+      </div>
+      <span class="more">나머지 7개 보기</span>
+    </div>
+
+    <div class="sec">
+      <div class="sh"><span class="k"><q>경계와 문턱</q></span><span class="c">답 4</span></div>
+      <div class="dist"><i style="flex:3"></i><i class="d" style="flex:1"></i></div>
+      <div class="legend">공감 3 · 다르게 읽음 1</div>
+      <div class="a" style="margin-top:8px">
+        <div class="pick">생각을 가장 많이 바꾼 답</div>
+        <div class="h" style="margin-top:4px">하린 <span class="st"><svg><use href="#i-agree"/></svg>공감</span></div>
+        <div class="t">설렘은 거리에서 나온다고 생각해요. 거리를 지키는 것도 사랑하는 일이에요.</div>
+      </div>
+      <span class="more">나머지 3개 보기</span>
+    </div>
+
+    <div class="sec">
+      <div class="sh"><span class="k"><q>동시에</q></span><span class="c">답 2</span></div>
+      <div class="a" style="margin-top:8px">
+        <div class="h">지우 <span class="st"><svg><use href="#i-q"/></svg>질문</span></div>
+        <div class="t">경계가 사라지는 것과 환상이 사라지는 게 정말 동시에 일어날까요? 순서가 있을 것 같아요.</div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sh"><span class="k">문장 전체</span><span class="c">답 3</span></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- C -->
+<div class="opt" data-choice="c" >
+  <h2><span class="l">C</span>입장별로 나눠 보기</h2>
+  <p class="why">공감 / 다르게 읽음 / 질문 탭으로 나눕니다. <b>찬반 구도가 또렷</b>하지만, 답이 어느 밑줄을 두고 한 말인지는 답마다 작은 글씨로만 남아 <b>문장과 답의 연결이 약해집니다.</b></p>
+  <div class="phone"><div class="scroll">
+    <div class="bar"><span class="bk">‹ 토론</span><span>발제</span><span style="width:40px"></span></div>
+    <div class="by"><b>윤서</b> · 이틀 전 · 에로스의 종말</div>
+    <p class="s"><span class="u">경계와 문턱</span>이 사라짐과 <span class="u">동시에</span> <span class="u">타자에 대한 환상</span>도 사라진다.</p>
+    <div class="ask">가까워질수록 상대를 덜 궁금해하게 되는 걸까요?</div>
+    <div class="seg"><span>공감 8</span><span class="on">다르게 읽음 7</span><span>질문 3</span></div>
+    <div class="a" style="border-top:0">
+      <div class="h">도현</div>
+      <div class="on-u"><q>타자에 대한 환상</q>에 대해</div>
+      <div class="t">환상이 사라져야 진짜 그 사람이 보인다고 읽었어요. 사라지는 건 상상 속의 상대뿐이에요.</div>
+      <div class="f"><span class="m">생각이 바뀌었어요 5</span><span>답글 2</span></div>
+    </div>
+    <div class="a">
+      <div class="h">서진</div>
+      <div class="on-u"><q>경계와 문턱</q>에 대해</div>
+      <div class="t">경계가 없어지는 게 아니라 다른 곳으로 옮겨 가는 것 같아요. 둘 사이가 아니라 둘과 바깥 사이로.</div>
+      <div class="f"><span class="m">생각이 바뀌었어요 1</span></div>
+    </div>
+    <div class="a">
+      <div class="h">은호</div>
+      <div class="on-u">문장 전체에 대해</div>
+      <div class="t">궁금함이 줄어드는 게 아니라, 묻는 방법이 바뀌는 것 같아요.</div>
+    </div>
+    <div class="a">
+      <div class="h">가은</div>
+      <div class="on-u"><q>타자에 대한 환상</q>에 대해</div>
+      <div class="t">환상은 사라지지 않고 익숙함이라는 다른 환상으로 바뀌는 거예요.</div>
+    </div>
+  </div></div>
+</div>
+
+</div>
+<p class="note">B를 고르면 A의 간지는 버리지 않고 다른 곳에 씁니다. 예: 발제자의 <b>정리</b>를 문장 위에 얹는 한 장의 간지, 또는 답을 쓰는 동안 밑줄 아래로 내려오는 입력 간지. 깊이는 쌓여 있을 법한 것에만 쓴다는 규칙과도 맞습니다.</p>
+</body></html>
