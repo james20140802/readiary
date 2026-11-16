@@ -32,6 +32,7 @@ export const LEAVES_EXACT: readonly RegExp[] = [/^\/books$/, /^\/books\/(?!new$)
  * - 달의 발췌집: 내 모아 보기·한 권, 친구의 모아 보기·한 권. 엮기(/compose)는 도구 화면이라 들지 않는다.
  * - 책별 발췌집(/books/[id]/excerpts). 기록 남기기(/books/[id]/entry/new)는 도구 화면이다.
  * - 친구의 서재·책장·책 한 권 — 내 프로필·책장·책 한 권(leaves)과 짝이다. 친구의 기록 한 장은 이미 leaves다.
+ * - 토론 한 편(/social/talk/[id]) — 문장과 답을 다시 읽는 글이다. 목록과 발제하기(/new)는 도구 화면이다.
  */
 export const MARGIN_PLAIN: readonly RegExp[] = [
   /^\/excerpts$/,
@@ -40,6 +41,7 @@ export const MARGIN_PLAIN: readonly RegExp[] = [
   /^\/books\/[^/]+\/excerpts$/,
   /^\/social\/u\/[^/]+$/,
   /^\/social\/u\/[^/]+\/books(?:\/[^/]+)?$/,
+  /^\/social\/talk\/(?!new$)[^/]+$/,
 ];
 
 /** 같은 경로이거나 `접두사/…`일 때만 맞는다 (`/sharing`은 `/share`가 아니다) */

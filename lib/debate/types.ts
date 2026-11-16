@@ -25,6 +25,7 @@ export const REPORT_REASON_LABEL: Record<ReportReason, string> = {
 export interface DebatePerson {
   id: string;
   nickname: string | null;
+  tag: string | null;
   profileImage: string | null;
   isFriend: boolean;
   isMe: boolean;
@@ -124,6 +125,7 @@ export interface DebateListItem {
 
 export interface DebateMover {
   nickname: string;
+  tag: string;
   profileImage: string | null;
   isFriend: boolean;
 }

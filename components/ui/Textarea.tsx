@@ -5,6 +5,7 @@ import React from 'react';
 import type { FieldVariant } from '@/components/ui/Input';
 
 type TextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement> & {
+  ref?: React.Ref<HTMLTextAreaElement>;
   label?: string;
   error?: string;
   fullWidth?: boolean;

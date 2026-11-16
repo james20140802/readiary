@@ -851,3 +851,24 @@ body {
     transition: opacity 200ms ease !important;
   }
 }
+
+/* 문장 토론: 넓은 화면의 단락 안 답 쓰기는 위에서 살짝 내려오며 드러난다. 동작 줄이기면 흐림만 */
+.composer-in {
+  animation: composer-in 220ms var(--ease-out);
+}
+@keyframes composer-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .composer-in {
+    animation: composer-fade 160ms ease;
+  }
+}
+@keyframes composer-fade {
+  from {
+    opacity: 0;
+  }
+}

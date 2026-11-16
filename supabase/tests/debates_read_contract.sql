@@ -69,7 +69,7 @@ begin
 
   perform t.as_user(t.id(2));
   g := public.get_debate(current_setting('t.d')::uuid);
-  perform t.eq('owner', (g -> 'owner') - 'profile_image', jsonb_build_object('id', t.id(1), 'nickname', 'u1', 'is_friend', true, 'is_me', false));
+  perform t.eq('owner', (g -> 'owner') - 'profile_image', jsonb_build_object('id', t.id(1), 'nickname', 'u1', 'tag', '0001', 'is_friend', true, 'is_me', false));
   perform t.eq('quote', g -> 'quote', to_jsonb('경계와 문턱이 사라짐과 동시에 타자에 대한 환상도 사라진다.'::text));
   perform t.eq('book', jsonb_build_array(g -> 'book_title', g -> 'book_author', g -> 'page_from', g -> 'page_to'), '["에로스의 종말","한병철",42,null]');
   perform t.eq('source visible to friend', g -> 'source_entry_id', to_jsonb(t.id(101)));
@@ -84,7 +84,7 @@ begin
   perform t.eq('s1 kinds', s1 -> 'pick_kinds', '["most_moved","other_side"]');
   perform t.eq('pick 1 fields', (s1 -> 'picks' -> 0) - 'created_at' - 'replies' - 'id',
     jsonb_build_object(
-      'author', jsonb_build_object('id', t.id(2), 'nickname', 'u2', 'profile_image', null, 'is_friend', false, 'is_me', true, 'active', true),
+      'author', jsonb_build_object('id', t.id(2), 'nickname', 'u2', 'tag', '0001', 'profile_image', null, 'is_friend', false, 'is_me', true, 'active', true),
       'stance', 'differ', 'body', '사라지는 건 상상 속의 상대뿐이에요.',
       'evidence', jsonb_build_object('quote', '사랑은 가지는 것이 아니라 하는 것이다.', 'book_title', '소유냐 존재냐', 'book_author', '에리히 프롬',
         'page_from', 96, 'page_to', 97, 'entry_id', t.id(201)),
@@ -128,6 +128,7 @@ begin
     '["첫 답글","둘째 답글","셋째 답글"]');
   perform t.eq('movers only for author', to_jsonb(t.err(format('select public.get_debate_movers(%L)', current_setting('t.b1')))), '"not_found"');
   perform t.as_user(t.id(2));
+  perform t.eq('movers have tags', (select bool_and(x ->> 'tag' = '0001') from jsonb_array_elements(public.get_debate_movers(current_setting('t.b1')::uuid)) x), 'true');
   perform t.eq('movers', (select jsonb_agg(x -> 'nickname' order by x ->> 'nickname') from jsonb_array_elements(public.get_debate_movers(current_setting('t.b1')::uuid)) x),
     '["u1","u6","u7"]');
   perform t.as_user(t.id(3));

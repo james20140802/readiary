@@ -564,6 +564,7 @@ language sql stable security definer set search_path = '' as $$
   select jsonb_build_object(
     'id', p.id,
     'nickname', case when x.active then p.nickname end,
+    'tag', case when x.active then p.tag end,
     'profile_image', case when x.active then p.profile_image end,
     'is_friend', x.active and p.id <> (select auth.uid()) and public.is_friend_with(p.id),
     'is_me', p.id = (select auth.uid()),
@@ -824,7 +825,7 @@ begin
   end if;
   return (
     select coalesce(jsonb_agg(jsonb_build_object(
-        'nickname', p.nickname, 'profile_image', p.profile_image,
+        'nickname', p.nickname, 'tag', p.tag, 'profile_image', p.profile_image,
         'is_friend', public.is_friend_with(p.id)
       ) order by m.created_at desc), '[]'::jsonb)
     from public.debate_moves m

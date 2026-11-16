@@ -58,6 +58,7 @@ describe('client 변환', () => {
     expect(a.author).toEqual({
       id: 'u',
       nickname: 'u2',
+      tag: null,
       profileImage: null,
       isFriend: false,
       isMe: true,
