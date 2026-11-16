@@ -665,6 +665,24 @@ export type Database = {
       };
       delete_debate_answer: { Args: { p_id: string }; Returns: undefined };
       set_debate_move: { Args: { p_answer_id: string; p_on: boolean }; Returns: number };
+      set_debate_summary: {
+        Args: { p_id: string; p_summary: string; p_answer_ids: string[] };
+        Returns: undefined;
+      };
+      clear_debate_summary: { Args: { p_id: string }; Returns: undefined };
+      set_debate_answer_hidden: {
+        Args: { p_answer_id: string; p_hidden: boolean };
+        Returns: undefined;
+      };
+      report_debate: {
+        Args: {
+          p_debate_id: string;
+          p_answer_id: string | null;
+          p_reason: string;
+          p_memo: string | null;
+        };
+        Returns: undefined;
+      };
       mutate_entry_with_reflection_ack: {
         Args: {
           p_entry_id: string;

@@ -238,8 +238,22 @@ grant select on public.debate_moves to authenticated;
 grant all on public.debate_answers to service_role;
 grant all on public.debate_moves to service_role;
 
+-- 답이 보이는가: 토론을 볼 수 있고, 숨긴 답이면 쓴 사람이나 발제자일 때만.
+create function public.debate_can_see_answer(p_debate_id uuid, p_author uuid, p_hidden_at timestamptz)
+returns boolean
+language sql stable security definer set search_path = '' as $$
+  select public.can_view_debate(p_debate_id)
+    and (
+      p_hidden_at is null
+      or p_author = (select auth.uid())
+      or exists (select 1 from public.debates d where d.id = p_debate_id and d.user_id = (select auth.uid()))
+    );
+$$;
+revoke all on function public.debate_can_see_answer(uuid, uuid, timestamptz) from public, anon;
+grant execute on function public.debate_can_see_answer(uuid, uuid, timestamptz) to authenticated, service_role;
+
 create policy debate_answers_select_viewable on public.debate_answers
-  for select to authenticated using (public.can_view_debate(debate_id));
+  for select to authenticated using (public.debate_can_see_answer(debate_id, user_id, hidden_at));
 create policy debate_moves_select_viewable on public.debate_moves
   for select to authenticated using (
     exists (select 1 from public.debate_answers a where a.id = answer_id and public.can_view_debate(a.debate_id))
@@ -328,8 +342,9 @@ declare
   v_id uuid;
 begin
   perform public.assert_account_active();
-  select id, debate_id, parent_id, deleted_at into v_parent from public.debate_answers where id = p_answer_id;
-  if not found or v_parent.deleted_at is not null or not public.can_view_debate(v_parent.debate_id) then
+  select id, debate_id, parent_id, deleted_at, user_id, hidden_at into v_parent from public.debate_answers where id = p_answer_id;
+  if not found or v_parent.deleted_at is not null
+     or not public.debate_can_see_answer(v_parent.debate_id, v_parent.user_id, v_parent.hidden_at) then
     raise exception 'not_found';
   end if;
   if v_parent.parent_id is not null then raise exception 'nested_reply'; end if;
@@ -395,9 +410,11 @@ declare
   v_count int;
 begin
   perform public.assert_account_active();
-  select id, debate_id, user_id into v_row from public.debate_answers
+  select id, debate_id, user_id, hidden_at into v_row from public.debate_answers
   where id = p_answer_id and parent_id is null and deleted_at is null;
-  if not found or not public.can_view_debate(v_row.debate_id) then raise exception 'not_found'; end if;
+  if not found or not public.debate_can_see_answer(v_row.debate_id, v_row.user_id, v_row.hidden_at) then
+    raise exception 'not_found';
+  end if;
   if v_row.user_id = v_uid then raise exception 'own_answer'; end if;
   if coalesce(p_on, false) then
     insert into public.debate_moves (answer_id, user_id) values (p_answer_id, v_uid) on conflict do nothing;
@@ -419,5 +436,119 @@ grant execute on function public.add_debate_reply(uuid, text) to authenticated, 
 grant execute on function public.edit_debate_answer(uuid, text, text) to authenticated, service_role;
 grant execute on function public.delete_debate_answer(uuid) to authenticated, service_role;
 grant execute on function public.set_debate_move(uuid, boolean) to authenticated, service_role;
+
+-- ── 정리·숨기기·신고 ─────────────────────────────────────────
+-- 신고: 운영자가 service_role로 확인한다. 일반 사용자는 읽지도 직접 쓰지도 못한다.
+create table public.debate_reports (
+  id uuid primary key default gen_random_uuid(),
+  reporter_id uuid not null references public.profiles (id) on delete cascade,
+  debate_id uuid not null references public.debates (id) on delete cascade,
+  answer_id uuid references public.debate_answers (id) on delete cascade,
+  reason text not null check (reason in ('abuse', 'spam', 'privacy', 'other')),
+  memo text,
+  created_at timestamptz not null default now(),
+  unique nulls not distinct (reporter_id, debate_id, answer_id)
+);
+create index debate_reports_created_idx on public.debate_reports (created_at desc);
+create index debate_reports_answer_idx on public.debate_reports (answer_id) where answer_id is not null;
+alter table public.debate_reports enable row level security;
+revoke all on public.debate_reports from public, anon, authenticated;
+grant all on public.debate_reports to service_role;
+
+-- 정리하기·정리 고치기. 처음 정리할 때 닫는다(닫힌 시각은 고쳐도 그대로).
+-- 짚는 답은 0~2개, 같은 토론의 지우지 않은 답(답글 아님)만.
+create function public.set_debate_summary(p_id uuid, p_summary text, p_answer_ids uuid[])
+returns void
+language plpgsql security definer set search_path = '' as $$
+declare
+  v_summary text := btrim(coalesce(p_summary, ''));
+  v_pins uuid[] := coalesce(p_answer_ids, '{}');
+begin
+  perform public.assert_account_active();
+  if not exists (
+    select 1 from public.debates where id = p_id and user_id = (select auth.uid())
+  ) or not public.can_view_debate(p_id) then
+    raise exception 'not_found';
+  end if;
+  if char_length(v_summary) = 0 or char_length(v_summary) > 2000 then raise exception 'invalid_summary'; end if;
+  if cardinality(v_pins) > 2
+     or cardinality(v_pins) <> (select count(distinct x) from unnest(v_pins) x)
+     or exists (
+       select 1 from unnest(v_pins) x
+       where not exists (
+         select 1 from public.debate_answers a
+         where a.id = x and a.debate_id = p_id and a.parent_id is null and a.deleted_at is null
+       )
+     ) then
+    raise exception 'invalid_pins';
+  end if;
+  update public.debates
+  set summary = v_summary, summary_answer_ids = v_pins, closed_at = coalesce(closed_at, now()), updated_at = now()
+  where id = p_id;
+end;
+$$;
+
+-- 정리를 지우면 다시 열린다.
+create function public.clear_debate_summary(p_id uuid)
+returns void
+language plpgsql security definer set search_path = '' as $$
+begin
+  perform public.assert_account_active();
+  update public.debates
+  set summary = null, summary_answer_ids = '{}', closed_at = null, updated_at = now()
+  where id = p_id and user_id = (select auth.uid());
+  if not found then raise exception 'not_found'; end if;
+end;
+$$;
+
+-- 숨기기: 발제자만, 답과 답글 모두.
+create function public.set_debate_answer_hidden(p_answer_id uuid, p_hidden boolean)
+returns void
+language plpgsql security definer set search_path = '' as $$
+begin
+  perform public.assert_account_active();
+  update public.debate_answers a
+  set hidden_at = case when coalesce(p_hidden, false) then coalesce(a.hidden_at, now()) end
+  from public.debates d
+  where a.id = p_answer_id and d.id = a.debate_id and d.user_id = (select auth.uid());
+  if not found then raise exception 'not_found'; end if;
+end;
+$$;
+
+-- 신고: 볼 수 있는 토론이나 그 안의 보이는 답(답글 포함). 같은 대상은 한 번.
+create function public.report_debate(p_debate_id uuid, p_answer_id uuid, p_reason text, p_memo text)
+returns void
+language plpgsql security definer set search_path = '' as $$
+declare
+  v_memo text := nullif(btrim(coalesce(p_memo, '')), '');
+begin
+  perform public.assert_account_active();
+  if not public.can_view_debate(p_debate_id) then raise exception 'not_found'; end if;
+  if p_answer_id is not null and not exists (
+    select 1 from public.debate_answers a
+    where a.id = p_answer_id and a.debate_id = p_debate_id
+      and public.debate_can_see_answer(a.debate_id, a.user_id, a.hidden_at)
+  ) then
+    raise exception 'not_found';
+  end if;
+  if p_reason is null or p_reason not in ('abuse', 'spam', 'privacy', 'other')
+     or char_length(coalesce(v_memo, '')) > 500 then
+    raise exception 'invalid_reason';
+  end if;
+  insert into public.debate_reports (reporter_id, debate_id, answer_id, reason, memo)
+  values ((select auth.uid()), p_debate_id, p_answer_id, p_reason, v_memo);
+exception when unique_violation then
+  raise exception 'already_reported';
+end;
+$$;
+
+revoke all on function public.set_debate_summary(uuid, text, uuid[]) from public, anon;
+revoke all on function public.clear_debate_summary(uuid) from public, anon;
+revoke all on function public.set_debate_answer_hidden(uuid, boolean) from public, anon;
+revoke all on function public.report_debate(uuid, uuid, text, text) from public, anon;
+grant execute on function public.set_debate_summary(uuid, text, uuid[]) to authenticated, service_role;
+grant execute on function public.clear_debate_summary(uuid) to authenticated, service_role;
+grant execute on function public.set_debate_answer_hidden(uuid, boolean) to authenticated, service_role;
+grant execute on function public.report_debate(uuid, uuid, text, text) to authenticated, service_role;
 
 commit;

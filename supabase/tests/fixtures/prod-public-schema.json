@@ -8,6 +8,7 @@
     "comments",
     "debate_answers",
     "debate_moves",
+    "debate_reports",
     "debate_underlines",
     "debates",
     "email_consent_events",
@@ -276,6 +277,15 @@
     "debate_moves": [
       ["answer_id", "uuid", "NO", null],
       ["user_id", "uuid", "NO", null],
+      ["created_at", "timestamp with time zone", "NO", "now()"]
+    ],
+    "debate_reports": [
+      ["id", "uuid", "NO", "gen_random_uuid()"],
+      ["reporter_id", "uuid", "NO", null],
+      ["debate_id", "uuid", "NO", null],
+      ["answer_id", "uuid", "YES", null],
+      ["reason", "text", "NO", null],
+      ["memo", "text", "YES", null],
       ["created_at", "timestamp with time zone", "NO", "now()"]
     ],
     "debate_underlines": [
@@ -743,6 +753,34 @@
         "FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE"
       ]
     ],
+    "debate_reports": [
+      [
+        "debate_reports_answer_id_fkey",
+        "f",
+        "FOREIGN KEY (answer_id) REFERENCES debate_answers(id) ON DELETE CASCADE"
+      ],
+      [
+        "debate_reports_debate_id_fkey",
+        "f",
+        "FOREIGN KEY (debate_id) REFERENCES debates(id) ON DELETE CASCADE"
+      ],
+      ["debate_reports_pkey", "p", "PRIMARY KEY (id)"],
+      [
+        "debate_reports_reason_check",
+        "c",
+        "CHECK ((reason = ANY (ARRAY['abuse'::text, 'spam'::text, 'privacy'::text, 'other'::text])))"
+      ],
+      [
+        "debate_reports_reporter_id_debate_id_answer_id_key",
+        "u",
+        "UNIQUE NULLS NOT DISTINCT (reporter_id, debate_id, answer_id)"
+      ],
+      [
+        "debate_reports_reporter_id_fkey",
+        "f",
+        "FOREIGN KEY (reporter_id) REFERENCES profiles(id) ON DELETE CASCADE"
+      ]
+    ],
     "debate_underlines": [
       ["debate_underlines_check", "c", "CHECK ((end_at >= start_at))"],
       [
@@ -842,6 +880,12 @@
       "debate_answers_user_idx"
     ],
     "debate_moves": ["debate_moves_pkey", "debate_moves_user_idx"],
+    "debate_reports": [
+      "debate_reports_answer_idx",
+      "debate_reports_created_idx",
+      "debate_reports_pkey",
+      "debate_reports_reporter_id_debate_id_answer_id_key"
+    ],
     "debate_underlines": ["debate_underlines_pkey"],
     "debates": ["debates_pkey", "debates_source_entry_idx", "debates_user_created_idx"]
   },
@@ -853,6 +897,7 @@
     "comments",
     "debate_answers",
     "debate_moves",
+    "debate_reports",
     "debate_underlines",
     "debates",
     "email_consent_events",
@@ -1022,6 +1067,11 @@
     "debate_moves": {
       "anon": [],
       "authenticated": ["select"],
+      "service_role": ["delete", "insert", "select", "update"]
+    },
+    "debate_reports": {
+      "anon": [],
+      "authenticated": [],
       "service_role": ["delete", "insert", "select", "update"]
     },
     "debate_underlines": {
@@ -1216,10 +1266,15 @@
     ["claim_marketing_email", "p_user uuid, p_id uuid, p_content_hash text, p_token_hash text"],
     ["claim_push_batch", "p_limit integer"],
     ["claim_push_test", "p_user uuid, p_endpoint text"],
+    ["clear_debate_summary", "p_id uuid"],
     ["clear_private_entry_share", ""],
     ["count_entry_debates", "p_entry_id uuid"],
     ["create_debate", "p_entry_id uuid, p_question text, p_underlines jsonb"],
     ["debate_assert_open", "p_debate_id uuid"],
+    [
+      "debate_can_see_answer",
+      "p_debate_id uuid, p_author uuid, p_hidden_at timestamp with time zone"
+    ],
     ["debate_clean_body", "p_body text"],
     ["debate_clean_question", "p_question text"],
     ["delete_debate", "p_id uuid"],
@@ -1285,6 +1340,7 @@
       "register_book_idempotently",
       "p_request_id uuid, p_title text, p_author text, p_total_pages integer, p_isbn text, p_cover_url text"
     ],
+    ["report_debate", "p_debate_id uuid, p_answer_id uuid, p_reason text, p_memo text"],
     ["request_account_deletion", "p_user uuid"],
     ["retract_like_notification", "p_entry_id uuid"],
     ["retract_monthly_excerpt_like_notification", "p_excerpt_id uuid"],
@@ -1304,7 +1360,9 @@
       "search_library",
       "p_query text, p_kind text, p_book_id uuid, p_from date, p_to date, p_cursor jsonb"
     ],
+    ["set_debate_answer_hidden", "p_answer_id uuid, p_hidden boolean"],
     ["set_debate_move", "p_answer_id uuid, p_on boolean"],
+    ["set_debate_summary", "p_id uuid, p_summary text, p_answer_ids uuid[]"],
     ["set_monthly_excerpt_shared", "p_id uuid, p_is_shared boolean"],
     ["set_monthly_sentence", "p_month text, p_entry_id uuid"],
     ["set_monthly_sentence_rule", "p_rule text"],
