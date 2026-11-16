@@ -639,6 +639,15 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      // 문장 토론(20261117090000). 테이블은 RPC로만 다루므로 함수만 적는다.
+      can_view_debate: { Args: { p_id: string }; Returns: boolean };
+      create_debate: {
+        Args: { p_entry_id: string; p_question: string; p_underlines: Json };
+        Returns: string;
+      };
+      update_debate_question: { Args: { p_id: string; p_question: string }; Returns: undefined };
+      delete_debate: { Args: { p_id: string }; Returns: undefined };
+      count_entry_debates: { Args: { p_entry_id: string }; Returns: number };
       mutate_entry_with_reflection_ack: {
         Args: {
           p_entry_id: string;

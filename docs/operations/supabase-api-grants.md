@@ -54,6 +54,7 @@ PGLITE_MODULE=/tmp/readiary-grants-sql/node_modules/@electric-sql/pglite/dist/in
 - `20261106130000_social_feed_items.sql`(피드 RPC `get_social_feed_items`, 정의자 함수 `friend_feed_monthly_excerpts`): 프로덕션 미적용. 위와 같이 예상치다.
 - `20261113090000_monthly_sentences.sql`(달마다 한 문장 테이블 2개, 정책 2개, RPC 4개, 내부 함수 3개): 2026-11-13 프로덕션 적용(이력 버전 `20261113125542`). 적용 직후 읽기 전용 조회로 대조했다: 두 테이블 RLS 켜짐·`authenticated`는 `select`만·`anon` 권한 없음, 정책 2개, 함수 7개 모두 정의자·`search_path=""`, 공개 RPC 4개만 `authenticated` 실행 가능, 내부 함수 3개는 `anon`·`authenticated` 모두 불가.
 - `20261115090000_monthly_sentences_no_entries.sql`(`get_monthly_sentences` 본문만 교체, 시그니처·권한 변화 없음): 2026-11-15 프로덕션 적용(이력 버전 `20261115090240`). 적용 직후 롤백되는 읽기 전용 조회로 대조했다: 함수는 하나뿐이고 정의자·`search_path=""`, `authenticated`만 실행 가능·`anon` 불가. 기록이 없는 계정은 본인 응답에 줄 0개·다음 쪽 없음, 기록이 가장 많은 계정은 전과 같이 여섯 줄을 받는다(문장 내용은 조회하지 않았다).
+- `20261117090000_debates.sql`(문장 토론): **프로덕션 미적용.** 토론 테이블은 RLS를 켜고 `authenticated`에 `select`만 준다. 쓰기는 모두 정의자·`search_path=""` RPC로만 하며 `anon`은 테이블·함수 모두 권한이 없다. 볼 수 있는지는 `can_view_debate` 한 곳에서 정한다(발제자 본인 또는 발제자의 친구, 발제자 활성). 계약: `supabase/tests/debates_*_contract.sql`.
 
 #### 탈퇴 마이그레이션: 2026-11-12 프로덕션 적용
 
