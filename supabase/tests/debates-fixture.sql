@@ -86,3 +86,11 @@ insert into public.entries(id, user_book_id, date, quote, note, from_page, to_pa
   (t.id(103), t.id(11), '2026-11-03', '🙂 가나다', null, null, null, true),
   (t.id(201), t.id(21), '2026-11-04', '사랑은 가지는 것이 아니라 하는 것이다.', 'B의 비밀 생각', 96, 97, true),
   (t.id(202), t.id(21), '2026-11-05', null, 'B의 생각만', null, null, false);
+
+-- 검증용 창: 토론 테이블은 authenticated가 직접 읽지 못한다(RPC로만 읽는다).
+-- 계약 SQL이 저장된 값을 확인할 때만 소유자 권한으로 도는 이 뷰를 쓴다.
+create view t.debates as select * from public.debates;
+create view t.debate_underlines as select * from public.debate_underlines;
+create view t.debate_answers as select * from public.debate_answers;
+create view t.debate_moves as select * from public.debate_moves;
+grant select on t.debates, t.debate_underlines, t.debate_answers, t.debate_moves to authenticated;

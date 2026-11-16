@@ -9,7 +9,8 @@ declare
 begin
   foreach tbl in array array['public.debates', 'public.debate_underlines'] loop
     if has_table_privilege('anon', tbl, 'select') then raise exception 'anon must not read %', tbl; end if;
-    if not has_table_privilege('authenticated', tbl, 'select') then raise exception 'authenticated reads %', tbl; end if;
+    -- 읽기도 RPC로만: 테이블을 직접 읽으면 RPC가 가리는 것(떠난 사람의 본문, 누른 사람 등)이 새어 나간다
+    if has_table_privilege('authenticated', tbl, 'select') then raise exception 'authenticated must not read % directly', tbl; end if;
     if has_table_privilege('authenticated', tbl, 'insert') or has_table_privilege('authenticated', tbl, 'update')
        or has_table_privilege('authenticated', tbl, 'delete') then
       raise exception 'writes to % go through RPCs only', tbl;
@@ -49,7 +50,7 @@ begin
   perform set_config('t.debate', d::text, false);
 
   select quote, book_title, book_author, page_from, page_to, question, source_entry_id, user_id
-    into r from public.debates where id = d;
+    into r from t.debates where id = d;
   perform t.eq('quote fixed', to_jsonb(r.quote), to_jsonb('경계와 문턱이 사라짐과 동시에 타자에 대한 환상도 사라진다.'::text));
   perform t.eq('book fixed', to_jsonb(array[r.book_title, r.book_author]), to_jsonb(array['에로스의 종말', '한병철']));
   perform t.eq('pages fixed', to_jsonb(array[r.page_from, r.page_to]), '[42, null]');
@@ -57,7 +58,7 @@ begin
   perform t.eq('source', to_jsonb(r.source_entry_id), to_jsonb(t.id(101)));
   perform t.eq('underlines',
     (select jsonb_agg(jsonb_build_array(position, start_at, end_at) order by position)
-       from public.debate_underlines where debate_id = d),
+       from t.debate_underlines where debate_id = d),
     '[[1,0,5],[2,17,25]]');
 
   -- 밑줄 0개도 된다
@@ -92,7 +93,7 @@ begin
   d := public.create_debate(t.id(103), '이모지', '[{"start":2,"end":3}]'::jsonb);
   perform t.eq('code point substring',
     (select to_jsonb(substr(x.quote, u.start_at + 1, u.end_at - u.start_at + 1))
-       from public.debates x join public.debate_underlines u on u.debate_id = x.id where x.id = d),
+       from t.debates x join t.debate_underlines u on u.debate_id = x.id where x.id = d),
     '"가나"');
   -- 마지막 글자까지가 범위 안이다(🙂 가나다 = 5글자, 0..4)
   perform public.create_debate(t.id(103), '끝까지', '[{"start":4,"end":4}]'::jsonb);
@@ -105,16 +106,14 @@ declare d uuid := current_setting('t.debate')::uuid;
 begin
   perform t.as_user(t.id(1)); perform t.eq('owner sees', to_jsonb(public.can_view_debate(d)), 'true');
   perform t.as_user(t.id(2)); perform t.eq('friend B sees', to_jsonb(public.can_view_debate(d)), 'true');
-  perform t.eq('B reads row', to_jsonb(t.seen_count('debates', format('id = %L', d))), '1');
-  perform t.eq('B reads underlines', to_jsonb(t.seen_count('debate_underlines', format('debate_id = %L', d))), '2');
+  perform t.eq('B cannot read table', to_jsonb(t.err('select count(*) from public.debates')), '"42501"');
   perform t.as_user(t.id(6)); perform t.eq('friend F sees', to_jsonb(public.can_view_debate(d)), 'true');
   perform t.as_user(t.id(3)); perform t.eq('stranger C', to_jsonb(public.can_view_debate(d)), 'false');
-  perform t.eq('C reads nothing', to_jsonb(t.seen_count('debates')), '0');
-  perform t.eq('C reads no underlines', to_jsonb(t.seen_count('debate_underlines')), '0');
+  perform t.eq('C cannot read underlines', to_jsonb(t.err('select count(*) from public.debate_underlines')), '"42501"');
   -- 직접 쓰기는 권한이 없다
   perform t.as_user(t.id(1));
   perform t.eq('no direct insert', to_jsonb(t.err(format(
-    'insert into public.debates(user_id, quote, book_title, question) values (%L, %L, %L, %L)', t.id(1), 'x', 'y', 'z'))), '"42501"');
+    'insert into t.debates(user_id, quote, book_title, question) values (%L, %L, %L, %L)', t.id(1), 'x', 'y', 'z'))), '"42501"');
   perform t.eq('no direct update', to_jsonb(t.err(format('update public.debates set question = %L where id = %L', 'x', d))), '"42501"');
   perform t.eq('no direct delete', to_jsonb(t.err(format('delete from public.debates where id = %L', d))), '"42501"');
 end $$;
@@ -161,7 +160,7 @@ begin
 
   perform t.as_user(t.id(1));
   perform public.update_debate_question(d, '고친 질문');
-  perform t.eq('question edited', to_jsonb((select question from public.debates where id = d)), '"고친 질문"');
+  perform t.eq('question edited', to_jsonb((select question from t.debates where id = d)), '"고친 질문"');
   perform t.eq('empty edit', to_jsonb(t.err(format('select public.update_debate_question(%L, %L)', d, ''))), '"invalid_question"');
   perform t.eq('A counts', to_jsonb(public.count_entry_debates(t.id(101))), '2');
 end $$;
@@ -169,7 +168,7 @@ reset role;
 
 -- 원래 기록을 고쳐도 토론 문장은 그대로
 update public.entries set quote = '바뀐 문장' where id = t.id(101);
-select t.eq('quote stays', to_jsonb((select quote from public.debates where id = current_setting('t.debate')::uuid)),
+select t.eq('quote stays', to_jsonb((select quote from t.debates where id = current_setting('t.debate')::uuid)),
   to_jsonb('경계와 문턱이 사라짐과 동시에 타자에 대한 환상도 사라진다.'::text));
 
 -- 발제자가 지운다

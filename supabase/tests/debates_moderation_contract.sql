@@ -46,22 +46,22 @@ begin
   perform t.eq('B cannot hide', to_jsonb(t.err(format('select public.set_debate_answer_hidden(%L, true)', b1))), '"not_found"');
   perform t.as_user(t.id(1));
   perform public.set_debate_answer_hidden(b1, true);
-  perform t.eq('owner still sees hidden', to_jsonb(t.seen_count('debate_answers', format('id = %L', b1))), '1');
+  perform t.eq('owner still sees hidden', (select count(*)::int from jsonb_array_elements(public.get_debate_answers(current_setting('t.d')::uuid, 1::smallint, false, 0, 30) -> 'answers') x where x ->> 'id' = b1::text), '1');
   perform t.as_user(t.id(2));
-  perform t.eq('author still sees hidden', to_jsonb(t.seen_count('debate_answers', format('id = %L', b1))), '1');
+  perform t.eq('author still sees hidden', (select count(*)::int from jsonb_array_elements(public.get_debate_answers(current_setting('t.d')::uuid, 1::smallint, false, 0, 30) -> 'answers') x where x ->> 'id' = b1::text), '1');
   perform t.as_user(t.id(6));
-  perform t.eq('others do not see hidden', to_jsonb(t.seen_count('debate_answers', format('id = %L', b1))), '0');
+  perform t.eq('others do not see hidden', (select count(*)::int from jsonb_array_elements(public.get_debate_answers(current_setting('t.d')::uuid, 1::smallint, false, 0, 30) -> 'answers') x where x ->> 'id' = b1::text), '0');
   perform t.eq('others cannot move hidden', to_jsonb(t.err(format('select public.set_debate_move(%L, true)', b1))), '"not_found"');
   perform t.eq('others cannot reply hidden', to_jsonb(t.err(format('select public.add_debate_reply(%L, %L)', b1, 'x'))), '"not_found"');
   perform t.as_user(t.id(1));
   perform public.set_debate_answer_hidden(b1, false);
   perform t.as_user(t.id(6));
-  perform t.eq('unhidden is back', to_jsonb(t.seen_count('debate_answers', format('id = %L', b1))), '1');
+  perform t.eq('unhidden is back', (select count(*)::int from jsonb_array_elements(public.get_debate_answers(current_setting('t.d')::uuid, 1::smallint, false, 0, 30) -> 'answers') x where x ->> 'id' = b1::text), '1');
   -- 답글도 숨길 수 있다
   perform t.as_user(t.id(1));
   perform public.set_debate_answer_hidden(current_setting('t.fr')::uuid, true);
   perform t.as_user(t.id(2));
-  perform t.eq('hidden reply', to_jsonb(t.seen_count('debate_answers', format('id = %L', current_setting('t.fr')))), '0');
+  perform t.eq('hidden reply', (select count(*)::int from jsonb_array_elements(public.get_debate_replies(current_setting('t.b1')::uuid)) x where x ->> 'id' = current_setting('t.fr')), '0');
   perform t.as_user(t.id(1));
   perform public.set_debate_answer_hidden(current_setting('t.fr')::uuid, false);
 end $$;
@@ -106,7 +106,7 @@ begin
     array[current_setting('t.fr')::uuid]))), '"invalid_pins"');
   perform public.set_debate_summary(d, '  환상을 비우는 쪽으로 모였어요.  ', array[b1, f1]);
   perform t.eq('closed with summary', (select to_jsonb(array[summary, (closed_at is not null)::text, array_length(summary_answer_ids, 1)::text])
-    from public.debates where id = d), '["환상을 비우는 쪽으로 모였어요.","true","2"]');
+    from t.debates where id = d), '["환상을 비우는 쪽으로 모였어요.","true","2"]');
 end $$;
 
 -- ── 닫힌 토론: 새 답·답글·고치기는 막고, 지우기와 생각이 바뀌었어요는 된다 ─
@@ -126,14 +126,14 @@ begin
 
   -- 정리 고치기는 닫힌 시각을 바꾸지 않는다
   perform t.as_user(t.id(1));
-  select closed_at into closed_at_before from public.debates where id = d;
+  select closed_at into closed_at_before from t.debates where id = d;
   perform public.set_debate_summary(d, '고친 정리', array[b1]);
-  perform t.eq('closed_at kept', to_jsonb((select closed_at = closed_at_before from public.debates where id = d)), 'true');
+  perform t.eq('closed_at kept', to_jsonb((select closed_at = closed_at_before from t.debates where id = d)), 'true');
 
   -- 다시 열면 고칠 수 있다
   perform public.clear_debate_summary(d);
   perform t.eq('reopened', (select to_jsonb(array[(summary is null)::text, (closed_at is null)::text, coalesce(array_length(summary_answer_ids, 1), 0)::text])
-    from public.debates where id = d), '["true","true","0"]');
+    from t.debates where id = d), '["true","true","0"]');
   perform t.as_user(t.id(2));
   perform public.edit_debate_answer(b1, 'agree', '다시 열린 뒤 고침');
   perform t.as_user(t.id(6));

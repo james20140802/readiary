@@ -1062,12 +1062,12 @@
     },
     "debate_answers": {
       "anon": [],
-      "authenticated": ["select"],
+      "authenticated": [],
       "service_role": ["delete", "insert", "select", "update"]
     },
     "debate_moves": {
       "anon": [],
-      "authenticated": ["select"],
+      "authenticated": [],
       "service_role": ["delete", "insert", "select", "update"]
     },
     "debate_reports": {
@@ -1077,12 +1077,12 @@
     },
     "debate_underlines": {
       "anon": [],
-      "authenticated": ["select"],
+      "authenticated": [],
       "service_role": ["delete", "insert", "select", "update"]
     },
     "debates": {
       "anon": [],
-      "authenticated": ["select"],
+      "authenticated": [],
       "service_role": ["delete", "insert", "select", "update"]
     }
   },
@@ -1115,10 +1115,6 @@
     ["comments", "comments_insert_own_on_visible_entry", "INSERT", "{authenticated}"],
     ["comments", "comments_insert_requires_active", "INSERT", "{authenticated}"],
     ["comments", "comments_select_visible_entry", "SELECT", "{authenticated}"],
-    ["debate_answers", "debate_answers_select_viewable", "SELECT", "{authenticated}"],
-    ["debate_moves", "debate_moves_select_viewable", "SELECT", "{authenticated}"],
-    ["debate_underlines", "debate_underlines_select_viewable", "SELECT", "{authenticated}"],
-    ["debates", "debates_select_viewable", "SELECT", "{authenticated}"],
     ["email_consent_events", "email_events_owner", "SELECT", "{authenticated}"],
     ["email_preferences", "email_preferences_owner", "SELECT", "{authenticated}"],
     ["entries", "entries_delete_own", "DELETE", "{authenticated}"],

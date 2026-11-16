@@ -1,7 +1,9 @@
 -- 문장 토론. 발제자가 자기 기록의 문장을 고정해 밑줄(0~3개)과 질문을 붙이고, 발제자의 친구들이 답한다.
 -- 설계: docs/superpowers/specs/2026-11-17-sentence-debate-design.md
 -- 볼 수 있는지는 can_view_debate 한 곳에서 정한다(발제자 본인 또는 발제자의 친구, 발제자는 활성 계정).
--- 모든 쓰기는 security definer RPC로만 한다. 테이블에는 읽기 권한만 준다.
+-- 읽기와 쓰기 모두 security definer RPC로만 한다. 테이블에는 authenticated 권한을 주지 않는다 —
+-- 직접 읽으면 RPC가 가리는 것(떠난 사람의 본문, 생각이 바뀌었다고 누른 사람, 숨긴 답 아래 답글)이 새어 나간다.
+-- RLS는 켜 두고 정책을 두지 않아, 권한이 생기더라도 기본은 거부다.
 -- 새 테이블·함수만 더하므로 옛 코드가 돌아가는 동안 먼저 적용해도 안전하다.
 begin;
 
@@ -43,8 +45,6 @@ alter table public.debate_underlines enable row level security;
 
 revoke all on public.debates from public, anon, authenticated;
 revoke all on public.debate_underlines from public, anon, authenticated;
-grant select on public.debates to authenticated;
-grant select on public.debate_underlines to authenticated;
 grant all on public.debates to service_role;
 grant all on public.debate_underlines to service_role;
 
@@ -62,10 +62,6 @@ $$;
 revoke all on function public.can_view_debate(uuid) from public, anon;
 grant execute on function public.can_view_debate(uuid) to authenticated, service_role;
 
-create policy debates_select_viewable on public.debates
-  for select to authenticated using (public.can_view_debate(id));
-create policy debate_underlines_select_viewable on public.debate_underlines
-  for select to authenticated using (public.can_view_debate(debate_id));
 
 -- 질문 검증: 앞뒤 공백을 걷은 1~500자.
 create function public.debate_clean_question(p_question text)
@@ -236,12 +232,10 @@ alter table public.debate_answers enable row level security;
 alter table public.debate_moves enable row level security;
 revoke all on public.debate_answers from public, anon, authenticated;
 revoke all on public.debate_moves from public, anon, authenticated;
-grant select on public.debate_answers to authenticated;
-grant select on public.debate_moves to authenticated;
 grant all on public.debate_answers to service_role;
 grant all on public.debate_moves to service_role;
 
--- 답이 보이는가: 토론을 볼 수 있고, 숨긴 답이면 쓴 사람이나 발제자일 때만.
+-- 답이 보이는가: 토론을 볼 수 있고, 숨긴 답이면 쓴 사람이나 발제자일 때만. 읽기·쓰기 RPC가 함께 쓴다.
 create function public.debate_can_see_answer(p_debate_id uuid, p_author uuid, p_hidden_at timestamptz)
 returns boolean
 language sql stable security definer set search_path = '' as $$
@@ -255,12 +249,6 @@ $$;
 revoke all on function public.debate_can_see_answer(uuid, uuid, timestamptz) from public, anon;
 grant execute on function public.debate_can_see_answer(uuid, uuid, timestamptz) to authenticated, service_role;
 
-create policy debate_answers_select_viewable on public.debate_answers
-  for select to authenticated using (public.debate_can_see_answer(debate_id, user_id, hidden_at));
-create policy debate_moves_select_viewable on public.debate_moves
-  for select to authenticated using (
-    exists (select 1 from public.debate_answers a where a.id = answer_id and public.can_view_debate(a.debate_id))
-  );
 
 -- 본문 검증: 앞뒤 공백을 걷은 1~2000자.
 create function public.debate_clean_body(p_body text)

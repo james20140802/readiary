@@ -8,7 +8,7 @@ declare
 begin
   foreach tbl in array array['public.debate_answers', 'public.debate_moves'] loop
     if has_table_privilege('anon', tbl, 'select') then raise exception 'anon must not read %', tbl; end if;
-    if not has_table_privilege('authenticated', tbl, 'select') then raise exception 'authenticated reads %', tbl; end if;
+    if has_table_privilege('authenticated', tbl, 'select') then raise exception 'authenticated must not read % directly', tbl; end if;
     if has_table_privilege('authenticated', tbl, 'insert') or has_table_privilege('authenticated', tbl, 'update')
        or has_table_privilege('authenticated', tbl, 'delete') then
       raise exception 'writes to % go through RPCs only', tbl;
@@ -51,13 +51,13 @@ begin
   perform t.as_user(t.id(2));
   a := public.add_debate_answer(d, 2::smallint, 'differ', '  사라지는 건 상상 속의 상대뿐이에요.  ', null);
   perform set_config('t.a', a::text, false);
-  select underline_position, stance, body, user_id, parent_id into r from public.debate_answers where id = a;
+  select underline_position, stance, body, user_id, parent_id into r from t.debate_answers where id = a;
   perform t.eq('answer row', to_jsonb(array[r.underline_position::text, r.stance, r.body, r.user_id::text]),
     to_jsonb(array['2', 'differ', '사라지는 건 상상 속의 상대뿐이에요.', t.id(2)::text]));
 
   -- 문장 전체에 답하기
   perform set_config('t.whole', public.add_debate_answer(d, null, 'question', '여기서 타자는 연인만일까요?', null)::text, false);
-  perform t.eq('whole sentence', to_jsonb((select underline_position is null from public.debate_answers where id = current_setting('t.whole')::uuid)), 'true');
+  perform t.eq('whole sentence', to_jsonb((select underline_position is null from t.debate_answers where id = current_setting('t.whole')::uuid)), 'true');
 
   perform t.eq('missing underline', to_jsonb(t.err(format('select public.add_debate_answer(%L, 3::smallint, %L, %L, null)', d, 'agree', 'x'))), '"invalid_underline"');
   perform t.eq('no stance', to_jsonb(t.err(format('select public.add_debate_answer(%L, 1::smallint, null, %L, null)', d, 'x'))), '"invalid_stance"');
@@ -67,12 +67,13 @@ begin
 
   perform t.as_user(t.id(3));
   perform t.eq('stranger cannot answer', to_jsonb(t.err(format('select public.add_debate_answer(%L, 1::smallint, %L, %L, null)', d, 'agree', 'x'))), '"not_found"');
-  perform t.eq('stranger sees no answers', to_jsonb(t.seen_count('debate_answers')), '0');
+  perform t.eq('no direct read of answers', to_jsonb(t.err('select count(*) from public.debate_answers')), '"42501"');
+  perform t.eq('no direct read of moves', to_jsonb(t.err('select count(*) from public.debate_moves')), '"42501"');
 
   perform t.as_user(t.id(6));
-  perform t.eq('F sees B answer', to_jsonb(t.seen_count('debate_answers', format('id = %L', a))), '1');
+  perform t.eq('F sees B answer', jsonb_array_length(public.get_debate_answers(d, 2::smallint, false, 0, 10) -> 'answers'), '1');
   perform t.eq('no direct insert', to_jsonb(t.err(format(
-    'insert into public.debate_answers(debate_id, user_id, stance, body) values (%L, %L, %L, %L)', d, t.id(6), 'agree', 'x'))), '"42501"');
+    'insert into t.debate_answers(debate_id, user_id, stance, body) values (%L, %L, %L, %L)', d, t.id(6), 'agree', 'x'))), '"42501"');
 end $$;
 
 -- ── 근거 기록: 비공개 기록도 붙이되 문장·책·쪽수만 고정한다 ─
@@ -85,7 +86,7 @@ begin
   perform t.as_user(t.id(2));
   a := public.add_debate_answer(d, 1::smallint, 'agree', '근거와 함께', t.id(201));
   select evidence_quote, evidence_book_title, evidence_book_author, evidence_page_from, evidence_page_to, evidence_entry_id
-    into r from public.debate_answers where id = a;
+    into r from t.debate_answers where id = a;
   perform t.eq('evidence copy', to_jsonb(array[r.evidence_quote, r.evidence_book_title, r.evidence_book_author,
       r.evidence_page_from::text, r.evidence_page_to::text, r.evidence_entry_id::text]),
     to_jsonb(array['사랑은 가지는 것이 아니라 하는 것이다.', '소유냐 존재냐', '에리히 프롬', '96', '97', t.id(201)::text]));
@@ -104,8 +105,8 @@ begin
   perform t.as_user(t.id(6));
   rp := public.add_debate_reply(a, '그렇게 보면 비우는 거네요.');
   perform set_config('t.reply', rp::text, false);
-  perform t.eq('reply has no stance', to_jsonb((select stance is null from public.debate_answers where id = rp)), 'true');
-  perform t.eq('reply same debate', to_jsonb((select debate_id = current_setting('t.d')::uuid from public.debate_answers where id = rp)), 'true');
+  perform t.eq('reply has no stance', to_jsonb((select stance is null from t.debate_answers where id = rp)), 'true');
+  perform t.eq('reply same debate', to_jsonb((select debate_id = current_setting('t.d')::uuid from t.debate_answers where id = rp)), 'true');
   perform t.eq('no nested reply', to_jsonb(t.err(format('select public.add_debate_reply(%L, %L)', rp, 'x'))), '"nested_reply"');
   perform t.eq('empty reply', to_jsonb(t.err(format('select public.add_debate_reply(%L, %L)', a, ''))), '"invalid_body"');
   perform t.as_user(t.id(3));
@@ -142,7 +143,7 @@ begin
 
   perform t.as_user(t.id(2));
   perform public.edit_debate_answer(a, 'agree', '고친 답');
-  select stance, body, edited_at is not null as edited into r from public.debate_answers where id = a;
+  select stance, body, edited_at is not null as edited into r from t.debate_answers where id = a;
   perform t.eq('edited', to_jsonb(array[r.stance, r.body, r.edited::text]), '["agree","고친 답","true"]');
   perform t.eq('edit needs stance', to_jsonb(t.err(format('select public.edit_debate_answer(%L, null, %L)', a, 'x'))), '"invalid_stance"');
 
@@ -153,7 +154,7 @@ begin
   -- 답글이 있는 답을 지우면 자리만 남는다
   perform t.as_user(t.id(2));
   perform public.delete_debate_answer(a);
-  select deleted_at is not null as gone, body, evidence_quote into r from public.debate_answers where id = a;
+  select deleted_at is not null as gone, body, evidence_quote into r from t.debate_answers where id = a;
   perform t.eq('soft deleted', to_jsonb(array[r.gone::text, r.body, r.evidence_quote]), '["true", null, null]');
   perform t.eq('reply survives', to_jsonb(t.real_count('debate_answers', format('id = %L', current_setting('t.reply')))), '1');
   perform t.eq('deleted cannot be moved', to_jsonb(t.err(format('select public.set_debate_move(%L, true)', a))), '"not_found"');
