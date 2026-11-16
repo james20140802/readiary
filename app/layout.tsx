@@ -3,7 +3,6 @@ import PushAccountGuard from '@/components/PushAccountGuard';
 import type { Metadata, Viewport } from 'next';
 import { headers } from 'next/headers';
 import './globals.css';
-import { Toaster } from 'sonner';
 import AppShell from '@/components/AppShell';
 import MotionProvider from '@/components/MotionProvider';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
@@ -73,16 +72,6 @@ export default async function RootLayout({
             {children}
           </AppShell>
         </MotionProvider>
-        <Toaster
-          richColors
-          position="top-center"
-          duration={3000}
-          closeButton
-          toastOptions={{
-            className:
-              'text-caption font-sans text-ink bg-card rounded-md border border-hairline px-4 py-3',
-          }}
-        />
       </body>
     </html>
   );

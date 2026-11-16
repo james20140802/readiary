@@ -43,6 +43,7 @@ module.exports = {
         danger: {
           DEFAULT: 'rgb(var(--danger) / <alpha-value>)',
           soft: 'rgb(var(--danger) / 0.08)',
+          'on-ink': 'rgb(var(--danger-on-ink) / <alpha-value>)',
         },
         success: {
           DEFAULT: 'rgb(var(--success) / <alpha-value>)',
