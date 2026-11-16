@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
 import { ChevronDown } from 'lucide-react';
 import { fetchSectionAnswers } from '@/lib/debate/client';
@@ -75,6 +75,17 @@ export default function DebateSection({
       setState('error');
     }
   };
+
+  // 토론을 다시 불러와 단락이 바뀌면, 펼쳐 둔 나머지 답도 첫 쪽부터 다시 가져온다(숨김·고침·지움 반영)
+  const lastSection = useRef(section);
+  useEffect(() => {
+    if (lastSection.current === section) return;
+    lastSection.current = section;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- 서버에서 다시 가져오는 동기화라 effect가 맞다
+    if (state === 'done' || state === 'error') void load(0);
+    // load는 렌더마다 새로 만들어지지만 section이 바뀔 때만 다시 가져오면 된다
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [section]);
 
   const dist = [
     section.agree > 0 && `공감 ${section.agree}`,

@@ -52,14 +52,22 @@ export default function AnswerItem({ debate, answer, label, nested, onChanged }:
   const isMine = answer.author.isMe;
   const isOwner = debate.owner.isMe;
   const [moved, setMoved] = useState({ count: answer.movedCount, byMe: answer.movedByMe });
+  const [revealed, setRevealed] = useState(!answer.reportedByMe);
   const [replies, setReplies] = useState<DebateAnswer[]>(answer.replies ?? []);
+  // 토론을 다시 불러오면 새 답(답글·누른 수·고친 글)으로 맞춘다 — 렌더 중에 이전 값과 비교해 바꾼다
+  const [seen, setSeen] = useState(answer);
+  if (seen !== answer) {
+    setSeen(answer);
+    setReplies(answer.replies ?? []);
+    setMoved({ count: answer.movedCount, byMe: answer.movedByMe });
+    setRevealed(!answer.reportedByMe);
+  }
   const [composer, setComposer] = useState<ComposerTarget | null>(null);
   const [menu, setMenu] = useState(false);
   const [reporting, setReporting] = useState(false);
   const [movers, setMovers] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [revealed, setRevealed] = useState(!answer.reportedByMe);
 
   const gone = answer.deleted || !answer.author.active;
   const canAct = !gone && !answer.hidden;

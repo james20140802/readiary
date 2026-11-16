@@ -80,6 +80,30 @@ describe('DebateSection', () => {
     expect(screen.getAllByText('사라지는 건 상상 속의 상대뿐이에요.')).toHaveLength(1);
   });
 
+  it('토론을 다시 불러오면 펼쳐 둔 나머지 답도 다시 가져온다', async () => {
+    fetchSectionAnswers.mockResolvedValue({
+      answers: [answer({ id: 'a3', body: '셋째 답' })],
+      next: null,
+    });
+    const props = {
+      debate: debate(),
+      expanded: true,
+      onToggle: vi.fn(),
+      onAnswer: vi.fn(),
+      onChanged: vi.fn(),
+    };
+    const view = render(h(DebateSection, { ...props, section: section() }));
+    fireEvent.click(screen.getByRole('button', { name: '나머지 7개 보기' }));
+    expect(await screen.findByText('셋째 답')).toBeTruthy();
+    fetchSectionAnswers.mockResolvedValue({
+      answers: [answer({ id: 'a3', body: '고친 셋째 답' })],
+      next: null,
+    });
+    view.rerender(h(DebateSection, { ...props, section: section() }));
+    expect(await screen.findByText('고친 셋째 답')).toBeTruthy();
+    expect(fetchSectionAnswers).toHaveBeenCalledTimes(2);
+  });
+
   it('답이 없으면 비어 있다고 말하고, 답하기를 누르면 그 밑줄로', () => {
     const onAnswer = vi.fn();
     render(
