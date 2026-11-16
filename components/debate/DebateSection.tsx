@@ -164,7 +164,7 @@ export default function DebateSection({
             <button
               type="button"
               onClick={() => void load(0)}
-              className="min-h-10 py-2 font-sans text-caption font-semibold text-accent"
+              className="block min-h-10 py-2 font-sans text-caption font-semibold text-accent"
             >
               {`나머지 ${rest}개 보기`}
             </button>
@@ -188,7 +188,7 @@ export default function DebateSection({
             <button
               type="button"
               onClick={() => void load(next)}
-              className="min-h-10 py-2 font-sans text-caption font-semibold text-accent"
+              className="block min-h-10 py-2 font-sans text-caption font-semibold text-accent"
             >
               더 보기
             </button>
