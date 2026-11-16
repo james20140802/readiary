@@ -21,7 +21,8 @@ create table public.debates (
   summary text,
   summary_answer_ids uuid[] not null default '{}',
   closed_at timestamptz,
-  created_at timestamptz not null default now(),
+  -- 같은 트랜잭션 안에서도 먼저 남긴 순서가 정해지도록 clock_timestamp()를 쓴다.
+  created_at timestamptz not null default clock_timestamp(),
   updated_at timestamptz not null default now()
 );
 create index debates_user_created_idx on public.debates (user_id, created_at desc);
@@ -207,7 +208,9 @@ create table public.debate_answers (
   hidden_at timestamptz,
   deleted_at timestamptz,
   edited_at timestamptz,
-  created_at timestamptz not null default now(),
+  created_at timestamptz not null default clock_timestamp(),
+  -- 먼저 남긴 순서. 같은 시각에 남긴 답도 순서가 정해진다.
+  seq bigint generated always as identity,
   unique (id, debate_id),
   foreign key (parent_id, debate_id) references public.debate_answers (id, debate_id) on delete cascade,
   foreign key (debate_id, underline_position) references public.debate_underlines (debate_id, position) on delete cascade,
@@ -215,7 +218,7 @@ create table public.debate_answers (
   check (parent_id is null or underline_position is null),
   check (deleted_at is not null or body is not null)
 );
-create index debate_answers_section_idx on public.debate_answers (debate_id, underline_position, created_at);
+create index debate_answers_section_idx on public.debate_answers (debate_id, underline_position, seq);
 create index debate_answers_parent_idx on public.debate_answers (parent_id) where parent_id is not null;
 create index debate_answers_user_idx on public.debate_answers (user_id);
 create index debate_answers_evidence_idx on public.debate_answers (evidence_entry_id) where evidence_entry_id is not null;
@@ -550,5 +553,371 @@ grant execute on function public.set_debate_summary(uuid, text, uuid[]) to authe
 grant execute on function public.clear_debate_summary(uuid) to authenticated, service_role;
 grant execute on function public.set_debate_answer_hidden(uuid, boolean) to authenticated, service_role;
 grant execute on function public.report_debate(uuid, uuid, text, text) to authenticated, service_role;
+
+-- ── 읽기 ─────────────────────────────────────────────────────
+-- 보는 사람은 auth.uid()로만 정한다. 집계·대표 답에 드는 답(“센다”): 답글 아님, 지우지 않음, 숨기지 않음, 쓴 사람 활성.
+-- 생각이 바뀌었어요 수도 활성 계정의 누름만 센다.
+
+create function public.debate_person_json(p_user uuid)
+returns jsonb
+language sql stable security definer set search_path = '' as $$
+  select jsonb_build_object(
+    'id', p.id,
+    'nickname', case when x.active then p.nickname end,
+    'profile_image', case when x.active then p.profile_image end,
+    'is_friend', x.active and p.id <> (select auth.uid()) and public.is_friend_with(p.id),
+    'is_me', p.id = (select auth.uid()),
+    'active', x.active
+  )
+  from public.profiles p
+  cross join lateral (select public.is_account_active(p.id) as active) x
+  where p.id = p_user;
+$$;
+
+create function public.debate_moved_count(p_answer_id uuid)
+returns integer
+language sql stable security definer set search_path = '' as $$
+  select count(*)::int from public.debate_moves m
+  where m.answer_id = p_answer_id and public.is_account_active(m.user_id);
+$$;
+
+-- 답(또는 답글) 하나. p_with_replies면 보이는 답글 앞의 두 개를 함께 싣는다.
+create function public.debate_answer_json(p_id uuid, p_with_replies boolean)
+returns jsonb
+language sql stable security definer set search_path = '' as $$
+  select jsonb_build_object(
+    'id', a.id,
+    'author', public.debate_person_json(a.user_id),
+    'stance', a.stance,
+    'body', case when a.deleted_at is null and x.active then a.body end,
+    'evidence', case when a.evidence_quote is not null and a.deleted_at is null and x.active then jsonb_build_object(
+      'quote', a.evidence_quote,
+      'book_title', a.evidence_book_title,
+      'book_author', a.evidence_book_author,
+      'page_from', a.evidence_page_from,
+      'page_to', a.evidence_page_to,
+      'entry_id', case when a.user_id = (select auth.uid()) or exists (
+          select 1 from public.entries e
+          where e.id = a.evidence_entry_id and not e.is_private and public.is_friend_with(a.user_id)
+        ) then a.evidence_entry_id end
+    ) end,
+    'moved_count', public.debate_moved_count(a.id),
+    'moved_by_me', exists (select 1 from public.debate_moves m where m.answer_id = a.id and m.user_id = (select auth.uid())),
+    'reply_count', (
+      select count(*)::int from public.debate_answers r
+      where r.parent_id = a.id and r.deleted_at is null and public.is_account_active(r.user_id)
+        and public.debate_can_see_answer(r.debate_id, r.user_id, r.hidden_at)
+    ),
+    'replies', case when p_with_replies then (
+      select coalesce(jsonb_agg(public.debate_answer_json(r.id, false) order by r.seq), '[]'::jsonb)
+      from (
+        select r.id, r.seq from public.debate_answers r
+        where r.parent_id = a.id and r.deleted_at is null and public.is_account_active(r.user_id)
+          and public.debate_can_see_answer(r.debate_id, r.user_id, r.hidden_at)
+        order by r.seq
+        limit 2
+      ) r
+    ) end,
+    'hidden', a.hidden_at is not null,
+    'deleted', a.deleted_at is not null,
+    'edited', a.edited_at is not null,
+    'reported_by_me', exists (
+      select 1 from public.debate_reports rp where rp.answer_id = a.id and rp.reporter_id = (select auth.uid())
+    ),
+    'created_at', a.created_at
+  )
+  from public.debate_answers a
+  cross join lateral (select public.is_account_active(a.user_id) as active) x
+  where a.id = p_id;
+$$;
+
+-- 세는 답의 입장별 수와, 이 토론에서 생각이 바뀐 사람 수(중복 없이).
+create function public.debate_totals(p_id uuid)
+returns jsonb
+language sql stable security definer set search_path = '' as $$
+  with counted as (
+    select a.id, a.stance from public.debate_answers a
+    where a.debate_id = p_id and a.parent_id is null and a.deleted_at is null and a.hidden_at is null
+      and public.is_account_active(a.user_id)
+  )
+  select jsonb_build_object(
+    'agree', (select count(*) from counted where stance = 'agree'),
+    'differ', (select count(*) from counted where stance = 'differ'),
+    'question', (select count(*) from counted where stance = 'question'),
+    'moved_people', (
+      select count(distinct m.user_id) from public.debate_moves m
+      where m.answer_id in (select id from counted) and public.is_account_active(m.user_id)
+    )
+  );
+$$;
+
+-- 토론 한 편: 문장·질문·정리·집계와 밑줄마다의 단락(분포 + 대표 답 둘).
+create function public.get_debate(p_id uuid)
+returns jsonb
+language plpgsql stable security definer set search_path = '' as $$
+declare
+  v_uid uuid := (select auth.uid());
+  d record;
+  v_sections jsonb := '[]'::jsonb;
+  v_sec record;
+  v_ranked jsonb;
+  v_first jsonb;
+  v_second jsonb;
+  v_other boolean;
+  v_stats record;
+  v_picks jsonb;
+  v_kinds jsonb;
+  v_summary jsonb;
+begin
+  if not public.can_view_debate(p_id) then raise exception 'not_found'; end if;
+  select * into d from public.debates where id = p_id;
+
+  for v_sec in
+    select u.position, u.start_at, u.end_at from public.debate_underlines u where u.debate_id = p_id
+    union all
+    select null::smallint, null::int, null::int
+    order by 1 nulls last
+  loop
+    -- 세는 답을 대표 답 순서(생각이 바뀐 수, 먼저 남긴 순)로 줄 세운다.
+    select coalesce(jsonb_agg(jsonb_build_object('id', c.id, 'stance', c.stance, 'mc', c.mc)
+             order by c.mc desc, c.seq), '[]'::jsonb)
+      into v_ranked
+    from (
+      select a.id, a.stance, public.debate_moved_count(a.id) as mc, a.seq
+      from public.debate_answers a
+      where a.debate_id = p_id and a.parent_id is null and a.deleted_at is null and a.hidden_at is null
+        and public.is_account_active(a.user_id)
+        and a.underline_position is not distinct from v_sec.position
+    ) c;
+
+    select count(*)::int as n,
+           count(*) filter (where x ->> 'stance' = 'agree')::int as agree,
+           count(*) filter (where x ->> 'stance' = 'differ')::int as differ,
+           count(*) filter (where x ->> 'stance' = 'question')::int as question
+      into v_stats from jsonb_array_elements(v_ranked) x;
+
+    v_picks := '[]'::jsonb;
+    v_kinds := '[]'::jsonb;
+    v_first := v_ranked -> 0;
+    if v_first is not null then
+      v_picks := jsonb_build_array(public.debate_answer_json((v_first ->> 'id')::uuid, true));
+      v_kinds := jsonb_build_array(case when (v_first ->> 'mc')::int > 0 then 'most_moved' else 'plain' end);
+      -- 둘째: 첫째와 입장이 다른 답 중 첫째, 없으면 첫째 다음 답
+      select x into v_second from jsonb_array_elements(v_ranked) with ordinality as t(x, ord)
+      where x ->> 'stance' <> v_first ->> 'stance' order by ord limit 1;
+      v_other := v_second is not null;
+      if not v_other then v_second := v_ranked -> 1; end if;
+      if v_second is not null then
+        v_picks := v_picks || jsonb_build_array(public.debate_answer_json((v_second ->> 'id')::uuid, true));
+        v_kinds := v_kinds || jsonb_build_array(case when v_other then 'other_side' else 'plain' end);
+      end if;
+    end if;
+
+    v_sections := v_sections || jsonb_build_array(jsonb_build_object(
+      'position', v_sec.position, 'start', v_sec.start_at, 'end', v_sec.end_at,
+      'count', v_stats.n, 'agree', v_stats.agree, 'differ', v_stats.differ, 'question', v_stats.question,
+      'picks', v_picks, 'pick_kinds', v_kinds
+    ));
+  end loop;
+
+  if d.summary is not null then
+    select jsonb_build_object('body', d.summary, 'pins', coalesce(jsonb_agg(
+      jsonb_build_object(
+        'answer_id', pin.id,
+        'nickname', case when vis then (select nickname from public.profiles where id = a.user_id) end,
+        'first_line', case when vis then split_part(a.body, E'\n', 1) end,
+        'deleted', not vis
+      ) order by pin.ord), '[]'::jsonb))
+    into v_summary
+    from unnest(d.summary_answer_ids) with ordinality as pin(id, ord)
+    left join public.debate_answers a on a.id = pin.id
+    cross join lateral (select coalesce(
+      a.deleted_at is null and public.is_account_active(a.user_id)
+      and public.debate_can_see_answer(a.debate_id, a.user_id, a.hidden_at), false) as vis) v;
+  end if;
+
+  return jsonb_build_object(
+    'id', d.id,
+    'owner', public.debate_person_json(d.user_id) - 'active',
+    'quote', d.quote,
+    'book_title', d.book_title,
+    'book_author', d.book_author,
+    'page_from', d.page_from,
+    'page_to', d.page_to,
+    'source_entry_id', case when d.user_id = v_uid or exists (
+        select 1 from public.entries e where e.id = d.source_entry_id and not e.is_private
+      ) then d.source_entry_id end,
+    'question', d.question,
+    'created_at', d.created_at,
+    'closed_at', d.closed_at,
+    'can_answer', d.closed_at is null,
+    'summary', v_summary,
+    'totals', public.debate_totals(p_id),
+    'sections', v_sections
+  );
+end;
+$$;
+
+-- 단락의 답 한 쪽. 보는 사람에게 보이는 답 전부(숨긴 내 답·자리만 남은 답·떠난 사람의 답 포함).
+-- 정렬: 생각이 바뀐 수, 먼저 남긴 순. p_after는 건너뛸 개수, p_limit은 1~30.
+create function public.get_debate_answers(
+  p_id uuid, p_position smallint, p_all_sentence boolean, p_after integer, p_limit integer
+)
+returns jsonb
+language plpgsql stable security definer set search_path = '' as $$
+declare
+  v_limit int := least(greatest(coalesce(p_limit, 10), 1), 30);
+  v_after int := greatest(coalesce(p_after, 0), 0);
+  v_rows jsonb;
+  v_more boolean;
+begin
+  if not public.can_view_debate(p_id) then raise exception 'not_found'; end if;
+  with candidates as (
+    select a.id, public.debate_moved_count(a.id) as mc, a.seq
+    from public.debate_answers a
+    where a.debate_id = p_id and a.parent_id is null
+      and case when coalesce(p_all_sentence, false) then a.underline_position is null
+               else a.underline_position = p_position end
+      and public.debate_can_see_answer(a.debate_id, a.user_id, a.hidden_at)
+  ), page as (
+    select id, row_number() over (order by mc desc, seq) as rn from candidates
+  )
+  select coalesce(jsonb_agg(public.debate_answer_json(id, true) order by rn), '[]'::jsonb),
+         (select count(*) from page) > v_after + v_limit
+    into v_rows, v_more
+  from page where rn > v_after and rn <= v_after + v_limit;
+  return jsonb_build_object('answers', v_rows, 'next', case when v_more then v_after + v_limit end);
+end;
+$$;
+
+-- 답 하나의 보이는 답글 전부(먼저 남긴 순).
+create function public.get_debate_replies(p_answer_id uuid)
+returns jsonb
+language plpgsql stable security definer set search_path = '' as $$
+declare v_parent record;
+begin
+  select id, debate_id, user_id, hidden_at into v_parent from public.debate_answers
+  where id = p_answer_id and parent_id is null;
+  if not found or not public.debate_can_see_answer(v_parent.debate_id, v_parent.user_id, v_parent.hidden_at) then
+    raise exception 'not_found';
+  end if;
+  return (
+    select coalesce(jsonb_agg(public.debate_answer_json(r.id, false) order by r.seq), '[]'::jsonb)
+    from public.debate_answers r
+    where r.parent_id = p_answer_id and r.deleted_at is null and public.is_account_active(r.user_id)
+      and public.debate_can_see_answer(r.debate_id, r.user_id, r.hidden_at)
+  );
+end;
+$$;
+
+-- 내 답에 생각이 바뀌었다고 누른 사람들. 답 쓴 사람만 본다.
+create function public.get_debate_movers(p_answer_id uuid)
+returns jsonb
+language plpgsql stable security definer set search_path = '' as $$
+begin
+  if not exists (
+    select 1 from public.debate_answers a
+    where a.id = p_answer_id and a.parent_id is null and a.user_id = (select auth.uid())
+      and public.can_view_debate(a.debate_id)
+  ) then
+    raise exception 'not_found';
+  end if;
+  return (
+    select coalesce(jsonb_agg(jsonb_build_object(
+        'nickname', p.nickname, 'profile_image', p.profile_image,
+        'is_friend', public.is_friend_with(p.id)
+      ) order by m.created_at desc), '[]'::jsonb)
+    from public.debate_moves m
+    join public.profiles p on p.id = m.user_id
+    where m.answer_id = p_answer_id and public.is_account_active(m.user_id)
+  );
+end;
+$$;
+
+-- 토론 목록: 내 토론과 친구들의 토론. 진행 중은 최근 활동 순, 정리된 것은 정리한 순.
+-- p_before는 앞 쪽 마지막 항목의 시각(그보다 이른 것부터), p_limit은 1~30.
+create function public.list_debates(p_closed boolean, p_before timestamptz, p_limit integer)
+returns jsonb
+language plpgsql stable security definer set search_path = '' as $$
+declare
+  v_uid uuid := (select auth.uid());
+  v_limit int := least(greatest(coalesce(p_limit, 10), 1), 30);
+  v_items jsonb;
+  v_last timestamptz;
+  v_n int;
+begin
+  with friend_ids as (
+    select f.friend_id as id from public.friends f where f.user_id = v_uid and f.status = 'accepted'
+    union
+    select f.user_id from public.friends f where f.friend_id = v_uid and f.status = 'accepted'
+  ), visible as (
+    select d.*,
+      case when coalesce(p_closed, false) then d.closed_at
+           else greatest(d.created_at, coalesce((select max(a.created_at) from public.debate_answers a where a.debate_id = d.id), d.created_at))
+      end as sort_at
+    from public.debates d
+    where (d.user_id = v_uid or d.user_id in (select id from friend_ids))
+      and public.is_account_active(d.user_id)
+      and (d.closed_at is not null) = coalesce(p_closed, false)
+  ), picked as (
+    select * from visible
+    where p_before is null or sort_at < p_before
+    order by sort_at desc, id desc
+    limit v_limit
+  )
+  select coalesce(jsonb_agg(jsonb_build_object(
+      'id', x.id,
+      'owner', public.debate_person_json(x.user_id) - 'active',
+      'quote', x.quote,
+      'underlines', (
+        select coalesce(jsonb_agg(jsonb_build_object('start', u.start_at, 'end', u.end_at) order by u.position), '[]'::jsonb)
+        from public.debate_underlines u where u.debate_id = x.id
+      ),
+      'question', x.question,
+      'totals', public.debate_totals(x.id),
+      'answer_count', (
+        select count(*) from public.debate_answers a
+        where a.debate_id = x.id and a.parent_id is null and a.deleted_at is null and a.hidden_at is null
+          and public.is_account_active(a.user_id)
+      ),
+      'top_line', (
+        select jsonb_build_object(
+          'nickname', p.nickname,
+          'body', split_part(a.body, E'\n', 1),
+          'kind', case when public.debate_moved_count(a.id) > 0 then 'most_moved' else 'newest' end
+        )
+        from public.debate_answers a join public.profiles p on p.id = a.user_id
+        where a.debate_id = x.id and a.parent_id is null and a.deleted_at is null and a.hidden_at is null
+          and public.is_account_active(a.user_id)
+        order by public.debate_moved_count(a.id) desc,
+                 case when public.debate_moved_count(a.id) > 0 then a.seq end asc,
+                 a.seq desc
+        limit 1
+      ),
+      'summary_first_line', case when x.summary is not null then split_part(x.summary, E'\n', 1) end,
+      'closed_at', x.closed_at,
+      'last_activity_at', x.sort_at
+    ) order by x.sort_at desc, x.id desc), '[]'::jsonb),
+    min(x.sort_at), count(*)
+  into v_items, v_last, v_n
+  from picked x;
+  return jsonb_build_object('items', v_items, 'next_before', case when v_n = v_limit then v_last end);
+end;
+$$;
+
+revoke all on function public.debate_person_json(uuid) from public, anon, authenticated;
+revoke all on function public.debate_moved_count(uuid) from public, anon, authenticated;
+revoke all on function public.debate_answer_json(uuid, boolean) from public, anon, authenticated;
+revoke all on function public.debate_totals(uuid) from public, anon, authenticated;
+revoke all on function public.get_debate(uuid) from public, anon;
+revoke all on function public.get_debate_answers(uuid, smallint, boolean, integer, integer) from public, anon;
+revoke all on function public.get_debate_replies(uuid) from public, anon;
+revoke all on function public.get_debate_movers(uuid) from public, anon;
+revoke all on function public.list_debates(boolean, timestamptz, integer) from public, anon;
+grant execute on function public.get_debate(uuid) to authenticated, service_role;
+grant execute on function public.get_debate_answers(uuid, smallint, boolean, integer, integer) to authenticated, service_role;
+grant execute on function public.get_debate_replies(uuid) to authenticated, service_role;
+grant execute on function public.get_debate_movers(uuid) to authenticated, service_role;
+grant execute on function public.list_debates(boolean, timestamptz, integer) to authenticated, service_role;
 
 commit;

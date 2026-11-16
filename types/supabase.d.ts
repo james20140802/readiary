@@ -670,6 +670,23 @@ export type Database = {
         Returns: undefined;
       };
       clear_debate_summary: { Args: { p_id: string }; Returns: undefined };
+      get_debate: { Args: { p_id: string }; Returns: Json };
+      get_debate_answers: {
+        Args: {
+          p_id: string;
+          p_position: number | null;
+          p_all_sentence: boolean;
+          p_after: number;
+          p_limit: number;
+        };
+        Returns: Json;
+      };
+      get_debate_replies: { Args: { p_answer_id: string }; Returns: Json };
+      get_debate_movers: { Args: { p_answer_id: string }; Returns: Json };
+      list_debates: {
+        Args: { p_closed: boolean; p_before: string | null; p_limit: number };
+        Returns: Json;
+      };
       set_debate_answer_hidden: {
         Args: { p_answer_id: string; p_hidden: boolean };
         Returns: undefined;

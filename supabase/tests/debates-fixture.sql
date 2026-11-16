@@ -26,6 +26,14 @@ begin
 end;
 $$;
 
+create function t.eq(p_label text, p_got int, p_want jsonb) returns void language sql as $$
+  select t.eq(p_label, to_jsonb(p_got), p_want);
+$$;
+
+create function t.eq(p_label text, p_got boolean, p_want jsonb) returns void language sql as $$
+  select t.eq(p_label, to_jsonb(p_got), p_want);
+$$;
+
 -- 문장을 실행해 ok, 앱 예외 이름(raise exception의 메시지), 또는 sqlstate를 돌려준다.
 create function t.err(p_sql text) returns text language plpgsql as $$
 begin

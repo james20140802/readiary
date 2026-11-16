@@ -272,7 +272,8 @@
       ["hidden_at", "timestamp with time zone", "YES", null],
       ["deleted_at", "timestamp with time zone", "YES", null],
       ["edited_at", "timestamp with time zone", "YES", null],
-      ["created_at", "timestamp with time zone", "NO", "now()"]
+      ["created_at", "timestamp with time zone", "NO", "clock_timestamp()"],
+      ["seq", "bigint", "NO", null]
     ],
     "debate_moves": [
       ["answer_id", "uuid", "NO", null],
@@ -307,7 +308,7 @@
       ["summary", "text", "YES", null],
       ["summary_answer_ids", "ARRAY", "NO", "'{}'::uuid[]"],
       ["closed_at", "timestamp with time zone", "YES", null],
-      ["created_at", "timestamp with time zone", "NO", "now()"],
+      ["created_at", "timestamp with time zone", "NO", "clock_timestamp()"],
       ["updated_at", "timestamp with time zone", "NO", "now()"]
     ]
   },
@@ -1270,6 +1271,7 @@
     ["clear_private_entry_share", ""],
     ["count_entry_debates", "p_entry_id uuid"],
     ["create_debate", "p_entry_id uuid, p_question text, p_underlines jsonb"],
+    ["debate_answer_json", "p_id uuid, p_with_replies boolean"],
     ["debate_assert_open", "p_debate_id uuid"],
     [
       "debate_can_see_answer",
@@ -1277,6 +1279,9 @@
     ],
     ["debate_clean_body", "p_body text"],
     ["debate_clean_question", "p_question text"],
+    ["debate_moved_count", "p_answer_id uuid"],
+    ["debate_person_json", "p_user uuid"],
+    ["debate_totals", "p_id uuid"],
     ["delete_debate", "p_id uuid"],
     ["delete_debate_answer", "p_id uuid"],
     ["edit_debate_answer", "p_id uuid, p_stance text, p_body text"],
@@ -1286,6 +1291,13 @@
     ["get_book_reading_stats", ""],
     ["get_books_page", ""],
     ["get_dashboard_core", "p_today date"],
+    ["get_debate", "p_id uuid"],
+    [
+      "get_debate_answers",
+      "p_id uuid, p_position smallint, p_all_sentence boolean, p_after integer, p_limit integer"
+    ],
+    ["get_debate_movers", "p_answer_id uuid"],
+    ["get_debate_replies", "p_answer_id uuid"],
     ["get_entry_months", ""],
     ["get_entry_reflection_summaries", "p_entry_ids uuid[]"],
     ["get_featured_bookmark", "p_user_book_id uuid, p_owner_id uuid, p_public_only boolean"],
@@ -1315,6 +1327,7 @@
     ["has_unread_notifications", ""],
     ["is_account_active", "p_user uuid"],
     ["is_friend_with", "p_user_id uuid"],
+    ["list_debates", "p_closed boolean, p_before timestamp with time zone, p_limit integer"],
     ["mark_account_purge_attempt", "p_user uuid"],
     ["mark_push_seen", "p_kind text, p_delivery uuid"],
     ["monthly_excerpt_drop_if_empty", ""],
