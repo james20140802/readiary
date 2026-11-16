@@ -648,6 +648,23 @@ export type Database = {
       update_debate_question: { Args: { p_id: string; p_question: string }; Returns: undefined };
       delete_debate: { Args: { p_id: string }; Returns: undefined };
       count_entry_debates: { Args: { p_entry_id: string }; Returns: number };
+      add_debate_answer: {
+        Args: {
+          p_debate_id: string;
+          p_underline: number | null;
+          p_stance: string;
+          p_body: string;
+          p_evidence_entry_id: string | null;
+        };
+        Returns: string;
+      };
+      add_debate_reply: { Args: { p_answer_id: string; p_body: string }; Returns: string };
+      edit_debate_answer: {
+        Args: { p_id: string; p_stance: string | null; p_body: string };
+        Returns: undefined;
+      };
+      delete_debate_answer: { Args: { p_id: string }; Returns: undefined };
+      set_debate_move: { Args: { p_answer_id: string; p_on: boolean }; Returns: number };
       mutate_entry_with_reflection_ack: {
         Args: {
           p_entry_id: string;
