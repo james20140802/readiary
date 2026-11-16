@@ -15,6 +15,7 @@ import MonthlyExcerptFeedCard from '@/components/monthly-excerpt/MonthlyExcerptF
 import FeedPost from './FeedPost';
 import { FriendsReadingList, FriendsReadingStrip } from './FriendsReading';
 import FriendRequestNotice from './FriendRequestNotice';
+import SocialSegment from '@/components/social/SocialSegment';
 import styles from './feed.module.css';
 
 export interface SocialFeedViewProps {
@@ -153,6 +154,10 @@ export default function SocialFeedView({
               )}
             </Link>
           </Button>
+        </div>
+
+        <div className="mt-[18px] lg:mt-6">
+          <SocialSegment active="feed" />
         </div>
 
         <div className="mt-[18px] lg:mt-7 lg:grid lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)] lg:items-start lg:gap-14">
