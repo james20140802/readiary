@@ -23,6 +23,7 @@ import Button from '../ui/Button';
 import CommentSection from '../comments/CommentSection';
 import EntryCoverAction from './EntryCoverAction';
 import EntryLayer from './EntryLayer';
+import EntryDebateActions, { EntryDebateDeleteNote } from '@/components/debate/EntryDebateActions';
 interface Props {
   entry: Entry;
   book: Book;
@@ -191,6 +192,13 @@ export default function EntryDetailContent({
                 onChange={setCoverQuote}
                 className={MENU_ROW}
               />
+              <EntryDebateActions
+                entryId={entry.id}
+                quote={entry.quote}
+                open={menuOpen}
+                onStart={() => setMenuOpen(false)}
+                className={MENU_ROW}
+              />
               <Link href={`/entry/${entry.id}/edit`} className={MENU_ROW}>
                 <Pencil size={20} strokeWidth={1.75} className="text-ink-sub" aria-hidden />
                 원문 고치기
@@ -235,6 +243,7 @@ export default function EntryDetailContent({
               {isDeleteDialogOpen && entry.id && (
                 <EntryDeleteWarning key={deleteCheck} entryId={entry.id} onReady={setDeleteReady} />
               )}
+              {isDeleteDialogOpen && entry.id && <EntryDebateDeleteNote entryId={entry.id} />}
             </div>
             {deleteError && (
               <p role="alert" className="mt-3 font-sans text-caption text-danger">

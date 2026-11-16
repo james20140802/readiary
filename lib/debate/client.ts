@@ -223,3 +223,18 @@ export async function fetchDebateList(input: { closed: boolean; before: string |
 
 export const fetchEntryDebateCount = async (entryId: string) =>
   (await call<{ count: number }>(`/api/entries/${entryId}/debates`)).count;
+
+export interface PickableEntry {
+  id: string;
+  quote: string;
+  date?: string;
+  pageFrom?: number | null;
+  isPrivate: boolean;
+  bookTitle: string;
+  bookAuthor: string | null;
+}
+
+export const fetchPickableEntries = (q: string, page: number) =>
+  call<{ items: PickableEntry[]; next: number | null }>(
+    `/api/debates/entries?q=${encodeURIComponent(q)}&page=${page}`
+  );

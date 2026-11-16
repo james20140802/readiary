@@ -12,7 +12,7 @@ import { badRequest, debateHeaders, rpcFailure } from './errors';
 export const LIMITS = { question: 500, body: 2000, summary: 2000, memo: 500 } as const;
 export const PAGE_SIZE = 10;
 
-type Handler = (supabase: SupabaseClient) => Promise<Response>;
+type Handler = (supabase: SupabaseClient, userId: string) => Promise<Response>;
 
 /** 로그인한 사람만 handler를 부른다 */
 export async function withSession(handler: Handler): Promise<Response> {
@@ -22,7 +22,7 @@ export async function withSession(handler: Handler): Promise<Response> {
   } = await getServerUser();
   if (error || !user) return unauthorized(debateHeaders);
   const supabase = (await createSupabaseServerClient()) as unknown as SupabaseClient;
-  return handler(supabase);
+  return handler(supabase, user.id);
 }
 
 /** RPC를 부르고 data를 map으로 바꿔 돌려준다 */
