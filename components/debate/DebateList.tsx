@@ -14,6 +14,8 @@ import { HIGHLIGHT } from './highlight';
 interface Page {
   items: DebateListItem[];
   nextBefore: string | null;
+  /** 첫 쪽을 불러오지 못했다 — 비었다고 말하지 않고 처음부터 다시 불러오게 한다 */
+  failed?: boolean;
 }
 
 interface Props {
@@ -56,7 +58,34 @@ function usePage(initial: Page, closed: boolean) {
       setState('error');
     }
   };
-  return { page, state, more };
+  const retry = async () => {
+    setState('loading');
+    try {
+      const res = await fetchDebateList({ closed, before: null });
+      setPage({ items: res.items, nextBefore: res.nextBefore });
+      setState('idle');
+    } catch {
+      setState('error');
+    }
+  };
+  return { page, state, more, retry };
+}
+
+/** 첫 쪽을 못 불러왔을 때 — 그 목록만 처음부터 다시 */
+function FailedRow({ loading, onRetry }: { loading: boolean; onRetry(): void }) {
+  return (
+    <p className="py-4 font-sans text-caption text-ink-sub">
+      불러오지 못했어요.{' '}
+      <button
+        type="button"
+        className="font-semibold text-accent disabled:opacity-60"
+        onClick={onRetry}
+        disabled={loading}
+      >
+        다시 시도
+      </button>
+    </p>
+  );
 }
 
 function MoreRow({
@@ -101,7 +130,11 @@ export default function DebateList({
   useTopBar({ title: '토론' });
   const open = usePage(initialOpen, false);
   const closed = usePage(initialClosed, true);
-  const empty = open.page.items.length === 0 && closed.page.items.length === 0;
+  const empty =
+    open.page.items.length === 0 &&
+    closed.page.items.length === 0 &&
+    !open.page.failed &&
+    !closed.page.failed;
 
   return (
     <SocialFrame
@@ -145,8 +178,12 @@ export default function DebateList({
             <h2 id="debates-open" className="sr-only">
               진행 중인 토론
             </h2>
-            {open.page.items.length === 0 && (
-              <p className="py-4 font-sans text-caption text-ink-sub">진행 중인 토론이 없어요.</p>
+            {open.page.failed ? (
+              <FailedRow loading={open.state === 'loading'} onRetry={open.retry} />
+            ) : (
+              open.page.items.length === 0 && (
+                <p className="py-4 font-sans text-caption text-ink-sub">진행 중인 토론이 없어요.</p>
+              )
             )}
             <ul>
               {open.page.items.map((d) => {
@@ -206,10 +243,14 @@ export default function DebateList({
               정리된 토론
             </h2>
             <p className="mt-1 font-sans text-caption text-ink-sub">발제한 사람이 남긴 정리예요</p>
-            {closed.page.items.length === 0 && (
-              <p className="py-4 font-sans text-caption text-ink-faint">
-                아직 정리된 토론이 없어요.
-              </p>
+            {closed.page.failed ? (
+              <FailedRow loading={closed.state === 'loading'} onRetry={closed.retry} />
+            ) : (
+              closed.page.items.length === 0 && (
+                <p className="py-4 font-sans text-caption text-ink-faint">
+                  아직 정리된 토론이 없어요.
+                </p>
+              )
             )}
             <ul className="mt-2">
               {closed.page.items.map((d) => (

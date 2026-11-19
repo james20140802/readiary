@@ -129,4 +129,33 @@ describe('DebateList', () => {
     expect(calls).toEqual([{ closed: true, before: '2026-11-01T00:00:00Z' }]);
     expect(screen.getByText('가까워질수록?')).toBeTruthy();
   });
+  it('첫 쪽을 불러오지 못했으면 비었다고 하지 않고, 그쪽만 처음부터 다시 불러온다', async () => {
+    renderList({
+      initialOpen: { items: [], nextBefore: null, failed: true },
+      initialClosed: { items: [], nextBefore: null },
+    });
+    expect(screen.queryByText('아직 열린 토론이 없어요.')).toBeNull();
+    expect(screen.queryByText('진행 중인 토론이 없어요.')).toBeNull();
+    fetchDebateList.mockResolvedValueOnce({
+      items: [item({ question: '돌아온 질문' })],
+      nextBefore: null,
+    });
+    fireEvent.click(screen.getByRole('button', { name: '다시 시도' }));
+    expect(await screen.findByText('돌아온 질문')).toBeTruthy();
+    expect(calls).toEqual([{ closed: false, before: null }]);
+    expect(screen.queryByRole('button', { name: '다시 시도' })).toBeNull();
+  });
+
+  it('첫 쪽 다시 불러오기도 실패하면 다시 시도를 그대로 둔다', async () => {
+    failNext = true;
+    renderList({
+      initialOpen: { items: [item()], nextBefore: null },
+      initialClosed: { items: [], nextBefore: null, failed: true },
+    });
+    expect(screen.queryByText('아직 정리된 토론이 없어요.')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: '다시 시도' }));
+    await screen.findByRole('button', { name: '다시 시도' });
+    expect(calls).toEqual([{ closed: true, before: null }]);
+    expect(screen.getByText('가까워질수록?')).toBeTruthy();
+  });
 });

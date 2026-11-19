@@ -15,7 +15,8 @@ async function firstPage(closed: boolean) {
   });
   if (error || !data) {
     if (error) console.error('Debate list failed:', error.code);
-    return { items: [], nextBefore: null };
+    // 비었다고 말하지 않게 실패를 알린다 — 화면이 그 목록만 다시 불러온다
+    return { items: [], nextBefore: null, failed: true };
   }
   const raw = data as { items: unknown[]; next_before: string | null };
   return { items: raw.items.map(mapListItem), nextBefore: raw.next_before };
