@@ -131,6 +131,26 @@ begin
   perform t.eq('stranger move', to_jsonb(t.err(format('select public.set_debate_move(%L, true)', a))), '"not_found"');
 end $$;
 
+-- 탈퇴 유예 중인 사람의 누름은 읽기(debate_moved_count)처럼 누를 때 돌려주는 수에서도 빠진다
+do $$
+begin
+  perform t.as_user(t.id(7));
+  perform t.eq('soon-pending moves', to_jsonb(public.set_debate_move(current_setting('t.a')::uuid, true)), '2');
+end $$;
+reset role;
+insert into public.account_deletions (user_id, purge_after) values (t.id(7), now() + interval '14 days');
+set role authenticated;
+do $$
+begin
+  perform t.as_user(t.id(6));
+  perform t.eq('move count skips pending account', to_jsonb(public.set_debate_move(current_setting('t.a')::uuid, true)), '2');
+  perform t.eq('move off count skips pending account', to_jsonb(public.set_debate_move(current_setting('t.a')::uuid, false)), '1');
+end $$;
+reset role;
+delete from public.account_deletions where user_id = t.id(7);
+delete from public.debate_moves where user_id = t.id(7);
+set role authenticated;
+
 -- ── 고치기·지우기 ─
 do $$
 declare
