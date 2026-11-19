@@ -122,6 +122,47 @@ describe('DebateSection', () => {
     expect(screen.getByRole('button', { name: '나머지 1개 보기' })).toBeTruthy();
   });
 
+  it('나머지를 처음 불러오다 실패하면 같은 자리부터 다시 불러온다', async () => {
+    fetchSectionAnswers
+      .mockImplementationOnce(async () => {
+        throw new Error('network');
+      })
+      .mockResolvedValueOnce({ answers: [answer({ id: 'a3', body: '셋째 답' })], next: null });
+    render(h(Harness, { s: section() }));
+    fireEvent.click(screen.getByRole('button', { name: '나머지 7개 보기' }));
+    fireEvent.click(await screen.findByRole('button', { name: '다시 시도' }));
+    expect(await screen.findByText('셋째 답')).toBeTruthy();
+    expect(fetchSectionAnswers.mock.calls).toEqual([
+      ['d1', 2, 0],
+      ['d1', 2, 0],
+    ]);
+  });
+
+  it('정리에 고정한 답이 대표 답에 없으면 찾을 때까지 이어 불러오고 알린다', async () => {
+    fetchSectionAnswers
+      .mockResolvedValueOnce({ answers: [answer({ id: 'a3', body: '셋째 답' })], next: 10 })
+      .mockResolvedValueOnce({ answers: [answer({ id: 'a9', body: '고정한 답' })], next: null });
+    const onFocused = vi.fn();
+    render(
+      h(DebateSection, {
+        debate: debate(),
+        section: section(),
+        expanded: true,
+        onToggle: vi.fn(),
+        onAnswer: vi.fn(),
+        onChanged: vi.fn(),
+        focusAnswerId: 'a9',
+        onFocused,
+      })
+    );
+    expect(await screen.findByText('고정한 답')).toBeTruthy();
+    expect(fetchSectionAnswers.mock.calls).toEqual([
+      ['d1', 2, 0],
+      ['d1', 2, 10],
+    ]);
+    await vi.waitFor(() => expect(onFocused).toHaveBeenCalled());
+  });
+
   it('토론을 다시 불러오면 펼쳐 둔 나머지 답도 다시 가져온다', async () => {
     fetchSectionAnswers.mockResolvedValue({
       answers: [answer({ id: 'a3', body: '셋째 답' })],

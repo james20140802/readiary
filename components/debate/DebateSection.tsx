@@ -24,6 +24,9 @@ interface Props {
   onChanged(): void;
   /** 넓은 화면에서 이 단락 안에 펼칠 입력 */
   composer?: React.ReactNode;
+  /** 정리에서 고른 답 — 대표 답에 없으면 찾을 때까지 이어 불러온 뒤 그 답으로 옮긴다 */
+  focusAnswerId?: string | null;
+  onFocused?(): void;
 }
 
 const PICK_LABEL: Record<PickKind, string | null> = {
@@ -53,11 +56,15 @@ export default function DebateSection({
   onAnswer,
   onChanged,
   composer,
+  focusAnswerId = null,
+  onFocused,
 }: Props) {
   const label = sectionLabel(debate, section);
   const [more, setMore] = useState<DebateAnswer[]>([]);
   const [next, setNext] = useState<number | null>(null);
   const [state, setState] = useState<'idle' | 'loading' | 'error' | 'done'>('idle');
+  // 실패한 쪽의 시작 자리 — 다시 시도는 그 쪽을 그대로 다시 부른다(대표 답 수로 짐작하면 답을 건너뛴다)
+  const [failedAt, setFailedAt] = useState(0);
 
   const pickIds = new Set(section.picks.map((p) => p.id));
   // 숨긴 답처럼 세지 않지만 내게 보이는 답(extra)도 이어 불러올 수 있어야 주인이 숨김을 풀고 작성자가 자기 답에 닿는다
@@ -74,6 +81,7 @@ export default function DebateSection({
       setNext(res.next);
       setState('done');
     } catch {
+      setFailedAt(after);
       setState('error');
     }
   };
@@ -88,6 +96,27 @@ export default function DebateSection({
     // load는 렌더마다 새로 만들어지지만 section이 바뀔 때만 다시 가져오면 된다
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [section]);
+
+  // 정리에서 고른 답으로 — 그려져 있으면 옮기고, 없으면 다음 쪽을 불러 다시 본다. 끝까지 없으면 단락 머리로 둔다
+  useEffect(() => {
+    if (!expanded || !focusAnswerId || state === 'loading') return;
+    const shown =
+      section.picks.some((a) => a.id === focusAnswerId) || more.some((a) => a.id === focusAnswerId);
+    const exhausted =
+      state === 'error' || (state === 'done' && next === null) || (state === 'idle' && rest <= 0);
+    if (shown || exhausted) {
+      const target = document.getElementById(
+        shown ? `answer-${focusAnswerId}` : sectionDomId(section)
+      );
+      requestAnimationFrame(() => target?.scrollIntoView?.({ behavior: 'smooth', block: 'start' }));
+      onFocused?.();
+      return;
+    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- 고른 답이 나올 때까지 서버에서 이어 가져온다
+    void load(state === 'done' && next !== null ? next : 0);
+    // load·rest·onFocused는 렌더마다 새로 만들어진다 — 상태가 바뀔 때만 다시 본다
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [expanded, focusAnswerId, state, more, next, section]);
 
   const dist = [
     section.agree > 0 && `공감 ${section.agree}`,
@@ -187,7 +216,7 @@ export default function DebateSection({
               <button
                 type="button"
                 className="font-semibold text-accent"
-                onClick={() => void load(more.length + section.picks.length)}
+                onClick={() => void load(failedAt)}
               >
                 다시 시도
               </button>

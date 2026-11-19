@@ -232,8 +232,8 @@ begin
   perform t.eq('summary body', g -> 'summary' -> 'body', to_jsonb(E'환상을 비우는 쪽으로 모였어요.\n둘째 줄'::text));
   perform t.eq('pins', g -> 'summary' -> 'pins',
     jsonb_build_array(
-      jsonb_build_object('answer_id', current_setting('t.b1'), 'nickname', 'u2', 'first_line', '사라지는 건 상상 속의 상대뿐이에요.', 'deleted', false),
-      jsonb_build_object('answer_id', current_setting('t.f1'), 'nickname', null, 'first_line', null, 'deleted', true)));
+      jsonb_build_object('answer_id', current_setting('t.b1'), 'nickname', 'u2', 'first_line', '사라지는 건 상상 속의 상대뿐이에요.', 'deleted', false, 'position', 1),
+      jsonb_build_object('answer_id', current_setting('t.f1'), 'nickname', null, 'first_line', null, 'deleted', true, 'position', null)));
   l := public.list_debates(true, null, 10);
   perform t.eq('closed list', jsonb_build_array(jsonb_array_length(l -> 'items'), l -> 'items' -> 0 -> 'summary_first_line'),
     '[1,"환상을 비우는 쪽으로 모였어요."]');

@@ -4,7 +4,7 @@ import { cleanup, fireEvent, render, screen, within } from '@testing-library/rea
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { TopBarProvider } from '@/components/shell/TopBarContext';
 import DebateView from '../DebateView';
-import { debate } from './fixtures';
+import { answer, debate } from './fixtures';
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace: vi.fn(), push: vi.fn(), refresh: vi.fn() }),
@@ -56,5 +56,31 @@ describe('DebateView', () => {
       expect(m.className).not.toMatch(/(^|\s)underline(\s|$)/);
       expect(m.className).toContain('bg-accent/');
     }
+  });
+
+  it('정리된 토론에서 고정한 답을 누르면 접힌 단락을 펴서 그 답을 보여 준다', () => {
+    const pick = answer({ id: 'a1', body: '고정한 답의 본문' });
+    const d = debate({
+      closedAt: '2026-11-18T00:00:00Z',
+      canAnswer: false,
+      summary: {
+        body: '정리',
+        pins: [
+          {
+            answerId: 'a1',
+            nickname: '도현',
+            firstLine: '고정한 답의 본문',
+            deleted: false,
+            position: 1,
+          },
+        ],
+      },
+      sections: [{ ...mine().sections[0], count: 1, picks: [pick], pickKinds: ['plain'] }],
+    });
+    renderView(d);
+    // 정리된 토론은 단락이 접힌 채 열린다
+    expect(document.getElementById('answer-a1')).toBeNull();
+    fireEvent.click(screen.getByRole('link', { name: /도현 · 고정한 답의 본문/ }));
+    expect(document.getElementById('answer-a1')).toBeTruthy();
   });
 });

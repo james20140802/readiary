@@ -93,6 +93,8 @@ export interface DebatePin {
   nickname: string | null;
   firstLine: string | null;
   deleted: boolean;
+  /** 그 답이 붙은 밑줄 번호(문장 전체면 null). 예전 응답처럼 알 수 없으면 undefined */
+  position?: number | null;
 }
 
 export interface DebateDetail {

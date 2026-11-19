@@ -12,7 +12,7 @@ import Sheet from '@/components/ui/Sheet';
 import { Textarea } from '@/components/ui/Textarea';
 import { TopBarActions, useTopBar } from '@/components/shell/TopBarContext';
 import { clearSummary, deleteDebate, fetchDebate, updateQuestion } from '@/lib/debate/client';
-import type { DebateDetail, DebateSection as Section } from '@/lib/debate/types';
+import type { DebateDetail, DebatePin, DebateSection as Section } from '@/lib/debate/types';
 import { toChars } from '@/lib/debate/underline';
 import AnswerComposer from './AnswerComposer';
 import ComposerHost from './ComposerHost';
@@ -51,6 +51,8 @@ export default function DebateView({
     Object.fromEntries(initial.sections.map((s) => [keyOf(s), !closedAtStart]))
   );
   const [composerFor, setComposerFor] = useState<string | null>(null);
+  // 정리에서 고른 답으로 갈 단락과 답 — 단락이 펴진 뒤 그 답을 찾아 옮긴다
+  const [focus, setFocus] = useState<{ key: string; answerId: string } | null>(null);
   const [menu, setMenu] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState(false);
   const [summarizing, setSummarizing] = useState(false);
@@ -77,6 +79,26 @@ export default function DebateView({
           ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
       );
     }
+  };
+
+  const goToPin = (pin: DebatePin) => {
+    const s =
+      debate.sections.find((x) => x.picks.some((a) => a.id === pin.answerId)) ??
+      (pin.position === undefined
+        ? undefined
+        : debate.sections.find((x) => x.position === pin.position));
+    if (s) {
+      openSection(s, false);
+      setFocus({ key: keyOf(s), answerId: pin.answerId });
+      return;
+    }
+    // 어느 단락인지 모르면(예전 응답) 모든 단락을 펴고, 그려진 답이 있으면 옮긴다
+    setExpanded(Object.fromEntries(debate.sections.map((x) => [keyOf(x), true])));
+    requestAnimationFrame(() =>
+      document
+        .getElementById(`answer-${pin.answerId}`)
+        ?.scrollIntoView?.({ behavior: 'smooth', block: 'start' })
+    );
   };
 
   const answerTo = (position: number | null) => {
@@ -215,7 +237,14 @@ export default function DebateView({
                   {p.deleted ? (
                     <span className="text-ink-faint">지운 답이에요</span>
                   ) : (
-                    <a href={`#answer-${p.answerId}`} className="hover:text-ink">
+                    <a
+                      href={`#answer-${p.answerId}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        goToPin(p);
+                      }}
+                      className="hover:text-ink"
+                    >
                       {p.nickname} · {p.firstLine}
                     </a>
                   )}
@@ -292,6 +321,8 @@ export default function DebateView({
                 onToggle={() => setExpanded((e) => ({ ...e, [k]: !e[k] }))}
                 onAnswer={answerTo}
                 onChanged={refresh}
+                focusAnswerId={focus?.key === k ? focus.answerId : null}
+                onFocused={() => setFocus(null)}
                 composer={
                   <ComposerHost
                     open={composerFor === k}

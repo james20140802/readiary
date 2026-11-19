@@ -85,6 +85,7 @@ export function mapDebate(d: Raw): DebateDetail {
             nickname: p.nickname ?? null,
             firstLine: p.first_line ?? null,
             deleted: Boolean(p.deleted),
+            position: p.position === undefined ? undefined : (p.position ?? null),
           })),
         }
       : null,

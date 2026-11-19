@@ -80,6 +80,22 @@ describe('client 변환', () => {
     ]);
   });
 
+  it('정리에 고정한 답의 단락 번호 — 예전 응답처럼 없으면 모른다(undefined)', () => {
+    const base = { id: 'd', owner: {}, totals: {}, sections: [] };
+    const d = mapDebate({
+      ...base,
+      summary: {
+        body: '정리',
+        pins: [
+          { answer_id: 'a', nickname: 'u', first_line: 'x', deleted: false, position: 2 },
+          { answer_id: 'b', nickname: 'u', first_line: 'y', deleted: false, position: null },
+          { answer_id: 'c', nickname: 'u', first_line: 'z', deleted: false },
+        ],
+      },
+    });
+    expect(d.summary?.pins.map((p) => p.position)).toEqual([2, null, undefined]);
+  });
+
   it('토론 한 편: 단락의 밑줄 범위와 문장 전체', () => {
     const d = mapDebate({
       id: 'd',
