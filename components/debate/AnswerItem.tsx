@@ -318,6 +318,14 @@ export default function AnswerItem({
       >
         {composer && (
           <AnswerComposer
+            // 고치기와 답글은 서로 다른 글이다 — 넓은 화면에서 오가도 앞의 글·초안이 넘어가지 않게 새로 연다
+            key={
+              composer.kind === 'edit'
+                ? `edit:${composer.answer.id}`
+                : composer.kind === 'reply'
+                  ? `reply:${composer.answerId}`
+                  : 'answer'
+            }
             debateId={debate.id}
             target={composer}
             onCancel={() => setComposer(null)}

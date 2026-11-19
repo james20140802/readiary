@@ -17,8 +17,10 @@ vi.mock('@/lib/debate/client', async (orig) => ({
 }));
 import { answer, debate } from './fixtures';
 
+// 넓은 화면(답 아래에 입력칸이 펼쳐지는 768px 이상)을 흉내 낼 때 켠다
+let wide = false;
 vi.stubGlobal('matchMedia', (query: string) => ({
-  matches: false,
+  matches: wide,
   media: query,
   addEventListener: () => {},
   removeEventListener: () => {},
@@ -95,5 +97,31 @@ describe('AnswerItem', () => {
     await new Promise((r) => setTimeout(r, 0));
     expect(onMoved2).not.toHaveBeenCalled();
     moveFails = false;
+  });
+
+  it('넓은 화면에서 고치기를 열었다가 답글을 누르면 답글 칸은 비어서 열린다', () => {
+    wide = true;
+    try {
+      const mineAnswer = answer({ id: 'a1', body: '원래 답 본문' });
+      render(
+        h(AnswerItem, {
+          debate: debate(),
+          answer: { ...mineAnswer, author: { ...mineAnswer.author, isMe: true } },
+          onChanged: vi.fn(),
+        })
+      );
+      fireEvent.click(screen.getByRole('button', { name: '답 메뉴' }));
+      fireEvent.click(screen.getByRole('button', { name: '고치기' }));
+      expect(
+        (screen.getByLabelText('내 답', { selector: 'textarea' }) as HTMLTextAreaElement).value
+      ).toBe('원래 답 본문');
+      // 닫히는 메뉴 시트가 jsdom에서 잠시 바깥을 가린다 — 글자로 찾는다
+      fireEvent.click(screen.getAllByText(/^답글/, { selector: 'button' })[0]);
+      expect(
+        (screen.getByLabelText('답글', { selector: 'textarea' }) as HTMLTextAreaElement).value
+      ).toBe('');
+    } finally {
+      wide = false;
+    }
   });
 });
