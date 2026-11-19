@@ -22,6 +22,8 @@ interface Props {
   /** 이 단락에 답하기(밑줄 번호, 문장 전체면 null) */
   onAnswer(position: number | null): void;
   onChanged(): void;
+  /** 답의 생각이 바뀌었어요를 저장했을 때(토론 전체 수만 맞춘다) */
+  onMoved?(): void;
   /** 넓은 화면에서 이 단락 안에 펼칠 입력 */
   composer?: React.ReactNode;
   /** 정리에서 고른 답 — 대표 답에 없으면 찾을 때까지 이어 불러온 뒤 그 답으로 옮긴다 */
@@ -55,6 +57,7 @@ export default function DebateSection({
   onToggle,
   onAnswer,
   onChanged,
+  onMoved,
   composer,
   focusAnswerId = null,
   onFocused,
@@ -192,10 +195,17 @@ export default function DebateSection({
               answer={a}
               label={PICK_LABEL[section.pickKinds[i] ?? 'plain']}
               onChanged={onChanged}
+              onMoved={onMoved}
             />
           ))}
           {more.map((a) => (
-            <AnswerItem key={a.id} debate={debate} answer={a} onChanged={onChanged} />
+            <AnswerItem
+              key={a.id}
+              debate={debate}
+              answer={a}
+              onChanged={onChanged}
+              onMoved={onMoved}
+            />
           ))}
 
           {rest > 0 && state === 'idle' && (

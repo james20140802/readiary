@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useCallback, useMemo, useState } from 'react';
+import { Fragment, useCallback, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import clsx from 'clsx';
@@ -67,6 +67,19 @@ export default function DebateView({
       setDebate(await fetchDebate(debate.id));
     } catch {
       toast('토론을 다시 불러오지 못했어요.');
+    }
+  }, [debate.id]);
+
+  // 생각이 바뀌었어요 하나로 단락을 통째로 바꾸면 펼쳐 둔 답을 처음부터 다시 불러온다 — 머리의 수만 맞춘다.
+  // 빠르게 여러 번 누르면 마지막 응답만 쓴다
+  const totalsSeq = useRef(0);
+  const refreshTotals = useCallback(async () => {
+    const mine = ++totalsSeq.current;
+    try {
+      const fresh = await fetchDebate(debate.id);
+      if (mine === totalsSeq.current) setDebate((d) => ({ ...d, totals: fresh.totals }));
+    } catch {
+      // 수는 새로고침하면 맞춰진다 — 누른 답 자체는 이미 저장됐으니 알리지 않는다
     }
   }, [debate.id]);
 
@@ -321,6 +334,7 @@ export default function DebateView({
                 onToggle={() => setExpanded((e) => ({ ...e, [k]: !e[k] }))}
                 onAnswer={answerTo}
                 onChanged={refresh}
+                onMoved={refreshTotals}
                 focusAnswerId={focus?.key === k ? focus.answerId : null}
                 onFocused={() => setFocus(null)}
                 composer={

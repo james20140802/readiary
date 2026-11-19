@@ -5,9 +5,15 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import AnswerItem from '../AnswerItem';
 
 const report = vi.fn();
+// 실패는 vi.fn 대신 평범한 함수로 흉내 낸다 — 거부된 결과를 테스트 실패로 보고하지 않게
+let moveFails = false;
 vi.mock('@/lib/debate/client', async (orig) => ({
   ...(await orig<typeof import('@/lib/debate/client')>()),
   report: (...a: unknown[]) => report(...a),
+  setMove: async () => {
+    if (moveFails) throw new Error('반영하지 못했어요.');
+    return 1;
+  },
 }));
 import { answer, debate } from './fixtures';
 
@@ -53,5 +59,41 @@ describe('AnswerItem', () => {
     // 남의 답에서 할 수 있던 일은 신고뿐이라, 신고하고 나면 메뉴도 없다
     expect(screen.queryByRole('button', { name: '답 메뉴' })).toBeNull();
     expect(screen.queryByRole('button', { name: '신고하기' })).toBeNull();
+  });
+
+  it('생각이 바뀌었어요를 저장하면 토론 전체 수를 맞추라고 알린다, 실패하면 알리지 않는다', async () => {
+    moveFails = false;
+    const onMoved = vi.fn();
+    const view = render(
+      h(AnswerItem, {
+        debate: debate(),
+        answer: answer({ id: 'a1', movedCount: 0, movedByMe: false }),
+        onChanged: vi.fn(),
+        onMoved,
+      })
+    );
+    fireEvent.click(screen.getByRole('button', { name: '생각이 바뀌었어요' }));
+    await waitFor(() => expect(onMoved).toHaveBeenCalledTimes(1));
+    view.unmount();
+
+    moveFails = true;
+    const onMoved2 = vi.fn();
+    render(
+      h(AnswerItem, {
+        debate: debate(),
+        answer: answer({ id: 'a2', movedCount: 0, movedByMe: false }),
+        onChanged: vi.fn(),
+        onMoved: onMoved2,
+      })
+    );
+    fireEvent.click(screen.getByRole('button', { name: '생각이 바뀌었어요' }));
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: '생각이 바뀌었어요' }).getAttribute('aria-pressed')
+      ).toBe('false')
+    );
+    await new Promise((r) => setTimeout(r, 0));
+    expect(onMoved2).not.toHaveBeenCalled();
+    moveFails = false;
   });
 });

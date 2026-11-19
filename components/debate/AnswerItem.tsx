@@ -25,6 +25,8 @@ interface AnswerItemProps {
   nested?: boolean;
   /** 고치거나 지우거나 숨겨 토론을 다시 불러와야 할 때 */
   onChanged(): void;
+  /** 생각이 바뀌었어요를 저장했을 때 — 토론 머리의 "생각이 바뀐 사람" 수를 맞춘다 */
+  onMoved?(): void;
 }
 
 export const profileHref = (p: Pick<DebatePerson, 'nickname' | 'tag'>) =>
@@ -48,7 +50,14 @@ export function AuthorName({ person }: { person: DebatePerson }) {
 }
 
 /** 답 하나(또는 답글) — 카드 대신 헤어라인으로 나눈 원고 흐름 */
-export default function AnswerItem({ debate, answer, label, nested, onChanged }: AnswerItemProps) {
+export default function AnswerItem({
+  debate,
+  answer,
+  label,
+  nested,
+  onChanged,
+  onMoved,
+}: AnswerItemProps) {
   const isMine = answer.author.isMe;
   const isOwner = debate.owner.isMe;
   const [moved, setMoved] = useState({ count: answer.movedCount, byMe: answer.movedByMe });
@@ -83,6 +92,7 @@ export default function AnswerItem({ debate, answer, label, nested, onChanged }:
     try {
       const count = await setMove(answer.id, on);
       setMoved({ count, byMe: on });
+      onMoved?.();
     } catch (e) {
       setMoved(before);
       toast(e instanceof Error ? e.message : '반영하지 못했어요.');

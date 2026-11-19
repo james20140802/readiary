@@ -1,10 +1,22 @@
 // @vitest-environment jsdom
 import { createElement as h } from 'react';
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { TopBarProvider } from '@/components/shell/TopBarContext';
 import DebateView from '../DebateView';
 import { answer, debate } from './fixtures';
+
+const sectionCalls: unknown[] = [];
+let fresh: unknown = null;
+vi.mock('@/lib/debate/client', async (orig) => ({
+  ...(await orig<typeof import('@/lib/debate/client')>()),
+  setMove: async () => 1,
+  fetchDebate: async () => fresh,
+  fetchSectionAnswers: async (...a: unknown[]) => {
+    sectionCalls.push(a);
+    return { answers: [], next: null };
+  },
+}));
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace: vi.fn(), push: vi.fn(), refresh: vi.fn() }),
@@ -82,5 +94,23 @@ describe('DebateView', () => {
     expect(document.getElementById('answer-a1')).toBeNull();
     fireEvent.click(screen.getByRole('link', { name: /도현 · 고정한 답의 본문/ }));
     expect(document.getElementById('answer-a1')).toBeTruthy();
+  });
+
+  it('생각이 바뀌었어요를 누르면 머리의 생각이 바뀐 사람 수도 맞추고, 펼친 답은 다시 불러오지 않는다', async () => {
+    const pick = answer({ id: 'a1', movedCount: 0, movedByMe: false });
+    const base = mine();
+    const d = {
+      ...base,
+      owner: { ...base.owner, isMe: false },
+      totals: { ...base.totals, movedPeople: 0 },
+      sections: [{ ...base.sections[0], count: 1, picks: [pick], pickKinds: ['plain' as const] }],
+    };
+    fresh = { ...d, totals: { ...d.totals, movedPeople: 1 }, sections: [{ ...d.sections[0] }] };
+    sectionCalls.length = 0;
+    renderView(d);
+    expect(screen.queryByText(/생각이 바뀐 사람/)).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: '생각이 바뀌었어요' }));
+    await waitFor(() => expect(screen.getByText(/생각이 바뀐 사람/).textContent).toContain('1'));
+    expect(sectionCalls).toHaveLength(0);
   });
 });
