@@ -15,12 +15,14 @@ interface Props {
   debateId: string;
   /** 없으면 토론 자체를 신고한다 */
   answerId: string | null;
+  /** 보낸 뒤 — 신고한 답을 이 화면에서 바로 접는다 */
+  onReported?(): void;
 }
 
 const REASONS = Object.keys(REPORT_REASON_LABEL) as ReportReason[];
 
 /** 신고 — 사유 하나와 선택 메모. 운영자가 확인하고, 신고한 사람의 화면에서는 그 답이 접힌다 */
-export default function ReportSheet({ open, onClose, debateId, answerId }: Props) {
+export default function ReportSheet({ open, onClose, debateId, answerId, onReported }: Props) {
   const [reason, setReason] = useState<ReportReason | null>(null);
   const [memo, setMemo] = useState('');
   const [sending, setSending] = useState(false);
@@ -33,6 +35,7 @@ export default function ReportSheet({ open, onClose, debateId, answerId }: Props
     try {
       await report(debateId, { answerId, reason, memo: memo.trim() || null });
       toast('신고를 받았어요. 운영자가 확인할게요.');
+      onReported?.();
       onClose();
     } catch (e) {
       setError(e instanceof Error ? e.message : '신고를 보내지 못했어요.');

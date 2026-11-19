@@ -52,6 +52,9 @@ export default function AnswerItem({ debate, answer, label, nested, onChanged }:
   const isMine = answer.author.isMe;
   const isOwner = debate.owner.isMe;
   const [moved, setMoved] = useState({ count: answer.movedCount, byMe: answer.movedByMe });
+  // 신고는 다시 불러오기 전에도 이 화면에 바로 반영한다(접고, 신고하기를 거둔다)
+  const [reportedHere, setReportedHere] = useState(false);
+  const reported = answer.reportedByMe || reportedHere;
   const [revealed, setRevealed] = useState(!answer.reportedByMe);
   const [replies, setReplies] = useState<DebateAnswer[]>(answer.replies ?? []);
   // 토론을 다시 불러오면 새 답(답글·누른 수·고친 글)으로 맞춘다 — 렌더 중에 이전 값과 비교해 바꾼다
@@ -61,6 +64,7 @@ export default function AnswerItem({ debate, answer, label, nested, onChanged }:
     setReplies(answer.replies ?? []);
     setMoved({ count: answer.movedCount, byMe: answer.movedByMe });
     setRevealed(!answer.reportedByMe);
+    setReportedHere(false);
   }
   const [composer, setComposer] = useState<ComposerTarget | null>(null);
   const [menu, setMenu] = useState(false);
@@ -171,7 +175,7 @@ export default function AnswerItem({ debate, answer, label, nested, onChanged }:
         {answer.hidden ? '숨김 풀기' : '숨기기'}
       </button>
     ),
-    !isMine && !answer.reportedByMe && (
+    !isMine && !reported && (
       <button
         key="report"
         type="button"
@@ -361,6 +365,10 @@ export default function AnswerItem({ debate, answer, label, nested, onChanged }:
         onClose={() => setReporting(false)}
         debateId={debate.id}
         answerId={answer.id}
+        onReported={() => {
+          setReportedHere(true);
+          setRevealed(false);
+        }}
       />
       {isMine && (
         <MoversSheet open={movers} onClose={() => setMovers(false)} answerId={answer.id} />
