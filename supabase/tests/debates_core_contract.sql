@@ -45,8 +45,9 @@ declare
   r record;
 begin
   perform t.as_user(t.id(1));
+  -- 밑줄마다 짧은 물음을 선택으로 붙인다(앞뒤 공백을 걷고, 비면 없음)
   d := public.create_debate(t.id(101), '가까워질수록 상대를 덜 궁금해하게 되는 걸까요?',
-    '[{"start":0,"end":5},{"start":17,"end":25}]'::jsonb);
+    '[{"start":17,"end":25,"prompt":"  환상이 사라지면 무엇이 남을까요?  "},{"start":0,"end":5,"prompt":"   "}]'::jsonb);
   perform set_config('t.debate', d::text, false);
 
   select quote, book_title, book_author, page_from, page_to, question, source_entry_id, user_id
@@ -57,9 +58,13 @@ begin
   perform t.eq('owner', to_jsonb(r.user_id), to_jsonb(t.id(1)));
   perform t.eq('source', to_jsonb(r.source_entry_id), to_jsonb(t.id(101)));
   perform t.eq('underlines',
-    (select jsonb_agg(jsonb_build_array(position, start_at, end_at) order by position)
+    (select jsonb_agg(jsonb_build_array(position, start_at, end_at, prompt) order by position)
        from t.debate_underlines where debate_id = d),
-    '[[1,0,5],[2,17,25]]');
+    '[[1,0,5,null],[2,17,25,"환상이 사라지면 무엇이 남을까요?"]]');
+  perform t.eq('long prompt', to_jsonb(t.err(format('select public.create_debate(%L, %L, %L)', t.id(101), 'q',
+    jsonb_build_array(jsonb_build_object('start', 0, 'end', 1, 'prompt', repeat('가', 101)))))), '"invalid_underlines"');
+  perform t.eq('prompt not text', to_jsonb(t.err(format('select public.create_debate(%L, %L, %L)', t.id(101), 'q',
+    '[{"start":0,"end":1,"prompt":3}]'))), '"invalid_underlines"');
 
   -- 밑줄 0개도 된다
   perform public.create_debate(t.id(101), '밑줄 없이', '[]'::jsonb);

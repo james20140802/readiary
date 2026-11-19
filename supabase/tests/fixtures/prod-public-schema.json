@@ -293,7 +293,8 @@
       ["debate_id", "uuid", "NO", null],
       ["position", "smallint", "NO", null],
       ["start_at", "integer", "NO", null],
-      ["end_at", "integer", "NO", null]
+      ["end_at", "integer", "NO", null],
+      ["prompt", "text", "YES", null]
     ],
     "debates": [
       ["id", "uuid", "NO", "gen_random_uuid()"],
@@ -794,6 +795,11 @@
         "debate_underlines_position_check",
         "c",
         "CHECK (((\"position\" >= 1) AND (\"position\" <= 3)))"
+      ],
+      [
+        "debate_underlines_prompt_check",
+        "c",
+        "CHECK (((prompt IS NULL) OR ((char_length(prompt) >= 1) AND (char_length(prompt) <= 100))))"
       ],
       ["debate_underlines_start_at_check", "c", "CHECK ((start_at >= 0))"]
     ],

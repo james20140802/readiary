@@ -28,7 +28,7 @@ do $$
 declare d uuid;
 begin
   perform t.as_user(t.id(1));
-  d := public.create_debate(t.id(101), '가까워질수록?', '[{"start":0,"end":5},{"start":17,"end":25}]'::jsonb);
+  d := public.create_debate(t.id(101), '가까워질수록?', '[{"start":0,"end":5,"prompt":"왜 경계일까요?"},{"start":17,"end":25}]'::jsonb);
   perform set_config('t.d', d::text, false);
   perform t.as_user(t.id(2));
   perform set_config('t.b1', public.add_debate_answer(d, 1::smallint, 'differ', '사라지는 건 상상 속의 상대뿐이에요.', t.id(201))::text, false);
@@ -79,6 +79,8 @@ begin
 
   s1 := g -> 'sections' -> 0;
   perform t.eq('s1 range+stats', jsonb_build_array(s1 -> 'start', s1 -> 'end', s1 -> 'count', s1 -> 'agree', s1 -> 'differ', s1 -> 'question'), '[0,5,3,1,2,0]');
+  perform t.eq('s1 prompt', s1 -> 'prompt', '"왜 경계일까요?"');
+  perform t.eq('s2 no prompt', g -> 'sections' -> 1 -> 'prompt', 'null');
   perform t.eq('s1 picks', (select jsonb_agg(x -> 'id') from jsonb_array_elements(s1 -> 'picks') x),
     jsonb_build_array(current_setting('t.b1'), current_setting('t.f1')));
   perform t.eq('s1 kinds', s1 -> 'pick_kinds', '["most_moved","other_side"]');

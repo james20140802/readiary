@@ -31,11 +31,13 @@ create index debates_user_created_idx on public.debates (user_id, created_at des
 create index debates_source_entry_idx on public.debates (source_entry_id) where source_entry_id is not null;
 
 -- 밑줄: 고정한 문장 안의 코드 포인트 위치, 끝 포함. 올린 뒤에는 고치지 않는다.
+-- prompt: 발제자가 이 밑줄에 덧붙인 짧은 물음(선택, 100자까지). 큰 질문은 debates.question 하나다.
 create table public.debate_underlines (
   debate_id uuid not null references public.debates (id) on delete cascade,
   position smallint not null check (position between 1 and 3),
   start_at integer not null check (start_at >= 0),
   end_at integer not null,
+  prompt text check (prompt is null or char_length(prompt) between 1 and 100),
   primary key (debate_id, position),
   check (end_at >= start_at)
 );
@@ -78,7 +80,8 @@ $$;
 revoke all on function public.debate_clean_question(text) from public, anon, authenticated;
 
 -- 발제: 내 기록의 문장을 고정하고 밑줄을 함께 넣는다.
--- p_underlines = [{"start":int,"end":int}, ...] 0~3개, 문장 안, 겹침 없음. 저장 순서는 시작 위치 순.
+-- p_underlines = [{"start":int,"end":int,"prompt"?:text}, ...] 0~3개, 문장 안, 겹침 없음. 저장 순서는 시작 위치 순.
+-- prompt는 앞뒤 공백을 걷어 비면 없음, 100자를 넘으면 invalid_underlines.
 create function public.create_debate(p_entry_id uuid, p_question text, p_underlines jsonb)
 returns uuid
 language plpgsql security definer set search_path = '' as $$
@@ -93,6 +96,7 @@ declare
   v_pos smallint := 0;
   v_start int;
   v_end int;
+  v_prompt text;
 begin
   perform public.assert_account_active();
 
@@ -126,6 +130,11 @@ begin
        or (v_item ->> 'end')::numeric <> trunc((v_item ->> 'end')::numeric) then
       raise exception 'invalid_underlines';
     end if;
+    if v_item ? 'prompt' and jsonb_typeof(v_item -> 'prompt') not in ('string', 'null') then
+      raise exception 'invalid_underlines';
+    end if;
+    v_prompt := nullif(btrim(v_item ->> 'prompt', E' \t\r\n'), '');
+    if char_length(v_prompt) > 100 then raise exception 'invalid_underlines'; end if;
     v_start := (v_item ->> 'start')::int;
     v_end := (v_item ->> 'end')::int;
     if v_start < 0 or v_end < v_start or v_end >= v_len or v_start <= v_prev_end then
@@ -133,8 +142,8 @@ begin
     end if;
     v_prev_end := v_end;
     v_pos := v_pos + 1;
-    insert into public.debate_underlines (debate_id, position, start_at, end_at)
-    values (v_id, v_pos, v_start, v_end);
+    insert into public.debate_underlines (debate_id, position, start_at, end_at, prompt)
+    values (v_id, v_pos, v_start, v_end, v_prompt);
   end loop;
 
   return v_id;
@@ -662,9 +671,9 @@ begin
   select * into d from public.debates where id = p_id;
 
   for v_sec in
-    select u.position, u.start_at, u.end_at from public.debate_underlines u where u.debate_id = p_id
+    select u.position, u.start_at, u.end_at, u.prompt from public.debate_underlines u where u.debate_id = p_id
     union all
-    select null::smallint, null::int, null::int
+    select null::smallint, null::int, null::int, null::text
     order by 1 nulls last
   loop
     -- 세는 답을 대표 답 순서(생각이 바뀐 수, 먼저 남긴 순)로 줄 세운다.
@@ -703,7 +712,7 @@ begin
     end if;
 
     v_sections := v_sections || jsonb_build_array(jsonb_build_object(
-      'position', v_sec.position, 'start', v_sec.start_at, 'end', v_sec.end_at,
+      'position', v_sec.position, 'start', v_sec.start_at, 'end', v_sec.end_at, 'prompt', v_sec.prompt,
       'count', v_stats.n, 'agree', v_stats.agree, 'differ', v_stats.differ, 'question', v_stats.question,
       'picks', v_picks, 'pick_kinds', v_kinds
     ));
