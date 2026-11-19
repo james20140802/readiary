@@ -7,10 +7,15 @@ import AnswerItem from '../AnswerItem';
 const report = vi.fn();
 // 실패는 vi.fn 대신 평범한 함수로 흉내 낸다 — 거부된 결과를 테스트 실패로 보고하지 않게
 let moveFails = false;
+const moveCalls: unknown[][] = [];
+// 응답을 붙잡아 두고 싶을 때 채운다
+let moveGate: Promise<void> | null = null;
 vi.mock('@/lib/debate/client', async (orig) => ({
   ...(await orig<typeof import('@/lib/debate/client')>()),
   report: (...a: unknown[]) => report(...a),
-  setMove: async () => {
+  setMove: async (...a: unknown[]) => {
+    moveCalls.push(a);
+    if (moveGate) await moveGate;
     if (moveFails) throw new Error('반영하지 못했어요.');
     return 1;
   },
@@ -122,6 +127,35 @@ describe('AnswerItem', () => {
       ).toBe('');
     } finally {
       wide = false;
+    }
+  });
+
+  it('생각이 바뀌었어요는 저장이 끝나기 전에 또 눌러도 요청을 겹쳐 보내지 않는다', async () => {
+    moveCalls.length = 0;
+    let open = () => {};
+    moveGate = new Promise<void>((r) => (open = r));
+    try {
+      render(
+        h(AnswerItem, {
+          debate: debate(),
+          answer: answer({ id: 'a1', movedCount: 0, movedByMe: false }),
+          onChanged: vi.fn(),
+        })
+      );
+      const btn = () => screen.getByRole('button', { name: /^생각이 바뀌었어요/ });
+      fireEvent.click(btn());
+      fireEvent.click(btn());
+      expect(moveCalls).toEqual([['a1', true]]);
+      expect(btn().getAttribute('aria-pressed')).toBe('true');
+      open();
+      await waitFor(() => expect(btn().getAttribute('aria-busy')).not.toBe('true'));
+      // 저장이 끝나면 다시 누를 수 있다
+      moveGate = null;
+      fireEvent.click(btn());
+      await waitFor(() => expect(moveCalls).toHaveLength(2));
+      expect(moveCalls[1]).toEqual(['a1', false]);
+    } finally {
+      moveGate = null;
     }
   });
 });

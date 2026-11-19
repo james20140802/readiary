@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import Link from 'next/link';
 import clsx from 'clsx';
 import { ArrowUpRight, MoreHorizontal } from 'lucide-react';
@@ -85,7 +85,14 @@ export default function AnswerItem({
   const gone = answer.deleted || !answer.author.active;
   const canAct = !gone && !answer.hidden;
 
+  // 저장이 끝나기 전의 누름은 받지 않는다 — 겹친 요청의 응답 순서에 따라 표시와 저장이 마지막 선택과 어긋난다.
+  // 같은 틱의 연속 누름도 막도록 ref로 지키고, 버튼은 잠그지 않아 키보드 초점을 잃지 않는다
+  const movingRef = useRef(false);
+  const [moving, setMoving] = useState(false);
   const toggleMove = async () => {
+    if (movingRef.current) return;
+    movingRef.current = true;
+    setMoving(true);
     const on = !moved.byMe;
     const before = moved;
     setMoved({ count: moved.count + (on ? 1 : -1), byMe: on });
@@ -96,6 +103,9 @@ export default function AnswerItem({
     } catch (e) {
       setMoved(before);
       toast(e instanceof Error ? e.message : '반영하지 못했어요.');
+    } finally {
+      movingRef.current = false;
+      setMoving(false);
     }
   };
 
@@ -270,6 +280,7 @@ export default function AnswerItem({
             <button
               type="button"
               aria-pressed={moved.byMe}
+              aria-busy={moving}
               disabled={!canAct}
               onClick={toggleMove}
               className={clsx(
