@@ -67,7 +67,7 @@ describe('EntryPicker — 책을 먼저 고르고 그 책의 문장을 고른다
     expect(entryCalls.at(-1)).toEqual(['', 0, 'ub1']);
     fireEvent.click(screen.getByText('그 책의 문장'));
     expect(onPick).toHaveBeenCalledWith(expect.objectContaining({ id: 'e1' }));
-    fireEvent.click(screen.getByRole('button', { name: '책 목록' }));
+    fireEvent.click(screen.getByRole('button', { name: '책 목록으로' }));
     expect(await screen.findByRole('button', { name: /소유냐 존재냐/ })).toBeTruthy();
   });
 

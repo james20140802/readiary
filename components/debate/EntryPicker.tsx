@@ -95,9 +95,11 @@ export default function EntryPicker({ selectedId, onPick, privateNote }: EntryPi
           <button
             type="button"
             onClick={backToBooks}
-            className="-ml-2 inline-flex min-h-10 items-center gap-0.5 rounded-full px-2 font-sans text-caption font-semibold text-accent"
+            aria-label="책 목록으로"
+            className="-ml-2 inline-flex min-h-10 shrink-0 items-center gap-0.5 whitespace-nowrap rounded-full px-2 font-sans text-caption font-semibold text-accent"
           >
-            <ChevronLeft size={18} strokeWidth={1.75} aria-hidden />책 목록
+            <ChevronLeft size={18} strokeWidth={1.75} aria-hidden />
+            목록
           </button>
           <span className="min-w-0 truncate font-serif text-body font-semibold text-ink">
             {book.title}

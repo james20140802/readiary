@@ -11,6 +11,7 @@ import type {
   PickKind,
 } from '@/lib/debate/types';
 import { toChars } from '@/lib/debate/underline';
+import { HIGHLIGHT } from './highlight';
 import AnswerItem from './AnswerItem';
 
 interface Props {
@@ -105,13 +106,14 @@ export default function DebateSection({
         className="block w-full pb-2 pt-6 text-left"
       >
         <span className="flex items-baseline gap-2">
-          <span
-            className={clsx(
-              'font-serif text-[17px] font-semibold text-ink',
-              section.range && 'underline decoration-accent decoration-2 underline-offset-[5px]'
+          <span className="font-serif text-[17px] font-semibold text-ink">
+            {section.range ? (
+              <span data-highlight className={HIGHLIGHT}>
+                {label}
+              </span>
+            ) : (
+              label
             )}
-          >
-            {label}
           </span>
           <span className="ml-auto whitespace-nowrap font-sans text-fine font-semibold text-ink-sub">{`답 ${section.count}`}</span>
           <ChevronDown

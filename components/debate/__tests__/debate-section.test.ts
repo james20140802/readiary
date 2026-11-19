@@ -60,6 +60,13 @@ describe('DebateSection', () => {
     expect(screen.getByText('공감 3 · 다르게 읽음 5 · 질문 1')).toBeTruthy();
   });
 
+  it('머리줄의 밑줄 글귀는 문장과 같은 형광펜으로 칠한다', () => {
+    render(h(Harness, { s: section() }));
+    const mark = document.querySelector('[data-highlight]') as HTMLElement;
+    expect(mark.className).toContain('bg-accent/');
+    expect(mark.className).not.toMatch(/(^|\s)underline(\s|$)/);
+  });
+
   it('발제자가 밑줄에 덧붙인 물음을 머리줄 아래에 보인다', () => {
     render(h(Harness, { s: section({ prompt: '환상이 사라지면 무엇이 남을까요?' }) }));
     expect(screen.getByText('환상이 사라지면 무엇이 남을까요?')).toBeTruthy();

@@ -9,6 +9,7 @@ import { PenLine } from 'lucide-react';
 import { fetchDebateList } from '@/lib/debate/client';
 import type { DebateListItem } from '@/lib/debate/types';
 import { toChars } from '@/lib/debate/underline';
+import { HIGHLIGHT } from './highlight';
 
 interface Page {
   items: DebateListItem[];
@@ -31,10 +32,7 @@ function UnderlinedQuote({ quote, underlines }: Pick<DebateListItem, 'quote' | '
   for (const r of [...underlines].sort((a, b) => a.start - b.start)) {
     if (r.start > cursor) out.push(chars.slice(cursor, r.start).join(''));
     out.push(
-      <span
-        key={r.start}
-        className="underline decoration-accent decoration-2 underline-offset-[5px]"
-      >
+      <span key={r.start} data-highlight className={HIGHLIGHT}>
         {chars.slice(r.start, r.end + 1).join('')}
       </span>
     );

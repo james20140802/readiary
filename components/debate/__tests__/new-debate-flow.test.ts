@@ -33,6 +33,16 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe('NewDebateFlow', () => {
+  it('질문 칸은 크기 조절 손잡이 없이 글 길이만큼 늘어난다', () => {
+    renderFlow();
+    fireEvent.click(screen.getByRole('button', { name: '다음' }));
+    const area = screen.getByLabelText('질문') as HTMLTextAreaElement;
+    expect(area.className).toContain('resize-none');
+    Object.defineProperty(area, 'scrollHeight', { configurable: true, value: 180 });
+    fireEvent.change(area, { target: { value: '한 줄\n두 줄\n세 줄\n네 줄' } });
+    expect(area.style.height).toBe('180px');
+  });
+
   it('기록을 가지고 오면 밑줄 단계부터', () => {
     renderFlow();
     expect(screen.getByText('발제 2/3')).toBeTruthy();

@@ -17,6 +17,12 @@ interface NewDebateFlowProps {
 
 const QUESTION_MAX = 500;
 
+/** 질문 칸은 손잡이 대신 쓴 만큼 늘어난다(줄이 줄면 다시 줄어든다) */
+const grow = (el: HTMLTextAreaElement) => {
+  el.style.height = 'auto';
+  el.style.height = `${el.scrollHeight}px`;
+};
+
 /** 발제 세 단계: 기록 고르기 → 밑줄 긋기 → 질문 쓰기. 단계를 오가도 고른 것과 쓴 것은 남는다. */
 export default function NewDebateFlow({ initialEntry }: NewDebateFlowProps) {
   const router = useRouter();
@@ -94,9 +100,15 @@ export default function NewDebateFlow({ initialEntry }: NewDebateFlowProps) {
                 rows={3}
                 maxLength={QUESTION_MAX}
                 value={question}
-                onChange={(e) => setQuestion(e.target.value)}
+                onChange={(e) => {
+                  setQuestion(e.target.value);
+                  grow(e.currentTarget);
+                }}
+                ref={(el) => {
+                  if (el) grow(el);
+                }}
                 placeholder="이 문장을 두고 친구들에게 묻고 싶은 것 하나"
-                className="font-serif"
+                className="resize-none overflow-hidden font-serif"
               />
             </div>
             <p

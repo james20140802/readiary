@@ -17,6 +17,7 @@ import { toChars } from '@/lib/debate/underline';
 import AnswerComposer from './AnswerComposer';
 import ComposerHost from './ComposerHost';
 import DebateSection, { sectionDomId, sectionLabel } from './DebateSection';
+import { HIGHLIGHT } from './highlight';
 import ReportSheet from './ReportSheet';
 import SummaryEditor from './SummaryEditor';
 import { profileHref } from './AnswerItem';
@@ -89,12 +90,20 @@ export default function DebateView({ initial }: { initial: DebateDetail }) {
     const { start, end } = s.range!;
     if (start > cursor) pieces.push(chars.slice(cursor, start).join(''));
     pieces.push(
-      <button
+      // 형광펜: 줄 안에 흐르는 링크여야 줄마다 칠해진다(button은 inline-block이라 덩어리로 끊긴다)
+      <a
         key={keyOf(s)}
-        type="button"
-        onClick={() => openSection(s)}
+        href={`#${sectionDomId(s)}`}
+        onClick={(e) => {
+          e.preventDefault();
+          openSection(s);
+        }}
         aria-label={`‘${sectionLabel(debate, s)}’에 붙은 답 ${s.count}개 보기`}
-        className="inline rounded-sm text-left underline decoration-accent decoration-2 underline-offset-[6px] hover:bg-accent/[0.07] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        data-highlight
+        className={clsx(
+          HIGHLIGHT,
+          'text-ink transition-colors hover:bg-accent/[0.28] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent'
+        )}
       >
         {chars.slice(start, end + 1).join('')}
         {s.count > 0 && (
@@ -102,7 +111,7 @@ export default function DebateView({ initial }: { initial: DebateDetail }) {
             {s.count}
           </sup>
         )}
-      </button>
+      </a>
     );
     cursor = end + 1;
   }
@@ -136,18 +145,30 @@ export default function DebateView({ initial }: { initial: DebateDetail }) {
 
   const head = (
     <div>
-      <p className="font-sans text-caption text-ink-sub">
-        {ownerHref ? (
-          <Link href={ownerHref} className="font-semibold text-ink hover:underline">
-            {debate.owner.nickname}
-          </Link>
-        ) : (
-          <span className="font-semibold text-ink">{isOwner ? '나' : debate.owner.nickname}</span>
-        )}
-        {' · '}
-        {dateLabel(debate.createdAt)}
-        {debate.closedAt && ` · ${dateLabel(debate.closedAt)} 정리`}
-      </p>
+      <div className="flex items-start justify-between gap-3">
+        <p className="font-sans text-caption text-ink-sub">
+          {ownerHref ? (
+            <Link href={ownerHref} className="font-semibold text-ink hover:underline">
+              {debate.owner.nickname}
+            </Link>
+          ) : (
+            <span className="font-semibold text-ink">{isOwner ? '나' : debate.owner.nickname}</span>
+          )}
+          {' · '}
+          {dateLabel(debate.createdAt)}
+          {debate.closedAt && ` · ${dateLabel(debate.closedAt)} 정리`}
+        </p>
+        {/* 넓은 화면엔 상단 바가 없어 메뉴(정리하기·다시 열기·질문 고치기·지우기·신고)를 여기서 연다 */}
+        <button
+          type="button"
+          data-desktop-menu
+          aria-label="토론 메뉴"
+          onClick={() => setMenu(true)}
+          className="-mr-2 -mt-2.5 hidden h-10 w-10 shrink-0 place-items-center rounded-full text-ink-sub transition-colors hover:bg-ink/[0.05] hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent lg:grid"
+        >
+          <MoreHorizontal size={21} strokeWidth={1.75} aria-hidden />
+        </button>
+      </div>
 
       <p className="mt-3 whitespace-pre-wrap break-keep font-serif text-quote leading-[1.75] text-ink lg:text-quote-lg">
         {pieces.map((p, i) => (

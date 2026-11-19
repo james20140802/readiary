@@ -75,6 +75,13 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe('DebateList', () => {
+  it('목록의 문장도 밑줄 부분을 형광펜으로 칠한다', () => {
+    renderList();
+    const marks = document.querySelectorAll('[data-highlight]');
+    expect(marks.length).toBeGreaterThan(0);
+    for (const m of marks) expect(m.className).toContain('bg-accent/');
+  });
+
   it('진행 중과 정리된 토론, 발제하기', () => {
     renderList();
     expect(screen.getByText('가까워질수록?')).toBeTruthy();
