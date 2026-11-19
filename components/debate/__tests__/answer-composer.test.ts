@@ -42,6 +42,18 @@ describe('AnswerComposer', () => {
     expect(localStorage.getItem('debate-draft:d1:2')).toBeNull();
   });
 
+  it('밑줄에 물음이 있으면 입장 위에 보인다', () => {
+    render(
+      h(AnswerComposer, {
+        debateId: 'd1',
+        target: { ...answerTarget, prompt: '환상이 사라지면 무엇이 남을까요?' },
+        onDone: vi.fn(),
+        onCancel: vi.fn(),
+      })
+    );
+    expect(screen.getByText('환상이 사라지면 무엇이 남을까요?')).toBeTruthy();
+  });
+
   it('닫았다 다시 열어도 쓰던 답이 남는다', () => {
     const props = { debateId: 'd1', target: answerTarget, onDone: vi.fn(), onCancel: vi.fn() };
     const first = render(h(AnswerComposer, props));

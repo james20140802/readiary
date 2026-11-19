@@ -22,6 +22,7 @@ const p2 = answer({
 const section = (over: Partial<Section> = {}): Section => ({
   position: 2,
   range: { start: 17, end: 25 },
+  prompt: null,
   count: 9,
   agree: 3,
   differ: 5,
@@ -57,6 +58,11 @@ describe('DebateSection', () => {
     expect(screen.queryByText('생각을 가장 많이 바꾼 답')).toBeNull();
     expect(screen.getByText('답 9')).toBeTruthy();
     expect(screen.getByText('공감 3 · 다르게 읽음 5 · 질문 1')).toBeTruthy();
+  });
+
+  it('발제자가 밑줄에 덧붙인 물음을 머리줄 아래에 보인다', () => {
+    render(h(Harness, { s: section({ prompt: '환상이 사라지면 무엇이 남을까요?' }) }));
+    expect(screen.getByText('환상이 사라지면 무엇이 남을까요?')).toBeTruthy();
   });
 
   it('대표 답 라벨: 둘째는 다르게 본 쪽에서, plain이면 라벨 없음', () => {

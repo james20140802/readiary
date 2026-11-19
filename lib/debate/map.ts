@@ -92,6 +92,7 @@ export function mapDebate(d: Raw): DebateDetail {
     sections: (d.sections ?? []).map((s: Raw) => ({
       position: s.position ?? null,
       range: s.start === null || s.start === undefined ? null : { start: s.start, end: s.end },
+      prompt: s.prompt ?? null,
       count: s.count ?? 0,
       agree: s.agree ?? 0,
       differ: s.differ ?? 0,

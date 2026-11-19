@@ -142,6 +142,12 @@ export default function DebateSection({
         )}
       </button>
 
+      {section.prompt && (
+        <p className="-mt-0.5 mb-2 border-l-2 border-accent/60 pl-2.5 font-serif text-body-sm text-ink-sub">
+          {section.prompt}
+        </p>
+      )}
+
       {expanded && (
         <div className="border-t border-hairline-strong">
           {section.count === 0 && (

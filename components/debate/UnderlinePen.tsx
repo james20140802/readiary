@@ -3,7 +3,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import clsx from 'clsx';
 import type { Range } from '@/lib/debate/types';
-import { MAX_UNDERLINES, planStroke, toChars, trimRange, wordAt } from '@/lib/debate/underline';
+import {
+  MAX_PROMPT,
+  MAX_UNDERLINES,
+  planStroke,
+  toChars,
+  trimRange,
+  wordAt,
+} from '@/lib/debate/underline';
 
 interface UnderlinePenProps {
   /** 고정할 문장 */
@@ -338,20 +345,30 @@ export default function UnderlinePen({ quote, value, onChange }: UnderlinePenPro
           {value.map((r, i) => {
             const text = chars.slice(r.start, r.end + 1).join('');
             return (
-              <li
-                key={`${r.start}-${r.end}`}
-                className="flex items-center gap-3 border-t border-hairline-strong py-2.5"
-              >
-                <span className="w-4 font-sans text-fine font-bold text-accent">{i + 1}</span>
-                <span className="font-serif text-body text-ink">{text}</span>
-                <button
-                  type="button"
-                  onClick={() => removeAt(i)}
-                  aria-label={`“${text}” 지우기`}
-                  className="ml-auto min-h-10 px-2 font-sans text-caption text-ink-sub hover:text-ink"
-                >
-                  지우기
-                </button>
+              <li key={`${r.start}-${r.end}`} className="border-t border-hairline-strong py-2.5">
+                <div className="flex items-center gap-3">
+                  <span className="w-4 font-sans text-fine font-bold text-accent">{i + 1}</span>
+                  <span className="font-serif text-body text-ink">{text}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeAt(i)}
+                    aria-label={`“${text}” 지우기`}
+                    className="ml-auto min-h-10 px-2 font-sans text-caption text-ink-sub hover:text-ink"
+                  >
+                    지우기
+                  </button>
+                </div>
+                {/* 이 밑줄에만 덧붙이는 짧은 물음(선택). 타자 입력은 되돌리기 이력에 넣지 않는다 */}
+                <input
+                  aria-label={`“${text}”에 묻고 싶은 것(선택)`}
+                  value={r.prompt ?? ''}
+                  maxLength={MAX_PROMPT}
+                  onChange={(e) =>
+                    onChange(value.map((x, j) => (j === i ? { ...x, prompt: e.target.value } : x)))
+                  }
+                  placeholder="이 부분에 묻고 싶은 것(선택)"
+                  className="ml-7 mt-1 block min-h-10 w-[calc(100%-1.75rem)] border-b border-hairline bg-transparent font-serif text-body-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none"
+                />
               </li>
             );
           })}

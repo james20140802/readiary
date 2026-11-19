@@ -12,7 +12,7 @@ import { STANCE_ICON } from './StanceMark';
 import EntryPicker from './EntryPicker';
 
 export type ComposerTarget =
-  | { kind: 'answer'; position: number | null; label: string }
+  | { kind: 'answer'; position: number | null; label: string; prompt?: string | null }
   | { kind: 'reply'; answerId: string }
   | { kind: 'edit'; answer: DebateAnswer };
 
@@ -99,6 +99,11 @@ export default function AnswerComposer({
 
   return (
     <div>
+      {target.kind === 'answer' && target.prompt && (
+        <p className="mb-2 border-l-2 border-accent pl-2.5 font-serif text-body text-ink">
+          {target.prompt}
+        </p>
+      )}
       {target.kind === 'answer' && (
         <p className="font-sans text-caption text-ink-sub">
           {target.position === null

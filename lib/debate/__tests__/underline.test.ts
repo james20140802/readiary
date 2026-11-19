@@ -85,6 +85,27 @@ describe('planStroke', () => {
   });
 });
 
+describe('planStroke와 밑줄별 물음', () => {
+  it('건드리지 않은 밑줄의 물음은 그대로, 합친 밑줄은 앞쪽의 물음을 이어받는다', () => {
+    const res = planStroke(
+      [
+        { start: 0, end: 2, prompt: '왜 경계일까요?' },
+        { start: 4, end: 6, prompt: '문턱은?' },
+        { start: 17, end: 20, prompt: '환상은?' },
+      ],
+      { start: 1, end: 5 }
+    );
+    expect(res).toEqual({
+      ok: true,
+      ranges: [
+        { start: 0, end: 6, prompt: '왜 경계일까요?' },
+        { start: 17, end: 20, prompt: '환상은?' },
+      ],
+      merged: 2,
+    });
+  });
+});
+
 describe('isValidUnderlines', () => {
   const chars = toChars(QUOTE);
   it('0~3개, 문장 안, 겹침 없음', () => {

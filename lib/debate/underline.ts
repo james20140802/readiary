@@ -4,7 +4,11 @@
 export interface Range {
   start: number;
   end: number;
+  /** 발제자가 이 밑줄에 덧붙인 짧은 물음(선택, 100자까지) */
+  prompt?: string;
 }
+
+export const MAX_PROMPT = 100;
 
 export const MAX_UNDERLINES = 3;
 
@@ -49,6 +53,9 @@ export function planStroke(ranges: Range[], stroke: Range, max = MAX_UNDERLINES)
     start: Math.min(stroke.start, ...hit.map((r) => r.start)),
     end: Math.max(stroke.end, ...hit.map((r) => r.end)),
   };
+  // 합친 밑줄은 앞쪽 밑줄의 물음을 이어받는다
+  const prompt = [...hit].sort((a, b) => a.start - b.start).find((r) => r.prompt?.trim())?.prompt;
+  if (prompt) merged.prompt = prompt;
   return {
     ok: true,
     ranges: [...rest, merged].sort((a, b) => a.start - b.start),

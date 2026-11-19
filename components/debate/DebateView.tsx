@@ -279,6 +279,7 @@ export default function DebateView({ initial }: { initial: DebateDetail }) {
                         kind: 'answer',
                         position: s.position,
                         label: sectionLabel(debate, s),
+                        prompt: s.prompt,
                       }}
                       onCancel={() => setComposerFor(null)}
                       onDone={() => {

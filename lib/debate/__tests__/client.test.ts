@@ -101,6 +101,7 @@ describe('client 변환', () => {
           position: 1,
           start: 0,
           end: 5,
+          prompt: '왜 경계일까요?',
           count: 1,
           agree: 0,
           differ: 1,
@@ -124,6 +125,8 @@ describe('client 변환', () => {
     expect(d.totals.movedPeople).toBe(4);
     expect(d.sections[0].range).toEqual({ start: 0, end: 5 });
     expect(d.sections[1].range).toBeNull();
+    expect(d.sections[0].prompt).toBe('왜 경계일까요?');
+    expect(d.sections[1].prompt).toBeNull();
     expect(d.sections[0].pickKinds).toEqual(['most_moved']);
     expect(d.canAnswer).toBe(true);
   });

@@ -6,7 +6,7 @@ import { isUuid } from '@/lib/share/validation';
 import { getServerUser } from '@/lib/supabase/getServerUser';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import type { Range, ReportReason, Stance } from './types';
-import { MAX_UNDERLINES } from './underline';
+import { MAX_PROMPT, MAX_UNDERLINES } from './underline';
 import { badRequest, debateHeaders, rpcFailure } from './errors';
 
 export const LIMITS = { question: 500, body: 2000, summary: 2000, memo: 500 } as const;
@@ -65,16 +65,23 @@ export const isText = (v: unknown, max: number): v is string =>
 export const isOptionalUuid = (v: unknown): v is string | null | undefined =>
   v === null || v === undefined || (typeof v === 'string' && isUuid(v));
 
-/** 밑줄 모양만 본다(문장 안인지는 서버 RPC가 본다): 0~3개, 정수, 시작≤끝, 겹침 없음 */
+/** 밑줄 모양만 본다(문장 안인지는 서버 RPC가 본다): 0~3개, 정수, 시작≤끝, 겹침 없음, 물음은 100자까지 */
 export function parseUnderlines(v: unknown): Range[] | null {
   if (!Array.isArray(v) || v.length > MAX_UNDERLINES) return null;
   const out: Range[] = [];
   for (const item of v) {
     if (!item || typeof item !== 'object') return null;
-    const { start, end } = item as Record<string, unknown>;
+    const { start, end, prompt } = item as Record<string, unknown>;
     if (!Number.isInteger(start) || !Number.isInteger(end)) return null;
     if ((start as number) < 0 || (end as number) < (start as number)) return null;
-    out.push({ start: start as number, end: end as number });
+    if (prompt !== undefined && prompt !== null && typeof prompt !== 'string') return null;
+    const trimmed = typeof prompt === 'string' ? prompt.trim() : '';
+    if (Array.from(trimmed).length > MAX_PROMPT) return null;
+    out.push(
+      trimmed
+        ? { start: start as number, end: end as number, prompt: trimmed }
+        : { start: start as number, end: end as number }
+    );
   }
   const sorted = [...out].sort((a, b) => a.start - b.start);
   for (let i = 1; i < sorted.length; i++) if (sorted[i].start <= sorted[i - 1].end) return null;

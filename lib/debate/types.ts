@@ -69,6 +69,8 @@ export interface DebateSection {
   /** 밑줄 번호(1~3). 문장 전체면 null */
   position: number | null;
   range: Range | null;
+  /** 발제자가 이 밑줄에 덧붙인 물음(없으면 null) */
+  prompt: string | null;
   count: number;
   agree: number;
   differ: number;

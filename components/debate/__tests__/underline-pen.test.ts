@@ -121,6 +121,15 @@ describe('UnderlinePen', () => {
     expect(spy).not.toHaveBeenCalled();
   });
 
+  it('밑줄마다 짧은 물음을 덧붙일 수 있다(선택)', () => {
+    const spy = vi.fn();
+    render(h(Harness, { initial: [{ start: 4, end: 6 }], spy }));
+    fireEvent.change(screen.getByLabelText('“문턱이”에 묻고 싶은 것(선택)'), {
+      target: { value: '왜 문턱일까요?' },
+    });
+    expect(spy).toHaveBeenLastCalledWith([{ start: 4, end: 6, prompt: '왜 문턱일까요?' }]);
+  });
+
   it('한 번 누르면 그 어절에 밑줄', () => {
     const spy = vi.fn();
     render(h(Harness, { initial: [], spy }));

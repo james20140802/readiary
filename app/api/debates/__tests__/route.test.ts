@@ -42,6 +42,24 @@ describe('POST /api/debates', () => {
     expect(res.headers.get('Cache-Control')).toContain('no-store');
   });
 
+  it('밑줄별 물음을 함께 보내고, 100자를 넘으면 막는다', async () => {
+    rpc.mockResolvedValue({ data: id, error: null });
+    await CREATE(
+      req('POST', { ...body, underlines: [{ start: 0, end: 5, prompt: '왜 경계일까요?' }] })
+    );
+    expect(rpc).toHaveBeenCalledWith('create_debate', {
+      p_entry_id: entryId,
+      p_question: '가까워질수록?',
+      p_underlines: [{ start: 0, end: 5, prompt: '왜 경계일까요?' }],
+    });
+    rpc.mockClear();
+    const res = await CREATE(
+      req('POST', { ...body, underlines: [{ start: 0, end: 5, prompt: '가'.repeat(101) }] })
+    );
+    expect(res.status).toBe(400);
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
   it('밑줄이 넷이면 RPC를 부르지 않는다', async () => {
     const four = [0, 3, 6, 9].map((s) => ({ start: s, end: s + 1 }));
     const res = await CREATE(req('POST', { ...body, underlines: four }));
