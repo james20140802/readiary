@@ -1,7 +1,7 @@
 'use client';
 
 import { clsx } from 'clsx';
-import React from 'react';
+import React, { useCallback, useLayoutEffect, useRef } from 'react';
 import type { FieldVariant } from '@/components/ui/Input';
 
 type TextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement> & {
@@ -11,6 +11,14 @@ type TextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement> & {
   fullWidth?: boolean;
   /** `box`(기본): 헤어라인 상자. `line`: 밑줄 없이 종이 위에, 포커스는 왼쪽의 짧은 accent 표시 */
   variant?: FieldVariant;
+  /** 크기 조절 손잡이 없이 쓴 만큼 늘고 줄어든다(rows가 최소 높이). 불러온 초안처럼 값이 바깥에서 바뀌어도 맞춘다 */
+  autoGrow?: boolean;
+};
+
+const fit = (el: HTMLTextAreaElement) => {
+  el.style.height = 'auto';
+  // scrollHeight엔 테두리가 빠져 있다 — box 모양에서 마지막 줄이 잘리지 않게 더한다
+  el.style.height = `${el.scrollHeight + el.offsetHeight - el.clientHeight}px`;
 };
 
 export function Textarea({
@@ -18,12 +26,27 @@ export function Textarea({
   error,
   fullWidth = false,
   variant = 'box',
+  autoGrow = false,
   className,
+  ref,
   ...props
 }: TextareaProps) {
   const line = variant === 'line';
+  const own = useRef<HTMLTextAreaElement | null>(null);
+  const setRef = useCallback(
+    (el: HTMLTextAreaElement | null) => {
+      own.current = el;
+      if (typeof ref === 'function') ref(el);
+      else if (ref) (ref as React.RefObject<HTMLTextAreaElement | null>).current = el;
+    },
+    [ref]
+  );
+  useLayoutEffect(() => {
+    if (autoGrow && own.current) fit(own.current);
+  }, [autoGrow, props.value]);
   const field = (
     <textarea
+      ref={setRef}
       className={clsx(
         'block leading-relaxed text-ink placeholder:text-ink-faint transition-colors focus:outline-none',
         line
@@ -34,9 +57,14 @@ export function Textarea({
               error && 'border-danger',
             ],
         fullWidth && 'w-full',
+        autoGrow && 'resize-none overflow-hidden',
         className
       )}
       {...props}
+      onChange={(e) => {
+        if (autoGrow) fit(e.currentTarget);
+        props.onChange?.(e);
+      }}
     />
   );
   return (

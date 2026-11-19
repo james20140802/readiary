@@ -69,6 +69,7 @@ export default function ReportSheet({ open, onClose, debateId, answerId }: Props
       </div>
       <div className="mt-4">
         <Textarea
+          autoGrow
           aria-label="덧붙일 말(선택)"
           variant="line"
           fullWidth

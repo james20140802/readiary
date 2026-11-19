@@ -65,6 +65,7 @@ export default function SummaryEditor({ open, onClose, debate, onSaved }: Props)
       )}
       <div className="mt-3">
         <Textarea
+          autoGrow
           aria-label="정리"
           variant="line"
           fullWidth

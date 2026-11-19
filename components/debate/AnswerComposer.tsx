@@ -145,6 +145,7 @@ export default function AnswerComposer({
 
       <div className="mt-3">
         <Textarea
+          autoGrow
           ref={textRef}
           aria-label={fieldLabel}
           variant="line"

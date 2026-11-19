@@ -461,6 +461,7 @@ function QuestionEditor({
   return (
     <Sheet open={open} onClose={onClose} title="질문 고치기">
       <Textarea
+        autoGrow
         aria-label="질문"
         variant="line"
         fullWidth

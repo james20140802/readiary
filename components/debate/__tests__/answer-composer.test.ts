@@ -22,6 +22,22 @@ afterEach(cleanup);
 const answerTarget = { kind: 'answer' as const, position: 2, label: '타자에 대한 환상' };
 
 describe('AnswerComposer', () => {
+  it('답·답글·고치기 칸은 손잡이 없이 쓴 만큼 늘어난다', () => {
+    render(
+      h(AnswerComposer, {
+        debateId: 'd1',
+        target: answerTarget,
+        onDone: vi.fn(),
+        onCancel: vi.fn(),
+      })
+    );
+    const area = document.querySelector('textarea') as HTMLTextAreaElement;
+    expect(area.className).toContain('resize-none');
+    Object.defineProperty(area, 'scrollHeight', { configurable: true, value: 240 });
+    fireEvent.change(area, { target: { value: '길게\n\n\n\n\n쓴 답' } });
+    expect(area.style.height).toBe('240px');
+  });
+
   it('입장과 글이 모두 있어야 남길 수 있다', async () => {
     const onDone = vi.fn();
     render(h(AnswerComposer, { debateId: 'd1', target: answerTarget, onDone, onCancel: vi.fn() }));
