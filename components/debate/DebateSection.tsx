@@ -60,7 +60,8 @@ export default function DebateSection({
   const [state, setState] = useState<'idle' | 'loading' | 'error' | 'done'>('idle');
 
   const pickIds = new Set(section.picks.map((p) => p.id));
-  const rest = section.count - section.picks.length;
+  // 숨긴 답처럼 세지 않지만 내게 보이는 답(extra)도 이어 불러올 수 있어야 주인이 숨김을 풀고 작성자가 자기 답에 닿는다
+  const rest = section.count + section.extra - section.picks.length;
 
   const load = async (after: number) => {
     setState('loading');
@@ -152,7 +153,7 @@ export default function DebateSection({
 
       {expanded && (
         <div className="border-t border-hairline-strong">
-          {section.count === 0 && (
+          {section.count + section.extra === 0 && (
             <p className="py-4 font-sans text-caption text-ink-faint">아직 답이 없어요</p>
           )}
           {section.picks.map((a, i) => (

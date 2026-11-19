@@ -72,6 +72,8 @@ export interface DebateSection {
   /** 발제자가 이 밑줄에 덧붙인 물음(없으면 null) */
   prompt: string | null;
   count: number;
+  /** 세지 않지만 보는 사람에게 보이는 답 수(숨긴 답·자리만 남은 답·떠난 사람의 답) — 이어 불러올 수 있게 */
+  extra: number;
   agree: number;
   differ: number;
   question: number;

@@ -24,6 +24,7 @@ const section = (over: Partial<Section> = {}): Section => ({
   range: { start: 17, end: 25 },
   prompt: null,
   count: 9,
+  extra: 0,
   agree: 3,
   differ: 5,
   question: 1,
@@ -91,6 +92,34 @@ describe('DebateSection', () => {
     expect(await screen.findByText('셋째 답')).toBeTruthy();
     expect(fetchSectionAnswers).toHaveBeenCalledWith('d1', 2, 0);
     expect(screen.getAllByText('사라지는 건 상상 속의 상대뿐이에요.')).toHaveLength(1);
+  });
+
+  it('세지 않지만 내게 보이는 답(숨긴 답)이 있으면 대표 답이 전부여도 이어 불러온다', async () => {
+    fetchSectionAnswers.mockResolvedValue({
+      answers: [p1, p2, answer({ id: 'a3', body: '숨긴 답', hidden: true })],
+      next: null,
+    });
+    render(h(Harness, { s: section({ count: 2, extra: 1 }) }));
+    fireEvent.click(screen.getByRole('button', { name: '나머지 1개 보기' }));
+    expect(await screen.findByText('숨긴 답')).toBeTruthy();
+  });
+
+  it('남은 답이 숨긴 것뿐이면 비어 있다고 하지 않고 불러올 길을 둔다', () => {
+    render(
+      h(Harness, {
+        s: section({
+          count: 0,
+          extra: 1,
+          agree: 0,
+          differ: 0,
+          question: 0,
+          picks: [],
+          pickKinds: [],
+        }),
+      })
+    );
+    expect(screen.queryByText('아직 답이 없어요')).toBeNull();
+    expect(screen.getByRole('button', { name: '나머지 1개 보기' })).toBeTruthy();
   });
 
   it('토론을 다시 불러오면 펼쳐 둔 나머지 답도 다시 가져온다', async () => {

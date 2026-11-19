@@ -26,6 +26,7 @@ const mine = () =>
         question: 0,
         picks: [],
         pickKinds: [],
+        extra: 0,
       },
     ],
   });

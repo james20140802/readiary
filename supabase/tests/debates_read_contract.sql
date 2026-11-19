@@ -146,7 +146,12 @@ begin
   perform t.as_user(t.id(2));
   perform t.eq('hidden excluded', public.get_debate(current_setting('t.d')::uuid) -> 'sections' -> 1 -> 'count', '1');
   perform t.eq('others page excludes hidden', jsonb_array_length(public.get_debate_answers(current_setting('t.d')::uuid, 2::smallint, false, 0, 10) -> 'answers'), '1');
+  -- 세지 않는 답 중 보는 사람에게 보이는 것(숨긴 답)은 extra로 알려 이어 불러올 수 있게 한다
+  perform t.eq('others have no extra', public.get_debate(current_setting('t.d')::uuid) -> 'sections' -> 1 -> 'extra', '0');
+  perform t.as_user(t.id(1));
+  perform t.eq('owner sees hidden as extra', public.get_debate(current_setting('t.d')::uuid) -> 'sections' -> 1 -> 'extra', '1');
   perform t.as_user(t.id(6));
+  perform t.eq('author sees hidden as extra', public.get_debate(current_setting('t.d')::uuid) -> 'sections' -> 1 -> 'extra', '1');
   perform t.eq('author sees hidden flag', (select x -> 'hidden' from jsonb_array_elements(
       public.get_debate_answers(current_setting('t.d')::uuid, 2::smallint, false, 0, 10) -> 'answers') x
     where x ->> 'id' = current_setting('t.f2')), 'true');

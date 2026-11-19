@@ -94,6 +94,7 @@ export function mapDebate(d: Raw): DebateDetail {
       range: s.start === null || s.start === undefined ? null : { start: s.start, end: s.end },
       prompt: s.prompt ?? null,
       count: s.count ?? 0,
+      extra: s.extra ?? 0,
       agree: s.agree ?? 0,
       differ: s.differ ?? 0,
       question: s.question ?? 0,

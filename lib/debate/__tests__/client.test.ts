@@ -103,6 +103,7 @@ describe('client 변환', () => {
           end: 5,
           prompt: '왜 경계일까요?',
           count: 1,
+          extra: 2,
           agree: 0,
           differ: 1,
           question: 0,
@@ -128,6 +129,9 @@ describe('client 변환', () => {
     expect(d.sections[0].prompt).toBe('왜 경계일까요?');
     expect(d.sections[1].prompt).toBeNull();
     expect(d.sections[0].pickKinds).toEqual(['most_moved']);
+    // 숨긴 답처럼 세지 않지만 내게 보이는 답 수 — 예전 응답엔 없으니 0
+    expect(d.sections[0].extra).toBe(2);
+    expect(d.sections[1].extra).toBe(0);
     expect(d.canAnswer).toBe(true);
   });
 
