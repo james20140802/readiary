@@ -21,41 +21,55 @@ interface EntryPickerProps {
 
 type LoadState = 'loading' | 'idle' | 'error';
 
+const HEADING = 'mt-3 font-sans text-fine font-semibold text-ink-sub';
+
 /**
  * 내 문장 고르기 — 먼저 책을 고르고, 그 책의 문장을 고른다(독자는 "그 책의 그 문장"으로 기억한다).
- * 검색어를 넣으면 책을 고르지 않았을 때는 모든 책에서, 책 안에서는 그 책에서 찾는다.
+ * 책을 고르지 않았을 때 검색어는 책 제목과 문장을 함께 찾고, 책 안에서는 그 책의 문장을 찾는다.
+ * 책 목록은 한 쪽씩 불러와 아래 "책 더 보기"로 이어 붙인다.
  * 발제의 첫 단계와 답의 근거 붙이기가 함께 쓴다. 책·문장 목록의 불러오기·실패·다시 시도는 따로 다룬다.
  */
 export default function EntryPicker({ selectedId, onPick, privateNote }: EntryPickerProps) {
   const [book, setBook] = useState<PickableBook | null>(null);
   const [q, setQ] = useState('');
 
-  const [books, setBooks] = useState<PickableBook[] | null>(null);
+  const [books, setBooks] = useState<PickableBook[]>([]);
+  const [booksNext, setBooksNext] = useState<number | null>(null);
   const [booksState, setBooksState] = useState<LoadState>('loading');
-
+  const [booksFailedAt, setBooksFailedAt] = useState(0);
+  const bookSeq = useRef(0);
   const [items, setItems] = useState<PickableEntry[]>([]);
   const [next, setNext] = useState<number | null>(null);
   const [state, setState] = useState<LoadState>('idle');
   const seq = useRef(0);
 
-  // 책 목록은 열 때 한 번, 그리고 "다시 시도"를 누를 때 가져온다(booksTry가 바뀔 때)
-  const [booksTry, setBooksTry] = useState(0);
-  useEffect(() => {
-    let alive = true;
-    fetchPickableBooks()
-      .then((b) => {
-        if (!alive) return;
-        setBooks(b);
-        setBooksState('idle');
-      })
-      .catch(() => alive && setBooksState('error'));
-    return () => {
-      alive = false;
-    };
-  }, [booksTry]);
-  const loadBooks = () => setBooksTry((n) => n + 1);
+  const loadBooks = useCallback(async (query: string, page: number) => {
+    const mine = ++bookSeq.current;
+    if (page === 0) setBooks([]);
+    setBooksState('loading');
+    try {
+      const res = await fetchPickableBooks(query, page);
+      if (mine !== bookSeq.current) return;
+      setBooks((prev) => (page === 0 ? res.items : [...prev, ...res.items]));
+      setBooksNext(res.next);
+      setBooksState('idle');
+    } catch {
+      if (mine !== bookSeq.current) return;
+      setBooksFailedAt(page);
+      setBooksState('error');
+    }
+  }, []);
 
-  const showEntries = book !== null || q.trim().length > 0;
+  // 책을 고르지 않았을 때만 책 목록을 쓴다 — 검색어가 있으면 그 제목의 책을 찾는다
+  const bookQuery = book ? null : q.trim();
+  useEffect(() => {
+    if (bookQuery === null) return;
+    const t = setTimeout(() => void loadBooks(bookQuery, 0), bookQuery ? 250 : 0);
+    return () => clearTimeout(t);
+  }, [bookQuery, loadBooks]);
+
+  const searching = !book && q.trim().length > 0;
+  const showEntries = book !== null || searching;
 
   const load = useCallback(async (query: string, page: number, bookId: string | null) => {
     const mine = ++seq.current;
@@ -109,19 +123,22 @@ export default function EntryPicker({ selectedId, onPick, privateNote }: EntryPi
 
       <label className="flex items-center gap-2 border-b border-hairline-strong pb-2 focus-within:border-accent">
         <Search size={18} strokeWidth={1.75} className="text-ink-faint" aria-hidden />
-        <span className="sr-only">문장 찾기</span>
+        <span className="sr-only">
+          {book ? '이 책에서 문장 찾기' : '책 제목이나 문장으로 찾기'}
+        </span>
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder={book ? '이 책에서 문장 찾기' : '모든 책에서 문장 찾기'}
+          placeholder={book ? '이 책에서 문장 찾기' : '책 제목이나 문장으로 찾기'}
           className="min-h-10 w-full bg-transparent font-sans text-input text-ink placeholder:text-ink-faint focus:outline-none"
         />
       </label>
 
-      {!showEntries && (
+      {!book && (
         <>
+          {searching && books.length > 0 && <h3 className={HEADING}>책</h3>}
           <ul className="mt-2" aria-busy={booksState === 'loading'}>
-            {books?.map((b) => (
+            {books.map((b) => (
               <li key={b.userBookId}>
                 <button
                   type="button"
@@ -148,7 +165,7 @@ export default function EntryPicker({ selectedId, onPick, privateNote }: EntryPi
               </li>
             ))}
           </ul>
-          {booksState === 'loading' && (
+          {booksState === 'loading' && !searching && (
             <p className="py-4 font-sans text-caption text-ink-faint">책을 불러오는 중…</p>
           )}
           {booksState === 'error' && (
@@ -157,25 +174,33 @@ export default function EntryPicker({ selectedId, onPick, privateNote }: EntryPi
               <button
                 type="button"
                 className="font-semibold text-accent"
-                onClick={() => {
-                  setBooksState('loading');
-                  void loadBooks();
-                }}
+                onClick={() => void loadBooks(bookQuery ?? '', booksFailedAt)}
               >
                 다시 시도
               </button>
             </p>
           )}
-          {booksState === 'idle' && books?.length === 0 && (
+          {booksState === 'idle' && !searching && books.length === 0 && (
             <p className="py-4 font-sans text-caption text-ink-sub">
               문장을 남긴 책이 아직 없어요.
             </p>
+          )}
+          {booksState === 'idle' && booksNext !== null && (
+            <Button
+              variant="secondary"
+              size="sm"
+              className="mt-3"
+              onClick={() => void loadBooks(bookQuery ?? '', booksNext)}
+            >
+              책 더 보기
+            </Button>
           )}
         </>
       )}
 
       {showEntries && (
         <>
+          {searching && <h3 className={clsx(HEADING, 'mt-5')}>문장</h3>}
           <ul className="mt-2" aria-busy={state === 'loading'}>
             {items.map((e) => (
               <li key={e.id}>

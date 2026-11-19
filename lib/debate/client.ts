@@ -130,4 +130,8 @@ export interface PickableBook {
   quoteCount: number;
 }
 
-export const fetchPickableBooks = () => call<PickableBook[]>('/api/debates/books');
+/** 문장이 있는 내 책 한 쪽. q는 책 제목 검색어 */
+export const fetchPickableBooks = (q = '', page = 0) =>
+  call<{ items: PickableBook[]; next: number | null }>(
+    `/api/debates/books?q=${encodeURIComponent(q)}&page=${page}`
+  );

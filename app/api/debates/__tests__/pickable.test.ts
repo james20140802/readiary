@@ -30,7 +30,8 @@ beforeEach(() => {
 });
 
 describe('GET /api/debates/books', () => {
-  it('문장이 있는 내 책과 문장 수를 돌려준다', async () => {
+  const req = (qs = '') => new Request(`http://localhost/api/debates/books${qs}`);
+  it('문장이 있는 내 책과 문장 수를 한 쪽씩 돌려준다', async () => {
     result = {
       data: [
         {
@@ -41,16 +42,47 @@ describe('GET /api/debates/books', () => {
       ],
       error: null,
     };
-    const res = await BOOKS();
-    expect(await res.json()).toEqual([
-      { userBookId: ub, title: '에로스의 종말', author: '한병철', coverUrl: null, quoteCount: 12 },
-    ]);
+    const res = await BOOKS(req());
+    expect(await res.json()).toEqual({
+      items: [
+        {
+          userBookId: ub,
+          title: '에로스의 종말',
+          author: '한병철',
+          coverUrl: null,
+          quoteCount: 12,
+        },
+      ],
+      next: null,
+    });
     expect(calls).toContainEqual(['eq', ['user_id', 'me']]);
     expect(calls).toContainEqual(['not', ['entries.quote', 'is', null]]);
+    expect(calls).toContainEqual(['range', [0, 30]]);
+  });
+  it('한 쪽보다 많으면 다음 쪽 번호를 알리고, ?page=로 이어 받는다', async () => {
+    result = {
+      data: Array.from({ length: 31 }, (_, i) => ({
+        id: `${ub.slice(0, -2)}${String(i).padStart(2, '0')}`,
+        books: { title: `책 ${i}`, author: null, cover_url: null },
+        entries: [{ count: 1 }],
+      })),
+      error: null,
+    };
+    const body = await (await BOOKS(req('?page=1'))).json();
+    expect(body.items).toHaveLength(30);
+    expect(body.next).toBe(2);
+    expect(calls).toContainEqual(['range', [30, 60]]);
+  });
+  it('?q=로 책 제목을 찾는다(패턴 문자는 글자 그대로)', async () => {
+    await BOOKS(req(`?q=${encodeURIComponent('50%_종말')}`));
+    expect(calls).toContainEqual(['ilike', ['books.title', '%50\\%\\_종말%']]);
+  });
+  it('잘못된 page는 400', async () => {
+    expect((await BOOKS(req('?page=-1'))).status).toBe(400);
   });
   it('세션이 없으면 401', async () => {
     getUser.mockResolvedValue({ data: { user: null }, error: null });
-    expect((await BOOKS()).status).toBe(401);
+    expect((await BOOKS(req())).status).toBe(401);
   });
 });
 
