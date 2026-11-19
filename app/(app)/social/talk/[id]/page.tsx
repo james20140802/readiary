@@ -23,5 +23,5 @@ export default async function DebatePage({ params }: Props) {
     if (error && error.message !== 'not_found') console.error('Debate page failed:', error.code);
     notFound();
   }
-  return <DebateView initial={mapDebate(data)} />;
+  return <DebateView initial={mapDebate(data)} viewerId={user.id} />;
 }

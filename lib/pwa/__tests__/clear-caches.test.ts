@@ -32,6 +32,22 @@ describe('clearPwaCaches', () => {
     expect(storage.store.size).toBe(0);
   });
 
+  it('이 기기에 남은 토론 답 초안도 지운다', async () => {
+    const map = new Map<string, string>([
+      ['debate-draft:v2:u:d:1', '{"body":"쓰던 답"}'],
+      ['monthly-prompt', '1'],
+    ]);
+    vi.stubGlobal('localStorage', {
+      get length() {
+        return map.size;
+      },
+      key: (i: number) => [...map.keys()][i] ?? null,
+      removeItem: (k: string) => void map.delete(k),
+    });
+    await clearPwaCaches();
+    expect([...map.keys()]).toEqual(['monthly-prompt']);
+  });
+
   it('Cache Storage 가 없거나 실패해도 던지지 않는다', async () => {
     await expect(clearPwaCaches()).resolves.toBeUndefined();
     vi.stubGlobal('caches', {

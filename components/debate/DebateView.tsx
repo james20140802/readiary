@@ -21,6 +21,7 @@ import { HIGHLIGHT } from './highlight';
 import ReportSheet from './ReportSheet';
 import SummaryEditor from './SummaryEditor';
 import { profileHref } from './AnswerItem';
+import { DebateViewerProvider } from './viewer';
 
 const keyOf = (s: Pick<Section, 'position'>) => String(s.position ?? 'whole');
 const MENU_ROW =
@@ -35,7 +36,14 @@ const dateLabel = (iso: string) => {
  * 토론 한 편 — 위에 밑줄 친 문장·정리·질문, 아래로 밑줄마다 단락.
  * 넓은 화면(lg)은 왼쪽에 문장과 질문을 붙여 두고 오른쪽에 단락을 둔다.
  */
-export default function DebateView({ initial }: { initial: DebateDetail }) {
+export default function DebateView({
+  initial,
+  viewerId = null,
+}: {
+  initial: DebateDetail;
+  /** 보는 계정 — 이 기기에 남기는 답 초안을 계정마다 나눈다 */
+  viewerId?: string | null;
+}) {
   const router = useRouter();
   const [debate, setDebate] = useState(initial);
   const closedAtStart = Boolean(initial.closedAt);
@@ -257,7 +265,7 @@ export default function DebateView({ initial }: { initial: DebateDetail }) {
   );
 
   return (
-    <>
+    <DebateViewerProvider viewerId={viewerId}>
       <TopBarActions>
         <button
           type="button"
@@ -440,7 +448,7 @@ export default function DebateView({ initial }: { initial: DebateDetail }) {
           answerId={null}
         />
       )}
-    </>
+    </DebateViewerProvider>
   );
 }
 

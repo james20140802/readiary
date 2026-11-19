@@ -10,6 +10,7 @@ import { clearDraft, loadDraft, saveDraft, type DraftTarget } from '@/lib/debate
 import { STANCES, STANCE_LABEL, type DebateAnswer, type Stance } from '@/lib/debate/types';
 import { STANCE_ICON } from './StanceMark';
 import EntryPicker from './EntryPicker';
+import { useDebateViewer } from './viewer';
 
 export type ComposerTarget =
   | { kind: 'answer'; position: number | null; label: string; prompt?: string | null }
@@ -35,8 +36,11 @@ export default function AnswerComposer({
   onDone,
   onCancel,
 }: AnswerComposerProps) {
-  const draftTarget: DraftTarget | null =
-    target.kind === 'answer'
+  // 계정을 모르면 초안을 남기지 않는다 — 다른 계정에 넘어가지 않게
+  const viewerId = useDebateViewer();
+  const draftTarget: DraftTarget | null = !viewerId
+    ? null
+    : target.kind === 'answer'
       ? { kind: 'answer', position: target.position }
       : target.kind === 'reply'
         ? { kind: 'reply', answerId: target.answerId }
@@ -44,7 +48,7 @@ export default function AnswerComposer({
   const isReply =
     target.kind === 'reply' || (target.kind === 'edit' && target.answer.stance === null);
 
-  const initial = draftTarget ? loadDraft(debateId, draftTarget) : null;
+  const initial = viewerId && draftTarget ? loadDraft(viewerId, debateId, draftTarget) : null;
   const [stance, setStance] = useState<Stance | null>(
     target.kind === 'edit' ? target.answer.stance : (initial?.stance ?? null)
   );
@@ -63,10 +67,11 @@ export default function AnswerComposer({
 
   // 쓰는 대로 초안을 남긴다
   useEffect(() => {
-    if (draftTarget) saveDraft(debateId, draftTarget, { stance, body, evidence });
+    if (viewerId && draftTarget)
+      saveDraft(viewerId, debateId, draftTarget, { stance, body, evidence });
     // draftTarget은 target에서 매번 새로 만든다 — 값이 같으므로 target만 본다
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debateId, target, stance, body, evidence]);
+  }, [viewerId, debateId, target, stance, body, evidence]);
 
   const ready = body.trim().length > 0 && (isReply || stance !== null) && !sending;
 
@@ -87,7 +92,7 @@ export default function AnswerComposer({
       } else {
         await editAnswer(target.answer.id, { stance: isReply ? null : stance, body: body.trim() });
       }
-      if (draftTarget) clearDraft(debateId, draftTarget);
+      if (viewerId && draftTarget) clearDraft(viewerId, debateId, draftTarget);
       onDone();
     } catch (e) {
       setError(e instanceof Error ? e.message : '남기지 못했어요. 잠시 후 다시 시도해 주세요.');
