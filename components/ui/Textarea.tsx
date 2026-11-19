@@ -1,7 +1,7 @@
 'use client';
 
 import { clsx } from 'clsx';
-import React, { useCallback, useLayoutEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import type { FieldVariant } from '@/components/ui/Input';
 
 type TextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement> & {
@@ -17,6 +17,11 @@ type TextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement> & {
 
 const fit = (el: HTMLTextAreaElement) => {
   el.style.height = 'auto';
+  // 아직 배치되지 않았으면(시트가 막 열리는 순간 등) 잴 수 없다 — 0으로 고정하지 말고 rows 높이로 두었다가 배치되면 다시 잰다
+  if (el.scrollHeight === 0) {
+    el.style.height = '';
+    return;
+  }
   // scrollHeight엔 테두리가 빠져 있다 — box 모양에서 마지막 줄이 잘리지 않게 더한다
   el.style.height = `${el.scrollHeight + el.offsetHeight - el.clientHeight}px`;
 };
@@ -44,6 +49,19 @@ export function Textarea({
   useLayoutEffect(() => {
     if (autoGrow && own.current) fit(own.current);
   }, [autoGrow, props.value]);
+  // 배치되는 순간과 폭이 바뀔 때(줄바꿈이 달라진다) 다시 맞춘다. 높이만 바뀐 알림은 무시해 되먹임을 막는다
+  useEffect(() => {
+    const el = own.current;
+    if (!autoGrow || !el || typeof ResizeObserver === 'undefined') return;
+    let width = -1;
+    const ro = new ResizeObserver(() => {
+      if (el.clientWidth === width) return;
+      width = el.clientWidth;
+      fit(el);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [autoGrow]);
   const field = (
     <textarea
       ref={setRef}
