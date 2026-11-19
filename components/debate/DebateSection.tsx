@@ -89,6 +89,13 @@ export default function DebateSection({
     }
   };
 
+  // 생각이 바뀌었어요는 답 순서(누른 수)를 바꾼다 — 이어 불러온 자리가 어긋나 답을 건너뛰거나 겹치지 않게
+  // 펼쳐 둔 나머지 답을 첫 쪽부터 다시 가져온다
+  const moved = () => {
+    onMoved?.();
+    if (state === 'done' || state === 'error') void load(0);
+  };
+
   // 토론을 다시 불러와 단락이 바뀌면, 펼쳐 둔 나머지 답도 첫 쪽부터 다시 가져온다(숨김·고침·지움 반영)
   const lastSection = useRef(section);
   useEffect(() => {
@@ -195,7 +202,7 @@ export default function DebateSection({
               answer={a}
               label={PICK_LABEL[section.pickKinds[i] ?? 'plain']}
               onChanged={onChanged}
-              onMoved={onMoved}
+              onMoved={moved}
             />
           ))}
           {more.map((a) => (
@@ -204,7 +211,7 @@ export default function DebateSection({
               debate={debate}
               answer={a}
               onChanged={onChanged}
-              onMoved={onMoved}
+              onMoved={moved}
             />
           ))}
 

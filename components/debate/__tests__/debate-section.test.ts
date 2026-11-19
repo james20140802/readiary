@@ -10,6 +10,7 @@ const fetchSectionAnswers = vi.fn();
 vi.mock('@/lib/debate/client', async (orig) => ({
   ...(await orig<typeof import('@/lib/debate/client')>()),
   fetchSectionAnswers: (...a: unknown[]) => fetchSectionAnswers(...a),
+  setMove: async () => 0,
 }));
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }) }));
 
@@ -205,5 +206,30 @@ describe('DebateSection', () => {
     const toggle = screen.getByRole('button', { expanded: true });
     expect(toggle.textContent).toContain('문장 전체');
     expect(screen.getByRole('button', { name: '문장 전체에 답하기' })).toBeTruthy();
+  });
+
+  it('펼쳐 둔 답의 생각이 바뀌었어요를 바꾸면 순서가 바뀌므로 그 단락을 첫 쪽부터 다시 불러온다', async () => {
+    fetchSectionAnswers.mockResolvedValue({
+      answers: [answer({ id: 'a3', body: '셋째 답', movedCount: 1, movedByMe: true })],
+      next: 10,
+    });
+    const onMoved = vi.fn();
+    render(
+      h(DebateSection, {
+        debate: debate(),
+        section: section(),
+        expanded: true,
+        onToggle: vi.fn(),
+        onAnswer: vi.fn(),
+        onChanged: vi.fn(),
+        onMoved,
+      })
+    );
+    fireEvent.click(screen.getByRole('button', { name: '나머지 7개 보기' }));
+    expect(await screen.findByText('셋째 답')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: '생각이 바뀌었어요 1' }));
+    await vi.waitFor(() => expect(fetchSectionAnswers).toHaveBeenCalledTimes(2));
+    expect(fetchSectionAnswers.mock.calls[1]).toEqual(['d1', 2, 0]);
+    expect(onMoved).toHaveBeenCalled();
   });
 });
