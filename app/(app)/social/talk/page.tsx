@@ -2,7 +2,7 @@
 import DebateList from '@/components/debate/DebateList';
 import { mapListItem } from '@/lib/debate/map';
 import { PAGE_SIZE } from '@/lib/debate/server';
-import { fetchFriendList } from '@/lib/friends/fetchFriendList';
+import { fetchFriendList, fetchReceivedFriendRequests } from '@/lib/friends/fetchFriendList';
 import { getServerUser } from '@/lib/supabase/getServerUser';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
@@ -26,12 +26,18 @@ export default async function DebateListPage() {
     data: { user },
   } = await getServerUser();
   if (!user) return null;
-  const [open, closed, friends] = await Promise.all([
+  const [open, closed, friends, pending] = await Promise.all([
     firstPage(false),
     firstPage(true),
     fetchFriendList(),
+    fetchReceivedFriendRequests(),
   ]);
   return (
-    <DebateList initialOpen={open} initialClosed={closed} friendCount={friends?.length ?? 0} />
+    <DebateList
+      initialOpen={open}
+      initialClosed={closed}
+      friendCount={friends?.length ?? 0}
+      pendingCount={pending?.length ?? 0}
+    />
   );
 }

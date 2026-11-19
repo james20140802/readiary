@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Button from '@/components/ui/Button';
-import { LargeTitle } from '@/components/shell/LargeTitle';
 import { useTopBar } from '@/components/shell/TopBarContext';
-import SocialSegment from '@/components/social/SocialSegment';
+import SocialFrame from '@/components/social/SocialFrame';
+import { PenLine } from 'lucide-react';
 import { fetchDebateList } from '@/lib/debate/client';
 import type { DebateListItem } from '@/lib/debate/types';
 import { toChars } from '@/lib/debate/underline';
@@ -19,6 +19,8 @@ interface Props {
   initialOpen: Page;
   initialClosed: Page;
   friendCount: number;
+  /** 받은 친구 신청 수 — 상단 바 친구 아이콘의 점 */
+  pendingCount?: number;
 }
 
 /** 밑줄 친 문장 — 목록에서는 누르지 않는 그림이다 */
@@ -92,26 +94,38 @@ function MoreRow({
 }
 
 /** 토론 목록 — 진행 중(최근 활동 순)과 정리된 토론. 두 목록은 따로 불러오고 실패도 따로 다룬다 */
-export default function DebateList({ initialOpen, initialClosed, friendCount }: Props) {
+export default function DebateList({
+  initialOpen,
+  initialClosed,
+  friendCount,
+  pendingCount = 0,
+}: Props) {
   useTopBar({ title: '토론' });
   const open = usePage(initialOpen, false);
   const closed = usePage(initialClosed, true);
   const empty = open.page.items.length === 0 && closed.page.items.length === 0;
 
   return (
-    <div className="mx-auto max-w-[1040px] pb-20">
-      <div className="flex items-center gap-4">
-        <LargeTitle>소셜</LargeTitle>
-        <Button asChild size="sm" className="ml-auto">
+    <SocialFrame
+      active="talk"
+      pendingCount={pendingCount}
+      desktopAction={
+        <Button asChild size="sm">
           <Link href="/social/talk/new">발제하기</Link>
         </Button>
-      </div>
-      <div className="mt-[18px] lg:mt-6">
-        <SocialSegment active="talk" />
-      </div>
-
+      }
+      topActions={
+        <Link
+          href="/social/talk/new"
+          aria-label="발제하기"
+          className="grid h-11 w-11 place-items-center rounded-full text-ink lg:hidden"
+        >
+          <PenLine size={22} strokeWidth={1.75} aria-hidden />
+        </Link>
+      }
+    >
       {empty ? (
-        <div className="mt-10 max-w-[520px]">
+        <div className="mt-10 max-w-[520px] pb-20">
           <p className="font-serif text-note text-ink">아직 열린 토론이 없어요.</p>
           <p className="mt-2 font-sans text-caption text-ink-sub">
             내 기록 하나를 고르고, 함께 볼 곳에 밑줄을 긋고, 질문을 붙여요
@@ -128,7 +142,7 @@ export default function DebateList({ initialOpen, initialClosed, friendCount }: 
           </div>
         </div>
       ) : (
-        <div className="mt-6 lg:mt-8 lg:grid lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)] lg:items-start lg:gap-14">
+        <div className="mt-[18px] pb-20 lg:mt-7 lg:grid lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)] lg:items-start lg:gap-14">
           <section aria-labelledby="debates-open">
             <h2 id="debates-open" className="sr-only">
               진행 중인 토론
@@ -225,6 +239,6 @@ export default function DebateList({ initialOpen, initialClosed, friendCount }: 
           </section>
         </div>
       )}
-    </div>
+    </SocialFrame>
   );
 }

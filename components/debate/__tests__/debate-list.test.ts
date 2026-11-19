@@ -89,6 +89,12 @@ describe('DebateList', () => {
     );
   });
 
+  it('친구의 문장과 같은 소셜 틀(여백선·넓은 상자·제목 줄)을 쓴다', () => {
+    const { container } = renderList();
+    expect(container.querySelector('[data-social-frame="talk"]')).toBeTruthy();
+    expect(container.querySelector('[data-social-frame] [data-margin-line]')).toBeTruthy();
+  });
+
   it('비어 있으면 발제를 설명하고, 친구가 없으면 친구 찾기로', () => {
     renderList({
       initialOpen: { items: [], nextBefore: null },
