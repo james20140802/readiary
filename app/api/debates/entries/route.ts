@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server';
 import { badRequest, debateHeaders } from '@/lib/debate/errors';
 import { withSession } from '@/lib/debate/server';
+import { isUuid } from '@/lib/share/validation';
 
 const PAGE = 20;
 
 /** ilike 패턴의 특수문자를 글자 그대로 찾도록 */
 const escapeLike = (q: string) => q.replace(/[\\%_]/g, (c) => `\\${c}`);
 
-// GET: 발제·근거로 고를 수 있는 내 기록(문장이 있는 것) 한 쪽. ?q=문장 검색어, ?page=0부터.
+// GET: 발제·근거로 고를 수 있는 내 기록(문장이 있는 것) 한 쪽. ?q=문장 검색어, ?book=내 책(user_book) id, ?page=0부터.
 // 나만 보기 기록도 포함한다(고르는 순간 토론에 함께 남는다고 화면이 알린다).
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -15,6 +16,8 @@ export async function GET(request: Request) {
   const page = Number(url.searchParams.get('page') ?? 0);
   if (!Number.isInteger(page) || page < 0 || page > 500)
     return badRequest('목록 위치를 확인해 주세요.');
+  const book = url.searchParams.get('book');
+  if (book !== null && !isUuid(book)) return badRequest('책을 확인해 주세요.');
 
   return withSession(async (supabase, userId) => {
     let query = supabase
@@ -25,6 +28,7 @@ export async function GET(request: Request) {
       .eq('user_books.user_id', userId)
       .not('quote', 'is', null)
       .neq('quote', '');
+    if (book) query = query.eq('user_book_id', book.toLowerCase());
     if (q) query = query.ilike('quote', `%${escapeLike(q)}%`);
     const { data, error } = await query
       .order('date', { ascending: false })

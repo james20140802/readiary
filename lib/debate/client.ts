@@ -117,7 +117,17 @@ export interface PickableEntry {
   bookAuthor: string | null;
 }
 
-export const fetchPickableEntries = (q: string, page: number) =>
+export const fetchPickableEntries = (q: string, page: number, book: string | null = null) =>
   call<{ items: PickableEntry[]; next: number | null }>(
-    `/api/debates/entries?q=${encodeURIComponent(q)}&page=${page}`
+    `/api/debates/entries?q=${encodeURIComponent(q)}&page=${page}${book ? `&book=${book}` : ''}`
   );
+
+export interface PickableBook {
+  userBookId: string;
+  title: string;
+  author: string | null;
+  coverUrl: string | null;
+  quoteCount: number;
+}
+
+export const fetchPickableBooks = () => call<PickableBook[]>('/api/debates/books');
