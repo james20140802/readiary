@@ -7,7 +7,7 @@ import Button from '@/components/ui/Button';
 import Sheet from '@/components/ui/Sheet';
 import { Textarea } from '@/components/ui/Textarea';
 import { saveSummary } from '@/lib/debate/client';
-import type { DebateAnswer, DebateDetail } from '@/lib/debate/types';
+import type { DebateDetail } from '@/lib/debate/types';
 
 interface Props {
   open: boolean;
@@ -27,13 +27,24 @@ export default function SummaryEditor({ open, onClose, debate, onSaved }: Props)
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
 
-  // 짚을 수 있는 답: 단락마다 보이는 대표 답(지우지 않은 것)
-  const candidates: DebateAnswer[] = [];
-  for (const s of debate.sections) {
-    for (const a of s.picks)
-      if (!a.deleted && a.author.active && !candidates.some((c) => c.id === a.id))
-        candidates.push(a);
+  // 짚을 수 있는 답: 지금 짚어 둔 답(대표 답에서 빠졌어도 풀거나 바꿀 수 있게) + 단락마다 보이는 대표 답
+  const picks = debate.sections.flatMap((s) => s.picks);
+  const fromPick = (a: (typeof picks)[number]) => ({
+    id: a.id,
+    name: a.author.isMe ? '나' : (a.author.nickname ?? ''),
+    text: a.body ?? '',
+  });
+  const candidates: { id: string; name: string; text: string }[] = [];
+  for (const p of debate.summary?.pins ?? []) {
+    if (p.deleted) continue;
+    const pick = picks.find((a) => a.id === p.answerId);
+    candidates.push(
+      pick ? fromPick(pick) : { id: p.answerId, name: p.nickname ?? '', text: p.firstLine ?? '' }
+    );
   }
+  for (const a of picks)
+    if (!a.deleted && a.author.active && !candidates.some((c) => c.id === a.id))
+      candidates.push(fromPick(a));
 
   const toggle = (id: string) =>
     setPins((p) =>
@@ -97,10 +108,8 @@ export default function SummaryEditor({ open, onClose, debate, onSaved }: Props)
                       on && 'bg-accent/[0.07]'
                     )}
                   >
-                    <span className="font-sans text-fine font-semibold text-ink-sub">
-                      {a.author.isMe ? '나' : a.author.nickname}
-                    </span>
-                    <span className="line-clamp-2 font-serif text-body-sm text-ink">{a.body}</span>
+                    <span className="font-sans text-fine font-semibold text-ink-sub">{a.name}</span>
+                    <span className="line-clamp-2 font-serif text-body-sm text-ink">{a.text}</span>
                   </button>
                 </li>
               );
