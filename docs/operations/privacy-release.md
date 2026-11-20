@@ -185,8 +185,9 @@ delete from public.notifications where type in ('excerpt_like','excerpt_comment'
 - 탈퇴 유예 중인 사람이 남긴 알림은 기존 정책(`notifications_hide_pending_deletion`)이 가리고, 유예 중인 사람은 새 알림을 만들지 못한다.
 - 알림에 담기는 것은 누가(닉네임·프로필 사진) 어떤 종류의 일을 했는지와 토론 id뿐이다. 답 본문은 담지 않는다.
 - 볼 수 없는 토론, 숨긴 답, 남의 답으로는 알림을 만들지 못한다. 수신자는 DB가 정한다.
+- 기기 푸시("토론 소식")는 같은 조건을 받는 사람 기준으로 다시 본다(`debate_notification_visible_to`, 발송 전용). 푸시에는 이름·문장·답 본문을 싣지 않고 "토론에 새 소식이 있어요"만 보낸다.
 
-계약 테스트: `supabase/tests/debates_notifications_contract.sql`.
+계약 테스트: `supabase/tests/debates_notifications_contract.sql`, `supabase/tests/debates_push_contract.sql`.
 
 ### 미검증
 
