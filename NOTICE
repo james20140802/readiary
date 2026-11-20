@@ -16,4 +16,9 @@ Copyright © 2025–2026 김상협
 app/fonts/LICENSE.md 와 app/fonts/Pretendard-LICENSE.txt 에, 의존 패키지의
 라이선스는 각 패키지에 있습니다.
 
+HEIC 사진을 여는 데 쓰는 heic-to(LGPL-3.0, libheif 포함)는 고치지 않은 그대로 별도의
+스크립트 파일로 나뉘어, 브라우저가 HEIC 사진을 열지 못할 때만 내려받아집니다. 소스는
+https://github.com/hoppergee/heic-to 와 https://github.com/strukturag/libheif 에
+있으며, 라이선스 전문은 node_modules/heic-to/LICENSE 에 있습니다.
+
 문의: https://www.readiary.net 맨 아래의 문의 링크

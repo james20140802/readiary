@@ -156,6 +156,7 @@ DB 집계·Supabase RPC·상한 있는 미리보기로 왕복과 전송량을 �
 - Supabase Auth와 PostgreSQL/RLS를 사용한다. 브라우저 API 호출의 기존 진입점은 `lib/api/fetch.ts`의 `apiFetch`, 읽기 서버 인증은 `getServerUser`다.
 - `401` 모두가 세션 만료는 아니다. 현재 API 계약은 `code: "session_expired"`로 구분한다.
 - 기록 공개 범위에서 `is_private=false`는 친구 열람 가능 상태이며, 인터넷 전체에 자동 공개한다는 뜻이 아니다. 외부 링크는 별도의 명시적 공유 상태(`shared_at`)를 확인한다.
+- 사진에서 문장 옮기기는 `components/photo-quote/`(버튼·고르는 화면), `lib/photo-quote/`(계산·Vision), `app/api/photo-text/`다. `NEXT_PUBLIC_PHOTO_QUOTE_ENABLED`와 서버 전용 `GOOGLE_VISION_API_KEY`가 모두 있어야 켜진다. 사진과 읽은 글은 저장하지도 로그에 남기지도 않는다.
 - Next PWA/Workbox, Vercel 배포를 사용한다. 알림 기능 구현과 실제 자동 발송 활성화 상태는 다르므로 현재 운영 문서와 설정을 별도로 확인한다.
 
 현재 저장소 명령:

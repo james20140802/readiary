@@ -66,6 +66,19 @@ describe('색 토큰', () => {
       expect(readTokens('dark')[`--flag-${k}`] ?? v).toBe(v);
     }
   });
+
+  it('배경막과 그 위 글자색은 라이트·다크 같은 값이다', () => {
+    for (const [name, v] of [
+      ['scrim', '20 14 8'],
+      ['on-scrim', '253 251 247'],
+    ]) {
+      expect(readTokens('light')[`--${name}`]).toBe(v);
+      expect(readTokens('dark')[`--${name}`] ?? v).toBe(v);
+    }
+    expect(tailwindConfig.theme.extend.colors['on-scrim']).toBe(
+      'rgb(var(--on-scrim) / <alpha-value>)'
+    );
+  });
 });
 
 const require = createRequire(import.meta.url);

@@ -1,5 +1,6 @@
 'use client';
 
+import PhotoTextConsent from './PhotoTextConsent';
 import { SettingsRow, SettingsSection, type TocItem } from './SettingsParts';
 
 /** 설정 차례 — 시안 settings.html 순서. '이 기기'·'내 기록'은 시안의 제안이라 아직 두지 않는다 */
@@ -51,6 +52,7 @@ export function AccountSection({
         <SettingsRow id="password" onClick={onPassword}>
           비밀번호 바꾸기
         </SettingsRow>
+        <PhotoTextConsent />
         <SettingsRow onClick={onSignOut} disabled={signingOut} chevron={false} last={!onDelete}>
           {signingOut ? '로그아웃하는 중…' : '로그아웃'}
         </SettingsRow>

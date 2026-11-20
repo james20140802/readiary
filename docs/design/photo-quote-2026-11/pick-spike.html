@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>사진에서 문장 고르기 실험</title>
+<style>
+  :root { --paper:#F6F1E7; --ink:#1F1B16; --sub:#6B6257; --line:#D9D0C0; --accent:#2D5FB8; }
+  @media (prefers-color-scheme: dark) { :root { --paper:#1B1814; --ink:#EDE6DA; --sub:#A89E90; --line:#3A342C; --accent:#85A9EC; } }
+  * { box-sizing: border-box; }
+  body { margin:0; padding:16px; background:var(--paper); color:var(--ink); font:16px/1.6 -apple-system, "Apple SD Gothic Neo", sans-serif; }
+  h1 { font-size:20px; margin:0 0 12px; }
+  .row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:12px; }
+  label.btn, button { font:inherit; font-weight:600; min-height:44px; padding:0 18px; border-radius:999px; border:1px solid var(--line); background:transparent; color:var(--ink); display:inline-flex; align-items:center; }
+  label.btn.primary { background:var(--ink); color:var(--paper); border-color:var(--ink); }
+  input[type=file] { position:absolute; width:1px; height:1px; opacity:0; }
+  .meta { color:var(--sub); font-size:13px; margin:0 0 8px; min-height:20px; }
+  #view { position:relative; height:62svh; border:1px solid var(--line); border-radius:6px; overflow:hidden; touch-action:none; background:color-mix(in srgb, var(--ink) 6%, var(--paper)); margin-bottom:12px; }
+  #view, #view * { user-select:none; -webkit-user-select:none; -webkit-touch-callout:none; -webkit-tap-highlight-color:transparent; }
+  #inner { position:absolute; left:0; top:0; transform-origin:0 0; will-change:transform; }
+  #inner img { display:block; width:100%; pointer-events:none; -webkit-user-drag:none; }
+  #inner svg { position:absolute; inset:0; width:100%; height:100%; overflow:visible; }
+  rect.on { fill:color-mix(in srgb, var(--accent) 36%, transparent); }
+  circle.knob { fill:var(--accent); stroke:var(--paper); vector-effect:non-scaling-stroke; stroke-width:2; }
+  circle.hit { fill:transparent; }
+  line.stem { stroke:var(--accent); vector-effect:non-scaling-stroke; stroke-width:2; }
+  button[aria-pressed="true"] { border-color:var(--accent); color:var(--accent); }
+  #loupe { position:fixed; left:0; top:0; width:168px; height:76px; border-radius:38px; overflow:hidden; pointer-events:none; z-index:10; background:var(--paper); border:1px solid var(--line); box-shadow:0 6px 20px rgba(0,0,0,.28); }
+  #loupeInner { position:absolute; left:0; top:0; transform-origin:0 0; }
+  #loupeInner img { display:block; }
+  #loupeInner svg { position:absolute; inset:0; width:100%; height:100%; }
+  textarea { width:100%; min-height:120px; border:0; border-left:2px solid var(--accent); background:transparent; color:var(--ink); padding:4px 0 4px 12px; font:17px/1.75 "Nanum Myeongjo","AppleMyungjo",serif; resize:vertical; }
+  textarea:focus { outline:none; }
+</style>
+</head>
+<body>
+<h1>사진에서 문장 고르기 실험</h1>
+
+<div class="row">
+  <label class="btn primary">사진 찍기<input id="cam" type="file" accept="image/*" capture="environment"></label>
+  <label class="btn">앨범에서 고르기<input id="lib" type="file" accept="image/*"></label>
+  <button id="loupeBtn" aria-pressed="true">돋보기</button>
+</div>
+
+<div class="meta" id="meta">책 페이지를 찍으면 글자를 읽어 옵니다.</div>
+
+<div id="view" hidden>
+  <div id="inner"><img id="img" alt="찍은 사진" draggable="false"><svg id="svg" preserveAspectRatio="none"></svg></div>
+</div>
+
+<div id="loupe" hidden><div id="loupeInner"><img id="loupeImg" alt=""><svg id="loupeSvg" preserveAspectRatio="none"></svg></div></div>
+
+<div id="picked" hidden>
+  <div class="meta">두 손가락으로 벌려 키우고, 한 손가락으로 옮깁니다. 문장의 첫 낱말을 길게 누른 채 끝까지 끌면 골라집니다. 양 끝의 손잡이로 다듬을 수 있습니다. 돋보기를 켜면 고르는 동안 손가락 위에 그 자리가 크게 보입니다.</div>
+  <textarea id="pickText" aria-label="고른 문장" placeholder="고른 문장이 여기에 들어옵니다. 바로 고칠 수 있습니다."></textarea>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const MAX_EDGE = 2000, MAX_ZOOM = 6, HOLD_MS = 320, SLOP = 10;
+const view = $('view'), inner = $('inner'), svg = $('svg');
+let words = [];            // {text, box:[x0,y0,x1,y1], sep}
+let sel = null;            // [a, b] 낱말 번호
+let img = { w: 1, h: 1 };  // 사진 픽셀 크기
+let z = 1, tx = 0, ty = 0; // 확대 배율과 이동(화면 px)
+let run = 0;
+
+// ── 화면 변환 ──────────────────────────────────────────────
+function baseSize() { const w = view.clientWidth; return { w, h: w * img.h / img.w }; }
+function clamp() {
+  const b = baseSize(), vw = view.clientWidth, vh = view.clientHeight;
+  z = Math.min(MAX_ZOOM, Math.max(1, z));
+  const cw = b.w * z, ch = b.h * z;
+  tx = cw <= vw ? (vw - cw) / 2 : Math.min(0, Math.max(vw - cw, tx));
+  ty = ch <= vh ? 0 : Math.min(0, Math.max(vh - ch, ty));
+}
+function apply() {
+  clamp();
+  inner.style.width = baseSize().w + 'px';
+  inner.style.transform = `translate(${tx}px, ${ty}px) scale(${z})`;
+  draw();
+}
+function zoomAt(cx, cy, nz) {
+  const r = view.getBoundingClientRect();
+  const px = cx - r.left, py = cy - r.top;
+  nz = Math.min(MAX_ZOOM, Math.max(1, nz));
+  tx = px - (px - tx) * (nz / z);
+  ty = py - (py - ty) * (nz / z);
+  z = nz;
+  apply();
+}
+function toImage(cx, cy) {
+  const r = inner.getBoundingClientRect();
+  return [(cx - r.left) / r.width * img.w, (cy - r.top) / r.height * img.h];
+}
+function wordAt(cx, cy) {
+  const [x, y] = toImage(cx, cy);
+  let best = -1, bestD = Infinity;
+  words.forEach((w, i) => {
+    const b = w.box;
+    const dx = Math.max(b[0] - x, 0, x - b[2]);
+    const dy = Math.max(b[1] - y, 0, y - b[3]);
+    const d = dx * dx + dy * dy * 4; // 같은 줄의 낱말을 위아래 줄보다 먼저 잡는다
+    if (d < bestD) { bestD = d; best = i; }
+  });
+  return best;
+}
+
+// ── 그리기 ────────────────────────────────────────────────
+function range() { return sel ? [Math.min(sel[0], sel[1]), Math.max(sel[0], sel[1])] : null; }
+function draw() {
+  const rg = range();
+  if (!rg) { svg.innerHTML = $('loupeSvg').innerHTML = ''; return; }
+  const k = img.w / (baseSize().w * z); // 화면 1px이 사진 몇 px인가 — 손잡이를 화면에서 같은 크기로 유지한다
+  let out = '';
+  for (let i = rg[0]; i <= rg[1]; i++) {
+    const b = words[i].box;
+    out += `<rect class="on" x="${b[0]}" y="${b[1]}" width="${b[2] - b[0]}" height="${b[3] - b[1]}"/>`;
+  }
+  $('loupeSvg').innerHTML = out;
+  const a = words[rg[0]].box, e = words[rg[1]].box;
+  const knob = (x, top, bottom, which) =>
+    `<line class="stem" x1="${x}" y1="${top}" x2="${x}" y2="${bottom + 6 * k}"/>` +
+    `<circle class="knob" cx="${x}" cy="${bottom + 12 * k}" r="${7 * k}"/>` +
+    `<circle class="hit" data-knob="${which}" cx="${x}" cy="${bottom + 12 * k}" r="${24 * k}"/>`;
+  out += knob(a[0], a[1], a[3], 'start') + knob(e[2], e[1], e[3], 'end');
+  svg.innerHTML = out;
+}
+function pickedText() {
+  const [a, b] = range();
+  return words.slice(a, b + 1).map((w, i, arr) => w.text + (i < arr.length - 1 ? w.sep : '')).join('').trim();
+}
+
+// ── 돋보기 ────────────────────────────────────────────────
+let loupeOn = true;
+$('loupeBtn').onclick = () => { loupeOn = !loupeOn; $('loupeBtn').setAttribute('aria-pressed', String(loupeOn)); };
+function showLoupe(cx, cy) {
+  if (!loupeOn) return;
+  const lp = $('loupe'), lw = 168, lh = 76;
+  // 지금 보이는 크기의 1.6배, 다만 글자가 너무 작게 보이지 않도록 사진 원본의 0.9배 이상으로 키운다
+  const L = Math.max((baseSize().w * z / img.w) * 1.6, 0.9);
+  const [x, y] = toImage(cx, cy);
+  $('loupeInner').style.transform = `translate(${lw / 2 - x * L}px, ${lh / 2 - y * L}px) scale(${L})`;
+  const left = Math.min(innerWidth - lw - 4, Math.max(4, cx - lw / 2));
+  const top = cy - lh - 34 >= 4 ? cy - lh - 34 : cy + 44; // 위에 자리가 없으면 손가락 아래에 둔다
+  lp.style.transform = `translate(${left}px, ${top}px)`;
+  lp.hidden = false;
+}
+function hideLoupe() { $('loupe').hidden = true; }
+
+// ── 손가락 다루기 ──────────────────────────────────────────
+const pts = new Map();
+let mode = 'idle';   // idle | pending | pan | pinch | select | knob
+let holdTimer = 0, start = null, last = null, pinch = null, knobEnd = 1, lastTap = 0, edgeTimer = 0;
+
+for (const type of ['touchstart', 'touchmove']) view.addEventListener(type, (ev) => ev.preventDefault(), { passive: false });
+for (const type of ['selectstart', 'contextmenu', 'dragstart']) view.addEventListener(type, (ev) => ev.preventDefault());
+
+function edgeScroll() {
+  // 고르는 중 손가락이 가장자리에 닿으면 사진을 조금씩 밀어 준다
+  clearInterval(edgeTimer);
+  edgeTimer = setInterval(() => {
+    if ((mode !== 'select' && mode !== 'knob') || !last) return;
+    const r = view.getBoundingClientRect();
+    const dy = last.y < r.top + 36 ? 6 : last.y > r.bottom - 36 ? -6 : 0;
+    const dx = last.x < r.left + 24 ? 6 : last.x > r.right - 24 ? -6 : 0;
+    if (!dx && !dy) return;
+    const before = [tx, ty];
+    tx += dx; ty += dy; clamp();
+    if (before[0] === tx && before[1] === ty) return;
+    extend(last.x, last.y);
+    apply();
+    showLoupe(last.x, last.y);
+  }, 16);
+}
+function extend(cx, cy) {
+  const i = wordAt(cx, cy);
+  if (i < 0) return;
+  if (mode === 'select') sel[1] = i; else sel[knobEnd] = i;
+}
+
+view.addEventListener('pointerdown', (ev) => {
+  try { view.setPointerCapture(ev.pointerId); } catch {}
+  pts.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
+  clearTimeout(holdTimer);
+  if (pts.size === 2) {
+    const [p, q] = [...pts.values()];
+    pinch = { d: Math.hypot(p.x - q.x, p.y - q.y), z, mx: (p.x + q.x) / 2, my: (p.y + q.y) / 2 };
+    if (mode === 'select' || mode === 'knob') finish();
+    mode = 'pinch';
+    return;
+  }
+  if (pts.size > 2) return;
+  start = last = { x: ev.clientX, y: ev.clientY };
+  const knob = ev.target?.dataset?.knob;
+  if (knob && sel) {
+    const rg = range();
+    sel = [rg[0], rg[1]];
+    knobEnd = knob === 'start' ? 0 : 1;
+    mode = 'knob';
+    edgeScroll();
+    showLoupe(ev.clientX, ev.clientY);
+    return;
+  }
+  mode = 'pending';
+  holdTimer = setTimeout(() => {
+    if (mode !== 'pending' || !words.length) return;
+    const i = wordAt(start.x, start.y);
+    if (i < 0) return;
+    mode = 'select';
+    sel = [i, i];
+    navigator.vibrate?.(8);
+    draw();
+    edgeScroll();
+    showLoupe(start.x, start.y);
+  }, HOLD_MS);
+});
+
+view.addEventListener('pointermove', (ev) => {
+  if (!pts.has(ev.pointerId)) return;
+  const prev = pts.get(ev.pointerId);
+  pts.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
+  if (mode === 'pinch' && pts.size >= 2) {
+    const [p, q] = [...pts.values()];
+    const d = Math.hypot(p.x - q.x, p.y - q.y), mx = (p.x + q.x) / 2, my = (p.y + q.y) / 2;
+    tx += mx - pinch.mx; ty += my - pinch.my;
+    pinch.mx = mx; pinch.my = my;
+    zoomAt(mx, my, pinch.z * d / pinch.d);
+    return;
+  }
+  last = { x: ev.clientX, y: ev.clientY };
+  if (mode === 'pending' && Math.hypot(ev.clientX - start.x, ev.clientY - start.y) > SLOP) {
+    clearTimeout(holdTimer);
+    mode = 'pan';
+  }
+  if (mode === 'pan') { tx += ev.clientX - prev.x; ty += ev.clientY - prev.y; apply(); }
+  if (mode === 'select' || mode === 'knob') { extend(ev.clientX, ev.clientY); draw(); showLoupe(ev.clientX, ev.clientY); }
+});
+
+function finish() {
+  clearInterval(edgeTimer);
+  hideLoupe();
+  if (!sel) return;
+  const rg = range();
+  sel = [rg[0], rg[1]];
+  $('pickText').value = pickedText();
+  draw();
+}
+function up(ev) {
+  if (!pts.has(ev.pointerId)) return;
+  pts.delete(ev.pointerId);
+  clearTimeout(holdTimer);
+  if (mode === 'select' || mode === 'knob') finish();
+  if (mode === 'pending' && ev.type === 'pointerup') {
+    // 짧게 두 번 두드리면 그 자리를 키우거나 원래대로 돌린다
+    const now = performance.now();
+    if (now - lastTap < 320) { zoomAt(ev.clientX, ev.clientY, z > 1.2 ? 1 : 2.5); lastTap = 0; }
+    else lastTap = now;
+  }
+  if (pts.size === 1 && mode === 'pinch') { mode = 'pan'; return; }
+  if (pts.size === 0) mode = 'idle';
+}
+view.addEventListener('pointerup', up);
+view.addEventListener('pointercancel', up);
+view.addEventListener('wheel', (ev) => { ev.preventDefault(); zoomAt(ev.clientX, ev.clientY, z * (ev.deltaY < 0 ? 1.15 : 1 / 1.15)); }, { passive: false });
+addEventListener('resize', () => { if (!view.hidden) apply(); });
+
+// ── 사진 읽기 ──────────────────────────────────────────────
+async function toJpeg(file) {
+  // 캔버스에 다시 그려 회전을 바로잡고 EXIF(위치 등)를 떼어 낸다.
+  const bmp = await createImageBitmap(file, { imageOrientation: 'from-image' });
+  const scale = Math.min(1, MAX_EDGE / Math.max(bmp.width, bmp.height));
+  const c = document.createElement('canvas');
+  c.width = Math.round(bmp.width * scale);
+  c.height = Math.round(bmp.height * scale);
+  c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+  const blob = await new Promise((ok) => c.toBlob(ok, 'image/jpeg', 0.9));
+  return { blob, width: c.width, height: c.height };
+}
+
+async function onFile(e) {
+  const file = e.target.files?.[0];
+  e.target.value = '';
+  if (!file) return;
+  const id = ++run;
+  words = []; sel = null; $('pickText').value = '';
+  $('meta').textContent = '사진을 준비하는 중…';
+  let pic;
+  try { pic = await toJpeg(file); }
+  catch (err) { $('meta').textContent = '이 사진을 열지 못했습니다: ' + (err?.message ?? err); return; }
+  URL.revokeObjectURL($('img').src);
+  $('img').src = URL.createObjectURL(pic.blob);
+  img = { w: pic.width, h: pic.height };
+  svg.setAttribute('viewBox', `0 0 ${pic.width} ${pic.height}`);
+  $('loupeImg').src = $('img').src;
+  $('loupeImg').width = pic.width; $('loupeImg').height = pic.height;
+  $('loupeInner').style.width = pic.width + 'px';
+  $('loupeSvg').setAttribute('viewBox', `0 0 ${pic.width} ${pic.height}`);
+  view.hidden = $('picked').hidden = false;
+  z = 1; tx = ty = 0; apply();
+  $('meta').textContent = '글자를 읽는 중…';
+  const t0 = performance.now();
+  try {
+    const buf = new Uint8Array(await pic.blob.arrayBuffer());
+    let bin = '';
+    for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode.apply(null, buf.subarray(i, i + 0x8000));
+    const r = await fetch('/vision', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ image: btoa(bin) }) });
+    const j = await r.json();
+    if (id !== run) return;
+    if (!r.ok) { $('meta').textContent = j.error === 'no_key' ? 'API 키가 없습니다.' : '읽지 못했습니다: ' + (j.detail ?? j.error); return; }
+    // 줄 끝에서 낱말이 잘린 경우를 Vision은 따로 알려 주지 않는다 — 줄바꿈은 띄어쓰기로 잇는다.
+    words = j.words.map((w) => ({ text: w.text, box: w.box, sep: w.brk === 'HYPHEN' ? '' : w.brk ? ' ' : '' }));
+    $('meta').textContent = words.length
+      ? `낱말 ${words.length}개를 읽었습니다 · ${((performance.now() - t0) / 1000).toFixed(1)}초`
+      : '이 사진에서 글자를 찾지 못했습니다. 더 밝은 곳에서 다시 찍어 보세요.';
+  } catch (err) {
+    if (id === run) $('meta').textContent = '읽지 못했습니다: ' + (err?.message ?? err);
+  }
+}
+$('cam').onchange = onFile;
+$('lib').onchange = onFile;
+</script>
+</body>
+</html>

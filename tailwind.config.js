@@ -13,6 +13,7 @@ module.exports = {
         margin: 'rgb(var(--margin) / <alpha-value>)',
         sheet: 'rgb(var(--sheet) / <alpha-value>)',
         scrim: 'rgb(var(--scrim) / <alpha-value>)',
+        'on-scrim': 'rgb(var(--on-scrim) / <alpha-value>)',
         flag: {
           yellow: 'rgb(var(--flag-yellow) / <alpha-value>)',
           pink: 'rgb(var(--flag-pink) / <alpha-value>)',

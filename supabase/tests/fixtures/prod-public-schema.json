@@ -1,5 +1,5 @@
 {
-  "_captured": "2026-10-30 (functions re-checked 2026-11-02 after get_entry_months), read-only pg_catalog/information_schema queries against project piqlggyuhhicnjywombg (production). See docs/operations/supabase-api-grants.md. Plus the monthly excerpt migrations (20261106090000 onward) as expected values: not applied to production yet (see the doc). The account deletion migrations (20261112090000, 20261112091000, 20261112092000) were applied on 2026-11-12 and their counts were checked read-only (see the doc). The monthly sentence migration (20261113090000) was applied on 2026-11-13 and its tables, policies, grants and function signatures were checked read-only (see the doc). The sentence debate migration (20261117090000) was applied on 2026-11-19 and its tables, grants, policies (none) and function signatures were checked read-only (see the doc). The sentence debate notification and push migrations (20261120100000, 20261120110000) were applied on 2026-11-20 and their columns, constraints, indexes, policy, grants and function bodies were checked read-only (see the doc).",
+  "_captured": "2026-10-30 (functions re-checked 2026-11-02 after get_entry_months), read-only pg_catalog/information_schema queries against project piqlggyuhhicnjywombg (production). See docs/operations/supabase-api-grants.md. Plus the monthly excerpt migrations (20261106090000 onward) as expected values: not applied to production yet (see the doc). The account deletion migrations (20261112090000, 20261112091000, 20261112092000) were applied on 2026-11-12 and their counts were checked read-only (see the doc). The monthly sentence migration (20261113090000) was applied on 2026-11-13 and its tables, policies, grants and function signatures were checked read-only (see the doc). The sentence debate migration (20261117090000) was applied on 2026-11-19 and its tables, grants, policies (none) and function signatures were checked read-only (see the doc). The sentence debate notification and push migrations (20261120100000, 20261120110000) were applied on 2026-11-20 and their columns, constraints, indexes, policy, grants and function bodies were checked read-only (see the doc). Plus the photo text migration (20261120120000) as expected values: not applied to production yet.",
   "tables": [
     "account_deletion_purges",
     "account_deletions",
@@ -26,6 +26,8 @@
     "monthly_sentence_picks",
     "monthly_sentence_settings",
     "notifications",
+    "photo_text_consents",
+    "photo_text_usage",
     "profiles",
     "push_deliveries",
     "push_finished_receipts",
@@ -313,6 +315,17 @@
       ["closed_at", "timestamp with time zone", "YES", null],
       ["created_at", "timestamp with time zone", "NO", "clock_timestamp()"],
       ["updated_at", "timestamp with time zone", "NO", "now()"]
+    ],
+    "photo_text_consents": [
+      ["user_id", "uuid", "NO", null],
+      ["copy_version", "integer", "NO", null],
+      ["consented_at", "timestamp with time zone", "NO", "now()"],
+      ["withdrawn_at", "timestamp with time zone", "YES", null]
+    ],
+    "photo_text_usage": [
+      ["user_id", "uuid", "NO", null],
+      ["day", "date", "NO", null],
+      ["count", "integer", "NO", null]
     ]
   },
   "constraints": {
@@ -827,6 +840,24 @@
         "f",
         "FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE"
       ]
+    ],
+    "photo_text_consents": [
+      ["photo_text_consents_copy_version_check", "c", "CHECK ((copy_version > 0))"],
+      [
+        "photo_text_consents_user_id_fkey",
+        "f",
+        "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+      ],
+      ["photo_text_consents_pkey", "p", "PRIMARY KEY (user_id)"]
+    ],
+    "photo_text_usage": [
+      ["photo_text_usage_count_check", "c", "CHECK (((count >= 1) AND (count <= 30)))"],
+      [
+        "photo_text_usage_user_id_fkey",
+        "f",
+        "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+      ],
+      ["photo_text_usage_pkey", "p", "PRIMARY KEY (user_id, day)"]
     ]
   },
   "indexes": {
@@ -910,7 +941,9 @@
       "debate_reports_reporter_id_debate_id_answer_id_key"
     ],
     "debate_underlines": ["debate_underlines_pkey"],
-    "debates": ["debates_pkey", "debates_source_entry_idx", "debates_user_created_idx"]
+    "debates": ["debates_pkey", "debates_source_entry_idx", "debates_user_created_idx"],
+    "photo_text_consents": ["photo_text_consents_pkey"],
+    "photo_text_usage": ["photo_text_usage_pkey"]
   },
   "rlsEnabled": [
     "account_deletion_purges",
@@ -944,7 +977,9 @@
     "push_preferences",
     "push_seen",
     "push_subscriptions",
-    "user_books"
+    "user_books",
+    "photo_text_consents",
+    "photo_text_usage"
   ],
   "coreGrants": {
     "account_deletion_purges": {
@@ -1106,6 +1141,16 @@
       "anon": [],
       "authenticated": [],
       "service_role": ["delete", "insert", "select", "update"]
+    },
+    "photo_text_consents": {
+      "anon": [],
+      "authenticated": ["select"],
+      "service_role": ["select", "insert", "update", "delete"]
+    },
+    "photo_text_usage": {
+      "anon": [],
+      "authenticated": [],
+      "service_role": ["select", "insert", "update", "delete"]
     }
   },
   "policies": [
@@ -1268,7 +1313,8 @@
     ["user_books", "user_books_select_own_or_friend", "SELECT", "{authenticated}"],
     ["user_books", "user_books_update_own", "UPDATE", "{authenticated}"],
     ["user_books", "user_books_update_requires_active", "UPDATE", "{authenticated}"],
-    ["notifications", "notifications_hide_unviewable_debate", "SELECT", "{authenticated}"]
+    ["notifications", "notifications_hide_unviewable_debate", "SELECT", "{authenticated}"],
+    ["photo_text_consents", "photo_text_consents_owner", "SELECT", "{authenticated}"]
   ],
   "functions": [
     [
@@ -1404,7 +1450,11 @@
     ["can_see_debate_notification", "p_debate_id uuid, p_answer_id uuid"],
     ["notify_debate_event", "p_type text, p_target uuid"],
     ["retract_debate_notification", "p_type text, p_target uuid"],
-    ["debate_notification_visible_to", "p_user uuid, p_debate_id uuid, p_answer_id uuid"]
+    ["debate_notification_visible_to", "p_user uuid, p_debate_id uuid, p_answer_id uuid"],
+    ["begin_photo_text_read", "p_version integer"],
+    ["photo_text_consented", "p_version integer"],
+    ["set_photo_text_consent", "p_version integer"],
+    ["withdraw_photo_text_consent", ""]
   ],
   "excludedFunctions": {
     "rls_auto_enable": "Supabase 플랫폼이 붙이는 이벤트 트리거 함수(새 테이블에 RLS를 자동으로 켠다). 앱 마이그레이션이 만들지 않고, PGlite는 이벤트 트리거를 지원하지 않아 체인 테스트에서 제외한다."
