@@ -320,9 +320,10 @@ export default function ComposerView(props: ComposerViewProps) {
           className="-mr-2.5 ml-auto"
           disabled={disabled}
           onText={(text) => {
-            // 지금 주 입력이 "생각"이어도 문장 칸이 보이도록 연다. 쓰던 문장은 덮어쓰지 않는다
+            // 고른 글은 문장 칸에만 넣는다. 쓰던 문장은 덮어쓰지 않는다
             props.onChange('quote', appendQuote(quote, text));
-            setSecondaryOpen(true);
+            // 주 입력이 "생각"일 때만 문장 칸을 연다 — 문장을 쓰는 중에 생각 칸까지 열지 않는다
+            if (mode === 'note') setSecondaryOpen(true);
             setPhotoTextAdded((n) => n + 1);
           }}
         />

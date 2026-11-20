@@ -73,6 +73,13 @@ it('문장을 쓰는 중이면 고른 글이 주 칸에 붙고 커서가 끝에 
   await vi.waitFor(() => expect(document.activeElement).toBe(field));
 });
 
+it('문장을 쓰는 중이면 생각 칸은 저절로 열리지 않는다', () => {
+  render(h(Harness, { mode: 'quote', spy: vi.fn() }));
+  fireEvent.click(screen.getByRole('button', { name: '사진으로 옮기기' }));
+  expect(screen.queryByLabelText('나의 생각')).toBeNull();
+  expect(screen.getByRole('button', { name: '생각 덧붙이기' })).toBeTruthy();
+});
+
 it('생각을 쓰는 중이어도 문장 칸이 열려 고른 글이 들어가고 생각은 그대로다', async () => {
   const spy = vi.fn();
   render(h(Harness, { mode: 'note', note: '내 생각', spy }));
