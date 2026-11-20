@@ -41,7 +41,7 @@ export function wordAt(words: PhotoWord[], x: number, y: number): number {
     const [x0, y0, x1, y1] = word.box;
     const dx = Math.max(x0 - x, 0, x - x1);
     const dy = Math.max(y0 - y, 0, y - y1);
-    const distance = dx + dy * 4;
+    const distance = dx * dx + dy * dy * 4;
     if (distance < bestDistance) {
       bestDistance = distance;
       best = i;

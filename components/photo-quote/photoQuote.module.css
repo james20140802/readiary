@@ -1,0 +1,91 @@
+/* 사진 위에서 문장을 고르는 판. 브라우저의 기본 터치 동작(스크롤·확대·사진 길게 누르기 메뉴·글자 선택)을
+   모두 끄고 포인터를 직접 다룬다 — iOS에서 사진 선택 메뉴가 뜨던 문제를 실험에서 겪었다. */
+.stage {
+  position: relative;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  cursor: grab;
+  outline: none;
+}
+
+.stage:focus-visible {
+  box-shadow: inset 0 0 0 2px rgb(var(--accent));
+}
+
+.inner {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+.inner img,
+.loupeInner img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  -webkit-user-drag: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* 고른 구간 — 낱말 상자는 그리지 않고 고른 낱말만 칠한다 */
+.picked {
+  fill: rgb(var(--accent) / 0.34);
+}
+
+.stem {
+  stroke: rgb(var(--accent));
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.knob {
+  fill: rgb(var(--accent));
+  stroke: rgb(var(--paper));
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.hit {
+  fill: transparent;
+  cursor: ew-resize;
+}
+
+/* 돋보기 — 손가락에 가린 자리를 보여 준다. 손가락으로 고를 때만 뜬다 */
+.loupe {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 10;
+  width: 168px;
+  height: 76px;
+  overflow: hidden;
+  border-radius: 38px;
+  border: 1px solid rgb(var(--hairline-strong));
+  background: rgb(var(--paper));
+  box-shadow: 0 8px 24px -6px rgb(var(--scrim) / 0.55);
+  pointer-events: none;
+}
+
+.loupeInner {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+}
