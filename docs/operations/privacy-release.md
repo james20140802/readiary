@@ -202,3 +202,50 @@ delete from public.notifications where type in ('excerpt_like','excerpt_comment'
 delete from public.notifications where type in ('debate_answer','debate_reply','debate_move','debate_summary');
 ```
 
+
+## 사진에서 문장 옮기기 (2026-11-20, 코드 머지 전 · DB 미적용)
+
+기록 폼의 "사진으로 옮기기"는 책 페이지 사진을 Google Cloud Vision(미국)으로 보내 글자를 읽는다. 설계는 [사진에서 문장 옮기기 설계](../superpowers/specs/2026-11-20-photo-quote-design.md)다.
+
+### 무엇이 어디로 가는가
+
+- 브라우저가 사진을 긴 변 2,000px 이하의 JPEG로 다시 그린다. 이때 EXIF(위치 등)가 떨어진다. HEIC을 브라우저가 못 열면 변환 모듈(heic-to)을 그때 내려받아 기기 안에서 바꾼다. 변환을 위해 사진을 서버로 보내지 않는다.
+- 브라우저 → `POST /api/photo-text`(JPEG 바이트, 2MB 이하) → Vision `images:annotate`(`DOCUMENT_TEXT_DETECTION`). 키는 서버 환경 변수 `GOOGLE_VISION_API_KEY`에만 있고 요청 헤더로 보낸다.
+- 서버는 로그인 → 기능 켜짐 → 형식·크기 → 동의 확인과 하루 횟수(`begin_photo_text_read`, 한 번의 RPC) 순으로 확인한 뒤에만 Vision을 부른다. **동의하지 않은 사람의 사진은 Google로 가지 않는다.**
+- 응답은 낱말의 글자·좌표·띄어쓰기뿐이다. 고른 문장은 이용자가 기록을 남길 때 비로소 독서 기록으로 저장된다.
+
+### 남기지 않는 것
+
+- 사진과 읽은 글: DB·Storage·서버 로그에 쓰지 않는다. 서버 로그에는 실패했을 때 사용자 id와 실패 종류만 남는다(`app/api/photo-text/__tests__/route.test.ts`가 글과 키가 로그에 없음을 확인한다).
+- PWA 캐시: `/api`는 NetworkOnly이고 응답은 `Cache-Control: private, no-store`다. 사진은 고르는 화면이 열린 동안 메모리(blob 주소)에만 있고 닫으면 놓는다. sessionStorage 초안에는 글만 들어간다.
+- DB에 남는 것: `photo_text_consents`(동의 시각·문구 판·철회 시각)와 `photo_text_usage`(한국 날짜별 횟수, 지난 날의 줄은 다음 사용 때 지운다). 계정을 지우면 함께 지워진다.
+
+### 동의와 철회
+
+- 처음 누를 때 동의 시트를 보여 주고 `POST /api/photo-text/consent`로 남긴다. 문구를 바꾸면 `PHOTO_TEXT_COPY_VERSION`을 올리고, 올리면 모두에게 다시 묻는다.
+- 설정 → 계정 → "사진 글자 읽기 동의"에서 철회한다(`DELETE`). 철회는 기능이 꺼져 있어도, 탈퇴를 신청한 계정도 할 수 있다. 철회 뒤의 요청은 `consent_required`(403)로 거절되고 사진은 Google로 가지 않는다.
+- 같은 탭에서는 동의 여부를 한 번 확인한 뒤 다시 묻지 않는다. 다른 기기에서 철회했다면 다음 사진을 고른 때 서버가 거절하고 동의 시트가 다시 뜬다.
+- 하루 30장(한국 시간 자정 초기화). 읽기에 실패해도 횟수는 되돌리지 않는다.
+
+### 방침
+
+- 제1조 7호, 제2조 6호, 제5조 7호, 제7조 3항에 적었다. 12월 13일 개정판의 날짜는 건드리지 않고, 이 항목만의 공고일 `PHOTO_TEXT_PRIVACY_ANNOUNCED`(2026-11-21)와 시행일(2026-11-28)을 따로 둔다. **실제 배포일이 공고일이 되어야 한다. 배포가 늦어지면 두 상수와 부칙 문장을 함께 미룬다.**
+- 시행일 전에도 기능 안에서 따로 동의한 이용자에게는 연다. 이 방식이 법적으로 충분한지는 확인하지 못했다(법률 자문 아님).
+
+### 적용 순서
+
+1. 프로덕션에 `20261120120000_photo_text.sql`을 적용한다. 새 객체만 더하므로 옛 코드가 돌아가는 동안 먼저 적용해도 안전하다.
+2. Vercel에 `GOOGLE_VISION_API_KEY`(Cloud Vision API로 제한한 새 키)를 넣는다. 실험에 쓴 키는 지운다. Google Cloud에 예산 알림을 건다.
+3. 코드를 배포한다. 이 날이 공고일과 같은지 확인한다.
+4. `NEXT_PUBLIC_PHOTO_QUOTE_ENABLED=true`를 넣고 다시 배포한다(빌드 시점에 묶이는 값이다). 이 값이 없으면 버튼이 보이지 않고 서버는 `disabled`(404)로 답한다.
+5. 기존 이용자에게 새 기능과 사진 전송을 직접 알린다.
+
+### 미검증
+
+- 실제 Vision 호출을 포함한 전체 흐름은 이 저장소의 자동 시험에 없다(Vision은 흉내 낸다). 조작은 실험 페이지에서 사용자가 실기기로 확인했고, 제품 화면의 실기기 확인(iOS Safari, iOS 설치형 PWA, Android Chrome)은 하지 않았다.
+- 동시 요청으로 30장을 넘지 못하는지는 단일 연결 DB에서 순차로만 확인했다(조건 있는 upsert와 check 제약이 지킨다).
+- 아이폰이 찍은 원본 HEIC 사진.
+
+### 코드를 되돌릴 때
+
+`NEXT_PUBLIC_PHOTO_QUOTE_ENABLED`를 지우고 다시 배포하면 버튼과 서버 경로가 함께 꺼진다. 마이그레이션은 되돌리지 않는다. 동의 기록은 남겨 둔다.
