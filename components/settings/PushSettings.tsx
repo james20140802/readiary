@@ -23,10 +23,14 @@ export const PUSH_LABELS: Record<PushKind, { title: string; description: string 
     description: '오래전 남긴 문장과 다시 만나기 · 격주 이하',
   },
   friends: { title: '친구의 새 기록', description: '친구들의 기록을 한 번에 모아서 · 수요일' },
+  debate: {
+    title: '토론 소식',
+    description: '내 토론의 답, 내 답의 답글과 반응을 한 번에 모아서 · 답마다 보내지 않아요',
+  },
 };
 
-/** 시안 순서 — 기록 리마인드, 지난 문장, 주간 회고, 완독 후 감상, 친구의 새 기록 */
-const KIND_ORDER: PushKind[] = ['reminder', 'recall', 'weekly', 'finished', 'friends'];
+/** 시안 순서 — 기록 리마인드, 지난 문장, 주간 회고, 완독 후 감상, 친구의 새 기록. 토론 소식은 뒤에 더했다 */
+const KIND_ORDER: PushKind[] = ['reminder', 'recall', 'weekly', 'finished', 'friends', 'debate'];
 const ORDERED_KINDS = KIND_ORDER.filter((k) => PUSH_KINDS.includes(k));
 
 export interface PushSettingsViewProps {

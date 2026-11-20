@@ -1,5 +1,12 @@
 import type { Database, Json } from '@/types/supabase';
-export const PUSH_KINDS = ['reminder', 'finished', 'weekly', 'recall', 'friends'] as const;
+export const PUSH_KINDS = [
+  'reminder',
+  'finished',
+  'weekly',
+  'recall',
+  'friends',
+  'debate',
+] as const;
 export type PushKind = (typeof PUSH_KINDS)[number];
 export interface PushPreferences {
   enabled: boolean;

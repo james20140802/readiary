@@ -34,7 +34,7 @@ export function validPreferences(value: unknown): value is PushPreferences {
     p.hour >= 9 &&
     p.hour <= 21 &&
     Array.isArray(p.kinds) &&
-    p.kinds.length <= 5 &&
+    p.kinds.length <= PUSH_KINDS.length &&
     p.kinds.every((k) => PUSH_KINDS.includes(k)) &&
     (!p.enabled || p.kinds.length > 0) &&
     Array.isArray(p.weekdays) &&
