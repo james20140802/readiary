@@ -74,7 +74,12 @@ it('사진에서 가져온 뒤 고르는 화면이 닫히면 포커스가 버튼
   fireEvent.change(pick.parentElement!.querySelector('input[type="file"]:not([capture])')!, {
     target: { files: [new File(['raw'], 'page.jpg', { type: 'image/jpeg' })] },
   });
-  fireEvent.click(await screen.findByRole('button', { name: '전부 가져오기' }));
+  // 버튼은 글자를 다 읽기 전에도 꺼진 채로 보인다 — 켜질 때까지 기다린 뒤 누른다
+  const useAll = (await screen.findByRole('button', {
+    name: '전부 가져오기',
+  })) as HTMLButtonElement;
+  await waitFor(() => expect(useAll.disabled).toBe(false));
+  fireEvent.click(useAll);
   const quote = screen.getByLabelText('문장') as HTMLTextAreaElement;
   await waitFor(() => expect(quote.value).toBe('새 문장'));
   await waitFor(() => expect(screen.queryByRole('application')).toBeNull());
