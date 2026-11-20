@@ -1,5 +1,6 @@
 import { badRequest } from '@/lib/debate/errors';
 import { LIMITS, isText, pathId, readBody, rpcResponse, withSession } from '@/lib/debate/server';
+import { notifyDebateEvent } from '@/lib/notifications/notify';
 
 interface Context {
   params: Promise<{ answerId: string }>;
@@ -27,7 +28,9 @@ export async function POST(request: Request, { params }: Context) {
       { p_answer_id: id, p_body: body.body },
       '답글을 남기지 못했어요.',
       (data) => ({ id: data }),
-      201
+      201,
+      // 답 쓴 사람에게 알린다
+      (data) => notifyDebateEvent(supabase, 'debate_reply', String(data))
     );
   });
 }

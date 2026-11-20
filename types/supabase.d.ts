@@ -452,6 +452,8 @@ export type Database = {
           actor_id: string;
           comment_id: string | null;
           created_at: string;
+          debate_answer_id: string | null;
+          debate_id: string | null;
           entry_id: string | null;
           friendship_id: string | null;
           id: string;
@@ -465,6 +467,8 @@ export type Database = {
           actor_id: string;
           comment_id?: string | null;
           created_at?: string;
+          debate_answer_id?: string | null;
+          debate_id?: string | null;
           entry_id?: string | null;
           friendship_id?: string | null;
           id?: string;
@@ -478,6 +482,8 @@ export type Database = {
           actor_id?: string;
           comment_id?: string | null;
           created_at?: string;
+          debate_answer_id?: string | null;
+          debate_id?: string | null;
           entry_id?: string | null;
           friendship_id?: string | null;
           id?: string;
@@ -640,7 +646,15 @@ export type Database = {
     };
     Functions: {
       // 문장 토론(20261117090000). 테이블은 RPC로만 다루므로 함수만 적는다.
+      can_see_debate_notification: {
+        Args: { p_debate_id: string; p_answer_id: string };
+        Returns: boolean;
+      };
       can_view_debate: { Args: { p_id: string }; Returns: boolean };
+      debate_notification_visible_to: {
+        Args: { p_user: string; p_debate_id: string; p_answer_id: string };
+        Returns: boolean;
+      };
       create_debate: {
         Args: { p_entry_id: string; p_question: string; p_underlines: Json };
         Returns: string;
@@ -790,8 +804,13 @@ export type Database = {
         Args: { p_owner: string; p_year: number };
         Returns: Json;
       };
+      notify_debate_event: { Args: { p_type: string; p_target: string }; Returns: undefined };
       notify_monthly_excerpt_event: {
         Args: { p_excerpt_id: string; p_type: string; p_comment_id?: string };
+        Returns: undefined;
+      };
+      retract_debate_notification: {
+        Args: { p_type: string; p_target: string };
         Returns: undefined;
       };
       retract_monthly_excerpt_like_notification: {

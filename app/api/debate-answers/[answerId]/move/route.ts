@@ -1,5 +1,6 @@
 import { badRequest } from '@/lib/debate/errors';
 import { pathId, readBody, rpcResponse, withSession } from '@/lib/debate/server';
+import { notifyDebateEvent, retractDebateNotification } from '@/lib/notifications/notify';
 
 interface Context {
   params: Promise<{ answerId: string }>;
@@ -17,7 +18,13 @@ export async function PUT(request: Request, { params }: Context) {
       'set_debate_move',
       { p_answer_id: id, p_on: body.on },
       '반영하지 못했어요.',
-      (data) => ({ movedCount: data })
+      (data) => ({ movedCount: data }),
+      200,
+      // 켜면 답 쓴 사람에게 알리고(답마다 하루 한 번), 곧바로 끄면 안 읽은 알림을 거둔다
+      () =>
+        body.on
+          ? notifyDebateEvent(supabase, 'debate_move', id)
+          : retractDebateNotification(supabase, 'debate_move', id)
     );
   });
 }

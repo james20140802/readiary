@@ -7,6 +7,7 @@ import PushSeen from '@/components/PushSeen';
 import { Avatar } from '@/components/ui/Avatar';
 import { groupByDay } from '@/components/social/feedFormat';
 import type { Delivery, PushItem } from '@/lib/push/types';
+import { DEBATE_NOTIFICATION_TYPES } from '@/lib/notifications/types';
 import type { NotificationItem } from '@/lib/notifications/types';
 
 interface Props {
@@ -61,7 +62,7 @@ export default function NotificationList({
           아직 알림이 없어요.
         </p>
         <p className="mt-2 font-sans text-body-sm text-ink-sub">
-          친구가 내 문장에 남긴 반응과 독서 알림이 여기에 모여요.
+          친구가 내 문장에 남긴 반응, 토론 소식, 독서 알림이 여기에 모여요.
         </p>
       </div>
     );
@@ -147,6 +148,9 @@ function SocialRow({ n, now }: { n: NotificationItem; now: Date }) {
   const isExcerptReaction = n.type === 'excerpt_like' || n.type === 'excerpt_comment';
   // 권을 지우면 알림도 함께 사라지므로 드물다. 그래도 기록과 같이 링크 없이 이유를 말한다.
   const hasMissingExcerpt = isExcerptReaction && !n.monthlyExcerptMonth;
+  const isDebate = DEBATE_NOTIFICATION_TYPES.includes(n.type);
+  // 토론을 지우면 알림도 함께 사라지므로 드물다
+  const hasMissingDebate = isDebate && !n.debateId;
   const message = buildNotificationMessage(n.type, n.actorNickname);
   const name = message.startsWith(n.actorNickname) ? n.actorNickname : '';
 
@@ -171,6 +175,9 @@ function SocialRow({ n, now }: { n: NotificationItem; now: Date }) {
         {hasMissingExcerpt && (
           <p className="mt-0.5 font-sans text-[14px] text-ink-sub">연결된 발췌집을 열 수 없어요</p>
         )}
+        {hasMissingDebate && (
+          <p className="mt-0.5 font-sans text-[14px] text-ink-sub">연결된 토론을 열 수 없어요</p>
+        )}
         <time
           dateTime={n.createdAt}
           data-skeleton
@@ -182,19 +189,23 @@ function SocialRow({ n, now }: { n: NotificationItem; now: Date }) {
     </>
   );
 
-  // 좋아요·댓글은 해당 기록으로, 달의 발췌집 반응은 내 그달 발췌집으로(연결 정보가 없으면 링크 없음),
-  // 친구 알림은 친구 페이지로 (수락됨 → 친구 목록, 새 요청 → 받은 요청 탭)
-  const href = isExcerptReaction
-    ? n.monthlyExcerptMonth
-      ? `/excerpts/${n.monthlyExcerptMonth}`
+  // 좋아요·댓글은 해당 기록으로, 달의 발췌집 반응은 내 그달 발췌집으로, 문장 토론 알림은 그 토론으로
+  // (연결 정보가 없으면 링크 없음), 친구 알림은 친구 페이지로 (수락됨 → 친구 목록, 새 요청 → 받은 요청 탭)
+  const href = isDebate
+    ? n.debateId
+      ? `/social/talk/${n.debateId}`
       : null
-    : n.type === 'like' || n.type === 'comment'
-      ? n.entryId
-        ? `/entry/${n.entryId}`
+    : isExcerptReaction
+      ? n.monthlyExcerptMonth
+        ? `/excerpts/${n.monthlyExcerptMonth}`
         : null
-      : n.type === 'friend_accept'
-        ? '/social/friends'
-        : '/social/friends?tab=pending';
+      : n.type === 'like' || n.type === 'comment'
+        ? n.entryId
+          ? `/entry/${n.entryId}`
+          : null
+        : n.type === 'friend_accept'
+          ? '/social/friends'
+          : '/social/friends?tab=pending';
 
   return (
     <li className="relative">

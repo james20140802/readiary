@@ -10,6 +10,7 @@ import {
   rpcResponse,
   withSession,
 } from '@/lib/debate/server';
+import { notifyDebateEvent } from '@/lib/notifications/notify';
 
 interface Context {
   params: Promise<{ id: string }>;
@@ -62,7 +63,9 @@ export async function POST(request: Request, { params }: Context) {
       },
       '답을 남기지 못했어요.',
       (data) => ({ id: data }),
-      201
+      201,
+      // 발제자에게 알린다. 내 토론에 남긴 내 답이면 RPC가 넘긴다
+      (data) => notifyDebateEvent(supabase, 'debate_answer', String(data))
     );
   });
 }

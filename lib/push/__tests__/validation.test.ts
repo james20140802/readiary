@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { validEndpoint, validPreferences, validSubscription } from '../validation';
-import { DEFAULT_PUSH_PREFERENCES } from '../types';
+import { DEFAULT_PUSH_PREFERENCES, PUSH_KINDS } from '../types';
 describe('push input boundary', () => {
   it.each([
     'http://fcm.googleapis.com/a',
@@ -30,6 +30,19 @@ describe('push input boundary', () => {
       { hour: 9.5 },
     ])
       expect(validPreferences({ ...DEFAULT_PUSH_PREFERENCES, ...change })).toBe(false);
+  });
+  it('토론 소식을 포함해 모든 종류를 함께 고를 수 있다', () => {
+    expect(
+      validPreferences({ ...DEFAULT_PUSH_PREFERENCES, enabled: true, kinds: [...PUSH_KINDS] })
+    ).toBe(true);
+    expect(PUSH_KINDS).toContain('debate');
+    expect(
+      validPreferences({
+        ...DEFAULT_PUSH_PREFERENCES,
+        enabled: true,
+        kinds: [...PUSH_KINDS, 'reminder'],
+      })
+    ).toBe(false);
   });
   it('requires subscription encryption keys', () => {
     expect(

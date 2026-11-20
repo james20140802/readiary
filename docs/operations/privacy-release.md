@@ -174,3 +174,31 @@ delete from public.notifications where type in ('excerpt_like','excerpt_comment'
 - [ ] A가 고른 공개 기록을 나만 보기로 바꾼 직후 B가 서재를 다시 열면 이전 문장이 남아 있지 않다(브라우저와 설치형 PWA 각각).
 - [ ] A가 B와 친구를 끊으면 B의 `더 보기`가 더 불러오지 않고, C는 서재 자체를 볼 수 없다.
 - [ ] A가 자동 기준을 바꿔도 B의 화면에 기준이 드러나지 않는다.
+
+## 문장 토론 알림 (2026-11-20, DB 적용 완료 · 코드 머지 전)
+
+알림은 수신자만 읽는다는 기존 규칙에 조건을 하나 더했다. 문장 토론 알림(`debate_answer`·`debate_reply`·`debate_move`·`debate_summary`)은 **받은 사람이 지금 그 토론과 답을 볼 수 있을 때만** 보인다(`20261120100000_debate_notifications.sql`의 restrictive 정책 `notifications_hide_unviewable_debate`). 판단은 토론 화면과 같은 `can_view_debate`·`debate_can_see_answer`가 한다.
+
+- 발제자와 친구가 아니게 되면 그 토론의 알림이 목록과 안 읽은 표시에서 빠진다. 다시 친구가 되면 돌아온다.
+- 발제자가 숨긴 답글의 알림은 답 쓴 사람에게 보이지 않는다. 숨김을 풀면 돌아온다.
+- 답이 자리만 남으면(답글이 있어 본문만 지운 답) 그 답의 알림은 보이지 않는다. 답·토론을 지우면 알림 행도 사라진다.
+- 탈퇴 유예 중인 사람이 남긴 알림은 기존 정책(`notifications_hide_pending_deletion`)이 가리고, 유예 중인 사람은 새 알림을 만들지 못한다.
+- 알림에 담기는 것은 누가(닉네임·프로필 사진) 어떤 종류의 일을 했는지와 토론 id뿐이다. 답 본문은 담지 않는다.
+- 볼 수 없는 토론, 숨긴 답, 남의 답으로는 알림을 만들지 못한다. 수신자는 DB가 정한다.
+- 기기 푸시("토론 소식")는 같은 조건을 받는 사람 기준으로 다시 본다(`debate_notification_visible_to`, 발송 전용). 푸시에는 이름·문장·답 본문을 싣지 않고 "토론에 새 소식이 있어요"만 보낸다.
+
+계약 테스트: `supabase/tests/debates_notifications_contract.sql`, `supabase/tests/debates_push_contract.sql`.
+
+### 미검증
+
+- 프로덕션 마이그레이션은 적용하고 스키마·권한·함수 본문을 대조했다. 동작 검증은 PGlite 계약과 단위 테스트다.
+- 두 계정 이상으로 실제 화면에서 알림이 오고 가려지는지, iOS 설치형 PWA 실기기.
+
+### 코드를 되돌릴 때
+
+마이그레이션은 되돌리지 않는다. 옛 코드는 모르는 알림 종류에 중립 문구("○○님의 새 소식이 있어요")를 내지만 링크가 친구 화면으로 간다. 오래 되돌려 둘 거라면 아래로 치운다. 지운 알림은 되살릴 수 없고, 답·답글·표시·정리는 남는다.
+
+```sql
+delete from public.notifications where type in ('debate_answer','debate_reply','debate_move','debate_summary');
+```
+

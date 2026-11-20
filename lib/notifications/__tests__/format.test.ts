@@ -20,6 +20,21 @@ describe('buildNotificationMessage', () => {
   });
 });
 
+describe('문장 토론 알림 문구', () => {
+  it('누가 무엇을 했는지 말한다', () => {
+    expect(buildNotificationMessage('debate_answer', '민지')).toBe(
+      '민지님이 내 토론에 답을 남겼어요'
+    );
+    expect(buildNotificationMessage('debate_reply', '민지')).toBe(
+      '민지님이 내 답에 답글을 남겼어요'
+    );
+    expect(buildNotificationMessage('debate_move', '민지')).toBe(
+      '민지님이 내 답을 읽고 생각이 바뀌었어요'
+    );
+    expect(buildNotificationMessage('debate_summary', '민지')).toBe('민지님이 토론을 정리했어요');
+  });
+});
+
 describe('buildNotificationMessage의 대체 문구', () => {
   it('모르는 타입이어도 던지지 않고 중립 문구를 낸다', () => {
     // 롤백한 옛 코드가 새 종류를 만나는 경우처럼, 코드보다 데이터가 앞선 상황이다

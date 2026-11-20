@@ -81,3 +81,39 @@ describe('/api/debate-answers/[answerId]', () => {
     expect((await DELETE(req('DELETE'), ctx(answerId))).status).toBe(401);
   });
 });
+
+describe('알림', () => {
+  const notifyCalls = () => rpc.mock.calls.filter(([name]) => String(name).includes('notif'));
+
+  it('답글을 남기면 그 답글로 알린다', async () => {
+    rpc.mockResolvedValueOnce({ data: 'r1', error: null });
+    const res = await REPLY(req('POST', { body: '답글' }), ctx(answerId));
+    expect(await res.json()).toEqual({ id: 'r1' });
+    expect(notifyCalls()).toEqual([
+      ['notify_debate_event', { p_type: 'debate_reply', p_target: 'r1' }],
+    ]);
+  });
+  it('답글을 남기지 못했으면 알리지 않는다', async () => {
+    rpc.mockResolvedValue({ data: null, error: { message: 'closed', code: 'P0001' } });
+    await REPLY(req('POST', { body: '답글' }), ctx(answerId));
+    expect(notifyCalls()).toEqual([]);
+  });
+  it('생각이 바뀌었어요를 켜면 알리고, 끄면 거둔다', async () => {
+    await MOVE(req('PUT', { on: true }), ctx(answerId));
+    await MOVE(req('PUT', { on: false }), ctx(answerId));
+    expect(notifyCalls()).toEqual([
+      ['notify_debate_event', { p_type: 'debate_move', p_target: answerId }],
+      ['retract_debate_notification', { p_type: 'debate_move', p_target: answerId }],
+    ]);
+  });
+  it('알림이 실패해도 저장한 결과는 그대로 돌려준다', async () => {
+    rpc.mockImplementation(async (name: string) =>
+      name === 'set_debate_move'
+        ? { data: 2, error: null }
+        : { data: null, error: { message: 'boom' } }
+    );
+    const res = await MOVE(req('PUT', { on: true }), ctx(answerId));
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ movedCount: 2 });
+  });
+});

@@ -1,8 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
+  notifyDebateEvent,
   notifyEntryEvent,
   notifyFriendEvent,
   notifyMonthlyExcerptEvent,
+  retractDebateNotification,
   retractMonthlyExcerptLikeNotification,
 } from '../notify';
 
@@ -90,5 +92,45 @@ describe('달의 발췌집 알림', () => {
     ).resolves.toBeUndefined();
     await expect(retractMonthlyExcerptLikeNotification(supabase, 'x1')).resolves.toBeUndefined();
     expect(error).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('문장 토론 알림', () => {
+  it('종류와 대상만 넘긴다 — 수신자와 사실 확인은 RPC가 한다', async () => {
+    const supabase = buildSupabase();
+    await notifyDebateEvent(supabase, 'debate_reply', 'reply-1');
+    expect(supabase.rpc).toHaveBeenCalledWith('notify_debate_event', {
+      p_type: 'debate_reply',
+      p_target: 'reply-1',
+    });
+  });
+
+  it('거두기도 종류와 대상만 넘긴다', async () => {
+    const supabase = buildSupabase();
+    await retractDebateNotification(supabase, 'debate_move', 'answer-1');
+    expect(supabase.rpc).toHaveBeenCalledWith('retract_debate_notification', {
+      p_type: 'debate_move',
+      p_target: 'answer-1',
+    });
+  });
+
+  it('RPC 오류는 로그만 남기고 던지지 않는다 — 답은 이미 저장됐다', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const supabase = buildSupabase({ message: 'boom' });
+    await expect(notifyDebateEvent(supabase, 'debate_answer', 'a')).resolves.toBeUndefined();
+    await expect(
+      retractDebateNotification(supabase, 'debate_summary', 'd')
+    ).resolves.toBeUndefined();
+    expect(error).toHaveBeenCalledWith('notify_debate_event 실패:', 'boom');
+    expect(error).toHaveBeenCalledWith('retract_debate_notification 실패:', 'boom');
+  });
+
+  it('연결이 끊겨 RPC가 던져도 삼킨다', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const supabase = {
+      rpc: () => Promise.reject(new Error('network')),
+    } as unknown as Parameters<typeof notifyDebateEvent>[0];
+    await expect(notifyDebateEvent(supabase, 'debate_answer', 'a')).resolves.toBeUndefined();
+    await expect(retractDebateNotification(supabase, 'debate_move', 'a')).resolves.toBeUndefined();
   });
 });

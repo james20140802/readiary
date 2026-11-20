@@ -71,6 +71,7 @@ describe('fetchNotifications', () => {
         readAt: null,
         entryId: 'e1',
         monthlyExcerptMonth: null,
+        debateId: null,
         actorNickname: '상추',
         actorProfileImage: null,
       },
@@ -98,5 +99,26 @@ describe('fetchNotifications', () => {
     const result = await fetchNotifications();
 
     expect(result.items.map((n) => n.monthlyExcerptMonth)).toEqual(['2026-03', '2026-02', null]);
+  });
+
+  it('문장 토론 알림은 토론 id를 준다. 그 밖의 알림은 null이다', async () => {
+    authGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    const row = {
+      created_at: '2026-11-20T00:00:00Z',
+      read_at: null,
+      entry_id: null,
+      actor: { nickname: '민지', profile_image: null },
+    };
+    runQuery.mockResolvedValue({
+      data: [
+        { ...row, id: 'n1', type: 'debate_answer', debate_id: 'd1' },
+        { ...row, id: 'n2', type: 'friend_accept' },
+      ],
+      error: null,
+    });
+
+    const result = await fetchNotifications();
+
+    expect(result.items.map((n) => n.debateId)).toEqual(['d1', null]);
   });
 });
