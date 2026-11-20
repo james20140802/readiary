@@ -1,5 +1,5 @@
 {
-  "_captured": "2026-10-30 (functions re-checked 2026-11-02 after get_entry_months), read-only pg_catalog/information_schema queries against project piqlggyuhhicnjywombg (production). See docs/operations/supabase-api-grants.md. Plus the monthly excerpt migrations (20261106090000 onward) as expected values: not applied to production yet (see the doc). The account deletion migrations (20261112090000, 20261112091000, 20261112092000) were applied on 2026-11-12 and their counts were checked read-only (see the doc). The monthly sentence migration (20261113090000) was applied on 2026-11-13 and its tables, policies, grants and function signatures were checked read-only (see the doc). The sentence debate migration (20261117090000) was applied on 2026-11-19 and its tables, grants, policies (none) and function signatures were checked read-only (see the doc). The sentence debate notification migration (20261120100000) is included as expected values: not applied to production yet (see the doc).",
+  "_captured": "2026-10-30 (functions re-checked 2026-11-02 after get_entry_months), read-only pg_catalog/information_schema queries against project piqlggyuhhicnjywombg (production). See docs/operations/supabase-api-grants.md. Plus the monthly excerpt migrations (20261106090000 onward) as expected values: not applied to production yet (see the doc). The account deletion migrations (20261112090000, 20261112091000, 20261112092000) were applied on 2026-11-12 and their counts were checked read-only (see the doc). The monthly sentence migration (20261113090000) was applied on 2026-11-13 and its tables, policies, grants and function signatures were checked read-only (see the doc). The sentence debate migration (20261117090000) was applied on 2026-11-19 and its tables, grants, policies (none) and function signatures were checked read-only (see the doc). The sentence debate notification and push migrations (20261120100000, 20261120110000) are included as expected values: not applied to production yet (see the doc).",
   "tables": [
     "account_deletion_purges",
     "account_deletions",
@@ -632,7 +632,7 @@
       [
         "push_preferences_kinds_check",
         "c",
-        "CHECK ((kinds <@ ARRAY['reminder'::text, 'finished'::text, 'weekly'::text, 'recall'::text, 'friends'::text]))"
+        "CHECK ((kinds <@ ARRAY['reminder'::text, 'finished'::text, 'weekly'::text, 'recall'::text, 'friends'::text, 'debate'::text]))"
       ],
       [
         "push_preferences_weekdays_check",
@@ -1403,7 +1403,8 @@
     ["withdraw_email_by_token", "p_hash text"],
     ["can_see_debate_notification", "p_debate_id uuid, p_answer_id uuid"],
     ["notify_debate_event", "p_type text, p_target uuid"],
-    ["retract_debate_notification", "p_type text, p_target uuid"]
+    ["retract_debate_notification", "p_type text, p_target uuid"],
+    ["debate_notification_visible_to", "p_user uuid, p_debate_id uuid, p_answer_id uuid"]
   ],
   "excludedFunctions": {
     "rls_auto_enable": "Supabase 플랫폼이 붙이는 이벤트 트리거 함수(새 테이블에 RLS를 자동으로 켠다). 앱 마이그레이션이 만들지 않고, PGlite는 이벤트 트리거를 지원하지 않아 체인 테스트에서 제외한다."

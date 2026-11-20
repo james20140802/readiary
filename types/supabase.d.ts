@@ -651,6 +651,10 @@ export type Database = {
         Returns: boolean;
       };
       can_view_debate: { Args: { p_id: string }; Returns: boolean };
+      debate_notification_visible_to: {
+        Args: { p_user: string; p_debate_id: string; p_answer_id: string };
+        Returns: boolean;
+      };
       create_debate: {
         Args: { p_entry_id: string; p_question: string; p_underlines: Json };
         Returns: string;
