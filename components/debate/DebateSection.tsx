@@ -73,10 +73,14 @@ export default function DebateSection({
   // 숨긴 답처럼 세지 않지만 내게 보이는 답(extra)도 이어 불러올 수 있어야 주인이 숨김을 풀고 작성자가 자기 답에 닿는다
   const rest = section.count + section.extra - section.picks.length;
 
+  // 나중에 시작한 요청만 화면에 반영한다 — 다시 불러오기가 끼어들면 먼저 떠난 쪽의 응답은 버린다
+  const loadSeq = useRef(0);
   const load = async (after: number) => {
+    const seq = ++loadSeq.current;
     setState('loading');
     try {
       const res = await fetchSectionAnswers(debate.id, section.position, after);
+      if (seq !== loadSeq.current) return;
       setMore((prev) => [
         ...(after === 0 ? [] : prev),
         ...res.answers.filter((a) => !pickIds.has(a.id)),
@@ -84,25 +88,27 @@ export default function DebateSection({
       setNext(res.next);
       setState('done');
     } catch {
+      if (seq !== loadSeq.current) return;
       setFailedAt(after);
       setState('error');
     }
   };
 
   // 생각이 바뀌었어요는 답 순서(누른 수)를 바꾼다 — 이어 불러온 자리가 어긋나 답을 건너뛰거나 겹치지 않게
-  // 펼쳐 둔 나머지 답을 첫 쪽부터 다시 가져온다
+  // 펼쳐 둔 나머지 답을 첫 쪽부터 다시 가져온다(불러오는 중이었다면 그 쪽은 버린다)
   const moved = () => {
     onMoved?.();
-    if (state === 'done' || state === 'error') void load(0);
+    if (state !== 'idle') void load(0);
   };
 
-  // 토론을 다시 불러와 단락이 바뀌면, 펼쳐 둔 나머지 답도 첫 쪽부터 다시 가져온다(숨김·고침·지움 반영)
+  // 토론을 다시 불러와 단락이 바뀌면, 펼쳐 둔 나머지 답도 첫 쪽부터 다시 가져온다(숨김·고침·지움 반영).
+  // 다음 쪽을 불러오는 중이었어도 마찬가지다 — 그 쪽은 버리고 처음부터 다시 받아야 옛 답이 남지 않는다
   const lastSection = useRef(section);
   useEffect(() => {
     if (lastSection.current === section) return;
     lastSection.current = section;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- 서버에서 다시 가져오는 동기화라 effect가 맞다
-    if (state === 'done' || state === 'error') void load(0);
+    if (state !== 'idle') void load(0);
     // load는 렌더마다 새로 만들어지지만 section이 바뀔 때만 다시 가져오면 된다
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [section]);

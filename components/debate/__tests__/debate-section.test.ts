@@ -188,6 +188,41 @@ describe('DebateSection', () => {
     expect(fetchSectionAnswers).toHaveBeenCalledTimes(2);
   });
 
+  it('다음 쪽을 불러오는 동안 토론이 바뀌면 늦게 온 쪽을 버리고 첫 쪽부터 다시 가져온다', async () => {
+    fetchSectionAnswers.mockResolvedValueOnce({
+      answers: [answer({ id: 'a3', body: '셋째 답' })],
+      next: 10,
+    });
+    const props = {
+      debate: debate(),
+      expanded: true,
+      onToggle: vi.fn(),
+      onAnswer: vi.fn(),
+      onChanged: vi.fn(),
+    };
+    const view = render(h(DebateSection, { ...props, section: section() }));
+    fireEvent.click(screen.getByRole('button', { name: '나머지 7개 보기' }));
+    expect(await screen.findByText('셋째 답')).toBeTruthy();
+
+    let finishPage: (v: unknown) => void = () => {};
+    fetchSectionAnswers.mockImplementationOnce(() => new Promise((res) => (finishPage = res)));
+    fetchSectionAnswers.mockResolvedValueOnce({
+      answers: [answer({ id: 'a3', body: '고친 셋째 답' })],
+      next: 10,
+    });
+    fireEvent.click(screen.getByRole('button', { name: '더 보기' }));
+    // 불러오는 도중에 셋째 답을 고쳐 토론이 다시 왔다
+    view.rerender(h(DebateSection, { ...props, section: section() }));
+    expect(await screen.findByText('고친 셋째 답')).toBeTruthy();
+    expect(fetchSectionAnswers.mock.calls[2]).toEqual(['d1', 2, 0]);
+
+    finishPage({ answers: [answer({ id: 'a4', body: '늦게 온 넷째 답' })], next: null });
+    await new Promise((r) => setTimeout(r, 0));
+    expect(screen.queryByText('늦게 온 넷째 답')).toBeNull();
+    expect(screen.queryByText('셋째 답')).toBeNull();
+    expect(screen.getByRole('button', { name: '더 보기' })).toBeTruthy();
+  });
+
   it('답이 없으면 비어 있다고 말하고, 답하기를 누르면 그 밑줄로', () => {
     const onAnswer = vi.fn();
     render(
