@@ -1,4 +1,4 @@
-import type { PhotoWord, Size, View } from './types';
+import type { Box, PhotoWord, Size, View } from './types';
 
 /** 사진을 줄일 때의 긴 변(px) */
 export const MAX_EDGE = 2000;
@@ -54,6 +54,29 @@ export function wordAt(words: PhotoWord[], x: number, y: number): number {
 export function insideWord(word: PhotoWord, x: number, y: number): boolean {
   const [x0, y0, x1, y1] = word.box;
   return x >= x0 && x <= x1 && y >= y0 && y <= y1;
+}
+
+/**
+ * 고른 구간을 줄마다 한 띠로 묶는다 — 낱말마다 따로 칠하면 사이가 끊겨 얼룩처럼 보인다.
+ * 다음 낱말의 세로 가운데가 지금 띠 안에 있고 오른쪽으로 이어지면 같은 줄로 본다.
+ */
+export function lineBands(words: PhotoWord[], a: number, b: number): Box[] {
+  const [from, to] = orderRange(a, b);
+  const bands: Box[] = [];
+  let prevX = 0;
+  for (const word of words.slice(Math.max(0, from), to + 1)) {
+    const [x0, y0, x1, y1] = word.box;
+    const band = bands[bands.length - 1];
+    const mid = (y0 + y1) / 2;
+    if (band && mid >= band[1] && mid <= band[3] && x0 >= prevX) {
+      band[0] = Math.min(band[0], x0);
+      band[1] = Math.min(band[1], y0);
+      band[2] = Math.max(band[2], x1);
+      band[3] = Math.max(band[3], y1);
+    } else bands.push([x0, y0, x1, y1]);
+    prevX = x0;
+  }
+  return bands;
 }
 
 /** 문장 칸에 넣기 — 쓰던 글을 덮어쓰지 않고 빈 줄 하나를 두고 뒤에 붙인다 */

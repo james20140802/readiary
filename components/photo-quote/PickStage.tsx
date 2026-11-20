@@ -16,6 +16,7 @@ import {
   baseSize,
   clampView,
   insideWord,
+  lineBands,
   orderRange,
   toImagePoint,
   wordAt,
@@ -449,20 +450,29 @@ export default function PickStage({
   };
 
   const ordered = range && words.length ? orderRange(range[0], range[1]) : null;
-  const picked = ordered
-    ? words.slice(Math.max(0, ordered[0]), ordered[1] + 1).map((w, i) => {
-        const [x0, y0, x1, y1] = w.box;
-        return <rect key={i} className={s.picked} x={x0} y={y0} width={x1 - x0} height={y1 - y0} />;
-      })
-    : null;
   // 화면 1px이 사진 몇 px인가 — 손잡이를 화면에서 늘 같은 크기로 그린다
   const k = base.w > 0 ? image.w / (base.w * view.z) : 1;
+  // 줄마다 한 띠로 칠한다. 띠끼리 겹쳐도 진해지지 않도록 묶음에 한 번만 투명도를 준다
+  const picked = ordered ? (
+    <g className={s.picked}>
+      {lineBands(words, ordered[0], ordered[1]).map(([x0, y0, x1, y1], i) => (
+        <rect
+          key={i}
+          x={x0 - 2 * k}
+          y={y0 - 1 * k}
+          width={x1 - x0 + 4 * k}
+          height={y1 - y0 + 2 * k}
+          rx={3 * k}
+        />
+      ))}
+    </g>
+  ) : null;
   const first = ordered ? words[ordered[0]] : undefined;
   const lastWord = ordered ? words[ordered[1]] : undefined;
   const knob = (x: number, top: number, bottom: number, which: 'start' | 'end') => (
     <g key={which}>
       <line className={s.stem} x1={x} y1={top} x2={x} y2={bottom + 6 * k} />
-      <circle className={s.knob} cx={x} cy={bottom + 12 * k} r={7 * k} />
+      <circle className={s.knob} cx={x} cy={bottom + 12 * k} r={6 * k} />
       <circle className={s.hit} data-knob={which} cx={x} cy={bottom + 12 * k} r={24 * k} />
     </g>
   );

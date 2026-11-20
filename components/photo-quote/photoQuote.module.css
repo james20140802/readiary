@@ -46,7 +46,8 @@
 
 /* 고른 구간 — 낱말 상자는 그리지 않고 고른 낱말만 칠한다 */
 .picked {
-  fill: rgb(var(--accent) / 0.34);
+  fill: rgb(var(--accent));
+  opacity: 0.32;
 }
 
 .stem {
@@ -88,4 +89,177 @@
   left: 0;
   top: 0;
   transform-origin: 0 0;
+}
+
+/* 고르는 화면의 바탕은 라이트·다크 모두 어두운 배경막이다. 그 위의 글자·버튼 색은 테마를 따르지 않는다 */
+.viewer {
+  --on-scrim: 253 251 247;
+  background: rgb(var(--scrim));
+}
+
+/* 사진 위에 뜨는 버튼(닫기·다시 찍기·확대) */
+.chrome {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 44px;
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid rgb(var(--on-scrim) / 0.16);
+  background: rgb(var(--on-scrim) / 0.12);
+  color: rgb(var(--on-scrim));
+  font-size: 15px;
+  font-weight: 600;
+  transition:
+    transform 160ms cubic-bezier(0.23, 1, 0.32, 1),
+    background-color 160ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.chromeIcon {
+  width: 44px;
+  padding: 0;
+}
+
+.chrome:active {
+  transform: scale(0.96);
+}
+
+.chrome:focus-visible {
+  outline: 2px solid rgb(var(--on-scrim));
+  outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .chrome:hover {
+    background: rgb(var(--on-scrim) / 0.2);
+  }
+}
+
+/* 고른 문장 시트 — 접힌 높이만큼 자리를 차지하고, 펼치면 사진 위로 올라온다.
+   아래쪽은 불투명한 버튼 줄 뒤로 들어가 가려진다. 움직임은 transform만 쓴다 */
+.sheetSlot {
+  position: relative;
+  height: 96px;
+  flex-shrink: 0;
+}
+
+.sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 96px;
+  max-height: min(62dvh, 560px);
+  border-radius: 18px 18px 0 0;
+  background: rgb(var(--sheet));
+  color: rgb(var(--ink));
+  box-shadow:
+    0 -1px 0 rgb(var(--hairline)),
+    0 -14px 36px -14px rgb(var(--scrim) / 0.6);
+  transition: transform 300ms cubic-bezier(0.32, 0.72, 0, 1);
+  will-change: transform;
+}
+
+.sheetDraggable {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grab;
+}
+
+.sheetOpen {
+  touch-action: auto;
+  user-select: text;
+  -webkit-user-select: text;
+  cursor: auto;
+}
+
+.sheetDragging {
+  transition: none;
+}
+
+.grip {
+  position: relative;
+  display: flex;
+  height: 24px;
+  width: 100%;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
+  cursor: grab;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 잡는 자리를 위로 넓힌다 — 막대는 얇아도 손가락은 굵다 */
+.grip::before {
+  content: '';
+  position: absolute;
+  inset: -14px 0 -6px;
+}
+
+.grip::after {
+  content: '';
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgb(var(--ink-faint) / 0.55);
+}
+
+.grip:focus-visible {
+  outline: none;
+}
+
+.grip:focus-visible::after {
+  background: rgb(var(--accent));
+  box-shadow: 0 0 0 3px rgb(var(--accent) / 0.25);
+}
+
+.gripSpace {
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.sheetBody {
+  min-height: 0;
+  flex: 1;
+  overflow: hidden;
+  padding: 0 20px 16px;
+}
+
+.sheetOpen .sheetBody {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+}
+
+/* 버튼 줄 — 시트의 아래쪽을 가린다. 글이 더 있으면 넷째 줄이 살짝 비쳐 보이며 흐려진다 */
+.actions {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  background: rgb(var(--sheet));
+}
+
+.actionsFade::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  height: 22px;
+  background: linear-gradient(to top, rgb(var(--sheet)), rgb(var(--sheet) / 0));
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet,
+  .chrome {
+    transition: none;
+  }
 }

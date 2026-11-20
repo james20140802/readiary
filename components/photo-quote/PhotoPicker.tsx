@@ -2,14 +2,16 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Dialog, DialogPanel } from '@headlessui/react';
-import { Maximize, ZoomIn, ZoomOut } from 'lucide-react';
+import { Maximize, X, ZoomIn, ZoomOut } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import InertBackground from '@/components/ui/InertBackground';
 import { SessionExpiredError, apiFetch } from '@/lib/api/fetch';
 import { isImageFile, preparePhoto, type PreparedPhoto } from '@/lib/photo-quote/image';
 import { allText, rangeText } from '@/lib/photo-quote/select';
 import type { PhotoWord } from '@/lib/photo-quote/types';
+import PickedSheet from './PickedSheet';
 import PickStage, { type PickStageHandle } from './PickStage';
+import s from './photoQuote.module.css';
 
 type Phase =
   | 'preparing' // 사진을 여는 중
@@ -77,6 +79,8 @@ export default function PhotoPicker({
   const [photo, setPhoto] = useState<PreparedPhoto | null>(null);
   const [words, setWords] = useState<PhotoWord[]>([]);
   const [range, setRange] = useState<[number, number] | null>(null);
+  const [expanded, setExpanded] = useState(false);
+  const [overflow, setOverflow] = useState(false);
   const stageRef = useRef<PickStageHandle>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const request = useRef<AbortController | null>(null);
@@ -169,11 +173,6 @@ export default function PhotoPicker({
     if (dropped) onFile(dropped);
   };
 
-  const zoomButton =
-    'inline-flex h-10 w-10 items-center justify-center rounded-full border border-hairline-strong bg-sheet text-ink hover:bg-card-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent';
-  const barButton =
-    'min-h-11 px-2 font-sans text-[16px] font-semibold text-accent focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent';
-
   return (
     <Dialog open onClose={onClose} aria-label="사진으로 옮기기" className="relative z-[110]">
       <InertBackground />
@@ -181,14 +180,19 @@ export default function PhotoPicker({
       <DialogPanel
         onDragOver={(event) => event.preventDefault()}
         onDrop={onDrop}
-        className="fixed inset-0 flex flex-col overflow-hidden bg-sheet text-ink lg:inset-6 lg:rounded-[16px] lg:shadow-[0_30px_80px_-20px_rgb(30_20_10/.45)]"
+        className={`${s.viewer} fixed inset-0 flex flex-col overflow-hidden lg:inset-6 lg:rounded-[16px] lg:shadow-[0_30px_80px_-20px_rgb(30_20_10/.45)]`}
       >
-        <div className="flex shrink-0 items-center justify-between px-3 pt-[var(--app-safe-top)]">
-          <button type="button" onClick={onClose} className={barButton}>
-            닫기
+        <div className="flex shrink-0 items-center justify-between px-3 pb-2 pt-[calc(8px+var(--app-safe-top))] font-sans">
+          <button
+            type="button"
+            aria-label="닫기"
+            onClick={onClose}
+            className={`${s.chrome} ${s.chromeIcon}`}
+          >
+            <X size={20} strokeWidth={1.75} aria-hidden />
           </button>
           {phase !== 'limit' && (
-            <button type="button" onClick={retake} className={barButton}>
+            <button type="button" onClick={retake} className={s.chrome}>
               {fine ? '다른 사진 고르기' : '다시 찍기'}
             </button>
           )}
@@ -208,7 +212,8 @@ export default function PhotoPicker({
           }}
         />
 
-        <div className="relative min-h-0 flex-1 bg-scrim">
+        {/* 사진을 다시 만지면 펼친 시트를 접는다 — 고르는 자리를 가리지 않게 */}
+        <div className="relative min-h-0 flex-1" onPointerDownCapture={() => setExpanded(false)}>
           {photo && (
             <PickStage
               ref={stageRef}
@@ -226,7 +231,7 @@ export default function PhotoPicker({
                 type="button"
                 aria-label="확대"
                 onClick={() => stageRef.current?.zoomBy(1.5)}
-                className={zoomButton}
+                className={`${s.chrome} ${s.chromeIcon}`}
               >
                 <ZoomIn size={20} strokeWidth={1.75} aria-hidden />
               </button>
@@ -234,7 +239,7 @@ export default function PhotoPicker({
                 type="button"
                 aria-label="축소"
                 onClick={() => stageRef.current?.zoomBy(1 / 1.5)}
-                className={zoomButton}
+                className={`${s.chrome} ${s.chromeIcon}`}
               >
                 <ZoomOut size={20} strokeWidth={1.75} aria-hidden />
               </button>
@@ -242,7 +247,7 @@ export default function PhotoPicker({
                 type="button"
                 aria-label="화면에 맞추기"
                 onClick={() => stageRef.current?.fit()}
-                className={zoomButton}
+                className={`${s.chrome} ${s.chromeIcon}`}
               >
                 <Maximize size={20} strokeWidth={1.75} aria-hidden />
               </button>
@@ -250,49 +255,44 @@ export default function PhotoPicker({
           )}
         </div>
 
-        <div className="shrink-0 border-t border-hairline px-4 pb-[calc(14px+var(--app-safe-bottom))] pt-3">
-          {/* 높이를 고정한다 — 고른 글이 보이면서 줄이 늘면 사진 자리가 줄어 손가락 아래의 사진이 밀린다 */}
-          <div className="h-[72px] overflow-hidden">
-            {!picked && (
-              <p
-                role={problem ? 'alert' : 'status'}
-                className="font-sans text-caption text-ink-sub"
+        {/* 시트의 접힌 높이는 고정이다 — 고른 글이 길어져도 사진 자리가 줄지 않아 손가락 아래의 사진이 밀리지 않는다 */}
+        <PickedSheet
+          text={picked}
+          expanded={expanded}
+          onExpanded={setExpanded}
+          onOverflow={setOverflow}
+        >
+          <p role={problem ? 'alert' : 'status'} className="font-sans text-caption text-ink-sub">
+            {phase === 'ready' ? hint : STATUS[phase]}
+          </p>
+        </PickedSheet>
+        <div
+          className={`${s.actions} ${overflow ? s.actionsFade : ''} flex items-center justify-end gap-2 px-4 pb-[calc(14px+var(--app-safe-bottom))] pt-2`}
+        >
+          {phase === 'failed' && photo && (
+            <Button variant="secondary" size="sm" onClick={() => void read(photo.blob)}>
+              다시 시도
+            </Button>
+          )}
+          {phase === 'limit' || phase === 'unopenable' ? (
+            <Button size="sm" onClick={phase === 'limit' ? onClose : retake}>
+              {phase === 'limit' ? '닫기' : fine ? '다른 사진 고르기' : '다시 찍기'}
+            </Button>
+          ) : (
+            <>
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={busy || everything === ''}
+                onClick={() => onUse(everything)}
               >
-                {phase === 'ready' ? hint : STATUS[phase]}
-              </p>
-            )}
-            {picked && (
-              <p className="line-clamp-3 whitespace-pre-wrap font-serif text-[16px] leading-[24px] text-ink">
-                {picked}
-              </p>
-            )}
-          </div>
-          <div className="mt-3 flex items-center justify-end gap-2">
-            {phase === 'failed' && photo && (
-              <Button variant="secondary" size="sm" onClick={() => void read(photo.blob)}>
-                다시 시도
+                전부 가져오기
               </Button>
-            )}
-            {phase === 'limit' || phase === 'unopenable' ? (
-              <Button size="sm" onClick={phase === 'limit' ? onClose : retake}>
-                {phase === 'limit' ? '닫기' : fine ? '다른 사진 고르기' : '다시 찍기'}
+              <Button size="sm" disabled={picked === ''} onClick={() => onUse(picked)}>
+                이 문장 쓰기
               </Button>
-            ) : (
-              <>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  disabled={busy || everything === ''}
-                  onClick={() => onUse(everything)}
-                >
-                  전부 가져오기
-                </Button>
-                <Button size="sm" disabled={picked === ''} onClick={() => onUse(picked)}>
-                  이 문장 쓰기
-                </Button>
-              </>
-            )}
-          </div>
+            </>
+          )}
         </div>
       </DialogPanel>
     </Dialog>

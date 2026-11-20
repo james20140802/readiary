@@ -5,6 +5,7 @@ import {
   baseSize,
   clampView,
   fitWithin,
+  lineBands,
   orderRange,
   rangeText,
   toImagePoint,
@@ -114,5 +115,30 @@ describe('사진 크기와 보기', () => {
       x: 750,
       y: 1000,
     });
+  });
+});
+
+describe('고른 구간 칠하기', () => {
+  const page = [
+    W('첫', [10, 10, 40, 30]),
+    W('줄', [50, 12, 80, 32]),
+    W('둘째', [10, 40, 60, 60]),
+    W('줄', [70, 41, 100, 61]),
+  ];
+
+  it('같은 줄의 낱말은 틈 없이 한 띠로 잇는다', () => {
+    expect(lineBands(page, 0, 1)).toEqual([[10, 10, 80, 32]]);
+  });
+
+  it('줄이 바뀌면 띠를 나눈다', () => {
+    expect(lineBands(page, 1, 3)).toEqual([
+      [50, 12, 80, 32],
+      [10, 40, 100, 61],
+    ]);
+  });
+
+  it('뒤집힌 구간과 빈 목록도 받는다', () => {
+    expect(lineBands(page, 3, 2)).toEqual([[10, 40, 100, 61]]);
+    expect(lineBands([], 0, 2)).toEqual([]);
   });
 });
