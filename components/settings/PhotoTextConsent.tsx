@@ -4,9 +4,9 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import Button from '@/components/ui/Button';
 import Sheet from '@/components/ui/Sheet';
-import { forgetPhotoTextConsent } from '@/components/photo-quote/PhotoQuoteButton';
 import { SessionExpiredError, apiFetch } from '@/lib/api/fetch';
 import { photoQuoteVisible } from '@/lib/photo-quote/config';
+import { forgetPhotoTextConsent } from '@/lib/photo-quote/consentCache';
 import { SettingsRow } from './SettingsParts';
 
 type State = 'loading' | 'failed' | 'consented' | 'none';

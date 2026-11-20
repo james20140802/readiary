@@ -1,5 +1,6 @@
 'use client';
 
+import { setPhotoConsentOwner } from '@/lib/photo-quote/consentCache';
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import clsx from 'clsx';
@@ -46,6 +47,8 @@ export default function AppShell({ initialLoggedIn, initialUnread, children }: A
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setLoggedIn(!!session);
       setSearchOwner(session?.user.id ?? null);
+      // 사진 글자 읽기 동의 기억은 계정에 묶는다 — 계정이 바뀌면 다시 확인한다
+      setPhotoConsentOwner(session?.user.id ?? null);
       if (!session) clearComposerDraft();
       else {
         try {

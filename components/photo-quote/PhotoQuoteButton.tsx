@@ -8,6 +8,11 @@ import Button from '@/components/ui/Button';
 import Sheet from '@/components/ui/Sheet';
 import { SessionExpiredError, apiFetch } from '@/lib/api/fetch';
 import { photoQuoteVisible } from '@/lib/photo-quote/config';
+import {
+  forgetPhotoTextConsent,
+  photoConsentKnown,
+  rememberPhotoConsent,
+} from '@/lib/photo-quote/consentCache';
 import PhotoConsentSheet from './PhotoConsentSheet';
 import PhotoPicker from './PhotoPicker';
 
@@ -22,15 +27,7 @@ type Step = 'closed' | 'checking' | 'consent' | 'source' | 'picking';
 
 const ACCEPT = 'image/*,.heic,.heif';
 
-/**
- * 이 탭에서 동의를 확인했는지. 확인한 뒤로는 버튼을 누를 때마다 서버에 다시 묻지 않는다.
- * 다른 기기에서 철회했다면 서버가 `consent_required`로 답하므로 그때 지우고 다시 묻는다.
- */
-let consentKnown = false;
-
-export function forgetPhotoTextConsent() {
-  consentKnown = false;
-}
+export { forgetPhotoTextConsent };
 
 function finePointer(): boolean {
   return typeof window !== 'undefined' && window.matchMedia('(pointer: fine)').matches;
@@ -88,7 +85,7 @@ export default function PhotoQuoteButton({ onText, disabled, className }: PhotoQ
   const start = async () => {
     const isFine = finePointer();
     setFine(isFine);
-    if (consentKnown) {
+    if (photoConsentKnown()) {
       // 정밀 포인터 기기에서는 선택지 없이 바로 파일 고르기를 연다 — 누른 그 순간이어야 브라우저가 연다
       if (isFine) directInput.current?.click();
       else setStep('source');
@@ -99,7 +96,7 @@ export default function PhotoQuoteButton({ onText, disabled, className }: PhotoQ
       const res = await apiFetch('/api/photo-text/consent');
       const data = (await res.json().catch(() => null)) as { consented?: unknown } | null;
       if (!res.ok || typeof data?.consented !== 'boolean') throw new Error('consent check failed');
-      consentKnown = data.consented;
+      rememberPhotoConsent(data.consented);
       setStep(data.consented ? 'source' : 'consent');
     } catch (error) {
       setStep('closed');
@@ -113,7 +110,7 @@ export default function PhotoQuoteButton({ onText, disabled, className }: PhotoQ
     try {
       const res = await apiFetch('/api/photo-text/consent', { method: 'POST' });
       if (!res.ok) throw new Error('consent save failed');
-      consentKnown = true;
+      rememberPhotoConsent(true);
       setStep('source');
     } catch (error) {
       if (!(error instanceof SessionExpiredError))
@@ -193,7 +190,7 @@ export default function PhotoQuoteButton({ onText, disabled, className }: PhotoQ
           }}
           onClose={close}
           onConsentRequired={() => {
-            consentKnown = false;
+            forgetPhotoTextConsent();
             setFile(null);
             setStep('consent');
           }}
