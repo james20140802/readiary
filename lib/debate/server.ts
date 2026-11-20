@@ -25,17 +25,19 @@ export async function withSession(handler: Handler): Promise<Response> {
   return handler(supabase, user.id);
 }
 
-/** RPC를 부르고 data를 map으로 바꿔 돌려준다 */
+/** RPC를 부르고 data를 map으로 바꿔 돌려준다. after는 성공한 뒤에만 부른다(알림처럼 응답을 바꾸지 않는 뒷일) */
 export async function rpcResponse(
   supabase: SupabaseClient,
   name: string,
   args: Record<string, unknown>,
   fallback: string,
   map: (data: unknown) => unknown = (data) => data ?? { ok: true },
-  status = 200
+  status = 200,
+  after?: (data: unknown) => Promise<void>
 ): Promise<Response> {
   const { data, error } = await supabase.rpc(name, args);
   if (error) return rpcFailure(error, fallback);
+  await after?.(data);
   return NextResponse.json(map(data), { status, headers: debateHeaders });
 }
 

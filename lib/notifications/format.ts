@@ -9,6 +9,11 @@ const MESSAGES: Record<NotificationType, (nickname: string) => string> = {
   comment: (n) => `${n}님이 내 기록에 댓글을 남겼어요`,
   excerpt_like: (n) => `${n}님이 달의 발췌집을 좋아해요`,
   excerpt_comment: (n) => `${n}님이 달의 발췌집에 댓글을 남겼어요`,
+  debate_answer: (n) => `${n}님이 내 토론에 답을 남겼어요`,
+  debate_reply: (n) => `${n}님이 내 답에 답글을 남겼어요`,
+  // 답마다 하루에 한 번만 알린다 — 그날 처음 누른 사람의 이름으로 온다
+  debate_move: (n) => `${n}님이 내 답을 읽고 생각이 바뀌었어요`,
+  debate_summary: (n) => `${n}님이 토론을 정리했어요`,
 };
 
 export function buildNotificationMessage(type: NotificationType, nickname: string): string {

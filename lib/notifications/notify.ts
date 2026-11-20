@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/supabase';
+import type { DebateNotificationType } from './types';
 
 type Supabase = SupabaseClient<Database>;
 
@@ -49,6 +50,43 @@ export async function retractMonthlyExcerptLikeNotification(
     p_excerpt_id: excerptId,
   });
   if (error) console.error('retract_monthly_excerpt_like_notification 실패:', error.message);
+}
+
+/**
+ * 문장 토론 알림. target은 방금 남긴 답·답글, 표시를 누른 답, 정리한 토론이다.
+ * 수신자와 사실(내 답인지, 눌렀는지, 닫혔는지)은 RPC가 정한다. 실패해도 쓰기는 이미 끝났으니 던지지 않는다.
+ */
+export async function notifyDebateEvent(
+  supabase: Supabase,
+  type: DebateNotificationType,
+  targetId: string
+): Promise<void> {
+  try {
+    const { error } = await supabase.rpc('notify_debate_event', {
+      p_type: type,
+      p_target: targetId,
+    });
+    if (error) console.error('notify_debate_event 실패:', error.message);
+  } catch {
+    console.error('notify_debate_event 실패:', 'request failed');
+  }
+}
+
+/** 표시를 곧바로 거뒀을 때(debate_move), 정리를 지워 다시 열었을 때(debate_summary) 알림을 거둔다 */
+export async function retractDebateNotification(
+  supabase: Supabase,
+  type: 'debate_move' | 'debate_summary',
+  targetId: string
+): Promise<void> {
+  try {
+    const { error } = await supabase.rpc('retract_debate_notification', {
+      p_type: type,
+      p_target: targetId,
+    });
+    if (error) console.error('retract_debate_notification 실패:', error.message);
+  } catch {
+    console.error('retract_debate_notification 실패:', 'request failed');
+  }
 }
 
 /** 친구 요청·수락 알림. RPC가 friends 행을 검증하고 그 행에 알림을 매단다(행이 지워지면 알림도 사라진다). */

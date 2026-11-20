@@ -237,3 +237,34 @@ describe('정리·신고·기록의 토론 수', () => {
     expect(rpc).toHaveBeenCalledWith('count_entry_debates', { p_entry_id: entryId });
   });
 });
+
+describe('알림', () => {
+  const notifyCalls = () => rpc.mock.calls.filter(([name]) => String(name).includes('notif'));
+
+  it('답을 남기면 그 답으로 알린다', async () => {
+    rpc.mockResolvedValueOnce({ data: answerId, error: null });
+    const res = await ANSWER(req('POST', { stance: 'agree', body: '답' }), ctx(id));
+    expect(res.status).toBe(201);
+    expect(notifyCalls()).toEqual([
+      ['notify_debate_event', { p_type: 'debate_answer', p_target: answerId }],
+    ]);
+  });
+  it('답을 남기지 못했으면 알리지 않는다', async () => {
+    rpc.mockResolvedValue({ data: null, error: { message: 'closed', code: 'P0001' } });
+    await ANSWER(req('POST', { stance: 'agree', body: '답' }), ctx(id));
+    expect(notifyCalls()).toEqual([]);
+  });
+  it('정리하면 알리고, 다시 열면 거둔다', async () => {
+    await SUMMARIZE(req('PUT', { body: '정리', pins: [] }), ctx(id));
+    await REOPEN(req('DELETE'), ctx(id));
+    expect(notifyCalls()).toEqual([
+      ['notify_debate_event', { p_type: 'debate_summary', p_target: id }],
+      ['retract_debate_notification', { p_type: 'debate_summary', p_target: id }],
+    ]);
+  });
+  it('읽기와 고치기는 알리지 않는다', async () => {
+    await ANSWERS(req('GET', undefined, 'http://localhost/x?whole=1'), ctx(id));
+    await PATCH(req('PATCH', { question: '고친 질문' }), ctx(id));
+    expect(notifyCalls()).toEqual([]);
+  });
+});

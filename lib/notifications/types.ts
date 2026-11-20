@@ -8,7 +8,21 @@ export type NotificationType =
   | 'like'
   | 'comment'
   | 'excerpt_like'
-  | 'excerpt_comment';
+  | 'excerpt_comment'
+  | DebateNotificationType;
+
+export type DebateNotificationType =
+  | 'debate_answer'
+  | 'debate_reply'
+  | 'debate_move'
+  | 'debate_summary';
+
+export const DEBATE_NOTIFICATION_TYPES: readonly NotificationType[] = [
+  'debate_answer',
+  'debate_reply',
+  'debate_move',
+  'debate_summary',
+];
 
 export interface NotificationItem {
   id: string;
@@ -18,6 +32,8 @@ export interface NotificationItem {
   entryId: string | null;
   /** 달의 발췌집 반응 알림이 가리키는 달('YYYY-MM'). 그 밖의 알림이나 권을 찾지 못하면 null */
   monthlyExcerptMonth: string | null;
+  /** 문장 토론 알림이 가리키는 토론. 그 밖의 알림은 null */
+  debateId: string | null;
   actorNickname: string;
   actorProfileImage: string | null;
 }

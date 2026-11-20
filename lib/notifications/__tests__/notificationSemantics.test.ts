@@ -9,13 +9,15 @@ const referenceTime = '2026-09-29T12:00:00.000Z';
 function notification(
   type: NotificationType,
   entryId: string | null,
-  monthlyExcerptMonth: string | null = null
+  monthlyExcerptMonth: string | null = null,
+  debateId: string | null = null
 ): NotificationItem {
   return {
-    id: `${type}-${entryId}-${monthlyExcerptMonth}`,
+    id: `${type}-${entryId}-${monthlyExcerptMonth}-${debateId}`,
     type,
     entryId,
     monthlyExcerptMonth,
+    debateId,
     createdAt: referenceTime,
     readAt: null,
     actorNickname: '친구',
@@ -81,6 +83,28 @@ describe('알림의 이동 의미', () => {
     (type) => {
       const $ = render([notification(type, null, null)]);
       expect($('li').text()).toContain('연결된 발췌집을 열 수 없어요');
+      expect($('a, button, [role="button"], [tabindex]').length).toBe(0);
+    }
+  );
+
+  it('문장 토론 알림은 그 토론으로 간다', () => {
+    const types = ['debate_answer', 'debate_reply', 'debate_move', 'debate_summary'] as const;
+    const $ = render(types.map((type, i) => notification(type, null, null, `debate-${i}`)));
+    expect(
+      $('a')
+        .map((_, el) => $(el).attr('href'))
+        .get()
+    ).toEqual(types.map((_, i) => `/social/talk/debate-${i}`));
+    expect($.text()).toContain('내 토론에 답을 남겼어요');
+    expect($.text()).toContain('토론을 정리했어요');
+    expect($.text()).not.toContain('열 수 없어요');
+  });
+
+  it.each(['debate_answer', 'debate_reply', 'debate_move', 'debate_summary'] as const)(
+    '토론을 찾지 못한 %s 알림은 이유를 말하고 링크를 걸지 않는다',
+    (type) => {
+      const $ = render([notification(type, null, null, null)]);
+      expect($('li').text()).toContain('연결된 토론을 열 수 없어요');
       expect($('a, button, [role="button"], [tabindex]').length).toBe(0);
     }
   );

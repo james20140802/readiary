@@ -37,7 +37,7 @@ export async function fetchNotifications(): Promise<FetchNotificationsResult> {
   const { data, error } = await supabase
     .from('notifications')
     .select(
-      'id, type, created_at, read_at, entry_id, monthly_excerpt:monthly_excerpts!notifications_monthly_excerpt_id_fkey(month), actor:profiles!notifications_actor_id_fkey(nickname, profile_image)'
+      'id, type, created_at, read_at, entry_id, debate_id, monthly_excerpt:monthly_excerpts!notifications_monthly_excerpt_id_fkey(month), actor:profiles!notifications_actor_id_fkey(nickname, profile_image)'
     )
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
@@ -54,6 +54,7 @@ export async function fetchNotifications(): Promise<FetchNotificationsResult> {
       readAt: row.read_at,
       entryId: row.entry_id,
       monthlyExcerptMonth: resolveExcerptMonth(row.monthly_excerpt),
+      debateId: row.debate_id ?? null,
       actorNickname: actor?.nickname ?? '알 수 없음',
       // DB에는 스토리지 경로가 저장됨 — next/image가 파싱 가능한 공개 URL로 변환
       actorProfileImage: getImageUrl(actor?.profile_image ?? null),

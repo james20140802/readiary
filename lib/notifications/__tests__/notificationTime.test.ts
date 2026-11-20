@@ -22,6 +22,7 @@ describe('알림 상대시간 렌더링', () => {
           readAt: null,
           entryId: null,
           monthlyExcerptMonth: null,
+          debateId: null,
           actorNickname: '친구',
           actorProfileImage: null,
         },

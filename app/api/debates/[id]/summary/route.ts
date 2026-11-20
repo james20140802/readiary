@@ -1,5 +1,6 @@
 import { badRequest } from '@/lib/debate/errors';
 import { LIMITS, isText, pathId, readBody, rpcResponse, withSession } from '@/lib/debate/server';
+import { notifyDebateEvent, retractDebateNotification } from '@/lib/notifications/notify';
 import { isUuid } from '@/lib/share/validation';
 
 interface Context {
@@ -26,7 +27,11 @@ export async function PUT(request: Request, { params }: Context) {
       supabase,
       'set_debate_summary',
       { p_id: id, p_summary: body.body, p_answer_ids: pins },
-      '정리를 남기지 못했어요.'
+      '정리를 남기지 못했어요.',
+      undefined,
+      200,
+      // 답한 사람들에게 알린다. 정리를 고칠 때는 이미 알린 사람에게 다시 가지 않는다
+      () => notifyDebateEvent(supabase, 'debate_summary', id)
     );
   });
 }
@@ -36,6 +41,14 @@ export async function DELETE(_request: Request, { params }: Context) {
   const id = pathId((await params).id);
   if (id instanceof Response) return id;
   return withSession((supabase) =>
-    rpcResponse(supabase, 'clear_debate_summary', { p_id: id }, '토론을 다시 열지 못했어요.')
+    rpcResponse(
+      supabase,
+      'clear_debate_summary',
+      { p_id: id },
+      '토론을 다시 열지 못했어요.',
+      undefined,
+      200,
+      () => retractDebateNotification(supabase, 'debate_summary', id)
+    )
   );
 }
