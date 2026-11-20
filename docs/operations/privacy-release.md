@@ -223,7 +223,7 @@ delete from public.notifications where type in ('debate_answer','debate_reply','
 ### 동의와 철회
 
 - 처음 누를 때 동의 시트를 보여 주고 `POST /api/photo-text/consent`로 남긴다. 문구를 바꾸면 `PHOTO_TEXT_COPY_VERSION`을 올리고, 올리면 모두에게 다시 묻는다.
-- 설정 → 계정 → "사진 글자 읽기 동의"에서 철회한다(`DELETE`). 철회는 기능이 꺼져 있어도, 탈퇴를 신청한 계정도 할 수 있다. 철회 뒤의 요청은 `consent_required`(403)로 거절되고 사진은 Google로 가지 않는다.
+- 설정 → 계정 → "사진 글자 읽기 동의"에서 철회한다(`DELETE`). 철회는 기능이 꺼져 있어도, 탈퇴를 신청한 계정도 할 수 있다. 기능이 꺼져 있으면 설정을 열 때 동의 여부를 한 번 조회해 동의한 사람에게만 이 행을 보이고, 철회하면 행이 사라진다. 철회 뒤의 요청은 `consent_required`(403)로 거절되고 사진은 Google로 가지 않는다.
 - 같은 탭에서는 동의 여부를 한 번 확인한 뒤 다시 묻지 않는다. 다른 기기에서 철회했다면 다음 사진을 고른 때 서버가 거절하고 동의 시트가 다시 뜬다.
 - 하루 30장(한국 시간 자정 초기화). 읽기에 실패해도 횟수는 되돌리지 않는다.
 
@@ -248,4 +248,4 @@ delete from public.notifications where type in ('debate_answer','debate_reply','
 
 ### 코드를 되돌릴 때
 
-`NEXT_PUBLIC_PHOTO_QUOTE_ENABLED`를 지우고 다시 배포하면 버튼과 서버 경로가 함께 꺼진다. 마이그레이션은 되돌리지 않는다. 동의 기록은 남겨 둔다.
+`NEXT_PUBLIC_PHOTO_QUOTE_ENABLED`를 지우고 다시 배포하면 버튼과 서버 경로가 함께 꺼진다. 마이그레이션은 되돌리지 않는다. 동의 기록은 남겨 두고, 동의한 사람은 설정에서 계속 철회할 수 있다.

@@ -52,9 +52,37 @@ afterEach(() => {
 const open = () => fireEvent.click(screen.getByRole('button', { name: /사진 글자 읽기 동의/ }));
 
 describe('PhotoTextConsent', () => {
-  it('기능이 꺼져 있으면 행을 그리지 않는다', () => {
+  it('기능이 꺼져 있고 동의하지 않았으면 행을 그리지 않는다', async () => {
     vi.stubEnv('NEXT_PUBLIC_PHOTO_QUOTE_ENABLED', '');
+    const calls = serve({ 'GET /api/photo-text/consent': [{ body: { consented: false } }] });
     const { container } = render(h(PhotoTextConsent));
+    expect(container.innerHTML).toBe('');
+    await waitFor(() => expect(calls).toEqual(['GET /api/photo-text/consent']));
+    expect(container.innerHTML).toBe('');
+  });
+
+  it('기능이 꺼져 있어도 동의한 사람에게는 철회 행을 보이고, 철회하면 행이 사라진다', async () => {
+    vi.stubEnv('NEXT_PUBLIC_PHOTO_QUOTE_ENABLED', '');
+    const calls = serve({
+      'GET /api/photo-text/consent': [{ body: { consented: true } }],
+      'DELETE /api/photo-text/consent': [{ body: { consented: false } }],
+    });
+    const { container } = render(h(PhotoTextConsent));
+    fireEvent.click(await screen.findByRole('button', { name: /사진 글자 읽기 동의/ }));
+    expect(await screen.findByText(/Google\(미국\)로 보내 글자를 읽는 데 동의했어요/)).toBeTruthy();
+    expect(screen.queryByText(/사진으로 옮기기를 누를 때/)).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: '동의 철회' }));
+    await waitFor(() => expect(container.innerHTML).toBe(''));
+    expect(screen.queryByRole('button', { name: /사진 글자 읽기 동의/ })).toBeNull();
+    expect(calls).toEqual(['GET /api/photo-text/consent', 'DELETE /api/photo-text/consent']);
+  });
+
+  it('기능이 꺼져 있을 때 동의 여부를 불러오지 못하면 행을 그리지 않는다', async () => {
+    vi.stubEnv('NEXT_PUBLIC_PHOTO_QUOTE_ENABLED', '');
+    const calls = serve({ 'GET /api/photo-text/consent': [{ status: 503, body: { error: 'x' } }] });
+    const { container } = render(h(PhotoTextConsent));
+    await waitFor(() => expect(calls).toEqual(['GET /api/photo-text/consent']));
+    await new Promise((r) => setTimeout(r, 0));
     expect(container.innerHTML).toBe('');
   });
 
