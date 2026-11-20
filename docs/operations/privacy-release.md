@@ -175,7 +175,7 @@ delete from public.notifications where type in ('excerpt_like','excerpt_comment'
 - [ ] A가 B와 친구를 끊으면 B의 `더 보기`가 더 불러오지 않고, C는 서재 자체를 볼 수 없다.
 - [ ] A가 자동 기준을 바꿔도 B의 화면에 기준이 드러나지 않는다.
 
-## 문장 토론 알림 (2026-11-20, DB 미적용 · 코드 머지 전)
+## 문장 토론 알림 (2026-11-20, DB 적용 완료 · 코드 머지 전)
 
 알림은 수신자만 읽는다는 기존 규칙에 조건을 하나 더했다. 문장 토론 알림(`debate_answer`·`debate_reply`·`debate_move`·`debate_summary`)은 **받은 사람이 지금 그 토론과 답을 볼 수 있을 때만** 보인다(`20261120100000_debate_notifications.sql`의 restrictive 정책 `notifications_hide_unviewable_debate`). 판단은 토론 화면과 같은 `can_view_debate`·`debate_can_see_answer`가 한다.
 
@@ -191,7 +191,7 @@ delete from public.notifications where type in ('excerpt_like','excerpt_comment'
 
 ### 미검증
 
-- 프로덕션 마이그레이션 미적용. 이번 검증은 PGlite 계약과 단위 테스트다.
+- 프로덕션 마이그레이션은 적용하고 스키마·권한·함수 본문을 대조했다. 동작 검증은 PGlite 계약과 단위 테스트다.
 - 두 계정 이상으로 실제 화면에서 알림이 오고 가려지는지, iOS 설치형 PWA 실기기.
 
 ### 코드를 되돌릴 때

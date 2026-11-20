@@ -73,7 +73,7 @@ npm run build
 
 추가 검증: `PGLITE_MODULE=/absolute/path/to/pglite/dist/index.js node supabase/tests/run-notification-center-contract.mjs`.
 
-## 토론 소식 (2026-11-20, DB 미적용 · 코드 머지 전)
+## 토론 소식 (2026-11-20, DB 적용 완료 · 코드 머지 전)
 
 - 종류 `debate`. 마이그레이션 `20261120110000_debate_push.sql`(앞의 `20261120100000_debate_notifications.sql` 다음에 적용), 계약 테스트 `supabase/tests/debates_push_contract.sql`.
 - 답·답글·"생각이 바뀌었어요"·정리 하나하나는 앱 안 알림함에만 온다. 휴대폰으로는 답마다 보내지 않고, 받는 사람이 정한 시각(20시)에 후보를 한 번 모아 "토론에 새 소식이 있어요" 한 줄로 다른 독서 소식과 같은 푸시에 묶는다. 전체 빈도 제한(48시간 간격, 7일에 2번)도 그대로 적용된다. 따로 도는 검사는 없다 — 이미 5분마다 도는 발송 점검이 그 시각의 대상자에게만 조건을 하나 더 본다.
