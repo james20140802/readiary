@@ -223,6 +223,34 @@ describe('DebateSection', () => {
     expect(screen.getByRole('button', { name: '더 보기' })).toBeTruthy();
   });
 
+  it('토론이 바뀐 것과 동시에 고정한 답을 찾기 시작해도 첫 쪽 다시 불러오기가 밀리지 않는다', async () => {
+    fetchSectionAnswers.mockImplementation(async (_d: string, _p: number, after: number) =>
+      after === 0
+        ? { answers: [answer({ id: 'a3', body: '셋째 답' })], next: 10 }
+        : { answers: [answer({ id: 'a9', body: '고정한 답' })], next: null }
+    );
+    const props = {
+      debate: debate(),
+      expanded: true,
+      onToggle: vi.fn(),
+      onAnswer: vi.fn(),
+      onChanged: vi.fn(),
+    };
+    const view = render(h(DebateSection, { ...props, section: section() }));
+    fireEvent.click(screen.getByRole('button', { name: '나머지 7개 보기' }));
+    expect(await screen.findByText('셋째 답')).toBeTruthy();
+
+    fetchSectionAnswers.mockImplementation(async (_d: string, _p: number, after: number) =>
+      after === 0
+        ? { answers: [answer({ id: 'a3', body: '고친 셋째 답' })], next: 10 }
+        : { answers: [answer({ id: 'a9', body: '고정한 답' })], next: null }
+    );
+    view.rerender(h(DebateSection, { ...props, section: section(), focusAnswerId: 'a9' }));
+    expect(await screen.findByText('고정한 답')).toBeTruthy();
+    expect(screen.getByText('고친 셋째 답')).toBeTruthy();
+    expect(screen.queryByText('셋째 답')).toBeNull();
+  });
+
   it('답이 없으면 비어 있다고 말하고, 답하기를 누르면 그 밑줄로', () => {
     const onAnswer = vi.fn();
     render(

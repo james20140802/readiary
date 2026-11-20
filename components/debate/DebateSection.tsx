@@ -75,12 +75,16 @@ export default function DebateSection({
 
   // 나중에 시작한 요청만 화면에 반영한다 — 다시 불러오기가 끼어들면 먼저 떠난 쪽의 응답은 버린다
   const loadSeq = useRef(0);
+  // 첫 쪽부터 다시 받는 중인 요청의 순번 — 그동안 들어온 이어 불러오기는 옛 자리 기준이라 받지 않는다
+  const reloadSeq = useRef(0);
   const load = async (after: number) => {
+    if (after !== 0 && reloadSeq.current === loadSeq.current) return;
     const seq = ++loadSeq.current;
     setState('loading');
     try {
       const res = await fetchSectionAnswers(debate.id, section.position, after);
       if (seq !== loadSeq.current) return;
+      reloadSeq.current = 0;
       setMore((prev) => [
         ...(after === 0 ? [] : prev),
         ...res.answers.filter((a) => !pickIds.has(a.id)),
@@ -89,16 +93,21 @@ export default function DebateSection({
       setState('done');
     } catch {
       if (seq !== loadSeq.current) return;
+      reloadSeq.current = 0;
       setFailedAt(after);
       setState('error');
     }
+  };
+  const reload = () => {
+    reloadSeq.current = loadSeq.current + 1;
+    void load(0);
   };
 
   // 생각이 바뀌었어요는 답 순서(누른 수)를 바꾼다 — 이어 불러온 자리가 어긋나 답을 건너뛰거나 겹치지 않게
   // 펼쳐 둔 나머지 답을 첫 쪽부터 다시 가져온다(불러오는 중이었다면 그 쪽은 버린다)
   const moved = () => {
     onMoved?.();
-    if (state !== 'idle') void load(0);
+    if (state !== 'idle') reload();
   };
 
   // 토론을 다시 불러와 단락이 바뀌면, 펼쳐 둔 나머지 답도 첫 쪽부터 다시 가져온다(숨김·고침·지움 반영).
@@ -108,8 +117,8 @@ export default function DebateSection({
     if (lastSection.current === section) return;
     lastSection.current = section;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- 서버에서 다시 가져오는 동기화라 effect가 맞다
-    if (state !== 'idle') void load(0);
-    // load는 렌더마다 새로 만들어지지만 section이 바뀔 때만 다시 가져오면 된다
+    if (state !== 'idle') reload();
+    // reload는 렌더마다 새로 만들어지지만 section이 바뀔 때만 다시 가져오면 된다
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [section]);
 
