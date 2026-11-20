@@ -780,6 +780,10 @@ export type Database = {
         Returns: Json;
       };
       set_monthly_sentence_rule: { Args: { p_rule: string }; Returns: undefined };
+      begin_photo_text_read: { Args: { p_version: number }; Returns: string };
+      photo_text_consented: { Args: { p_version: number }; Returns: boolean };
+      set_photo_text_consent: { Args: { p_version: number }; Returns: undefined };
+      withdraw_photo_text_consent: { Args: Record<PropertyKey, never>; Returns: undefined };
       get_monthly_excerpt_candidates: {
         Args: { p_month: string; p_user_book_id?: string; p_page?: number; p_limit?: number };
         Returns: Json;
