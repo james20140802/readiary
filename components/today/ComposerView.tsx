@@ -1,10 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
 import { ChevronDown, Lock, LockOpen } from 'lucide-react';
 import Button from '@/components/ui/Button';
+import PhotoQuoteButton from '@/components/photo-quote/PhotoQuoteButton';
+import { appendQuote } from '@/lib/photo-quote/select';
 import type { MyBook } from '@/types/book';
 import BookPickSheet from './BookPickSheet';
 import PagesSheet from './PagesSheet';
@@ -107,6 +109,20 @@ export default function ComposerView(props: ComposerViewProps) {
   const copy = PLACEHOLDER[mode];
   const selectedBook = books.find((b) => b.id === selectedId) ?? null;
   const idBase = desk ? 'today-desk' : 'today';
+  const primaryRef = useRef<HTMLTextAreaElement>(null);
+  const secondaryRef = useRef<HTMLTextAreaElement>(null);
+  // 사진에서 고른 글이 들어온 횟수 — 바뀌면 문장 칸에 포커스를 두고 커서를 끝에 놓는다
+  const [photoTextAdded, setPhotoTextAdded] = useState(0);
+  useEffect(() => {
+    if (photoTextAdded === 0) return;
+    const field = (mode === 'quote' ? primaryRef : secondaryRef).current;
+    if (!field) return;
+    field.focus();
+    field.setSelectionRange(field.value.length, field.value.length);
+    field.scrollTop = field.scrollHeight;
+    // 글이 들어온 그때만 옮긴다 — 그 뒤 주 입력을 바꿔도 포커스를 다시 가져가지 않는다
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [photoTextAdded]);
 
   if (saved) {
     const extraLabel = saved.mode === 'quote' ? '생각' : '문장';
@@ -229,6 +245,7 @@ export default function ComposerView(props: ComposerViewProps) {
 
       <div className={s.primaryField}>
         <textarea
+          ref={primaryRef}
           id={`${idBase}-composer-text`}
           value={primary}
           onChange={(e) => props.onChange(mode, e.target.value)}
@@ -240,6 +257,7 @@ export default function ComposerView(props: ComposerViewProps) {
       </div>
       {showSecondary && (
         <textarea
+          ref={secondaryRef}
           value={secondary}
           onChange={(e) => props.onChange(other, e.target.value)}
           disabled={disabled}
@@ -301,6 +319,16 @@ export default function ComposerView(props: ComposerViewProps) {
           )}
           {isPrivate ? '나만 보기' : '친구에게 보임'}
         </button>
+        <PhotoQuoteButton
+          className="-mr-2.5 ml-auto"
+          disabled={disabled}
+          onText={(text) => {
+            // 지금 주 입력이 "생각"이어도 문장 칸이 보이도록 연다. 쓰던 문장은 덮어쓰지 않는다
+            props.onChange('quote', appendQuote(quote, text));
+            setSecondaryOpen(true);
+            setPhotoTextAdded((n) => n + 1);
+          }}
+        />
       </div>
 
       {storageError && (quote || note) && (

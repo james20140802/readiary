@@ -13,6 +13,8 @@ import { useActionLock } from '@/hooks/useActionLock';
 import { todayKST } from '@/lib/dates';
 import { hasEntryContent } from '@/lib/entries/validation';
 import Button from '@/components/ui/Button';
+import PhotoQuoteButton from '@/components/photo-quote/PhotoQuoteButton';
+import { appendQuote } from '@/lib/photo-quote/select';
 import Switch from './Switch';
 import { FIELD_LABEL, LONG_FIELD, SHORT_FIELD } from './fieldStyles';
 
@@ -160,14 +162,34 @@ export default function EntryFormBody({
   };
 
   const locked = isSubmitting || disabled || frozen;
+
+  /** 사진에서 고른 글을 문장 칸에 넣는다 — 쓰던 글은 덮어쓰지 않고 빈 줄 하나 뒤에 붙인다 */
+  const addPhotoText = (text: string) => {
+    const next = appendQuote(quote, text);
+    flushSync(() => {
+      setQuote(next);
+      if (contentError && hasEntryContent(next, note)) {
+        setContentError(false);
+        setError('');
+      }
+    });
+    const field = quoteRef.current;
+    if (!field) return;
+    field.focus();
+    field.setSelectionRange(next.length, next.length);
+    field.scrollTop = field.scrollHeight;
+  };
   // 시안 문법 — 긴 칸 둘(문장·생각)은 왼쪽 짧은 선, 쪽·날짜는 밑줄 칸, 공개 여부는 스위치 한 줄, 저장은 먹 버튼.
   return (
     <form onSubmit={handleSubmit} aria-busy={isSubmitting}>
       <div className="space-y-[18px] pt-[18px]">
         <div>
-          <label htmlFor="entry-quote" className={FIELD_LABEL}>
-            문장
-          </label>
+          <div className="flex items-center justify-between">
+            <label htmlFor="entry-quote" className={FIELD_LABEL}>
+              문장
+            </label>
+            <PhotoQuoteButton onText={addPhotoText} disabled={locked} className="-my-2 -mr-2.5" />
+          </div>
           <textarea
             disabled={locked}
             id="entry-quote"
