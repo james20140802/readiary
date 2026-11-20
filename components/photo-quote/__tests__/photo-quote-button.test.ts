@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { createElement as h } from 'react';
+import { StrictMode, createElement as h } from 'react';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { apiFetch } from '@/lib/api/fetch';
@@ -303,6 +303,18 @@ describe('PhotoQuoteButton', () => {
     await waitFor(() => expect(screen.queryByRole('application')).toBeNull());
     expect(onText).not.toHaveBeenCalled();
     expect(revoke).toHaveBeenCalledWith('blob:photo');
+  });
+
+  it('화면이 두 번 그려져도(StrictMode) 사진은 한 번만 보낸다 — 하루 횟수를 두 번 쓰지 않는다', async () => {
+    const calls = serve({
+      ...consented,
+      'POST /api/photo-text': [{ body: { width: 300, height: 400, words: WORDS } }],
+    });
+    render(h(StrictMode, null, h(PhotoQuoteButton, { onText: vi.fn() })));
+    open();
+    await choosePhoto();
+    await screen.findByText('첫 낱말을 길게 누른 채 끝까지 끌어 보세요');
+    expect(calls.filter((c) => c.url === '/api/photo-text')).toHaveLength(1);
   });
 
   it('동의 확인에 실패하면 사진을 받지 않는다', async () => {

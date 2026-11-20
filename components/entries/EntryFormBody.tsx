@@ -14,6 +14,7 @@ import { todayKST } from '@/lib/dates';
 import { hasEntryContent } from '@/lib/entries/validation';
 import Button from '@/components/ui/Button';
 import PhotoQuoteButton from '@/components/photo-quote/PhotoQuoteButton';
+import { focusAtEnd } from '@/lib/photo-quote/focus';
 import { appendQuote } from '@/lib/photo-quote/select';
 import Switch from './Switch';
 import { FIELD_LABEL, LONG_FIELD, SHORT_FIELD } from './fieldStyles';
@@ -173,11 +174,7 @@ export default function EntryFormBody({
         setError('');
       }
     });
-    const field = quoteRef.current;
-    if (!field) return;
-    field.focus();
-    field.setSelectionRange(next.length, next.length);
-    field.scrollTop = field.scrollHeight;
+    focusAtEnd(quoteRef.current);
   };
   // 시안 문법 — 긴 칸 둘(문장·생각)은 왼쪽 짧은 선, 쪽·날짜는 밑줄 칸, 공개 여부는 스위치 한 줄, 저장은 먹 버튼.
   return (

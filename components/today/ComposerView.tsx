@@ -6,6 +6,7 @@ import clsx from 'clsx';
 import { ChevronDown, Lock, LockOpen } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import PhotoQuoteButton from '@/components/photo-quote/PhotoQuoteButton';
+import { focusAtEnd } from '@/lib/photo-quote/focus';
 import { appendQuote } from '@/lib/photo-quote/select';
 import type { MyBook } from '@/types/book';
 import BookPickSheet from './BookPickSheet';
@@ -115,11 +116,7 @@ export default function ComposerView(props: ComposerViewProps) {
   const [photoTextAdded, setPhotoTextAdded] = useState(0);
   useEffect(() => {
     if (photoTextAdded === 0) return;
-    const field = (mode === 'quote' ? primaryRef : secondaryRef).current;
-    if (!field) return;
-    field.focus();
-    field.setSelectionRange(field.value.length, field.value.length);
-    field.scrollTop = field.scrollHeight;
+    focusAtEnd((mode === 'quote' ? primaryRef : secondaryRef).current);
     // 글이 들어온 그때만 옮긴다 — 그 뒤 주 입력을 바꿔도 포커스를 다시 가져가지 않는다
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [photoTextAdded]);

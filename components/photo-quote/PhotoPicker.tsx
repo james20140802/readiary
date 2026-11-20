@@ -80,7 +80,6 @@ export default function PhotoPicker({
   const stageRef = useRef<PickStageHandle>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const request = useRef<AbortController | null>(null);
-  const alive = useRef(true);
   const consentRequired = useRef(onConsentRequired);
   useEffect(() => {
     consentRequired.current = onConsentRequired;
@@ -100,7 +99,7 @@ export default function PhotoPicker({
         signal: controller.signal,
       });
       const data: unknown = await res.json().catch(() => null);
-      if (!alive.current || request.current !== controller) return;
+      if (request.current !== controller) return;
       if (res.ok && isWords(data)) {
         setWords(data.words);
         setPhase(data.words.length > 0 ? 'ready' : 'empty');
@@ -112,7 +111,7 @@ export default function PhotoPicker({
     } catch (error) {
       // 세션이 끊겼으면 apiFetch가 로그인 화면으로 보내는 중이다
       if (error instanceof SessionExpiredError) return;
-      if (!alive.current || request.current !== controller) return;
+      if (request.current !== controller) return;
       setPhase('failed');
     } finally {
       clearTimeout(timer);
@@ -120,19 +119,20 @@ export default function PhotoPicker({
   }, []);
 
   useEffect(() => {
-    alive.current = true;
+    // 이 실행만의 표식 — 개발 모드(StrictMode)처럼 효과가 두 번 돌아도 버려진 쪽은 사진을 보내지 않는다
+    let active = true;
     let url: string | null = null;
     void (async () => {
       let prepared: PreparedPhoto;
       try {
         prepared = await preparePhoto(file, () => {
-          if (alive.current) setPhase('converting');
+          if (active) setPhase('converting');
         });
       } catch {
-        if (alive.current) setPhase('unopenable');
+        if (active) setPhase('unopenable');
         return;
       }
-      if (!alive.current) {
+      if (!active) {
         URL.revokeObjectURL(prepared.url);
         return;
       }
@@ -141,8 +141,9 @@ export default function PhotoPicker({
       await read(prepared.blob);
     })();
     return () => {
-      alive.current = false;
+      active = false;
       request.current?.abort();
+      request.current = null;
       if (url) URL.revokeObjectURL(url);
     };
   }, [file, read]);
@@ -250,17 +251,22 @@ export default function PhotoPicker({
         </div>
 
         <div className="shrink-0 border-t border-hairline px-4 pb-[calc(14px+var(--app-safe-bottom))] pt-3">
-          <p
-            role={problem ? 'alert' : 'status'}
-            className="min-h-6 font-sans text-caption text-ink-sub"
-          >
-            {phase === 'ready' ? (picked ? '' : hint) : STATUS[phase]}
-          </p>
-          {picked && (
-            <p className="line-clamp-3 whitespace-pre-wrap font-serif text-note text-ink">
-              {picked}
-            </p>
-          )}
+          {/* 높이를 고정한다 — 고른 글이 보이면서 줄이 늘면 사진 자리가 줄어 손가락 아래의 사진이 밀린다 */}
+          <div className="h-[72px] overflow-hidden">
+            {!picked && (
+              <p
+                role={problem ? 'alert' : 'status'}
+                className="font-sans text-caption text-ink-sub"
+              >
+                {phase === 'ready' ? hint : STATUS[phase]}
+              </p>
+            )}
+            {picked && (
+              <p className="line-clamp-3 whitespace-pre-wrap font-serif text-[16px] leading-[24px] text-ink">
+                {picked}
+              </p>
+            )}
+          </div>
           <div className="mt-3 flex items-center justify-end gap-2">
             {phase === 'failed' && photo && (
               <Button variant="secondary" size="sm" onClick={() => void read(photo.blob)}>
