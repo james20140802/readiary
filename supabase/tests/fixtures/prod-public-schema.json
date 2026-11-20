@@ -1,11 +1,16 @@
 {
-  "_captured": "2026-10-30 (functions re-checked 2026-11-02 after get_entry_months), read-only pg_catalog/information_schema queries against project piqlggyuhhicnjywombg (production). See docs/operations/supabase-api-grants.md. Plus the monthly excerpt migrations (20261106090000 onward) as expected values: not applied to production yet (see the doc). The account deletion migrations (20261112090000, 20261112091000, 20261112092000) were applied on 2026-11-12 and their counts were checked read-only (see the doc). The monthly sentence migration (20261113090000) was applied on 2026-11-13 and its tables, policies, grants and function signatures were checked read-only (see the doc).",
+  "_captured": "2026-10-30 (functions re-checked 2026-11-02 after get_entry_months), read-only pg_catalog/information_schema queries against project piqlggyuhhicnjywombg (production). See docs/operations/supabase-api-grants.md. Plus the monthly excerpt migrations (20261106090000 onward) as expected values: not applied to production yet (see the doc). The account deletion migrations (20261112090000, 20261112091000, 20261112092000) were applied on 2026-11-12 and their counts were checked read-only (see the doc). The monthly sentence migration (20261113090000) was applied on 2026-11-13 and its tables, policies, grants and function signatures were checked read-only (see the doc). The sentence debate migration (20261117090000) was applied on 2026-11-19 and its tables, grants, policies (none) and function signatures were checked read-only (see the doc).",
   "tables": [
     "account_deletion_purges",
     "account_deletions",
     "book_registration_requests",
     "books",
     "comments",
+    "debate_answers",
+    "debate_moves",
+    "debate_reports",
+    "debate_underlines",
+    "debates",
     "email_consent_events",
     "email_deliveries",
     "email_preferences",
@@ -249,6 +254,63 @@
     "monthly_sentence_settings": [
       ["user_id", "uuid", "NO", null],
       ["rule", "text", "NO", null]
+    ],
+    "debate_answers": [
+      ["id", "uuid", "NO", "gen_random_uuid()"],
+      ["debate_id", "uuid", "NO", null],
+      ["user_id", "uuid", "NO", null],
+      ["underline_position", "smallint", "YES", null],
+      ["stance", "text", "YES", null],
+      ["body", "text", "YES", null],
+      ["parent_id", "uuid", "YES", null],
+      ["evidence_quote", "text", "YES", null],
+      ["evidence_book_title", "text", "YES", null],
+      ["evidence_book_author", "text", "YES", null],
+      ["evidence_page_from", "integer", "YES", null],
+      ["evidence_page_to", "integer", "YES", null],
+      ["evidence_entry_id", "uuid", "YES", null],
+      ["hidden_at", "timestamp with time zone", "YES", null],
+      ["deleted_at", "timestamp with time zone", "YES", null],
+      ["edited_at", "timestamp with time zone", "YES", null],
+      ["created_at", "timestamp with time zone", "NO", "clock_timestamp()"],
+      ["seq", "bigint", "NO", null]
+    ],
+    "debate_moves": [
+      ["answer_id", "uuid", "NO", null],
+      ["user_id", "uuid", "NO", null],
+      ["created_at", "timestamp with time zone", "NO", "now()"]
+    ],
+    "debate_reports": [
+      ["id", "uuid", "NO", "gen_random_uuid()"],
+      ["reporter_id", "uuid", "NO", null],
+      ["debate_id", "uuid", "NO", null],
+      ["answer_id", "uuid", "YES", null],
+      ["reason", "text", "NO", null],
+      ["memo", "text", "YES", null],
+      ["created_at", "timestamp with time zone", "NO", "now()"]
+    ],
+    "debate_underlines": [
+      ["debate_id", "uuid", "NO", null],
+      ["position", "smallint", "NO", null],
+      ["start_at", "integer", "NO", null],
+      ["end_at", "integer", "NO", null],
+      ["prompt", "text", "YES", null]
+    ],
+    "debates": [
+      ["id", "uuid", "NO", "gen_random_uuid()"],
+      ["user_id", "uuid", "NO", null],
+      ["source_entry_id", "uuid", "YES", null],
+      ["quote", "text", "NO", null],
+      ["book_title", "text", "NO", null],
+      ["book_author", "text", "YES", null],
+      ["page_from", "integer", "YES", null],
+      ["page_to", "integer", "YES", null],
+      ["question", "text", "NO", null],
+      ["summary", "text", "YES", null],
+      ["summary_answer_ids", "ARRAY", "NO", "'{}'::uuid[]"],
+      ["closed_at", "timestamp with time zone", "YES", null],
+      ["created_at", "timestamp with time zone", "NO", "clock_timestamp()"],
+      ["updated_at", "timestamp with time zone", "NO", "now()"]
     ]
   },
   "constraints": {
@@ -638,6 +700,121 @@
         "f",
         "FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE"
       ]
+    ],
+    "debate_answers": [
+      ["debate_answers_check", "c", "CHECK (((parent_id IS NULL) = (stance IS NOT NULL)))"],
+      [
+        "debate_answers_check1",
+        "c",
+        "CHECK (((parent_id IS NULL) OR (underline_position IS NULL)))"
+      ],
+      ["debate_answers_check2", "c", "CHECK (((deleted_at IS NOT NULL) OR (body IS NOT NULL)))"],
+      [
+        "debate_answers_debate_id_fkey",
+        "f",
+        "FOREIGN KEY (debate_id) REFERENCES debates(id) ON DELETE CASCADE"
+      ],
+      [
+        "debate_answers_debate_id_underline_position_fkey",
+        "f",
+        "FOREIGN KEY (debate_id, underline_position) REFERENCES debate_underlines(debate_id, \"position\") ON DELETE CASCADE"
+      ],
+      [
+        "debate_answers_evidence_entry_id_fkey",
+        "f",
+        "FOREIGN KEY (evidence_entry_id) REFERENCES entries(id) ON DELETE SET NULL"
+      ],
+      ["debate_answers_id_debate_id_key", "u", "UNIQUE (id, debate_id)"],
+      [
+        "debate_answers_parent_id_debate_id_fkey",
+        "f",
+        "FOREIGN KEY (parent_id, debate_id) REFERENCES debate_answers(id, debate_id) ON DELETE CASCADE"
+      ],
+      ["debate_answers_pkey", "p", "PRIMARY KEY (id)"],
+      [
+        "debate_answers_stance_check",
+        "c",
+        "CHECK ((stance = ANY (ARRAY['agree'::text, 'differ'::text, 'question'::text])))"
+      ],
+      [
+        "debate_answers_user_id_fkey",
+        "f",
+        "FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE"
+      ]
+    ],
+    "debate_moves": [
+      [
+        "debate_moves_answer_id_fkey",
+        "f",
+        "FOREIGN KEY (answer_id) REFERENCES debate_answers(id) ON DELETE CASCADE"
+      ],
+      ["debate_moves_pkey", "p", "PRIMARY KEY (answer_id, user_id)"],
+      [
+        "debate_moves_user_id_fkey",
+        "f",
+        "FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE"
+      ]
+    ],
+    "debate_reports": [
+      [
+        "debate_reports_answer_id_fkey",
+        "f",
+        "FOREIGN KEY (answer_id) REFERENCES debate_answers(id) ON DELETE CASCADE"
+      ],
+      [
+        "debate_reports_debate_id_fkey",
+        "f",
+        "FOREIGN KEY (debate_id) REFERENCES debates(id) ON DELETE CASCADE"
+      ],
+      ["debate_reports_pkey", "p", "PRIMARY KEY (id)"],
+      [
+        "debate_reports_reason_check",
+        "c",
+        "CHECK ((reason = ANY (ARRAY['abuse'::text, 'spam'::text, 'privacy'::text, 'other'::text])))"
+      ],
+      [
+        "debate_reports_reporter_id_debate_id_answer_id_key",
+        "u",
+        "UNIQUE NULLS NOT DISTINCT (reporter_id, debate_id, answer_id)"
+      ],
+      [
+        "debate_reports_reporter_id_fkey",
+        "f",
+        "FOREIGN KEY (reporter_id) REFERENCES profiles(id) ON DELETE CASCADE"
+      ]
+    ],
+    "debate_underlines": [
+      ["debate_underlines_check", "c", "CHECK ((end_at >= start_at))"],
+      [
+        "debate_underlines_debate_id_fkey",
+        "f",
+        "FOREIGN KEY (debate_id) REFERENCES debates(id) ON DELETE CASCADE"
+      ],
+      ["debate_underlines_pkey", "p", "PRIMARY KEY (debate_id, \"position\")"],
+      [
+        "debate_underlines_position_check",
+        "c",
+        "CHECK (((\"position\" >= 1) AND (\"position\" <= 3)))"
+      ],
+      [
+        "debate_underlines_prompt_check",
+        "c",
+        "CHECK (((prompt IS NULL) OR ((char_length(prompt) >= 1) AND (char_length(prompt) <= 100))))"
+      ],
+      ["debate_underlines_start_at_check", "c", "CHECK ((start_at >= 0))"]
+    ],
+    "debates": [
+      ["debates_pkey", "p", "PRIMARY KEY (id)"],
+      [
+        "debates_source_entry_id_fkey",
+        "f",
+        "FOREIGN KEY (source_entry_id) REFERENCES entries(id) ON DELETE CASCADE"
+      ],
+      [
+        "debates_user_id_fkey",
+        "f",
+        "FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE"
+      ]
     ]
   },
   "indexes": {
@@ -700,7 +877,24 @@
       "monthly_sentence_picks_entry_id_idx",
       "monthly_sentence_picks_pkey"
     ],
-    "monthly_sentence_settings": ["monthly_sentence_settings_pkey"]
+    "monthly_sentence_settings": ["monthly_sentence_settings_pkey"],
+    "debate_answers": [
+      "debate_answers_evidence_idx",
+      "debate_answers_id_debate_id_key",
+      "debate_answers_parent_idx",
+      "debate_answers_pkey",
+      "debate_answers_section_idx",
+      "debate_answers_user_idx"
+    ],
+    "debate_moves": ["debate_moves_pkey", "debate_moves_user_idx"],
+    "debate_reports": [
+      "debate_reports_answer_idx",
+      "debate_reports_created_idx",
+      "debate_reports_pkey",
+      "debate_reports_reporter_id_debate_id_answer_id_key"
+    ],
+    "debate_underlines": ["debate_underlines_pkey"],
+    "debates": ["debates_pkey", "debates_source_entry_idx", "debates_user_created_idx"]
   },
   "rlsEnabled": [
     "account_deletion_purges",
@@ -708,6 +902,11 @@
     "book_registration_requests",
     "books",
     "comments",
+    "debate_answers",
+    "debate_moves",
+    "debate_reports",
+    "debate_underlines",
+    "debates",
     "email_consent_events",
     "email_deliveries",
     "email_preferences",
@@ -865,6 +1064,31 @@
     "monthly_sentence_settings": {
       "anon": [],
       "authenticated": ["select"],
+      "service_role": ["delete", "insert", "select", "update"]
+    },
+    "debate_answers": {
+      "anon": [],
+      "authenticated": [],
+      "service_role": ["delete", "insert", "select", "update"]
+    },
+    "debate_moves": {
+      "anon": [],
+      "authenticated": [],
+      "service_role": ["delete", "insert", "select", "update"]
+    },
+    "debate_reports": {
+      "anon": [],
+      "authenticated": [],
+      "service_role": ["delete", "insert", "select", "update"]
+    },
+    "debate_underlines": {
+      "anon": [],
+      "authenticated": [],
+      "service_role": ["delete", "insert", "select", "update"]
+    },
+    "debates": {
+      "anon": [],
+      "authenticated": [],
       "service_role": ["delete", "insert", "select", "update"]
     }
   },
@@ -1030,22 +1254,52 @@
     ["user_books", "user_books_update_requires_active", "UPDATE", "{authenticated}"]
   ],
   "functions": [
+    [
+      "add_debate_answer",
+      "p_debate_id uuid, p_underline smallint, p_stance text, p_body text, p_evidence_entry_id uuid"
+    ],
+    ["add_debate_reply", "p_answer_id uuid, p_body text"],
     ["assert_account_active", ""],
     ["authorize_push_delivery", "p_id uuid"],
     ["books_original_cover_url", ""],
+    ["can_view_debate", "p_id uuid"],
     ["can_view_monthly_excerpt", "p_id uuid"],
     ["cancel_account_deletion", ""],
     ["claim_due_account_deletions", "p_limit integer"],
     ["claim_marketing_email", "p_user uuid, p_id uuid, p_content_hash text, p_token_hash text"],
     ["claim_push_batch", "p_limit integer"],
     ["claim_push_test", "p_user uuid, p_endpoint text"],
+    ["clear_debate_summary", "p_id uuid"],
     ["clear_private_entry_share", ""],
+    ["count_entry_debates", "p_entry_id uuid"],
+    ["create_debate", "p_entry_id uuid, p_question text, p_underlines jsonb"],
+    ["debate_answer_json", "p_id uuid, p_with_replies boolean"],
+    ["debate_assert_open", "p_debate_id uuid"],
+    [
+      "debate_can_see_answer",
+      "p_debate_id uuid, p_author uuid, p_hidden_at timestamp with time zone"
+    ],
+    ["debate_clean_body", "p_body text"],
+    ["debate_clean_question", "p_question text"],
+    ["debate_moved_count", "p_answer_id uuid"],
+    ["debate_person_json", "p_user uuid"],
+    ["debate_totals", "p_id uuid"],
+    ["delete_debate", "p_id uuid"],
+    ["delete_debate_answer", "p_id uuid"],
+    ["edit_debate_answer", "p_id uuid, p_stance text, p_body text"],
     ["enable_entry_share", "p_entry_id uuid"],
     ["entry_reflections_enabled", ""],
     ["friend_feed_monthly_excerpts", "p_limit bigint"],
     ["get_book_reading_stats", ""],
     ["get_books_page", ""],
     ["get_dashboard_core", "p_today date"],
+    ["get_debate", "p_id uuid"],
+    [
+      "get_debate_answers",
+      "p_id uuid, p_position smallint, p_all_sentence boolean, p_after integer, p_limit integer"
+    ],
+    ["get_debate_movers", "p_answer_id uuid"],
+    ["get_debate_replies", "p_answer_id uuid"],
     ["get_entry_months", ""],
     ["get_entry_reflection_summaries", "p_entry_ids uuid[]"],
     ["get_featured_bookmark", "p_user_book_id uuid, p_owner_id uuid, p_public_only boolean"],
@@ -1075,6 +1329,7 @@
     ["has_unread_notifications", ""],
     ["is_account_active", "p_user uuid"],
     ["is_friend_with", "p_user_id uuid"],
+    ["list_debates", "p_closed boolean, p_before timestamp with time zone, p_limit integer"],
     ["mark_account_purge_attempt", "p_user uuid"],
     ["mark_push_seen", "p_kind text, p_delivery uuid"],
     ["monthly_excerpt_drop_if_empty", ""],
@@ -1100,6 +1355,7 @@
       "register_book_idempotently",
       "p_request_id uuid, p_title text, p_author text, p_total_pages integer, p_isbn text, p_cover_url text"
     ],
+    ["report_debate", "p_debate_id uuid, p_answer_id uuid, p_reason text, p_memo text"],
     ["request_account_deletion", "p_user uuid"],
     ["retract_like_notification", "p_entry_id uuid"],
     ["retract_monthly_excerpt_like_notification", "p_excerpt_id uuid"],
@@ -1119,9 +1375,13 @@
       "search_library",
       "p_query text, p_kind text, p_book_id uuid, p_from date, p_to date, p_cursor jsonb"
     ],
+    ["set_debate_answer_hidden", "p_answer_id uuid, p_hidden boolean"],
+    ["set_debate_move", "p_answer_id uuid, p_on boolean"],
+    ["set_debate_summary", "p_id uuid, p_summary text, p_answer_ids uuid[]"],
     ["set_monthly_excerpt_shared", "p_id uuid, p_is_shared boolean"],
     ["set_monthly_sentence", "p_month text, p_entry_id uuid"],
     ["set_monthly_sentence_rule", "p_rule text"],
+    ["update_debate_question", "p_id uuid, p_question text"],
     ["update_user_book_progress", "p_book_id uuid, p_user_id uuid"],
     ["withdraw_email_by_token", "p_hash text"]
   ],

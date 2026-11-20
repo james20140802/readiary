@@ -117,6 +117,11 @@ afterEach(() => {
 });
 
 describe('SocialFeedView', () => {
+  it('토론과 같은 소셜 틀을 쓴다', () => {
+    const { container } = show([]);
+    expect(container.querySelector('[data-social-frame="feed"] [data-margin-line]')).toBeTruthy();
+  });
+
   it('kind에 따라 기록과 달의 발췌집을 순서대로 그린다', () => {
     show([entry('e1', '기록 문장'), excerpt('x1', '표지 문장'), entry('e2', '다른 문장')]);
     const articles = screen.getAllByRole('article').map((a) => a.getAttribute('aria-label'));

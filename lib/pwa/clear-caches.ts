@@ -1,5 +1,6 @@
 import { clearOtherReflectionDrafts } from '@/lib/reflections/draft';
 import { clearCreationSubmissions } from '@/lib/actions/creationSubmission';
+import { clearOtherDebateDrafts } from '@/lib/debate/draft';
 /**
  * 기기에 남은 PWA 캐시(Cache Storage) 정리.
  * 서비스 워커 캐시는 로그아웃해도 저절로 비워지지 않는다 — 공용 기기에서 로그인한 뒤 본 화면이 남지 않도록
@@ -17,6 +18,12 @@ export async function clearPwaCaches(): Promise<void> {
       clearCreationSubmissions(sessionStorage);
       clearOtherReflectionDrafts(sessionStorage, null);
     }
+  } catch {
+    /* Unavailable storage. */
+  }
+  try {
+    // 토론 답 초안은 탭을 닫아도 남도록 localStorage에 있다 — 다음 사람이 받지 않게 지운다
+    if (typeof localStorage !== 'undefined') clearOtherDebateDrafts(localStorage, null);
   } catch {
     /* Unavailable storage. */
   }

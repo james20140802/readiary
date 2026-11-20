@@ -2,19 +2,17 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { UserPlus } from 'lucide-react';
 import { useInView } from 'react-intersection-observer';
-import clsx from 'clsx';
 import type { SocialFeedEntryItem, SocialFeedItem } from '@/types/entry';
 import type { Friend } from '@/types/friends';
 import Button from '@/components/ui/Button';
-import { LargeTitle } from '@/components/shell/LargeTitle';
-import { TopBarActions, useTopBar } from '@/components/shell/TopBarContext';
+import { useTopBar } from '@/components/shell/TopBarContext';
 import { friendsReadingFrom } from '@/components/social/feedFormat';
 import MonthlyExcerptFeedCard from '@/components/monthly-excerpt/MonthlyExcerptFeedCard';
 import FeedPost from './FeedPost';
 import { FriendsReadingList, FriendsReadingStrip } from './FriendsReading';
 import FriendRequestNotice from './FriendRequestNotice';
+import SocialFrame from '@/components/social/SocialFrame';
 import styles from './feed.module.css';
 
 export interface SocialFeedViewProps {
@@ -122,119 +120,99 @@ export default function SocialFeedView({
   );
 
   return (
-    <div className={clsx(styles.feed, 'relative')}>
-      <div aria-hidden className={styles.marginLine} />
-      <TopBarActions>
-        <Link
-          href={FRIENDS_HREF}
-          aria-label={
-            pendingFriends.length > 0 ? `친구, 받은 신청 ${pendingFriends.length}` : '친구'
-          }
-          className="relative grid h-11 w-11 place-items-center rounded-full text-ink"
-        >
-          <UserPlus size={23} strokeWidth={1.75} aria-hidden />
-          {pendingFriends.length > 0 && <span className="topbar-dot" aria-hidden />}
-        </Link>
-      </TopBarActions>
-
-      <div className={clsx(styles.wide, 'relative z-[1]')}>
-        <div className="flex items-center gap-4">
-          <div>
-            <LargeTitle>소셜</LargeTitle>
-          </div>
-          <Button asChild size="sm" variant="secondary" className="ml-auto hidden lg:inline-flex">
-            <Link href={FRIENDS_HREF}>
-              친구 찾기
-              {friendCount > 0 && (
-                <>
-                  {' · '}
-                  <span data-skeleton>{friendCount}</span>
-                </>
-              )}
-            </Link>
-          </Button>
-        </div>
-
-        <div className="mt-[18px] lg:mt-7 lg:grid lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)] lg:items-start lg:gap-14">
-          <div>
-            <FriendsReadingStrip list={reading} />
-            <FriendRequestNotice
-              pending={pendingFriends}
-              friendCount={friendCount}
-              variant="strip"
-              className="mb-[26px] mt-[18px]"
-            />
-
-            {feed.length === 0 ? (
-              <EmptyFeed friendCount={friendCount} />
-            ) : (
-              <div className="mt-6 flex flex-col gap-9 lg:mt-0 lg:gap-[34px]">
-                {feed.map((item, i) =>
-                  item.kind === 'entry' ? (
-                    <FeedPost key={itemKey(item)} item={item} userId={userId} now={now} index={i} />
-                  ) : (
-                    <MonthlyExcerptFeedCard
-                      key={itemKey(item)}
-                      item={item}
-                      userId={userId}
-                      now={now}
-                      className={styles.item}
-                    />
-                  )
-                )}
-              </div>
+    <SocialFrame
+      active="feed"
+      className={styles.feed}
+      pendingCount={pendingFriends.length}
+      desktopAction={
+        <Button asChild size="sm" variant="secondary">
+          <Link href={FRIENDS_HREF}>
+            친구 찾기
+            {friendCount > 0 && (
+              <>
+                {' · '}
+                <span data-skeleton>{friendCount}</span>
+              </>
             )}
+          </Link>
+        </Button>
+      }
+    >
+      <div className="mt-[18px] lg:mt-7 lg:grid lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)] lg:items-start lg:gap-14">
+        <div>
+          <FriendsReadingStrip list={reading} />
+          <FriendRequestNotice
+            pending={pendingFriends}
+            friendCount={friendCount}
+            variant="strip"
+            className="mb-[26px] mt-[18px]"
+          />
 
-            {loadError && (
-              <div role="alert" className="mt-8 flex items-center gap-3 font-sans text-body-sm">
-                <span className="text-ink-sub">다음 문장을 불러오지 못했어요.</span>
-                <button
-                  type="button"
-                  className="min-h-11 font-semibold text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
-                  onClick={() => {
-                    errorRef.current = false;
-                    setLoadError(false);
-                    void loadMore();
-                  }}
-                >
-                  다시 불러오기
-                </button>
-              </div>
-            )}
-
-            {hasMore && (
-              <div ref={setSentinel} className="mt-9">
-                {loading && (
-                  <div
-                    role="status"
-                    aria-label="다음 문장을 불러오는 중"
-                    className="vellum h-40 rounded-[3px] motion-safe:animate-pulse"
+          {feed.length === 0 ? (
+            <EmptyFeed friendCount={friendCount} />
+          ) : (
+            <div className="mt-6 flex flex-col gap-9 lg:mt-0 lg:gap-[34px]">
+              {feed.map((item, i) =>
+                item.kind === 'entry' ? (
+                  <FeedPost key={itemKey(item)} item={item} userId={userId} now={now} index={i} />
+                ) : (
+                  <MonthlyExcerptFeedCard
+                    key={itemKey(item)}
+                    item={item}
+                    userId={userId}
+                    now={now}
+                    className={styles.item}
                   />
-                )}
-              </div>
-            )}
+                )
+              )}
+            </div>
+          )}
 
-            {!hasMore && feed.length > 0 && (
-              <div className="mt-11 flex items-center justify-between gap-3 border-t border-hairline pt-[22px] font-sans text-[15px] font-medium text-ink-sub">
-                <p>친구의 문장을 다 읽었어요</p>
-                <Button asChild size="sm" variant="secondary">
-                  <Link href={FRIENDS_HREF}>친구 찾기</Link>
-                </Button>
-              </div>
-            )}
-          </div>
+          {loadError && (
+            <div role="alert" className="mt-8 flex items-center gap-3 font-sans text-body-sm">
+              <span className="text-ink-sub">다음 문장을 불러오지 못했어요.</span>
+              <button
+                type="button"
+                className="min-h-11 font-semibold text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+                onClick={() => {
+                  errorRef.current = false;
+                  setLoadError(false);
+                  void loadMore();
+                }}
+              >
+                다시 불러오기
+              </button>
+            </div>
+          )}
 
-          <aside className="sticky top-10 hidden space-y-[26px] lg:block" aria-label="친구 소식">
-            <FriendsReadingList list={reading} />
-            <FriendRequestNotice
-              pending={pendingFriends}
-              friendCount={friendCount}
-              variant="card"
-            />
-          </aside>
+          {hasMore && (
+            <div ref={setSentinel} className="mt-9">
+              {loading && (
+                <div
+                  role="status"
+                  aria-label="다음 문장을 불러오는 중"
+                  className="vellum h-40 rounded-[3px] motion-safe:animate-pulse"
+                />
+              )}
+            </div>
+          )}
+
+          {!hasMore && feed.length > 0 && (
+            <div className="mt-11 flex items-center justify-between gap-3 border-t border-hairline pt-[22px] font-sans text-[15px] font-medium text-ink-sub">
+              <p>친구의 문장을 다 읽었어요</p>
+              <Button asChild size="sm" variant="secondary">
+                <Link href={FRIENDS_HREF}>친구 찾기</Link>
+              </Button>
+            </div>
+          )}
         </div>
+
+        <aside className="sticky top-10 hidden space-y-[26px] lg:block" aria-label="친구 소식">
+          <FriendsReadingList list={reading} />
+          <FriendRequestNotice pending={pendingFriends} friendCount={friendCount} variant="card" />
+        </aside>
       </div>
-    </div>
+    </SocialFrame>
   );
 }
 

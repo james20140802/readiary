@@ -54,6 +54,7 @@ describe('ruledFor', () => {
       '/social/u/mock-0001',
       '/social/u/mock-0001/books',
       '/social/u/mock-0001/books/b1',
+      '/social/talk/d1',
     ]) {
       expect(frameFor(path)).toBe('plain');
       expect(ruledFor(frameFor(path), path)).toBe('margin');
@@ -67,6 +68,8 @@ describe('ruledFor', () => {
       '/social/friends',
       '/social/notifications',
       '/notifications/inbox',
+      '/social/talk',
+      '/social/talk/new',
     ]) {
       expect(ruledFor(frameFor(path), path)).toBe('plain');
     }

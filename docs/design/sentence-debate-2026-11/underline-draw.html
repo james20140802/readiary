@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>문장 토론 · 밑줄 긋기</title>
+<style>
+@font-face{font-family:Maru;src:url(../../../app/fonts/MaruBuri-Regular.woff2) format('woff2');font-weight:400}
+@font-face{font-family:Maru;src:url(../../../app/fonts/MaruBuri-SemiBold.woff2) format('woff2');font-weight:600}
+@font-face{font-family:Pre;src:url(../../../app/fonts/PretendardVariable.woff2) format('woff2');font-weight:100 900}
+:root{--paper:244 240 232;--ink:34 30 26;--sub:107 100 90;--faint:158 150 138;--hair:224 217 204;--hair2:207 197 180;--accent:45 95 184;--sheet:251 250 246;--danger:178 58 46;
+  --serif:Maru,serif;--sans:Pre,system-ui,sans-serif;--ease-out:cubic-bezier(.23,1,.32,1)}
+@media (prefers-color-scheme:dark){:root{--paper:26 23 20;--ink:236 229 218;--sub:177 168 153;--faint:142 132 118;--hair:46 42 37;--hair2:74 64 54;--accent:133 169 236;--sheet:38 35 31;--danger:230 120 105}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:rgb(var(--paper));color:rgb(var(--ink));font-family:var(--sans);padding:32px 24px 80px}
+.intro{max-width:1240px;margin:0 auto 28px}
+.intro h1{font:600 26px var(--serif)}
+.intro p{font-size:15px;line-height:1.6;color:rgb(var(--sub));margin-top:8px;max-width:780px}
+.grid{max-width:1240px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:28px;align-items:start}
+.opt{border-radius:14px;padding:14px;border:1.5px solid transparent;transition:border-color 160ms ease}
+.opt.selected{border-color:rgb(var(--accent))}
+.opt h2{font:600 17px var(--sans);display:flex;gap:8px;align-items:baseline;cursor:pointer}
+.opt h2 .l{font:700 14px var(--sans);color:rgb(var(--accent))}
+.pick{margin-left:auto;font:600 12px var(--sans);color:rgb(var(--accent));border:1px solid rgb(var(--accent)/.5);border-radius:999px;padding:3px 10px;cursor:pointer}
+.opt .why{font-size:14px;line-height:1.55;color:rgb(var(--sub));margin:6px 0 12px;min-height:88px}
+.opt .why b{color:rgb(var(--ink));font-weight:600}
+.phone{width:360px;height:620px;margin:0 auto;border-radius:30px;overflow:hidden;position:relative;
+  box-shadow:0 0 0 1px rgb(var(--hair2)),0 20px 40px -28px rgb(60 45 25/.5);
+  background:rgb(var(--paper)) repeating-linear-gradient(to bottom,transparent 0 31px,rgb(var(--hair)/.7) 31px 32px)}
+.scroll{height:100%;overflow:auto;padding:14px 20px 30px}
+.bar{display:flex;align-items:center;justify-content:space-between;font:600 15px var(--sans);height:40px;margin:0 -4px 8px}
+.bar .bk{color:rgb(var(--sub))}.bar .nx{color:rgb(var(--accent))}
+.step{font:600 13px var(--sans);color:rgb(var(--sub))}
+.guide{font:500 14px/1.5 var(--sans);color:rgb(var(--sub));margin-top:4px;min-height:42px}
+.s{font:400 23px/2 var(--serif);margin-top:14px;word-break:keep-all;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.s.native{-webkit-user-select:text;user-select:text}
+.s.draw{touch-action:none;cursor:text}
+.s .c{position:relative;transition:background-color 120ms ease}
+.s .c.u{text-decoration:underline;text-decoration-color:rgb(var(--accent));text-decoration-thickness:2.5px;text-underline-offset:7px}
+.s .c.pv{background:rgb(var(--accent)/.14)}
+.s .c.pv.bad{background:rgb(var(--danger)/.16)}
+.s .w{cursor:pointer;border-radius:4px}
+.s .w.tok{box-shadow:inset 0 -1px 0 rgb(var(--hair2))}
+.s .w.anchor{background:rgb(var(--accent)/.14)}
+.src{font:500 12px var(--sans);color:rgb(var(--faint));margin-top:4px}
+.count{display:flex;align-items:center;gap:6px;margin-top:18px;font:600 13px var(--sans);color:rgb(var(--sub))}
+.count i{width:22px;height:3px;border-radius:2px;background:rgb(var(--hair2));transition:background-color 160ms ease}
+.count i.on{background:rgb(var(--accent))}
+.list{margin-top:10px}
+.row{display:flex;align-items:center;gap:8px;padding:9px 0;border-top:1px solid rgb(var(--hair2)/.8);font:400 16px var(--serif)}
+.row .n{font:700 12px var(--sans);color:rgb(var(--accent));width:14px}
+.row .x{margin-left:auto;font:600 13px var(--sans);color:rgb(var(--sub));min-height:32px;padding:0 6px;background:none;border:0;cursor:pointer}
+.row.new{animation:in 220ms var(--ease-out)}
+@keyframes in{from{opacity:0;transform:translateY(-4px)}}
+.hint{font:500 13px var(--sans);color:rgb(var(--danger));min-height:20px;margin-top:8px}
+.float{position:absolute;z-index:3;transform:translate(-50%,-100%);background:rgb(var(--ink));color:rgb(var(--paper));font:600 13px var(--sans);
+  border-radius:999px;height:34px;padding:0 14px;display:flex;align-items:center;border:0;cursor:pointer;
+  transition:opacity 140ms ease,transform 140ms var(--ease-out)}
+.float[hidden]{display:none}
+.ask{margin-top:16px;font:600 16px/1.6 var(--serif);padding-left:12px;box-shadow:inset 2px 0 0 rgb(var(--accent));color:rgb(var(--faint))}
+.note{max-width:1240px;margin:30px auto 0;font-size:14px;line-height:1.7;color:rgb(var(--sub))}
+.note b{color:rgb(var(--ink))}
+.reset{font:600 12px var(--sans);color:rgb(var(--sub));background:none;border:0;cursor:pointer;margin-top:10px}
+.s .c.u.sel{background:rgb(var(--accent)/.16)}
+.s .c.pv.away{background:transparent;text-decoration:underline dashed rgb(var(--faint));text-decoration-thickness:1.5px;text-underline-offset:7px}
+.tools{display:flex;align-items:center;gap:6px;margin-top:18px}
+.tools .count{margin-top:0}
+.undo{margin-left:auto;font:600 13px var(--sans);color:rgb(var(--accent));background:none;border:0;min-height:32px;padding:0 4px;cursor:pointer}
+.undo:disabled{color:rgb(var(--faint));cursor:default}
+.guide .cancel{font:600 13px var(--sans);color:rgb(var(--accent));background:none;border:0;margin-left:8px;cursor:pointer;min-height:28px}
+.floats{position:absolute;z-index:3;transform:translate(-50%,-100%);display:flex;gap:1px;border-radius:999px;overflow:hidden;background:rgb(var(--ink))}
+.floats[hidden]{display:none}
+.floats button{background:rgb(var(--ink));color:rgb(var(--paper));font:600 13px var(--sans);height:34px;padding:0 14px;border:0;cursor:pointer}
+.floats button+button{box-shadow:inset 1px 0 0 rgb(var(--paper)/.25);color:rgb(var(--paper)/.8)}
+.press:active{transform:scale(.97)}
+</style></head><body>
+<div class="intro">
+  <h1>밑줄 긋기 · C에서 겹치면 하나로 잇기</h1>
+  <p>세 휴대폰 안에서 <b>직접 그어 보세요.</b> 같은 문장이고 밑줄은 3개까지, 겹치면 안 됩니다. 이번엔 <b>되돌리기</b>, <b>그은 밑줄을 눌러 지우기</b>, <b>하던 동작 취소</b>가 들어 있습니다. 휴대폰(Tailscale 주소)에서 손가락으로 해 보시는 게 가장 정확합니다. 마음에 드는 안은 오른쪽 위 “이걸로”를 누르세요.</p>
+</div>
+<div class="grid">
+
+<div class="opt" data-choice="a" id="optA">
+  <h2><span class="l">A</span>어절을 두 번 탭<span class="pick" >이걸로</span></h2>
+  <p class="why">시작 어절과 끝 어절을 차례로 누릅니다. 한 어절만 누르고 다시 누르면 그 어절만. <b>가장 쉽고 실수가 적지만</b>, 어절 단위라 “환상<b>도</b>”의 조사까지 함께 그어집니다.</p>
+  <div class="phone"><div class="scroll" data-mode="tap"></div></div>
+</div>
+
+<div class="opt" data-choice="b" id="optB">
+  <h2><span class="l">B</span>글자 선택 후 “밑줄 긋기”<span class="pick" >이걸로</span></h2>
+  <p class="why">길게 눌러 기기 기본 선택 손잡이로 고른 뒤, 떠오른 버튼을 누릅니다. <b>글자 단위로 정확</b>하고 키보드(Shift+방향키)로도 됩니다. 다만 iOS의 복사·찾기 메뉴가 같이 떠서 <b>버튼과 겹치고 손잡이 조작이 번거롭습니다.</b></p>
+  <div class="phone"><div class="scroll" data-mode="native"></div></div>
+</div>
+
+<div class="opt" data-choice="c" id="optC">
+  <h2><span class="l">C</span>펜처럼 문장 위를 긋기 (추천)<span class="pick" >이걸로</span></h2>
+  <p class="why">글자 위를 손가락으로 쭉 그으면 밑줄이 따라옵니다. 손을 떼면 그어지고, 한 번 누르기만 하면 그 어절이 그어집니다. <b>“밑줄 친다”는 행동 그대로</b>이고 글자 단위로 정확합니다. 이 단계에서는 문장 위에서 화면이 스크롤되지 않습니다.</p>
+  <div class="phone"><div class="scroll" data-mode="draw"></div></div>
+</div>
+
+</div>
+<p class="note"><b>세 안 공통 취소</b><br>
+· 하던 동작 거두기: 진행 중이면 안내 줄 옆에 “취소”가 뜹니다. 문장 밖을 눌러도, Esc를 눌러도 같습니다.<br>
+· 그은 밑줄 지우기: 문장 위의 밑줄을 누르면 그 밑줄이 옅게 칠해지고 [밑줄 지우기 | 취소]가 뜹니다. 아래 목록의 “지우기”도 그대로 있습니다.<br>
+· 되돌리기: 긋기와 지우기 모두 바로 앞 상태로 돌아갑니다(여러 번). 그래서 지울 때 “정말 지울까요?”를 묻지 않습니다.<br>
+<b>안마다 다른 취소</b><br>
+· A 어절 탭: 시작 어절을 누른 뒤 “취소”나 문장 밖. 같은 어절을 다시 누르면 그 어절 하나만 긋습니다.<br>
+· B 글자 선택: 선택하면 [밑줄 긋기 | 취소]. 빈 곳을 눌러 선택을 풀어도 취소입니다.<br>
+· C 펜 긋기: 이미 그은 밑줄을 품거나 걸치게 그으면 막지 않고 <b>하나로 이어 넓힙니다</b>(미리보기도 합쳐진 모양). 이어 붙이면 개수가 늘지 않으니 3/3이어도 됩니다. 긋는 도중 손가락을 문장 밖으로 빼면 밑줄이 점선으로 바뀌고 “손을 떼면 취소돼요”. 그대로 떼면 취소, 다시 문장으로 돌아오면 이어서 긋습니다.</p>
+
+<script>
+const TEXT='경계와 문턱이 사라짐과 동시에 타자에 대한 환상도 사라진다.';
+const MAX=3, PUNCT=/[\s.,!?·…'"“”‘’()]/, AWAY=28;
+function trim(s,e){while(s<=e&&PUNCT.test(TEXT[s]))s++;while(e>=s&&PUNCT.test(TEXT[e]))e--;return s<=e?[s,e]:null}
+function wordAt(i){if(PUNCT.test(TEXT[i]))return null;let s=i,e=i;while(s>0&&!/\s/.test(TEXT[s-1]))s--;while(e<TEXT.length-1&&!/\s/.test(TEXT[e+1]))e++;return trim(s,e)}
+function words(){const out=[];let i=0;while(i<TEXT.length){if(/\s/.test(TEXT[i])){i++;continue}let e=i;while(e<TEXT.length-1&&!/\s/.test(TEXT[e+1]))e++;out.push({s:i,e});i=e+1}return out}
+const GUIDE={tap:'시작 어절과 끝 어절을 차례로 눌러요',native:'길게 눌러 고른 뒤 “밑줄 긋기”를 눌러요',draw:'문장 위를 손가락으로 그어요. 한 번 누르면 그 어절만'};
+
+document.querySelectorAll('.scroll').forEach(root=>{
+  const mode=root.dataset.mode; let ranges=[], hist=[], hintT, selIdx=null;
+  root.innerHTML=`<div class="bar"><span class="bk">‹ 이전</span><span class="step">발제 2/3</span><span class="nx">다음</span></div>
+    <div style="font:600 19px var(--sans)">함께 볼 곳에 밑줄을 그어요</div>
+    <div class="guide"></div>
+    <div class="wrapS" style="position:relative"><p class="s ${mode==='native'?'native':''} ${mode==='draw'?'draw':''}"></p>
+      <div class="floats" hidden><button class="press f1"></button><button class="press f2">취소</button></div></div>
+    <div class="src">에로스의 종말 · 한병철 · p.42</div>
+    <div class="tools"><div class="count"><i></i><i></i><i></i><span style="margin-left:4px">밑줄 <b class="k">0</b>/3</span></div><button class="undo press" disabled>되돌리기</button></div>
+    <div class="hint" aria-live="polite"></div>
+    <div class="list"></div>
+    <div class="ask">가까워질수록 상대를 덜 궁금해하게 되는 걸까요?</div>`;
+  const P=root.querySelector('.s'), L=root.querySelector('.list'), H=root.querySelector('.hint'), G=root.querySelector('.guide'),
+        FL=root.querySelector('.floats'), F1=FL.querySelector('.f1'), F2=FL.querySelector('.f2'), U=root.querySelector('.undo'), W=root.querySelector('.wrapS');
+  const guide=(t,cancel)=>{G.textContent=t;if(cancel){const b=document.createElement('button');b.className='cancel press';b.textContent='취소';b.onclick=cancel;G.append(b)}};
+  guide(GUIDE[mode]);
+  const hint=t=>{H.textContent=t;clearTimeout(hintT);hintT=setTimeout(()=>H.textContent='',2200)};
+  const overlaps=(s,e)=>ranges.some(r=>!(e<r[0]||s>r[1]));
+  const commit=next=>{hist.push(ranges.map(r=>[...r]));ranges=next;selIdx=null;hideFloat();render(true)};
+  // C: 이미 그은 밑줄에 걸치거나 품으면 하나로 잇는다. A·B는 그대로 막는다
+  const MERGE=mode==='draw';
+  const plan=(s,e)=>{const hit=ranges.filter(r=>!(e<r[0]||s>r[1]));if(!hit.length)return{s,e,hit,ok:ranges.length<MAX};
+    const ns=Math.min(s,...hit.map(r=>r[0])),ne=Math.max(e,...hit.map(r=>r[1]));return{s:ns,e:ne,hit,ok:MERGE&&ranges.length-hit.length+1<=MAX}};
+  function add(r){ if(!r)return false;const[s,e]=r;const p=plan(s,e);
+    if(p.hit.length&&!MERGE){hint('이미 그은 밑줄과 겹쳐요');return false}
+    if(!p.ok){hint('밑줄은 3개까지예요. 하나를 지우고 그어요');return false}
+    const rest=ranges.filter(x=>!p.hit.includes(x));commit([...rest,[p.s,p.e]].sort((a,b)=>a[0]-b[0]));
+    if(p.hit.length)hint(p.hit.length===1&&p.hit[0][0]>=s&&p.hit[0][1]<=e?'그어 둔 밑줄을 품어 넓혔어요':'밑줄을 하나로 이었어요');
+    return true}
+  const removeAt=j=>{const n=ranges.slice();const gone=n.splice(j,1)[0];commit(n);hint('“'+TEXT.slice(gone[0],gone[1]+1)+'” 밑줄을 지웠어요. 되돌리기로 살릴 수 있어요')};
+  U.onclick=()=>{if(!hist.length)return;ranges=hist.pop();selIdx=null;hideFloat();render()};
+
+  // 떠 있는 버튼: [주 행동 | 취소]
+  let floatAct=null;
+  function showFloat(rect,label,act){const pr=W.getBoundingClientRect();F1.textContent=label;floatAct=act;
+    FL.style.left=Math.min(Math.max(rect.left+rect.width/2-pr.left,90),pr.width-90)+'px';FL.style.top=(rect.top-pr.top-10)+'px';FL.hidden=false}
+  function hideFloat(){FL.hidden=true;floatAct=null}
+  FL.addEventListener('pointerdown',e=>e.preventDefault());
+  F1.onclick=()=>floatAct&&floatAct();
+  F2.onclick=()=>cancelAll();
+
+  function render(added){
+    let html='';
+    if(mode==='tap'){words().forEach(w=>{html+=`<span class="w tok" data-s="${w.s}" data-e="${w.e}">`;for(let i=w.s;i<=w.e;i++)html+=`<span class="c" data-i="${i}">${TEXT[i]}</span>`;html+='</span>';if(w.e+1<TEXT.length)html+=`<span class="c" data-i="${w.e+1}"> </span>`})}
+    else{for(let i=0;i<TEXT.length;i++)html+=`<span class="c" data-i="${i}">${TEXT[i]}</span>`}
+    P.innerHTML=html;
+    P.querySelectorAll('.c').forEach(c=>{const i=+c.dataset.i;const j=ranges.findIndex(r=>TEXT[i]===' '?(i>r[0]&&i<r[1]):(i>=r[0]&&i<=r[1]));
+      if(j>=0){c.classList.add('u');c.dataset.r=j;if(j===selIdx)c.classList.add('sel')}});
+    root.querySelector('.k').textContent=ranges.length;
+    root.querySelectorAll('.count i').forEach((x,j)=>x.classList.toggle('on',j<ranges.length));
+    U.disabled=!hist.length;
+    L.innerHTML='';ranges.forEach((r,j)=>{const d=document.createElement('div');d.className='row';
+      d.innerHTML=`<span class="n">${j+1}</span><span></span><button class="x press">지우기</button>`;d.children[1].textContent=TEXT.slice(r[0],r[1]+1);
+      d.querySelector('.x').onclick=()=>removeAt(j);L.append(d)});
+    if(mode==='tap')bindTap();
+  }
+  const idxFrom=(x,y)=>{const el=document.elementFromPoint(x,y);const c=el&&el.closest&&el.closest('.c');return c&&P.contains(c)?+c.dataset.i:null};
+  const rangeOf=i=>ranges.findIndex(r=>i>=r[0]&&i<=r[1]);
+  const preview=(a,b,away)=>{let r=trim(Math.min(a,b),Math.max(a,b));let bad=false;
+    if(r){const p=plan(r[0],r[1]);if(MERGE&&p.ok)r=[p.s,p.e];else bad=!p.ok||(!MERGE&&p.hit.length)}
+    P.querySelectorAll('.c').forEach(c=>{const i=+c.dataset.i;const on=r&&i>=r[0]&&i<=r[1];c.classList.toggle('pv',!!on);c.classList.toggle('bad',!!(on&&bad&&!away));c.classList.toggle('away',!!(on&&away))})};
+  const clearPv=()=>P.querySelectorAll('.pv').forEach(c=>c.classList.remove('pv','bad','away'));
+
+  // 이미 그은 밑줄을 누르면 고르고 [밑줄 지우기 | 취소]
+  function selectRange(j){selIdx=j;render();const cs=[...P.querySelectorAll(`.c[data-r="${j}"]`)];
+    const a=cs[0].getBoundingClientRect(),b=cs[cs.length-1].getBoundingClientRect();
+    const rect={left:a.top===b.top?a.left:P.getBoundingClientRect().left,width:a.top===b.top?b.right-a.left:P.getBoundingClientRect().width,top:a.top};
+    showFloat(rect,'밑줄 지우기',()=>removeAt(j));guide('이 밑줄을 지울까요?',cancelAll)}
+
+  // 모든 진행 중 상태를 거두는 한 곳
+  let anchor=null, drawing=null;
+  function cancelAll(){anchor=null;selIdx=null;hideFloat();clearPv();if(drawing){drawing=null}
+    if(mode==='native')getSelection().removeAllRanges();guide(GUIDE[mode]);render()}
+  root.addEventListener('keydown',e=>{if(e.key==='Escape')cancelAll()});
+  root.tabIndex=-1;
+  // 문장 밖을 누르면 취소
+  root.addEventListener('pointerdown',e=>{if(!W.contains(e.target)&&!e.target.closest('.list,.undo,.guide'))if(anchor||selIdx!==null)cancelAll()});
+
+  // A: 어절 두 번 탭
+  function bindTap(){P.querySelectorAll('.w').forEach(w=>{w.onclick=()=>{const s=+w.dataset.s,e=+w.dataset.e;
+    if(anchor===null){const j=rangeOf(s);if(j>=0){selectRange(j);return}
+      if(selIdx!==null){cancelAll();return}
+      anchor=[s,e];w.classList.add('anchor');guide('끝 어절을 눌러요',cancelAll);return}
+    const r=trim(Math.min(anchor[0],s),Math.max(anchor[1],e));anchor=null;guide(GUIDE.tap);
+    if(!add(r))render()}})}
+
+  // B: 기본 선택 + [밑줄 긋기 | 취소]
+  if(mode==='native'){
+    P.addEventListener('click',e=>{const S=getSelection();if(!S.isCollapsed)return;const c=e.target.closest('.c');if(!c)return;const j=rangeOf(+c.dataset.i);if(j>=0)selectRange(j);else if(selIdx!==null)cancelAll()});
+    document.addEventListener('selectionchange',()=>{const S=getSelection();if(!S.rangeCount||S.isCollapsed){if(floatAct&&selIdx===null)hideFloat();return}
+      const R=S.getRangeAt(0);if(!P.contains(R.commonAncestorContainer))return;
+      const ci=n=>{const el=n.nodeType===3?n.parentElement:n;const c=el.closest('.c');return c?+c.dataset.i:null};
+      let a=ci(R.startContainer),b=ci(R.endContainer);if(a===null||b===null)return;if(R.endOffset===0&&b>a)b--;
+      const sel=trim(a,b);if(!sel)return;selIdx=null;
+      showFloat(R.getBoundingClientRect(),'밑줄 긋기',()=>{if(add(sel))getSelection().removeAllRanges()})});
+  }
+
+  // C: 펜처럼 긋기. 문장 밖으로 빠지면 점선이 되고, 그 상태로 떼면 취소
+  if(mode==='draw'){
+    const isAway=(x,y)=>{const b=P.getBoundingClientRect();return x<b.left-AWAY||x>b.right+AWAY||y<b.top-AWAY||y>b.bottom+AWAY};
+    P.addEventListener('pointerdown',e=>{if(drawing)return;const i=idxFrom(e.clientX,e.clientY);if(i===null)return;
+      P.setPointerCapture(e.pointerId);drawing={pid:e.pointerId,start:i,cur:i,moved:false,away:false};
+      if(selIdx!==null){selIdx=null;hideFloat();render()}preview(i,i)});
+    P.addEventListener('pointermove',e=>{const d=drawing;if(!d||e.pointerId!==d.pid)return;
+      const away=isAway(e.clientX,e.clientY);if(away!==d.away){d.away=away;guide(away?'손을 떼면 취소돼요':GUIDE.draw)}
+      const i=idxFrom(e.clientX,e.clientY);if(i!==null&&i!==d.cur){d.cur=i;d.moved=true}preview(d.start,d.cur,d.away)});
+    const end=e=>{const d=drawing;if(!d||e.pointerId!==d.pid)return;drawing=null;clearPv();guide(GUIDE.draw);
+      if(d.away){hint('긋기를 취소했어요');return}
+      if(!d.moved){const j=rangeOf(d.start);if(j>=0){selectRange(j);return}}
+      const r=d.moved?trim(Math.min(d.start,d.cur),Math.max(d.start,d.cur)):wordAt(d.start);if(r)add(r)};
+    P.addEventListener('pointerup',end);
+    P.addEventListener('pointercancel',e=>{if(drawing&&e.pointerId===drawing.pid){drawing=null;clearPv();guide(GUIDE.draw)}});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&drawing){drawing=null;clearPv();guide(GUIDE.draw);hint('긋기를 취소했어요')}});
+  }
+  render();
+});
+</script>
+
+</body></html>

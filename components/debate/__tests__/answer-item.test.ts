@@ -1,0 +1,161 @@
+// @vitest-environment jsdom
+import { createElement as h } from 'react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import AnswerItem from '../AnswerItem';
+
+const report = vi.fn();
+// 실패는 vi.fn 대신 평범한 함수로 흉내 낸다 — 거부된 결과를 테스트 실패로 보고하지 않게
+let moveFails = false;
+const moveCalls: unknown[][] = [];
+// 응답을 붙잡아 두고 싶을 때 채운다
+let moveGate: Promise<void> | null = null;
+vi.mock('@/lib/debate/client', async (orig) => ({
+  ...(await orig<typeof import('@/lib/debate/client')>()),
+  report: (...a: unknown[]) => report(...a),
+  setMove: async (...a: unknown[]) => {
+    moveCalls.push(a);
+    if (moveGate) await moveGate;
+    if (moveFails) throw new Error('반영하지 못했어요.');
+    return 1;
+  },
+}));
+import { answer, debate } from './fixtures';
+
+// 넓은 화면(답 아래에 입력칸이 펼쳐지는 768px 이상)을 흉내 낼 때 켠다
+let wide = false;
+vi.stubGlobal('matchMedia', (query: string) => ({
+  matches: wide,
+  media: query,
+  addEventListener: () => {},
+  removeEventListener: () => {},
+  addListener: () => {},
+  removeListener: () => {},
+  onchange: null,
+  dispatchEvent: () => false,
+}));
+afterEach(cleanup);
+
+describe('AnswerItem', () => {
+  it('다시 불러온 답의 새 답글과 생각이 바뀐 수를 그린다', () => {
+    const before = answer({ id: 'a1', replies: [], replyCount: 0, movedCount: 0 });
+    const view = render(h(AnswerItem, { debate: debate(), answer: before, onChanged: vi.fn() }));
+    expect(screen.queryByText('방금 단 답글')).toBeNull();
+    const reply = answer({ id: 'r1', stance: null, body: '방금 단 답글', replies: null });
+    view.rerender(
+      h(AnswerItem, {
+        debate: debate(),
+        answer: { ...before, replies: [reply], replyCount: 1, movedCount: 2 },
+        onChanged: vi.fn(),
+      })
+    );
+    expect(screen.getByText('방금 단 답글')).toBeTruthy();
+    expect(screen.getByRole('button', { name: '생각이 바뀌었어요 2' })).toBeTruthy();
+  });
+
+  it('신고를 보내면 그 답이 바로 접히고 신고하기가 사라진다', async () => {
+    report.mockReset().mockResolvedValue(undefined);
+    render(h(AnswerItem, { debate: debate(), answer: answer({ id: 'a1' }), onChanged: vi.fn() }));
+    fireEvent.click(screen.getByRole('button', { name: '답 메뉴' }));
+    fireEvent.click(screen.getByRole('button', { name: '신고하기' }));
+    fireEvent.click(screen.getByRole('radio', { name: '광고·도배' }));
+    fireEvent.click(screen.getByRole('button', { name: '신고 보내기' }));
+    await waitFor(() => expect(screen.getByText(/신고한 답이에요/)).toBeTruthy());
+    expect(report).toHaveBeenCalledWith('d1', { answerId: 'a1', reason: 'spam', memo: null });
+    fireEvent.click(screen.getByRole('button', { name: '펼치기' }));
+    // 남의 답에서 할 수 있던 일은 신고뿐이라, 신고하고 나면 메뉴도 없다
+    expect(screen.queryByRole('button', { name: '답 메뉴' })).toBeNull();
+    expect(screen.queryByRole('button', { name: '신고하기' })).toBeNull();
+  });
+
+  it('생각이 바뀌었어요를 저장하면 토론 전체 수를 맞추라고 알린다, 실패하면 알리지 않는다', async () => {
+    moveFails = false;
+    const onMoved = vi.fn();
+    const view = render(
+      h(AnswerItem, {
+        debate: debate(),
+        answer: answer({ id: 'a1', movedCount: 0, movedByMe: false }),
+        onChanged: vi.fn(),
+        onMoved,
+      })
+    );
+    fireEvent.click(screen.getByRole('button', { name: '생각이 바뀌었어요' }));
+    await waitFor(() => expect(onMoved).toHaveBeenCalledTimes(1));
+    view.unmount();
+
+    moveFails = true;
+    const onMoved2 = vi.fn();
+    render(
+      h(AnswerItem, {
+        debate: debate(),
+        answer: answer({ id: 'a2', movedCount: 0, movedByMe: false }),
+        onChanged: vi.fn(),
+        onMoved: onMoved2,
+      })
+    );
+    fireEvent.click(screen.getByRole('button', { name: '생각이 바뀌었어요' }));
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: '생각이 바뀌었어요' }).getAttribute('aria-pressed')
+      ).toBe('false')
+    );
+    await new Promise((r) => setTimeout(r, 0));
+    expect(onMoved2).not.toHaveBeenCalled();
+    moveFails = false;
+  });
+
+  it('넓은 화면에서 고치기를 열었다가 답글을 누르면 답글 칸은 비어서 열린다', () => {
+    wide = true;
+    try {
+      const mineAnswer = answer({ id: 'a1', body: '원래 답 본문' });
+      render(
+        h(AnswerItem, {
+          debate: debate(),
+          answer: { ...mineAnswer, author: { ...mineAnswer.author, isMe: true } },
+          onChanged: vi.fn(),
+        })
+      );
+      fireEvent.click(screen.getByRole('button', { name: '답 메뉴' }));
+      fireEvent.click(screen.getByRole('button', { name: '고치기' }));
+      expect(
+        (screen.getByLabelText('내 답', { selector: 'textarea' }) as HTMLTextAreaElement).value
+      ).toBe('원래 답 본문');
+      // 닫히는 메뉴 시트가 jsdom에서 잠시 바깥을 가린다 — 글자로 찾는다
+      fireEvent.click(screen.getAllByText(/^답글/, { selector: 'button' })[0]);
+      expect(
+        (screen.getByLabelText('답글', { selector: 'textarea' }) as HTMLTextAreaElement).value
+      ).toBe('');
+    } finally {
+      wide = false;
+    }
+  });
+
+  it('생각이 바뀌었어요는 저장이 끝나기 전에 또 눌러도 요청을 겹쳐 보내지 않는다', async () => {
+    moveCalls.length = 0;
+    let open = () => {};
+    moveGate = new Promise<void>((r) => (open = r));
+    try {
+      render(
+        h(AnswerItem, {
+          debate: debate(),
+          answer: answer({ id: 'a1', movedCount: 0, movedByMe: false }),
+          onChanged: vi.fn(),
+        })
+      );
+      const btn = () => screen.getByRole('button', { name: /^생각이 바뀌었어요/ });
+      fireEvent.click(btn());
+      fireEvent.click(btn());
+      expect(moveCalls).toEqual([['a1', true]]);
+      expect(btn().getAttribute('aria-pressed')).toBe('true');
+      open();
+      await waitFor(() => expect(btn().getAttribute('aria-busy')).not.toBe('true'));
+      // 저장이 끝나면 다시 누를 수 있다
+      moveGate = null;
+      fireEvent.click(btn());
+      await waitFor(() => expect(moveCalls).toHaveLength(2));
+      expect(moveCalls[1]).toEqual(['a1', false]);
+    } finally {
+      moveGate = null;
+    }
+  });
+});

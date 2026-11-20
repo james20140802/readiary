@@ -1,0 +1,283 @@
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import Button from '@/components/ui/Button';
+import { useTopBar } from '@/components/shell/TopBarContext';
+import SocialFrame from '@/components/social/SocialFrame';
+import { PenLine } from 'lucide-react';
+import { fetchDebateList } from '@/lib/debate/client';
+import type { DebateListItem } from '@/lib/debate/types';
+import { toChars } from '@/lib/debate/underline';
+import { HIGHLIGHT } from './highlight';
+
+interface Page {
+  items: DebateListItem[];
+  nextBefore: string | null;
+  /** 첫 쪽을 불러오지 못했다 — 비었다고 말하지 않고 처음부터 다시 불러오게 한다 */
+  failed?: boolean;
+}
+
+interface Props {
+  initialOpen: Page;
+  initialClosed: Page;
+  friendCount: number;
+  /** 받은 친구 신청 수 — 상단 바 친구 아이콘의 점 */
+  pendingCount?: number;
+}
+
+/** 밑줄 친 문장 — 목록에서는 누르지 않는 그림이다 */
+function UnderlinedQuote({ quote, underlines }: Pick<DebateListItem, 'quote' | 'underlines'>) {
+  const chars = toChars(quote);
+  const out: React.ReactNode[] = [];
+  let cursor = 0;
+  for (const r of [...underlines].sort((a, b) => a.start - b.start)) {
+    if (r.start > cursor) out.push(chars.slice(cursor, r.start).join(''));
+    out.push(
+      <span key={r.start} data-highlight className={HIGHLIGHT}>
+        {chars.slice(r.start, r.end + 1).join('')}
+      </span>
+    );
+    cursor = r.end + 1;
+  }
+  if (cursor < chars.length) out.push(chars.slice(cursor).join(''));
+  return <>{out}</>;
+}
+
+function usePage(initial: Page, closed: boolean) {
+  const [page, setPage] = useState(initial);
+  const [state, setState] = useState<'idle' | 'loading' | 'error'>('idle');
+  const more = async () => {
+    if (!page.nextBefore) return;
+    setState('loading');
+    try {
+      const res = await fetchDebateList({ closed, before: page.nextBefore });
+      setPage((p) => ({ items: [...p.items, ...res.items], nextBefore: res.nextBefore }));
+      setState('idle');
+    } catch {
+      setState('error');
+    }
+  };
+  const retry = async () => {
+    setState('loading');
+    try {
+      const res = await fetchDebateList({ closed, before: null });
+      setPage({ items: res.items, nextBefore: res.nextBefore });
+      setState('idle');
+    } catch {
+      setState('error');
+    }
+  };
+  return { page, state, more, retry };
+}
+
+/** 첫 쪽을 못 불러왔을 때 — 그 목록만 처음부터 다시 */
+function FailedRow({ loading, onRetry }: { loading: boolean; onRetry(): void }) {
+  return (
+    <p className="py-4 font-sans text-caption text-ink-sub">
+      불러오지 못했어요.{' '}
+      <button
+        type="button"
+        className="font-semibold text-accent disabled:opacity-60"
+        onClick={onRetry}
+        disabled={loading}
+      >
+        다시 시도
+      </button>
+    </p>
+  );
+}
+
+function MoreRow({
+  label,
+  state,
+  onMore,
+}: {
+  label: string;
+  state: 'idle' | 'loading' | 'error';
+  onMore(): void;
+}) {
+  if (state === 'error') {
+    return (
+      <p className="py-3 font-sans text-caption text-ink-sub">
+        불러오지 못했어요.{' '}
+        <button type="button" className="font-semibold text-accent" onClick={onMore}>
+          다시 시도
+        </button>
+      </p>
+    );
+  }
+  return (
+    <Button
+      variant="secondary"
+      size="sm"
+      className="mt-4"
+      onClick={onMore}
+      loading={state === 'loading'}
+    >
+      {label}
+    </Button>
+  );
+}
+
+/** 토론 목록 — 진행 중(최근 활동 순)과 정리된 토론. 두 목록은 따로 불러오고 실패도 따로 다룬다 */
+export default function DebateList({
+  initialOpen,
+  initialClosed,
+  friendCount,
+  pendingCount = 0,
+}: Props) {
+  useTopBar({ title: '토론' });
+  const open = usePage(initialOpen, false);
+  const closed = usePage(initialClosed, true);
+  const empty =
+    open.page.items.length === 0 &&
+    closed.page.items.length === 0 &&
+    !open.page.failed &&
+    !closed.page.failed;
+
+  return (
+    <SocialFrame
+      active="talk"
+      pendingCount={pendingCount}
+      desktopAction={
+        <Button asChild size="sm">
+          <Link href="/social/talk/new">발제하기</Link>
+        </Button>
+      }
+      topActions={
+        <Link
+          href="/social/talk/new"
+          aria-label="발제하기"
+          className="grid h-11 w-11 place-items-center rounded-full text-ink lg:hidden"
+        >
+          <PenLine size={22} strokeWidth={1.75} aria-hidden />
+        </Link>
+      }
+    >
+      {empty ? (
+        <div className="mt-10 max-w-[520px] pb-20">
+          <p className="font-serif text-note text-ink">아직 열린 토론이 없어요.</p>
+          <p className="mt-2 font-sans text-caption text-ink-sub">
+            내 기록 하나를 고르고, 함께 볼 곳에 밑줄을 긋고, 질문을 붙여요
+          </p>
+          <div className="mt-5 flex gap-2">
+            <Button asChild size="sm">
+              <Link href="/social/talk/new">첫 토론 열기</Link>
+            </Button>
+            {friendCount === 0 && (
+              <Button asChild size="sm" variant="secondary">
+                <Link href="/social/friends">친구 찾기</Link>
+              </Button>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="mt-[18px] pb-20 lg:mt-7 lg:grid lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)] lg:items-start lg:gap-14">
+          <section aria-labelledby="debates-open">
+            <h2 id="debates-open" className="sr-only">
+              진행 중인 토론
+            </h2>
+            {open.page.failed ? (
+              <FailedRow loading={open.state === 'loading'} onRetry={open.retry} />
+            ) : (
+              open.page.items.length === 0 && (
+                <p className="py-4 font-sans text-caption text-ink-sub">진행 중인 토론이 없어요.</p>
+              )
+            )}
+            <ul>
+              {open.page.items.map((d) => {
+                const t = d.totals;
+                const dist = [
+                  t.agree && `${t.agree} 공감`,
+                  t.differ && `${t.differ} 다르게 읽음`,
+                  t.question && `${t.question} 질문`,
+                ]
+                  .filter(Boolean)
+                  .join(' · ');
+                return (
+                  <li key={d.id} className="border-b border-hairline-strong">
+                    <Link href={`/social/talk/${d.id}`} className="block py-6 active:opacity-80">
+                      <span className="block font-sans text-fine text-ink-sub">
+                        <b className="font-semibold text-ink">
+                          {d.owner.isMe ? '나' : d.owner.nickname}
+                        </b>
+                        의 발제
+                      </span>
+                      <span className="mt-2 block break-keep font-serif text-[21px] leading-[1.7] text-ink lg:text-[23px]">
+                        <UnderlinedQuote quote={d.quote} underlines={d.underlines} />
+                      </span>
+                      <span className="mt-2 block border-l-2 border-accent pl-3 font-serif text-[17px] font-semibold leading-[1.55] text-ink">
+                        {d.question}
+                      </span>
+                      <span className="mt-2.5 block font-sans text-fine text-ink-sub">
+                        {dist || '아직 답이 없어요'}
+                      </span>
+                      {d.topLine && (
+                        <span className="mt-3 block border-t border-hairline pt-3">
+                          <span className="block font-sans text-fine font-semibold text-ink-sub">
+                            {d.topLine.kind === 'most_moved'
+                              ? `생각을 가장 많이 바꾼 답 · ${d.topLine.nickname}`
+                              : `새 답 · ${d.topLine.nickname}`}
+                          </span>
+                          <span className="mt-1 line-clamp-2 block font-serif text-body text-ink">
+                            {d.topLine.body}
+                          </span>
+                        </span>
+                      )}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+            {open.page.nextBefore && (
+              <MoreRow label="진행 중인 토론 더 보기" state={open.state} onMore={open.more} />
+            )}
+          </section>
+
+          <section aria-labelledby="debates-closed" className="mt-12 lg:mt-0">
+            <h2
+              id="debates-closed"
+              className="font-sans text-section-title text-ink lg:text-[22px]"
+            >
+              정리된 토론
+            </h2>
+            <p className="mt-1 font-sans text-caption text-ink-sub">발제한 사람이 남긴 정리예요</p>
+            {closed.page.failed ? (
+              <FailedRow loading={closed.state === 'loading'} onRetry={closed.retry} />
+            ) : (
+              closed.page.items.length === 0 && (
+                <p className="py-4 font-sans text-caption text-ink-faint">
+                  아직 정리된 토론이 없어요.
+                </p>
+              )
+            )}
+            <ul className="mt-2">
+              {closed.page.items.map((d) => (
+                <li key={d.id} className="border-t border-hairline">
+                  <Link href={`/social/talk/${d.id}`} className="block py-4">
+                    <span className="block break-keep font-serif text-[17px] font-semibold leading-[1.55] text-ink">
+                      {d.quote}
+                    </span>
+                    {d.summaryFirstLine && (
+                      <span className="mt-1.5 block border-l-2 border-ink pl-3 font-serif text-body text-ink-sub">
+                        {d.summaryFirstLine}
+                      </span>
+                    )}
+                    <span className="mt-1.5 block font-sans text-fine text-ink-faint">
+                      {d.owner.isMe ? '나' : d.owner.nickname} · 답 {d.answerCount}
+                      {d.totals.movedPeople > 0 && ` · 생각이 바뀐 사람 ${d.totals.movedPeople}`}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            {closed.page.nextBefore && (
+              <MoreRow label="정리된 토론 더 보기" state={closed.state} onMore={closed.more} />
+            )}
+          </section>
+        </div>
+      )}
+    </SocialFrame>
+  );
+}

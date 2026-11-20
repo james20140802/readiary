@@ -639,6 +639,67 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      // 문장 토론(20261117090000). 테이블은 RPC로만 다루므로 함수만 적는다.
+      can_view_debate: { Args: { p_id: string }; Returns: boolean };
+      create_debate: {
+        Args: { p_entry_id: string; p_question: string; p_underlines: Json };
+        Returns: string;
+      };
+      update_debate_question: { Args: { p_id: string; p_question: string }; Returns: undefined };
+      delete_debate: { Args: { p_id: string }; Returns: undefined };
+      count_entry_debates: { Args: { p_entry_id: string }; Returns: number };
+      add_debate_answer: {
+        Args: {
+          p_debate_id: string;
+          p_underline: number | null;
+          p_stance: string;
+          p_body: string;
+          p_evidence_entry_id: string | null;
+        };
+        Returns: string;
+      };
+      add_debate_reply: { Args: { p_answer_id: string; p_body: string }; Returns: string };
+      edit_debate_answer: {
+        Args: { p_id: string; p_stance: string | null; p_body: string };
+        Returns: undefined;
+      };
+      delete_debate_answer: { Args: { p_id: string }; Returns: undefined };
+      set_debate_move: { Args: { p_answer_id: string; p_on: boolean }; Returns: number };
+      set_debate_summary: {
+        Args: { p_id: string; p_summary: string; p_answer_ids: string[] };
+        Returns: undefined;
+      };
+      clear_debate_summary: { Args: { p_id: string }; Returns: undefined };
+      get_debate: { Args: { p_id: string }; Returns: Json };
+      get_debate_answers: {
+        Args: {
+          p_id: string;
+          p_position: number | null;
+          p_all_sentence: boolean;
+          p_after: number;
+          p_limit: number;
+        };
+        Returns: Json;
+      };
+      get_debate_replies: { Args: { p_answer_id: string }; Returns: Json };
+      get_debate_movers: { Args: { p_answer_id: string }; Returns: Json };
+      list_debates: {
+        Args: { p_closed: boolean; p_before: string | null; p_limit: number };
+        Returns: Json;
+      };
+      set_debate_answer_hidden: {
+        Args: { p_answer_id: string; p_hidden: boolean };
+        Returns: undefined;
+      };
+      report_debate: {
+        Args: {
+          p_debate_id: string;
+          p_answer_id: string | null;
+          p_reason: string;
+          p_memo: string | null;
+        };
+        Returns: undefined;
+      };
       mutate_entry_with_reflection_ack: {
         Args: {
           p_entry_id: string;
