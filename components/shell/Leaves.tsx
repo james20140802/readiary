@@ -36,6 +36,7 @@ function createRegistry(): LeavesRegistry {
 /**
  * 모바일 장 묶음. 각 Leaf를 관찰해 60% 이상 보이는 장 중 DOM 순서로 가장 뒤의 장(없으면 첫 장)을
  * 현재 장으로 보고 상단 바 제목·재질(scrolled)에 알린다. sticky로 덮인 장도 보이는 것으로 잡힌다.
+ * 첫 장에서도 조금이라도 내려가면 글이 바 밑을 지나가므로 재질을 깐다.
  */
 export function Leaves({
   children,
@@ -54,6 +55,9 @@ export function Leaves({
   useEffect(() => {
     const release = claimScroll();
     const seen = new Set<Element>();
+    // 첫 장이 화면보다 길면(.leaf--free) 첫 장 안에서도 글이 상단 바 밑으로 지나가므로 그때도 재질을 깐다
+    let onFirst = true;
+    const sync = () => setScrolled(!onFirst || window.scrollY > 0);
     const io = new IntersectionObserver(
       (entries) => {
         for (const e of entries) {
@@ -66,12 +70,15 @@ export function Leaves({
         if (all.length === 0) return;
         const current = all.filter((l) => seen.has(l)).pop() ?? all[0];
         setLeafTitle(registry.titles.get(current) ?? null);
-        setScrolled(current !== all[0]);
+        onFirst = current === all[0];
+        sync();
       },
       { threshold: [0, 0.6, 1] }
     );
     registry.attach(io);
+    window.addEventListener('scroll', sync, { passive: true });
     return () => {
+      window.removeEventListener('scroll', sync);
       io.disconnect();
       registry.attach(null);
       release();

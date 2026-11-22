@@ -4,6 +4,7 @@ import { ArrowRight } from 'lucide-react';
 import PushSeen from '@/components/PushSeen';
 import type { RecallEntry } from '@/lib/recall/fetchRecallEntry';
 import { recallKicker } from './todayCopy';
+import { recallTier } from './recallTier';
 import s from './today.module.css';
 
 interface Props {
@@ -17,7 +18,8 @@ interface Props {
 }
 
 /**
- * 회상 간지 — 시안 home2 .recall(모바일: 쓰기 아래로 겹침) / .stack(데스크톱: 두 장 겹친 간지).
+ * 회상 간지 — 시안 home2 .recall(모바일: 쓰기 아래, 탭 바 위) / .stack(데스크톱: 두 장 겹친 간지).
+ * 모바일 문장은 길수록 작게 써서(recallTier) 간지 키를 고르게 한다.
  * 간지 전체가 기록으로 가는 링크이고, 지금의 생각 덧붙이기는 그 위에 따로 놓인 형제 링크다(중첩하지 않는다).
  */
 export default function RecallSlip({ recall, todayKst, reflect, desk, markSeen = true }: Props) {
@@ -39,7 +41,7 @@ export default function RecallSlip({ recall, todayKst, reflect, desk, markSeen =
           'font-serif font-semibold text-ink',
           desk
             ? 'mt-3 text-quote-lg'
-            : clsx(s.recallQuote, 'mt-2.5 text-[23px] leading-[1.6] tracking-[-0.01em]')
+            : clsx(s.recallQuote, s[`recallQuote-${recallTier(recall.quote)}`], 'mt-2.5')
         )}
       >
         {recall.quote}

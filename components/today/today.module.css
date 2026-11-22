@@ -108,55 +108,82 @@
   pointer-events: none;
 }
 
-/* ── 간지 위치: 모바일 오늘 장에서 쓰기 아래로 겹친다 ── */
-.recallMobile {
-  position: absolute;
-  left: -6px;
-  right: -14px;
-  bottom: calc(var(--app-tabbar-h) + 28px + var(--app-safe-bottom));
-  transform: rotate(-1.4deg);
-  transform-origin: 0 100%;
-}
-/* 쓰기가 펼쳐지면(생각 덧붙이기·남긴 뒤·오류) 간지는 비켜 준다 */
-.leafBody:has([data-expanded='true']) .recallMobile {
-  display: none;
-}
-/* ── 지난달 엮기 안내: 모바일에서는 회상 간지 자리를 잠시 빌린다 ──
-   달이 바뀐 뒤 며칠만 뜨는 안내라, 그동안은 회상 간지 대신 이 간지가 쓰기 아래에 겹친다.
-   '다음에'로 닫거나 엮으면 안내가 사라지고 회상 간지가 돌아온다. */
+/* ── 간지 위치: 모바일 오늘 장에서 쓰기 아래, 탭 바 위 ──
+   간지는 흐름 안에 있다. 장 높이를 채우는 세로 줄에서 margin-top: auto로 바닥에 붙으므로,
+   화면이 넉넉하면 탭 바 위에 놓이고 빠듯하면 쓰기 아래로 밀려 장이 스크롤된다.
+   (예전에는 탭 바 위에 absolute로 띄워서 화면 높이·쓰기 줄 수에 따라 쓰기 버튼을 덮었다) */
 @media (max-width: 1023px) {
+  .leafBody {
+    /* 간지는 책 띠처럼 화면 좌우를 넘겨 깐다 — 장 좌우 여백(24px, globals.css .leaves .leaf)을 넘어 왼쪽 6px·오른쪽 14px 더 */
+    --bleed-left: -30px;
+    --bleed-right: -38px;
+    display: flex;
+    flex-direction: column;
+    /* 장(.leaf)의 위아래 여백을 뺀 보이는 높이 — globals.css .leaves .leaf와 같은 값 */
+    min-height: calc(
+      var(--vh, 100svh) - 72px - var(--app-safe-top) - var(--app-tabbar-h) - 30px -
+        var(--app-safe-bottom)
+    );
+  }
+  /* 기울인 간지의 오른쪽 위 모서리가 약 10px 올라가므로, 쓰기 마지막 줄과 그만큼 넘게 띄운다 */
+  .recallSlot,
   .promptSlot {
-    position: absolute;
-    left: -6px;
-    right: -14px;
-    bottom: calc(var(--app-tabbar-h) + 28px + var(--app-safe-bottom));
+    margin-top: auto;
+    padding-top: 24px;
+  }
+  .promptSheet {
+    margin-inline: var(--bleed-left) var(--bleed-right);
     padding: 20px 24px 16px;
   }
-  .leafBody:has([data-month-prompt]) .recallMobile,
+  /* 쓰기가 펼쳐지면(생각 덧붙이기·남긴 뒤·오류) 간지는 비켜 준다.
+     지난달 엮기 안내가 떠 있는 며칠은 안내가 회상 간지 자리를 빌린다 */
+  .leafBody:has([data-expanded='true']) .recallSlot,
+  .leafBody:has([data-month-prompt]) .recallSlot,
   .leafBody:has([data-expanded='true']) .promptSlot {
     display: none;
   }
 }
-@media (max-width: 1023px) and (max-height: 780px) {
-  .promptSlot {
-    bottom: calc(var(--app-tabbar-h) + 16px + var(--app-safe-bottom));
-  }
+/* 안내가 없거나(닫았거나 아직 오는 중) 회상이 없으면 빈 칸이 바닥 자리를 나눠 갖지 않게 */
+.promptSlot:empty,
+.recallSlot:empty {
+  display: none;
 }
-/* 아주 낮은 화면은 회상 간지를 숨기므로(아래), 안내는 덮일 것 없이 쓰기 아래 흐름에 놓인다 */
-@media (max-width: 1023px) and (max-height: 620px) {
-  .promptSlot {
-    position: static;
-    margin-block: 20px;
-  }
+.recallMobile {
+  margin-inline: var(--bleed-left) var(--bleed-right);
+  transform: rotate(-1.4deg);
+  transform-origin: 0 100%;
 }
 
-/* 낮은 화면: 간지를 줄여 쓰기 줄과 겹치지 않게 */
+/* 회상 문장: 길수록 작게(recallTier) 쓰고 줄을 더 줘서 어느 단계든 높이가 110~120px 안팎이다 */
 .recallQuote {
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: var(--recall-lines);
   overflow: hidden;
+  letter-spacing: -0.01em;
 }
+.recallQuote-lg {
+  --recall-lines: 3;
+  font-size: 23px;
+  line-height: 1.6;
+}
+.recallQuote-md {
+  --recall-lines: 4;
+  font-size: 20px;
+  line-height: 1.5;
+}
+.recallQuote-sm {
+  --recall-lines: 4;
+  font-size: 18px;
+  line-height: 1.6;
+}
+.recallQuote-xs {
+  --recall-lines: 4;
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+/* 낮은 화면: 날짜·쓰기를 줄이고, 간지 문장은 한 줄씩 덜 보여 쓰기와 간지가 한 화면에 들게 한다 */
 @media (max-height: 780px) {
   .num {
     font-size: 88px;
@@ -164,27 +191,27 @@
   .write {
     margin-top: 22px;
   }
-  .recallMobile {
-    bottom: calc(var(--app-tabbar-h) + 16px + var(--app-safe-bottom));
+  .recallQuote-lg {
+    --recall-lines: 2;
   }
-  .recallQuote {
-    -webkit-line-clamp: 2;
+  .recallQuote-md,
+  .recallQuote-sm,
+  .recallQuote-xs {
+    --recall-lines: 3;
   }
 }
 @media (max-height: 700px) {
   .num {
     font-size: 72px;
   }
-  .recallQuote {
-    -webkit-line-clamp: 1;
+  .recallQuote-lg,
+  .recallQuote-md,
+  .recallQuote-sm,
+  .recallQuote-xs {
+    --recall-lines: 2;
   }
-  /* 간지 전체가 기록으로 가는 링크라, 낮은 화면에서는 덧붙이기 문을 접어 쓰기 줄을 덮지 않게 한다 */
+  /* 간지 전체가 기록으로 가는 링크라, 낮은 화면에서는 덧붙이기 문을 접어 간지를 낮춘다 */
   .recallMobile .recallReflect {
-    display: none;
-  }
-}
-@media (max-height: 620px) {
-  .recallMobile {
     display: none;
   }
 }
@@ -314,7 +341,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .recallMobile,
   .stackBack,
   .stackFront,
   .week {
