@@ -114,6 +114,27 @@ describe('Leaves', () => {
     expect(state.scrolled).toBe(false);
   });
 
+  it('첫 장에 머물러도 조금 내려가 글이 바 밑을 지나가면 scrolled가 된다', () => {
+    renderWithTopBar(
+      h(Leaves, null, leaf({ title: '오늘', free: true }, 'a'), leaf({ title: '지난 7일' }, 'b'))
+    );
+    act(() => io.report([{ title: '오늘', ratio: 1 }]));
+    expect(state.scrolled).toBe(false);
+
+    act(() => {
+      Object.defineProperty(window, 'scrollY', { value: 80, configurable: true });
+      window.dispatchEvent(new Event('scroll'));
+    });
+    expect(state.leafTitle).toBe('오늘');
+    expect(state.scrolled).toBe(true);
+
+    act(() => {
+      Object.defineProperty(window, 'scrollY', { value: 0, configurable: true });
+      window.dispatchEvent(new Event('scroll'));
+    });
+    expect(state.scrolled).toBe(false);
+  });
+
   it('덮기(LeafStack) 안의 장도 같은 규칙으로 따른다', () => {
     renderWithTopBar(
       h(Leaves, null, stack(leaf({ title: '질문' }, 'a'), leaf({ title: '답', vellum: true }, 'b')))
