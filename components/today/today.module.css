@@ -114,6 +114,9 @@
    (예전에는 탭 바 위에 absolute로 띄워서 화면 높이·쓰기 줄 수에 따라 쓰기 버튼을 덮었다) */
 @media (max-width: 1023px) {
   .leafBody {
+    /* 간지는 책 띠처럼 화면 좌우를 넘겨 깐다 — 장 좌우 여백(24px, globals.css .leaves .leaf)을 넘어 왼쪽 6px·오른쪽 14px 더 */
+    --bleed-left: -30px;
+    --bleed-right: -38px;
     display: flex;
     flex-direction: column;
     /* 장(.leaf)의 위아래 여백을 뺀 보이는 높이 — globals.css .leaves .leaf와 같은 값 */
@@ -129,7 +132,7 @@
     padding-top: 24px;
   }
   .promptSheet {
-    margin-inline: -6px -14px;
+    margin-inline: var(--bleed-left) var(--bleed-right);
     padding: 20px 24px 16px;
   }
   /* 쓰기가 펼쳐지면(생각 덧붙이기·남긴 뒤·오류) 간지는 비켜 준다.
@@ -146,7 +149,7 @@
   display: none;
 }
 .recallMobile {
-  margin-inline: -6px -14px;
+  margin-inline: var(--bleed-left) var(--bleed-right);
   transform: rotate(-1.4deg);
   transform-origin: 0 100%;
 }
