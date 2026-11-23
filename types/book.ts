@@ -43,6 +43,4 @@ export type BookSearchResult = {
   datetime: string;
   totalPages?: number;
   url: string;
-  /** 카카오가 모르는 ISBN을 알라딘에서 찾은 책 — 출처를 적어야 한다 */
-  source?: 'aladin';
 };

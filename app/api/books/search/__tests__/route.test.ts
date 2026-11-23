@@ -17,7 +17,6 @@ beforeEach(() => {
   fetchMock.mockReset();
   vi.stubGlobal('fetch', fetchMock);
   vi.stubEnv('KAKAO_REST_API_KEY', 'kakao');
-  vi.stubEnv('ALADIN_TTB_KEY', '');
 });
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -46,39 +45,10 @@ describe('책 찾기 API', () => {
     expect(kakaoUrl().searchParams.get('query')).toBe('9788936434267');
   });
 
-  it('카카오가 모르는 ISBN은 알라딘 키가 있을 때 알라딘에서 찾는다', async () => {
-    vi.stubEnv('ALADIN_TTB_KEY', 'ttb');
-    fetchMock.mockResolvedValueOnce(Response.json({ documents: [] })).mockResolvedValueOnce(
-      Response.json({
-        item: [
-          {
-            title: '작은 책',
-            author: '누군가 (지은이)',
-            isbn13: '9788936434267',
-            cover: 'https://image.aladin.co.kr/c.jpg',
-            link: 'https://www.aladin.co.kr/x',
-            subInfo: { itemPage: 120 },
-          },
-        ],
-      })
-    );
-    const { documents } = await (await search('9788936434267')).json();
-    expect(documents).toEqual([
-      expect.objectContaining({
-        title: '작은 책',
-        authors: ['누군가'],
-        source: 'aladin',
-        total_pages: 120,
-        thumbnail: 'https://image.aladin.co.kr/c.jpg',
-      }),
-    ]);
-  });
-
-  it('알라딘 키가 없으면 빈 결과 그대로', async () => {
+  it('카카오가 모르는 ISBN은 빈 결과 그대로', async () => {
     fetchMock.mockResolvedValue(Response.json({ documents: [] }));
     const { documents } = await (await search('9788936434267')).json();
     expect(documents).toEqual([]);
-    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it('카카오 오류는 502로 알린다', async () => {

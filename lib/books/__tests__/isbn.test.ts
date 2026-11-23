@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { asIsbn10, asIsbn13, isbnFromBarcodes, isbnQuery, preferredIsbn } from '../isbn';
+import { asIsbn10, asIsbn13, isbnFromBarcodes, isbnQuery } from '../isbn';
 
 describe('ISBN 판별', () => {
   it('하이픈·공백을 걷어 낸 올바른 ISBN-13만 받는다', () => {
@@ -25,12 +25,5 @@ describe('ISBN 판별', () => {
     expect(isbnFromBarcodes(['15000', '9788936434267'])).toBe('9788936434267');
     expect(isbnFromBarcodes(['8801234567893'])).toBeNull();
     expect(isbnFromBarcodes([])).toBeNull();
-  });
-
-  it('카카오 isbn 필드에서 13자리를 우선한다', () => {
-    expect(preferredIsbn('8936434268 9788936434267')).toBe('9788936434267');
-    expect(preferredIsbn('8936434268 ')).toBe('8936434268');
-    expect(preferredIsbn(' ')).toBeNull();
-    expect(preferredIsbn(null)).toBeNull();
   });
 });

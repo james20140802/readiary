@@ -20,12 +20,6 @@ const nextConfig: NextConfig = {
         hostname: 't1.daumcdn.net',
         pathname: '/**',
       },
-      // 카카오가 모르는 ISBN을 알라딘에서 찾았을 때의 표지 — lib/books/aladin.ts
-      {
-        protocol: 'https',
-        hostname: 'image.aladin.co.kr',
-        pathname: '/**',
-      },
     ],
   },
 

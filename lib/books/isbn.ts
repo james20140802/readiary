@@ -47,10 +47,3 @@ export function isbnFromBarcodes(values: readonly string[]): string | null {
   }
   return null;
 }
-
-/** 카카오의 isbn 필드('8936434268 9788936434267')에서 13자리를 우선해 하나를 고른다 */
-export function preferredIsbn(field: string | null | undefined): string | null {
-  if (!field) return null;
-  const parts = field.split(/\s+/).filter(Boolean);
-  return parts.map(asIsbn13).find(Boolean) ?? parts.map(asIsbn10).find(Boolean) ?? null;
-}

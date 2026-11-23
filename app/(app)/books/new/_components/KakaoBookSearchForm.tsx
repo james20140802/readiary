@@ -30,7 +30,7 @@ export default function KakaoBookSearchForm({
   const [loading, setLoading] = useState(false);
   const [selectedBook, setSelectedBook] = useState<BookSearchResult | null>(null);
   const [pages, setPages] = useState('');
-  const [pagesFrom, setPagesFrom] = useState<'book' | 'aladin' | null>(null);
+  const [pagesFound, setPagesFound] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [searchError, setSearchError] = useState(false);
   const chosenRef = useRef<HTMLElement>(null);
@@ -105,24 +105,17 @@ export default function KakaoBookSearchForm({
     onBusyChange?.(true);
     setSelectedBook(book);
     setPages('');
-    setPagesFrom(null);
+    setPagesFound(false);
     try {
-      if (book.totalPages) {
-        // 알라딘에서 찾은 책은 검색 결과에 쪽수가 이미 있다
-        setPages(String(book.totalPages));
-        setPagesFrom(book.source === 'aladin' ? 'aladin' : 'book');
-        return;
-      }
       const res = await apiFetch('/api/books/pages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        // 다음 책 정보에서 못 읽으면 서버가 ISBN으로 알라딘에 묻는다
-        body: JSON.stringify({ url: book.url, isbn: book.isbn }),
+        body: JSON.stringify({ url: book.url }),
       });
-      const { totalPages, source } = await res.json();
+      const { totalPages } = await res.json();
       if (totalPages) {
         setPages(String(totalPages));
-        setPagesFrom(source === 'aladin' ? 'aladin' : 'book');
+        setPagesFound(true);
       }
     } catch (e) {
       // 페이지 수 조회가 아예 실패해도 등록은 가능해야 한다 — 쪽수는 비워 두고 고칠 수 있게
@@ -236,19 +229,6 @@ export default function KakaoBookSearchForm({
               onClick={() => handleSelect(book)}
             />
           ))}
-          {results.some((b) => b.source === 'aladin') && (
-            <p className="mt-3 font-sans text-caption text-ink-faint">
-              도서 DB 제공:{' '}
-              <a
-                href="https://www.aladin.co.kr"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline underline-offset-2"
-              >
-                알라딘 인터넷서점
-              </a>
-            </p>
-          )}
         </div>
       </section>
 
@@ -281,11 +261,9 @@ export default function KakaoBookSearchForm({
             onChange={(e) => setPages(e.target.value.replace(/[^0-9]/g, ''))}
             disabled={registerLock.busy || frozen || selectLock.busy}
             hint={
-              pagesFrom === 'aladin'
-                ? '알라딘 책 정보에서 가져왔어요. 고쳐도 돼요.'
-                : pagesFrom
-                  ? '책 정보에서 가져왔어요. 고쳐도 돼요.'
-                  : '몰라도 꽂을 수 있어요. 전자책·오디오북도 기록할 수 있어요.'
+              pagesFound
+                ? '책 정보에서 가져왔어요. 고쳐도 돼요.'
+                : '몰라도 꽂을 수 있어요. 전자책·오디오북도 기록할 수 있어요.'
             }
           />
         </ChosenBook>
