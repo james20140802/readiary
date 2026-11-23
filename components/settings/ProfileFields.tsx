@@ -67,7 +67,7 @@ export function ProfileFieldsView(props: ProfileFieldsViewProps) {
           )}
           {props.uploading && (
             <span className="absolute inset-0 grid place-items-center bg-scrim/40">
-              <Loader2 className="animate-spin text-ink-invert" aria-label="사진을 고르는 중" />
+              <Loader2 className="animate-spin text-on-scrim" aria-label="사진을 고르는 중" />
             </span>
           )}
         </div>
