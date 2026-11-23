@@ -1,5 +1,5 @@
 import { apiFetch } from '@/lib/api/fetch';
-import { KakaoBookSearchResponse } from '@/types/kakao';
+import type { BookSearchResponse } from '@/types/kakao';
 import { originalCoverUrl } from './coverUrl';
 
 export async function searchBook(query: string) {
@@ -9,9 +9,9 @@ export async function searchBook(query: string) {
     throw new Error(`검색 실패: ${res.status}`);
   }
 
-  const data: KakaoBookSearchResponse = await res.json();
+  const data: BookSearchResponse = await res.json();
 
-  // Kakao 응답 포맷 맞춰서 정리
+  // 카카오(또는 알라딘에서 옮긴) 문서를 화면용으로 정리
   return data.documents.map((doc) => ({
     title: doc.title,
     authors: doc.authors,
@@ -22,5 +22,7 @@ export async function searchBook(query: string) {
     contents: doc.contents,
     datetime: doc.datetime,
     url: doc.url,
+    totalPages: doc.total_pages ?? undefined,
+    source: doc.source,
   }));
 }

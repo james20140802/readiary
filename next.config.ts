@@ -20,6 +20,12 @@ const nextConfig: NextConfig = {
         hostname: 't1.daumcdn.net',
         pathname: '/**',
       },
+      // 카카오가 모르는 ISBN을 알라딘에서 찾았을 때의 표지 — lib/books/aladin.ts
+      {
+        protocol: 'https',
+        hostname: 'image.aladin.co.kr',
+        pathname: '/**',
+      },
     ],
   },
 
@@ -40,6 +46,8 @@ const pwaConfig = withPWA({
   // / 는 위 규칙(isPersonalizedSameOriginRequest)이 NetworkOnly 로 처리한다.
   cacheStartUrl: false,
   dynamicStartUrl: false,
+  // 바코드 판독기(ZXing wasm, 약 1MB)는 "바코드로 찾기"를 처음 쓸 때만 받는다 — 설치 때 모두에게 미리 받지 않는다
+  buildExcludes: [/\.wasm$/],
 });
 
 export default pwaConfig(nextConfig);

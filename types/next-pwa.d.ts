@@ -29,6 +29,8 @@ declare module 'next-pwa' {
     cacheStartUrl?: boolean;
     /** 시작 URL 이 로그인 여부로 리다이렉트되면 true — 기본 true, runtimeCaching 맨 앞에 NetworkFirst 규칙을 끼운다 */
     dynamicStartUrl?: boolean;
+    /** 프리캐시에서 뺄 빌드 산출물 — next-pwa 기본 제외 목록 뒤에 덧붙는다 */
+    buildExcludes?: (RegExp | string)[];
   };
 
   const withPWA =

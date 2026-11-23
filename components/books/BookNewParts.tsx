@@ -82,11 +82,11 @@ export function SearchBox({
           type="search"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          aria-label="제목이나 ISBN"
+          aria-label="제목, 지은이, ISBN"
           aria-describedby={hintId}
           enterKeyHint="search"
           className="h-full min-w-0 flex-1 bg-transparent font-sans text-[19px] font-medium text-ink outline-none placeholder:text-ink-faint"
-          placeholder="책 제목이나 ISBN"
+          placeholder="제목·지은이·ISBN"
         />
         <button
           type="submit"

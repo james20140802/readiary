@@ -21,3 +21,20 @@ export interface KakaoBookDocument {
   translators: string[]; // 번역자 목록
   url: string; // 책 정보 페이지 URL
 }
+
+/**
+ * /api/books/search가 돌려주는 한 권. 카카오 문서 그대로이거나, 카카오가 모르는 ISBN을
+ * 알라딘에서 찾아 같은 모양으로 옮긴 것이다(source: 'aladin', 쪽수 포함).
+ */
+export interface BookSearchDocument
+  extends Pick<
+    KakaoBookDocument,
+    'authors' | 'contents' | 'datetime' | 'isbn' | 'publisher' | 'thumbnail' | 'title' | 'url'
+  > {
+  source?: 'aladin';
+  total_pages?: number | null;
+}
+
+export interface BookSearchResponse {
+  documents: BookSearchDocument[];
+}
