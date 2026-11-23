@@ -26,10 +26,13 @@ export function barcodeMessage(outcome: BarcodeOutcome | null): string | null {
  * 실패 안내는 `onMessage`로 넘겨 검색줄 아래(SearchBox의 status)에 적게 한다.
  */
 export default function BarcodeSearchButton({
+  onStart,
   onIsbn,
   onMessage,
   disabled,
 }: {
+  /** 사진을 받아 읽기 시작할 때. 읽는 사이 사용자가 다른 일을 했는지 가늠하는 기준점으로 쓴다 */
+  onStart?(): void;
   onIsbn(isbn: string): void;
   onMessage(message: string | null): void;
   disabled?: boolean;
@@ -39,6 +42,7 @@ export default function BarcodeSearchButton({
 
   const handleFile = async (file: File | undefined) => {
     if (!file) return;
+    onStart?.();
     setReading(true);
     onMessage(null);
     let next: BarcodeOutcome;
