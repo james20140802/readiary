@@ -249,3 +249,15 @@ delete from public.notifications where type in ('debate_answer','debate_reply','
 ### 코드를 되돌릴 때
 
 `NEXT_PUBLIC_PHOTO_QUOTE_ENABLED`를 지우고 다시 배포하면 버튼과 서버 경로가 함께 꺼진다. 마이그레이션은 되돌리지 않는다. 동의 기록은 남겨 두고, 동의한 사람은 설정에서 계속 철회할 수 있다.
+
+## 책 찾기: 지은이·바코드 (2026-11-23, 코드 머지 전)
+
+책 등록 화면에서 지은이로도 찾고, 뒤표지 바코드로 찾는다. 새 외부 서비스는 없다.
+
+- 검색어: 지금처럼 서버가 카카오 책 검색에 보낸다. 대상(`target`)을 정하지 않아 제목·지은이·출판사를 함께 본다. 검색어가 ISBN 하나면 `target=isbn`으로 보낸다.
+- 바코드 사진: **기기 안에서만 읽는다.** 브라우저 내장 BarcodeDetector가 있으면 그것을, 없으면(iOS 등) ZXing WebAssembly 판독기를 쓴다. 판독기 파일(`/_next/static/media/zxing_reader.*.wasm`, 약 1MB)은 이 서비스가 직접 내주고, 처음 바코드를 읽을 때만 받는다(서비스 워커 프리캐시에서 뺐다). 사진은 서버로 가지 않고, 읽은 ISBN만 검색어가 된다.
+- 알라딘 Open API로 쪽수를 보충하려 했으나 알라딘이 2026-10-30에 서비스를 종료해(공지 2026-08-31) 넣지 않았다.
+
+### 미검증
+
+- 실제 기기에서 뒤표지를 찍어 읽기(iOS Safari, iOS 설치형 PWA, Android Chrome). 생성한 EAN-13 이미지를 같은 ZXing 판독기로 읽는 것만 확인했다.

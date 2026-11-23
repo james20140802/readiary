@@ -1,7 +1,7 @@
 'use client';
 import ActionNavigation from '@/components/ui/ActionNavigation';
 import { SessionExpiredError, apiFetch } from '@/lib/api/fetch';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useCreationSubmission } from '@/hooks/useCreationSubmission';
 import { useActionLock } from '@/hooks/useActionLock';
 import { BookSearchResult } from '@/types/book';
@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { searchBook } from '@/lib/books/searchBook';
 import { ChosenBook, LineField, ResultRow, SearchBox } from '@/components/books/BookNewParts';
 import { BTN_INK } from '@/components/books/buttonStyles';
+import BarcodeSearchButton from '@/components/books/BarcodeSearchButton';
 
 /** 카카오 응답의 datetime('2021-08-02T00:00:00.000+09:00')에서 연도만 */
 function publishedYear(datetime: string | undefined): string | null {
@@ -32,6 +33,7 @@ export default function KakaoBookSearchForm({
   const [pagesFound, setPagesFound] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [searchError, setSearchError] = useState(false);
+  const [barcodeMessage, setBarcodeMessage] = useState<string | null>(null);
   const chosenRef = useRef<HTMLElement>(null);
 
   const selectLock = useActionLock();
@@ -66,20 +68,51 @@ export default function KakaoBookSearchForm({
   const router = useRouter();
   usePrefetchDestination('/books');
 
-  const handleSearch = async () => {
-    if (query.trim() === '' || loading) return;
+  const runSearch = async (q: string): Promise<BookSearchResult[] | null> => {
+    if (q.trim() === '' || loading) return null;
     setLoading(true);
     setHasSearched(true);
     setSearchError(false);
     try {
-      const data = await searchBook(query);
+      const data = await searchBook(q);
       setResults(data);
+      return data;
     } catch (e) {
       setSearchError(true);
       console.error(e);
+      return null;
     } finally {
       setLoading(false);
     }
+  };
+
+  // 사용자가 직접 한 일(입력·찾기·고르기·꽂기)마다 올린다. 바코드를 읽는 사이 이 값이 바뀌었으면
+  // 늦게 도착한 바코드 결과가 그 일을 덮지 않게 버린다
+  const userActs = useRef(0);
+  const barcodeStartedAt = useRef(-1);
+  const userActed = () => {
+    userActs.current += 1;
+  };
+  // 비동기 바코드 흐름은 시작할 때의 렌더 값을 쥐고 있으므로, 자동 선택 직전에는 지금 값을 본다
+  const latest = useRef({ ready: creation.ready, frozen: !!creation.snapshot });
+  useEffect(() => {
+    latest.current = { ready: creation.ready, frozen: !!creation.snapshot };
+  });
+
+  const handleSearch = () => {
+    userActed();
+    void runSearch(query);
+  };
+
+  // 바코드에서 읽은 ISBN으로 찾는다. 한 권만 나오면 바로 골라 쪽수 확인으로 넘어간다
+  const handleBarcode = async (isbn: string) => {
+    const startedAt = barcodeStartedAt.current;
+    if (userActs.current !== startedAt) return;
+    setQuery(isbn);
+    const found = await runSearch(isbn);
+    if (userActs.current !== startedAt) return;
+    const now = latest.current;
+    if (found?.length === 1 && now.ready && !now.frozen) void handleSelect(found[0]);
   };
 
   const reveal = () =>
@@ -116,6 +149,7 @@ export default function KakaoBookSearchForm({
   };
 
   const handleConfirm = async () => {
+    userActed();
     if (!selectedBook || !creation.ready || registerLock.isLocked()) return;
     let total: number | null = null;
     if (pages.trim() !== '') {
@@ -178,11 +212,25 @@ export default function KakaoBookSearchForm({
         <SearchBox
           value={query}
           onChange={(v) => {
+            userActed();
             setQuery(v);
             setHasSearched(false);
+            setBarcodeMessage(null);
           }}
           onSubmit={handleSearch}
           loading={loading}
+          hint="제목, 지은이, ISBN으로 찾거나 바코드를 찍어요."
+          status={barcodeMessage}
+          trailing={
+            <BarcodeSearchButton
+              onStart={() => {
+                barcodeStartedAt.current = userActs.current;
+              }}
+              onIsbn={handleBarcode}
+              onMessage={setBarcodeMessage}
+              disabled={loading || selectLock.busy || registerLock.busy || frozen}
+            />
+          }
         />
         <div className="mt-3.5" aria-live="polite" aria-busy={loading}>
           {searchError ? (
@@ -210,7 +258,10 @@ export default function KakaoBookSearchForm({
               }}
               pressed={selectedBook?.isbn === book.isbn}
               disabled={selectLock.busy || registerLock.busy || !creation.ready || frozen}
-              onClick={() => handleSelect(book)}
+              onClick={() => {
+                userActed();
+                void handleSelect(book);
+              }}
             />
           ))}
         </div>
