@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef, useId } from 'react';
+import { forwardRef, useId, type ReactNode } from 'react';
 import { Search } from 'lucide-react';
 import clsx from 'clsx';
 import { DESK_SWITCH_CLASS } from '@/components/shell/Leaves';
@@ -61,11 +61,19 @@ export function SearchBox({
   onChange,
   onSubmit,
   loading,
+  trailing,
+  hint = '제목, 지은이, ISBN으로 찾아요.',
+  status,
 }: {
   value: string;
   onChange: (v: string) => void;
   onSubmit: () => void;
   loading?: boolean;
+  /** 입력칸과 "찾기" 사이에 놓을 도구(바코드 아이콘) */
+  trailing?: ReactNode;
+  hint?: string;
+  /** 도구가 남기는 안내(실패 등). 화면 낭독기에 읽힌다 */
+  status?: string | null;
 }) {
   const hintId = useId();
   return (
@@ -88,6 +96,7 @@ export function SearchBox({
           className="h-full min-w-0 flex-1 bg-transparent font-sans text-[19px] font-medium text-ink outline-none placeholder:text-ink-faint"
           placeholder="제목·지은이·ISBN"
         />
+        {trailing}
         <button
           type="submit"
           disabled={loading}
@@ -97,7 +106,10 @@ export function SearchBox({
         </button>
       </div>
       <p id={hintId} className="mt-2 font-sans text-caption text-ink-sub">
-        제목, 지은이, ISBN으로 찾아요.
+        {hint}
+      </p>
+      <p role="status" className="font-sans text-caption text-ink-sub">
+        {status}
       </p>
     </form>
   );

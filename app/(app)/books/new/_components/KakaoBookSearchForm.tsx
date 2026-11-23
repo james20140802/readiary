@@ -33,6 +33,7 @@ export default function KakaoBookSearchForm({
   const [pagesFound, setPagesFound] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [searchError, setSearchError] = useState(false);
+  const [barcodeMessage, setBarcodeMessage] = useState<string | null>(null);
   const chosenRef = useRef<HTMLElement>(null);
 
   const selectLock = useActionLock();
@@ -192,13 +193,19 @@ export default function KakaoBookSearchForm({
           onChange={(v) => {
             setQuery(v);
             setHasSearched(false);
+            setBarcodeMessage(null);
           }}
           onSubmit={handleSearch}
           loading={loading}
-        />
-        <BarcodeSearchButton
-          onIsbn={handleBarcode}
-          disabled={loading || selectLock.busy || registerLock.busy || frozen}
+          hint="제목, 지은이, ISBN으로 찾거나 바코드를 찍어요."
+          status={barcodeMessage}
+          trailing={
+            <BarcodeSearchButton
+              onIsbn={handleBarcode}
+              onMessage={setBarcodeMessage}
+              disabled={loading || selectLock.busy || registerLock.busy || frozen}
+            />
+          }
         />
         <div className="mt-3.5" aria-live="polite" aria-busy={loading}>
           {searchError ? (

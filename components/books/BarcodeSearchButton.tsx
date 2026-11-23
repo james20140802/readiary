@@ -1,8 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { ScanBarcode } from 'lucide-react';
-import { BTN_LINE, BTN_SM } from './buttonStyles';
+import { Loader2, ScanBarcode } from 'lucide-react';
 
 const ACCEPT = 'image/*,.heic,.heif';
 
@@ -22,25 +21,26 @@ export function barcodeMessage(outcome: BarcodeOutcome | null): string | null {
 }
 
 /**
- * "바코드로 찾기" — 뒤표지 바코드를 찍거나 고르면 기기 안에서 ISBN을 읽어 돌려준다.
+ * 검색줄 안의 바코드 아이콘 — 뒤표지 바코드를 찍거나 고르면 기기 안에서 ISBN을 읽어 돌려준다.
  * iOS 설치형 PWA에서 실시간 카메라가 멈추는 문제가 있어 OS 카메라·앨범(파일 입력)으로 받는다.
+ * 실패 안내는 `onMessage`로 넘겨 검색줄 아래(SearchBox의 status)에 적게 한다.
  */
 export default function BarcodeSearchButton({
   onIsbn,
+  onMessage,
   disabled,
 }: {
   onIsbn(isbn: string): void;
+  onMessage(message: string | null): void;
   disabled?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [reading, setReading] = useState(false);
-  const [outcome, setOutcome] = useState<BarcodeOutcome | null>(null);
-  const message = barcodeMessage(outcome);
 
   const handleFile = async (file: File | undefined) => {
     if (!file) return;
     setReading(true);
-    setOutcome(null);
+    onMessage(null);
     let next: BarcodeOutcome;
     try {
       const { readIsbnFromPhoto, BarcodePhotoError } = await import('@/lib/books/barcode');
@@ -56,12 +56,12 @@ export default function BarcodeSearchButton({
       next = { kind: 'failed' };
     }
     setReading(false);
-    setOutcome(next);
+    onMessage(barcodeMessage(next));
     if (next.kind === 'isbn') onIsbn(next.isbn);
   };
 
   return (
-    <div className="mt-4">
+    <>
       <input
         ref={inputRef}
         type="file"
@@ -79,19 +79,21 @@ export default function BarcodeSearchButton({
         type="button"
         onClick={() => inputRef.current?.click()}
         disabled={disabled || reading}
-        aria-describedby={message ? 'barcode-search-message' : undefined}
-        className={`${BTN_LINE} ${BTN_SM}`}
+        aria-label={reading ? '바코드 읽는 중' : '바코드로 찾기'}
+        title="바코드로 찾기"
+        className="grid size-11 shrink-0 place-items-center rounded-full text-ink-sub transition-colors hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-50"
       >
-        <ScanBarcode size={18} strokeWidth={1.75} aria-hidden />
-        {reading ? '바코드 읽는 중…' : '바코드로 찾기'}
+        {reading ? (
+          <Loader2
+            size={22}
+            strokeWidth={1.75}
+            className="animate-spin motion-reduce:animate-none"
+            aria-hidden
+          />
+        ) : (
+          <ScanBarcode size={22} strokeWidth={1.75} aria-hidden />
+        )}
       </button>
-      <p
-        id="barcode-search-message"
-        role="status"
-        className="mt-2 font-sans text-caption text-ink-sub"
-      >
-        {message}
-      </p>
-    </div>
+    </>
   );
 }
